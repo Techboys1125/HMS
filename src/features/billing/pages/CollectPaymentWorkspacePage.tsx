@@ -27,6 +27,10 @@ const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: string }[] =
     { value: "Bank Transfer", label: "Bank Transfer (NEFT/IMPS)", icon: "🏦" },
   ];
 
+const handlePrint = () => {
+  window.print();
+};
+
 export function CollectPaymentWorkspacePage() {
   const { billId } = useParams<{ billId: string }>();
   const navigate = useNavigate();
@@ -87,9 +91,6 @@ export function CollectPaymentWorkspacePage() {
     }
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
 
   if (billLoading) {
     return (
@@ -134,19 +135,19 @@ export function CollectPaymentWorkspacePage() {
             className="flex items-center gap-2 text-xs text-[#64748B] mb-1 font-medium"
             style={{ fontFamily: RB }}
           >
-            <span
+            <button type="button"
               className="hover:text-[#0D47A1] cursor-pointer"
               onClick={() => navigate("/billing")}
             >
               Home
-            </span>
+            </button>
             <ChevronRight size={12} />
-            <span
+            <button type="button"
               className="hover:text-[#0D47A1] cursor-pointer"
               onClick={() => navigate("/billing")}
             >
               Billing & Payments
-            </span>
+            </button>
             <ChevronRight size={12} />
             <span className="text-[#0D47A1] font-semibold">
               Collect Payment
@@ -395,9 +396,9 @@ export function CollectPaymentWorkspacePage() {
                 style={{ fontFamily: RB }}
               >
                 <div className="md:col-span-2">
-                  <label className="block text-slate-700 font-semibold mb-2">
+                  <span className="block text-slate-700 font-semibold mb-2">
                     Payment Method *
-                  </label>
+                  </span>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     {PAYMENT_METHODS.map((pm) => (
                       <button
@@ -415,9 +416,9 @@ export function CollectPaymentWorkspacePage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-slate-700 font-semibold mb-1">
+                  <span className="block text-slate-700 font-semibold mb-1">
                     Amount to Collect (₹) *
-                  </label>
+                  
                   <input
                     type="number"
                     value={amount || ""}
@@ -428,7 +429,7 @@ export function CollectPaymentWorkspacePage() {
                     max={balanceAmount}
                     placeholder={`Max: ₹${balanceAmount.toLocaleString()}`}
                     className="w-full px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 text-sm font-bold text-[#111827] focus:bg-white focus:border-[#0D47A1] focus:outline-none"
-                  />
+                  /></span>
                   <div className="flex items-center gap-2 mt-1.5">
                     <button
                       type="button"
@@ -448,22 +449,22 @@ export function CollectPaymentWorkspacePage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-slate-700 font-semibold mb-1">
+                  <span className="block text-slate-700 font-semibold mb-1">
                     Reference / Transaction ID
-                  </label>
-                  <input
+                  
+                  <input aria-label="Input field"
                     type="text"
                     value={referenceNumber}
                     onChange={(e) => setReferenceNumber(e.target.value)}
                     placeholder="e.g. UPI/890123/OKAX"
                     className="w-full px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 text-xs font-mono focus:bg-white focus:border-[#0D47A1] focus:outline-none"
-                  />
+                  /></span>
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-slate-700 font-semibold mb-1">
+                  <span className="block text-slate-700 font-semibold mb-1">
                     Remarks / Notes
-                  </label>
-                  <textarea
+                  </span>
+                  <textarea aria-label="Text area"
                     rows={2}
                     value={remarks}
                     onChange={(e) => setRemarks(e.target.value)}
@@ -639,7 +640,7 @@ export function CollectPaymentWorkspacePage() {
       {/* SUCCESS MODAL */}
       {showSuccess && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-2xl w-full max-w-md p-6 text-center space-y-4 animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-2xl w-full max-w-md p-6 text-center space-y-4 transition-transform duration-200">
             <div className="w-14 h-14 rounded-full bg-green-50 text-[#66BB6A] flex items-center justify-center mx-auto border-2 border-green-200">
               <CheckCircle2 size={32} />
             </div>

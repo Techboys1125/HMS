@@ -72,6 +72,31 @@ const NEXT_VISIT_STR = new Date(Date.now() + 7 * 86400000)
   .toISOString()
   .split("T")[0];
 
+const saveMedications = async (
+  prescriptionId: string | number,
+  medicines: MedicineItem[],
+) => {
+  const validMeds = medicines.filter((m) => m.name.trim() !== "");
+  if (validMeds.length === 0) return;
+  await Promise.all(
+    validMeds.map((med) =>
+      encountersApi
+        .addMedication(prescriptionId, {
+          source: "FREE_TEXT",
+          medicineName: med.name,
+          doseValue: parseInt(med.dosage) || 500,
+          doseUnit: "MG",
+          frequencyCode: med.frequency || "1-0-1",
+          durationValue: parseInt(med.duration) || 7,
+          durationUnit: "DAYS",
+          route: "ORAL",
+          instructions: med.instructions || "After food",
+        })
+        .catch(() => null),
+    ),
+  );
+};
+
 export function StartConsultationPage({
   onBack,
   onCompleteSuccess,
@@ -302,30 +327,6 @@ export function StartConsultationPage({
     setFormData((prev) => ({ ...prev, [actualField]: val }));
   };
 
-  const saveMedications = async (
-    prescriptionId: string | number,
-    medicines: MedicineItem[],
-  ) => {
-    const validMeds = medicines.filter((m) => m.name.trim() !== "");
-    if (validMeds.length === 0) return;
-    await Promise.all(
-      validMeds.map((med) =>
-        encountersApi
-          .addMedication(prescriptionId, {
-            source: "FREE_TEXT",
-            medicineName: med.name,
-            doseValue: parseInt(med.dosage) || 500,
-            doseUnit: "MG",
-            frequencyCode: med.frequency || "1-0-1",
-            durationValue: parseInt(med.duration) || 7,
-            durationUnit: "DAYS",
-            route: "ORAL",
-            instructions: med.instructions || "After food",
-          })
-          .catch(() => null),
-      ),
-    );
-  };
 
   const handleSaveDraft = async () => {
     setIsDraftSaved(true);
@@ -580,7 +581,7 @@ export function StartConsultationPage({
     <div className="flex-1 bg-[#F1F5F9] overflow-y-auto flex flex-col font-sans relative pb-24">
       {showToast && (
         <div
-          className="fixed top-5 right-5 z-50 bg-[#66BB6A] text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4"
+          className="fixed top-5 right-5 z-50 bg-[#66BB6A] text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 transition-opacity fade-in slide-in-from-top-4"
           style={{ fontFamily: PP }}
         >
           <CheckCircle2 size={20} />
@@ -596,7 +597,7 @@ export function StartConsultationPage({
       )}
       {toastMsg && !showToast && (
         <div
-          className="fixed top-5 right-5 z-50 bg-red-600 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4"
+          className="fixed top-5 right-5 z-50 bg-red-600 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 transition-opacity fade-in slide-in-from-top-4"
           style={{ fontFamily: PP }}
         >
           <AlertCircle size={20} />

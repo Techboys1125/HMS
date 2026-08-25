@@ -48,7 +48,7 @@ export function ContactSection({
         }}
       >
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -58,8 +58,8 @@ export function ContactSection({
             }}
           >
             Primary Phone Number *
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={form.primaryPhone}
             onChange={(e) => onChange("primaryPhone", e.target.value)}
@@ -71,7 +71,7 @@ export function ContactSection({
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
           {errors.primaryPhone && (
             <span
               style={{
@@ -87,7 +87,7 @@ export function ContactSection({
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -97,8 +97,8 @@ export function ContactSection({
             }}
           >
             Secondary Phone Number
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={form.secondaryPhone}
             onChange={(e) => onChange("secondaryPhone", e.target.value)}
@@ -110,11 +110,11 @@ export function ContactSection({
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -124,8 +124,8 @@ export function ContactSection({
             }}
           >
             Emergency Contact Hotline (24/7)
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={form.emergencyPhone}
             onChange={(e) => onChange("emergencyPhone", e.target.value)}
@@ -139,11 +139,11 @@ export function ContactSection({
               color: "#EF4444",
               fontWeight: 600,
             }}
-          />
+          /></span>
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -153,8 +153,8 @@ export function ContactSection({
             }}
           >
             Official Email Address *
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="email"
             value={form.officialEmail}
             onChange={(e) => onChange("officialEmail", e.target.value)}
@@ -166,7 +166,7 @@ export function ContactSection({
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
           {errors.officialEmail && (
             <span
               style={{
@@ -182,7 +182,7 @@ export function ContactSection({
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -192,8 +192,8 @@ export function ContactSection({
             }}
           >
             Official Website URL
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={form.website}
             onChange={(e) => onChange("website", e.target.value)}
@@ -205,7 +205,7 @@ export function ContactSection({
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
           {errors.website && (
             <span
               style={{
@@ -221,7 +221,7 @@ export function ContactSection({
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -231,8 +231,8 @@ export function ContactSection({
             }}
           >
             Support / Helpdesk Email
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="email"
             value={form.supportEmail}
             onChange={(e) => onChange("supportEmail", e.target.value)}
@@ -244,7 +244,7 @@ export function ContactSection({
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
       </div>
 
@@ -268,7 +268,7 @@ export function ContactSection({
         >
           <Clock size={16} style={{ color: "#64748B" }} />
           <div style={{ flex: 1 }}>
-            <label
+            <span
               style={{
                 display: "block",
                 fontSize: "12px",
@@ -278,8 +278,8 @@ export function ContactSection({
               }}
             >
               OPD & General Working Hours
-            </label>
-            <input
+            
+            <input aria-label="Input field"
               type="text"
               value={form.workingHours}
               onChange={(e) => onChange("workingHours", e.target.value)}
@@ -291,7 +291,7 @@ export function ContactSection({
                 fontSize: "13px",
                 boxSizing: "border-box",
               }}
-            />
+            /></span>
           </div>
         </div>
 

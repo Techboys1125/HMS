@@ -29,6 +29,44 @@ import {
   type ApiDepartmentLookupItem,
 } from "../../users/api/departments.api";
 
+type FormState = {
+  department: string;
+  doctorName: string;
+  appointmentDate: string;
+  timeSlot: string;
+  visitType: VisitType;
+  status: AppointmentStatus | string;
+  reasonForVisit: string;
+  additionalNotes: string;
+};
+type FormAction =
+  | { type: "SET_FIELD"; field: keyof FormState; value: string }
+  | { type: "LOAD_FROM_APT"; apt: AppointmentRecord };
+
+const formReducer = (state: FormState, action: FormAction): FormState => {
+  switch (action.type) {
+    case "SET_FIELD":
+      return { ...state, [action.field]: action.value };
+    case "LOAD_FROM_APT":
+      return {
+        department:
+          typeof action.apt.department === "string"
+            ? action.apt.department
+            : action.apt.department?.departmentName ||
+              action.apt.department?.name ||
+              action.apt.department?.departmentCode ||
+              "",
+        doctorName: action.apt.doctorName,
+        appointmentDate: action.apt.appointmentDate,
+        timeSlot: action.apt.timeSlot || "",
+        visitType: (action.apt.visitType as VisitType) || "First Visit",
+        status: String(action.apt.status),
+        reasonForVisit: action.apt.chiefComplaint || "",
+        additionalNotes: action.apt.notes || "",
+      };
+  }
+};
+
 export function EditAppointmentDrawer({
   apt,
   isOpen,
@@ -45,42 +83,6 @@ export function EditAppointmentDrawer({
   onCancelClick: (apt: AppointmentRecord) => void;
   onPatientSelect?: (id: number | string) => void;
 }) {
-  type FormState = {
-    department: string;
-    doctorName: string;
-    appointmentDate: string;
-    timeSlot: string;
-    visitType: VisitType;
-    status: AppointmentStatus | string;
-    reasonForVisit: string;
-    additionalNotes: string;
-  };
-  type FormAction =
-    | { type: "SET_FIELD"; field: keyof FormState; value: string }
-    | { type: "LOAD_FROM_APT"; apt: NonNullable<typeof apt> };
-  const formReducer = (state: FormState, action: FormAction): FormState => {
-    switch (action.type) {
-      case "SET_FIELD":
-        return { ...state, [action.field]: action.value };
-      case "LOAD_FROM_APT":
-        return {
-          department:
-            typeof action.apt.department === "string"
-              ? action.apt.department
-              : action.apt.department?.departmentName ||
-                action.apt.department?.name ||
-                action.apt.department?.departmentCode ||
-                "",
-          doctorName: action.apt.doctorName,
-          appointmentDate: action.apt.appointmentDate,
-          timeSlot: action.apt.timeSlot || "",
-          visitType: (action.apt.visitType as VisitType) || "First Visit",
-          status: String(action.apt.status),
-          reasonForVisit: action.apt.chiefComplaint || "",
-          additionalNotes: action.apt.notes || "",
-        };
-    }
-  };
   const [form, dispatch] = useReducer(formReducer, {
     department: "",
     doctorName: "",
@@ -209,12 +211,13 @@ export function EditAppointmentDrawer({
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
       <div
+        role="presentation"
         className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
         onClick={onClose}
       />
 
       <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-lg bg-white shadow-2xl flex flex-col border-l border-gray-100 animate-in slide-in-from-right duration-200">
+        <div className="w-screen max-w-lg bg-white shadow-2xl flex flex-col border-l border-gray-100 transition-transform duration-200">
           <div className="px-6 py-4 bg-[#0D47A1] text-white flex items-center justify-between shadow-sm shrink-0">
             <div>
               <h2
@@ -231,6 +234,7 @@ export function EditAppointmentDrawer({
               </p>
             </div>
             <button
+              aria-label="Close"
               type="button"
               onClick={onClose}
               className="p-1.5 text-white/80 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
@@ -245,7 +249,7 @@ export function EditAppointmentDrawer({
             style={{ fontFamily: RB }}
           >
             {showErrorAlert && (
-              <div className="bg-red-50 border border-red-200 text-[#EF4444] p-3.5 rounded-2xl flex items-start gap-2.5 shadow-xs animate-in fade-in duration-150">
+              <div className="bg-red-50 border border-red-200 text-[#EF4444] p-3.5 rounded-2xl flex items-start gap-2.5 shadow-xs transition-opacity duration-150">
                 <AlertCircle size={16} className="mt-0.5 shrink-0" />
                 <div className="text-xs">
                   <strong
@@ -299,96 +303,101 @@ export function EditAppointmentDrawer({
             <div className="bg-white p-4.5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-[#111827] mb-1">
+                  <span className="block text-xs font-bold text-[#111827] mb-1">
                     Department *
-                  </label>
-                  <select
-                    value={form.department}
-                    onChange={(e) => setField("department", e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none"
-                  >
-                    {departments.length === 0 && (
-                      <option value="">Loading departments...</option>
-                    )}
-                    {departments.map((dept) => (
-                      <option
-                        key={dept.departmentId}
-                        value={dept.departmentName}
-                      >
-                        {dept.departmentName}
-                      </option>
-                    ))}
-                  </select>
+                    <select
+                      aria-label="Select option"
+                      value={form.department}
+                      onChange={(e) => setField("department", e.target.value)}
+                      className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none"
+                    >
+                      {departments.length === 0 && (
+                        <option value="">Loading departments...</option>
+                      )}
+                      {departments.map((dept) => (
+                        <option
+                          key={dept.departmentId}
+                          value={dept.departmentName}
+                        >
+                          {dept.departmentName}
+                        </option>
+                      ))}
+                    </select>
+                  </span>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#111827] mb-1">
+                  <span className="block text-xs font-bold text-[#111827] mb-1">
                     Doctor *
-                  </label>
-                  <select
-                    value={form.doctorName}
-                    onChange={(e) => handleDoctorChange(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] font-semibold outline-none"
-                  >
-                    {doctors.length === 0 && (
-                      <option value="">Loading doctors...</option>
-                    )}
-                    {doctors.map((doc) => (
-                      <option key={doc.id} value={doc.name}>
-                        {doc.name} ({doc.departmentName || doc.department || ""}
-                        )
-                      </option>
-                    ))}
-                  </select>
+                    <select
+                      aria-label="Select option"
+                      value={form.doctorName}
+                      onChange={(e) => handleDoctorChange(e.target.value)}
+                      className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] font-semibold outline-none"
+                    >
+                      {doctors.length === 0 && (
+                        <option value="">Loading doctors...</option>
+                      )}
+                      {doctors.map((doc) => (
+                        <option key={doc.id} value={doc.name}>
+                          {doc.name} (
+                          {doc.departmentName || doc.department || ""})
+                        </option>
+                      ))}
+                    </select>
+                  </span>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-[#111827] mb-1">
+                  <span className="block text-xs font-bold text-[#111827] mb-1">
                     Appointment Date *
-                  </label>
-                  <input
-                    type="date"
-                    value={form.appointmentDate}
-                    onChange={(e) =>
-                      setField("appointmentDate", e.target.value)
-                    }
-                    className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none"
-                  />
+                    <input
+                      aria-label="Input field"
+                      type="date"
+                      value={form.appointmentDate}
+                      onChange={(e) =>
+                        setField("appointmentDate", e.target.value)
+                      }
+                      className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none"
+                    />
+                  </span>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#111827] mb-1">
+                  <span className="block text-xs font-bold text-[#111827] mb-1">
                     Time Slot *
-                  </label>
-                  <input
-                    type="text"
-                    value={form.timeSlot}
-                    onChange={(e) => setField("timeSlot", e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none"
-                  />
+                    <input
+                      aria-label="Input field"
+                      type="text"
+                      value={form.timeSlot}
+                      onChange={(e) => setField("timeSlot", e.target.value)}
+                      className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none"
+                    />
+                  </span>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#111827] mb-1">
+                <span className="block text-xs font-bold text-[#111827] mb-1">
                   Status Dropdown *
-                </label>
-                <select
-                  value={form.status}
-                  onChange={(e) =>
-                    setField("status", e.target.value as AppointmentStatus)
-                  }
-                  className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] font-semibold outline-none focus:border-[#0D47A1]"
-                >
-                  <option value="Scheduled">Scheduled</option>
-                  <option value="Checked-In">Checked-In</option>
-                  <option value="Waiting">Waiting</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Cancelled">Cancelled</option>
-                </select>
+                  <select
+                    aria-label="Select option"
+                    value={form.status}
+                    onChange={(e) =>
+                      setField("status", e.target.value as AppointmentStatus)
+                    }
+                    className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] font-semibold outline-none focus:border-[#0D47A1]"
+                  >
+                    <option value="Scheduled">Scheduled</option>
+                    <option value="Checked-In">Checked-In</option>
+                    <option value="Waiting">Waiting</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                  </select>
+                </span>
               </div>
             </div>
 

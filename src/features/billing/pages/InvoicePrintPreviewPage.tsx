@@ -22,6 +22,10 @@ import type { BillPaymentRecord } from "../types/billing.types";
 import { ROUTES } from "../../../app/routes/routes";
 import safehandshospital_logo from "../../../assets/safehandshospital_logo.webp";
 
+const handlePrint = () => {
+  window.print();
+};
+
 export function InvoicePrintPreviewPage() {
   const { invoiceId, billId } = useParams<{
     invoiceId?: string;
@@ -67,9 +71,6 @@ export function InvoicePrintPreviewPage() {
     navigate(ROUTES.DASHBOARD);
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
 
   const handleEmailPatient = () => {
     setEmailSentToast(true);
@@ -160,7 +161,8 @@ export function InvoicePrintPreviewPage() {
     user?.mrn ||
     "N/A";
   const rawAge =
-    ((bill?.patient as unknown as Record<string, unknown>)?.age as number | string) ??
+    ((bill?.patient as unknown as Record<string, unknown>)?.age as
+      number | string) ??
     (billData.age as number | string) ??
     (billData.patientAge as number | string) ??
     ((user as unknown as Record<string, unknown>)?.age as number | string) ??
@@ -171,7 +173,11 @@ export function InvoicePrintPreviewPage() {
     (billData.patientGender as string) ||
     ((user as unknown as Record<string, unknown>)?.gender as string) ||
     "";
-  const ageStr = rawAge ? `${rawAge} Y` : bill?.patient?.dob ? `${bill.patient.dob}` : "";
+  const ageStr = rawAge
+    ? `${rawAge} Y`
+    : bill?.patient?.dob
+      ? `${bill.patient.dob}`
+      : "";
   const genderStr = rawGender ? String(rawGender) : "";
   const patientAgeGender =
     ageStr && genderStr
@@ -189,7 +195,11 @@ export function InvoicePrintPreviewPage() {
     "N/A";
   const patientCategory = (billData.patientCategory as string) || "OPD Patient";
   const docObj = (bill?.doctor as unknown as Record<string, unknown>) || {};
-  const deptObj = ((bill as unknown as Record<string, unknown>)?.department as Record<string, unknown>) || {};
+  const deptObj =
+    ((bill as unknown as Record<string, unknown>)?.department as Record<
+      string,
+      unknown
+    >) || {};
   const bRec = (bill as unknown as Record<string, unknown>) || {};
 
   // Doctor & OPD Consultation Details
@@ -303,7 +313,7 @@ export function InvoicePrintPreviewPage() {
       {/* Email Confirmation Toast */}
       {emailSentToast && (
         <div
-          className="fixed top-5 right-5 z-50 bg-[#0D47A1] text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 text-xs font-semibold animate-in fade-in slide-in-from-top-3 duration-200"
+          className="fixed top-5 right-5 z-50 bg-[#0D47A1] text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 text-xs font-semibold transition-opacity fade-in slide-in-from-top-3 duration-200"
           style={{ fontFamily: PP }}
         >
           <Send size={16} />
@@ -319,19 +329,19 @@ export function InvoicePrintPreviewPage() {
             className="flex items-center gap-2 text-xs text-[#64748B] mb-1 font-medium"
             style={{ fontFamily: RB }}
           >
-            <span
+            <button type="button"
               className="hover:text-[#0D47A1] cursor-pointer"
               onClick={handleBackToDashboard}
             >
               Dashboard
-            </span>
+            </button>
             <ChevronRight size={12} />
-            <span
+            <button type="button"
               className="hover:text-[#0D47A1] cursor-pointer"
               onClick={handleBackToBills}
             >
               My Bills & Payments
-            </span>
+            </button>
             <ChevronRight size={12} />
             <span className="text-[#0D47A1] font-semibold">
               Invoice #{targetId}
@@ -391,367 +401,372 @@ export function InvoicePrintPreviewPage() {
       {/* ── 2. CENTERED ALIGNED LAYOUT ── */}
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Zoom Controls Toolbar */}
-          <div
-            className="bg-white p-3 rounded-2xl border border-[#E5E7EB] shadow-sm flex items-center justify-between text-xs"
-            style={{ fontFamily: RB }}
-          >
-            <div className="flex items-center gap-2 text-slate-600 font-medium">
-              <Eye size={15} className="text-[#0D47A1]" />
-              <span>Particular Invoice Document Surface — #{targetId}</span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setZoomLevel((z) => Math.max(50, z - 10))}
-                className="px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 font-bold hover:bg-slate-100 cursor-pointer"
-              >
-                -
-              </button>
-              <span className="font-bold text-[#111827] min-w-11.25 text-center">
-                {zoomLevel}%
-              </span>
-              <button
-                onClick={() => setZoomLevel((z) => Math.min(150, z + 10))}
-                className="px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 font-bold hover:bg-slate-100 cursor-pointer"
-              >
-                +
-              </button>
-              <button
-                onClick={() => setZoomLevel(100)}
-                className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-[#0D47A1] hover:bg-blue-50 ml-1 cursor-pointer"
-              >
-                Fit to Page
-              </button>
-            </div>
+        <div
+          className="bg-white p-3 rounded-2xl border border-[#E5E7EB] shadow-sm flex items-center justify-between text-xs"
+          style={{ fontFamily: RB }}
+        >
+          <div className="flex items-center gap-2 text-slate-600 font-medium">
+            <Eye size={15} className="text-[#0D47A1]" />
+            <span>Particular Invoice Document Surface — #{targetId}</span>
           </div>
 
-          {/* Centered A4 Sheet Surface */}
-          <div className="flex justify-center overflow-x-auto py-2">
-            <div
-              className="bg-white rounded-2xl border border-slate-300 shadow-2xl p-8 md:p-10 space-y-6 text-xs transition-transform duration-200 max-w-200 w-full"
-              id="print-area"
-              style={{
-                fontFamily: RB,
-                transform: `scale(${zoomLevel / 100})`,
-                transformOrigin: "top center",
-              }}
+          <div className="flex items-center gap-2">
+            <button aria-label="Action"
+              onClick={() => setZoomLevel((z) => Math.max(50, z - 10))}
+              className="px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 font-bold hover:bg-slate-100 cursor-pointer"
             >
-              {/* HOSPITAL HEADER */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-[#0D47A1] pb-4">
-                {includeLogo && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-[#0D47A1] text-white font-bold text-xl flex items-center justify-center shadow-md overflow-hidden shrink-0">
-                      <img src={safehandshospital_logo} alt="Hospital Logo" className="w-full h-full object-contain" />
-                    </div>
-                    <div>
-                      <h2
-                        className="text-base md:text-lg font-bold text-[#0D47A1] tracking-tight"
-                        style={{ fontFamily: PP }}
-                      >
-                        {hospitalName}
-                      </h2>
-                      <p className="text-[11px] text-slate-500">
-                        {hospitalAddress}
-                      </p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">
-                        {hospitalPhone} | {hospitalEmail} | {hospitalWebsite}
-                      </p>
-                    </div>
-                  </div>
-                )}
-                <div className="text-right sm:self-center">
-                  <div className="text-[11px] font-mono font-bold text-[#0D47A1]">
-                    {hospitalGstin}
-                  </div>
-                  <div className="text-[10px] text-slate-400">
-                    NABH Accredited Medical Center
-                  </div>
-                </div>
-              </div>
-
-              {/* DOCUMENT TITLE & META */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                <div>
-                  <h3
-                    className="text-lg font-bold text-[#111827] tracking-wider uppercase"
-                    style={{ fontFamily: PP }}
-                  >
-                    TAX INVOICE / RECEIPT
-                  </h3>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="font-mono font-bold text-[#0D47A1]">
-                      Invoice — {targetId ? (targetId.startsWith("BL-") ? targetId : targetId.startsWith("INV-") ? `BL-2026-${targetId.replace("INV-", "").padStart(6, "0")}` : `BL-2026-${String(targetId).padStart(6, "0")}`) : "BL-2026-000134"}
-                    </span>
-                    <span className="text-slate-400">•</span>
-                    <span className="text-slate-500">{invoiceDateStr}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="text-right">
-                    <span className="text-[10px] text-slate-400 block">
-                      Receipt No
-                    </span>
-                    <span className="font-mono font-bold text-slate-700">
-                      {receiptNo}
-                    </span>
-                  </div>
-                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-green-50 text-[#66BB6A] border border-green-200">
-                    {paymentStatus}
-                  </span>
-                </div>
-              </div>
-
-              {/* PATIENT & OPD INFORMATION GRID */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-xl border border-slate-200 bg-white text-[11px]">
-                <div>
-                  <span className="text-slate-400 block text-[10px]">
-                    Patient Name
-                  </span>
-                  <span
-                    className="font-bold text-[#111827]"
-                    style={{ fontFamily: PP }}
-                  >
-                    {patientName}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px]">MRN</span>
-                  <span className="font-mono font-bold text-[#0D47A1]">
-                    {patientMrn}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px]">
-                    Age & Gender
-                  </span>
-                  <span className="font-medium text-[#111827]">
-                    {patientAgeGender}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px]">
-                    Mobile
-                  </span>
-                  <span className="font-medium text-[#111827]">
-                    {patientMobile}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-slate-400 block text-[10px]">
-                    Attending Doctor
-                  </span>
-                  <span className="font-semibold text-[#111827]">
-                    {doctorName}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px]">
-                    Department
-                  </span>
-                  <span className="font-semibold text-[#009688]">
-                    {department}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px]">
-                    Category
-                  </span>
-                  <span className="font-semibold text-[#0D47A1]">
-                    {patientCategory}
-                  </span>
-                </div>
-              </div>
-
-              {/* PARTICULAR BILLING ITEMS TABLE */}
-              <div className="border border-slate-200 rounded-xl overflow-hidden">
-                <table
-                  className="w-full text-left border-collapse text-xs"
-                  style={{ fontFamily: RB }}
-                >
-                  <thead>
-                    <tr className="bg-slate-100 border-b border-slate-200 text-slate-700 font-semibold text-[11px] uppercase">
-                      <th className="py-2.5 px-3">Service Description</th>
-                      <th className="py-2.5 px-3 text-center">Qty</th>
-                      <th className="py-2.5 px-3 text-right">Unit Price (₹)</th>
-                      <th className="py-2.5 px-3 text-right">Disc (₹)</th>
-                      <th className="py-2.5 px-3 text-right">Tax (%)</th>
-                      <th className="py-2.5 px-3 text-right">Total (₹)</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {items.map((item) => (
-                      <tr key={item.id}>
-                        <td className="py-2.5 px-3 font-semibold text-[#111827]">
-                          {item.serviceName}
-                        </td>
-                        <td className="py-2.5 px-3 text-center">
-                          {item.quantity}
-                        </td>
-                        <td className="py-2.5 px-3 text-right">
-                          ₹{item.unitPrice.toLocaleString()}
-                        </td>
-                        <td className="py-2.5 px-3 text-right text-slate-500">
-                          ₹{item.discountAmount || 0}
-                        </td>
-                        <td className="py-2.5 px-3 text-right text-slate-500">
-                          {item.taxPercent || 0}%
-                        </td>
-                        <td className="py-2.5 px-3 text-right font-bold text-[#0D47A1]">
-                          ₹
-                          {(
-                            item.totalAmount ||
-                            item.totalPrice ||
-                            item.unitPrice * item.quantity
-                          ).toLocaleString()}
-                        </td>
-                      </tr>
-                    ))}
-                    {items.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan={6}
-                          className="py-6 text-center text-slate-400 font-medium"
-                        >
-                          No itemized breakdown recorded for invoice #{targetId}
-                          .
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* PAYMENT SUMMARY GRID */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-b border-slate-200 py-3">
-                <div className="space-y-1 text-slate-600 text-[11px]">
-                  <div>
-                    <span className="font-semibold text-slate-700">
-                      Payment Mode:
-                    </span>{" "}
-                    {paymentMode}
-                  </div>
-                  <div>
-                    <span className="font-semibold text-slate-700">
-                      Reference Txn ID:
-                    </span>{" "}
-                    <span className="font-mono">{referenceNo}</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-slate-700">
-                      Collected By:
-                    </span>{" "}
-                    {collectedBy}
-                  </div>
-                  <div>
-                    <span className="font-semibold text-slate-700">
-                      Collection Time:
-                    </span>{" "}
-                    {invoiceDateStr}
-                  </div>
-                </div>
-
-                <div className="space-y-1.5 text-right text-xs">
-                  <div className="flex justify-between text-slate-600">
-                    <span>Subtotal:</span>
-                    <span className="font-semibold text-[#111827]">
-                      ₹{subtotal.toLocaleString()}
-                    </span>
-                  </div>
-                  {discount > 0 && (
-                    <div className="flex justify-between text-[#66BB6A]">
-                      <span>Discount:</span>
-                      <span className="font-semibold">
-                        - ₹{discount.toLocaleString()}
-                      </span>
-                    </div>
-                  )}
-                  {taxGst > 0 && (
-                    <div className="flex justify-between text-slate-600">
-                      <span>Tax GST:</span>
-                      <span className="font-semibold">
-                        + ₹{taxGst.toLocaleString()}
-                      </span>
-                    </div>
-                  )}
-                  <div
-                    className="flex justify-between text-sm font-bold text-[#111827] border-t border-slate-200 pt-1.5"
-                    style={{ fontFamily: PP }}
-                  >
-                    <span>Grand Total:</span>
-                    <span className="text-[#0D47A1]">
-                      ₹{grandTotal.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-xs font-bold text-[#66BB6A]">
-                    <span>Amount Received:</span>
-                    <span>₹{amountPaid.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between text-xs font-bold text-[#EF4444]">
-                    <span>Balance Due:</span>
-                    <span>₹{balanceDue.toLocaleString()}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* TERMS & POLICIES */}
-              {includeNotes && (
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 text-[10px] text-slate-600">
-                  <div
-                    className="font-bold text-slate-700 uppercase"
-                    style={{ fontFamily: PP }}
-                  >
-                    Terms & Instructions
-                  </div>
-                  <p className="whitespace-pre-line leading-relaxed">
-                    1. All payments are non-refundable once medical services are
-                    rendered.
-                    {"\n"}2. Please retain this official tax invoice receipt for
-                    insurance claim reimbursement.
-                    {"\n"}3. This is a computer-generated tax invoice for #
-                    {targetId}.
-                  </p>
-                </div>
-              )}
-
-              {/* PRINT FOOTER */}
-              <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200">
-                {includeQrCode && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-14 h-14 bg-slate-100 border border-slate-300 rounded-lg flex flex-col items-center justify-center text-[9px] text-slate-500 font-mono text-center p-1">
-                      <div className="font-bold">QR VERIFY</div>
-                      <div className="text-[7px]">{targetId}</div>
-                    </div>
-                    <div className="text-[10px] text-slate-400">
-                      <div>Digitally Verified Invoice</div>
-                      <div>Scan QR to audit receipt #{receiptNo}</div>
-                    </div>
-                  </div>
-                )}
-
-   
-                <div className="text-right space-y-1">
-                  <div
-                    className="text-[11px] font-bold text-slate-700"
-                    style={{ fontFamily: PP }}
-                  >
-                    {collectedBy}
-                  </div>
-                  <div className="text-[10px] text-slate-400 border-t border-slate-300 pt-1 w-40 ml-auto">
-                    Authorized Cashier Signature & Seal
-                  </div>
-                </div>
-              </div>
-
-              <div className="text-center text-[10px] text-slate-400 pt-2 border-t border-slate-100">
-                Thank you for choosing {hospitalName}! Wishing you good health.
-              </div>
-            </div>
+              -
+            </button>
+            <span className="font-bold text-[#111827] min-w-11.25 text-center">
+              {zoomLevel}%
+            </span>
+            <button aria-label="Action"
+              onClick={() => setZoomLevel((z) => Math.min(150, z + 10))}
+              className="px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 font-bold hover:bg-slate-100 cursor-pointer"
+            >
+              +
+            </button>
+            <button
+              onClick={() => setZoomLevel(100)}
+              className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-[#0D47A1] hover:bg-blue-50 ml-1 cursor-pointer"
+            >
+              Fit to Page
+            </button>
           </div>
         </div>
 
-   
+        {/* Centered A4 Sheet Surface */}
+        <div className="flex justify-center overflow-x-auto py-2">
+          <div
+            className="bg-white rounded-2xl border border-slate-300 shadow-2xl p-8 md:p-10 space-y-6 text-xs transition-transform duration-200 max-w-200 w-full"
+            id="print-area"
+            style={{
+              fontFamily: RB,
+              transform: `scale(${zoomLevel / 100})`,
+              transformOrigin: "top center",
+            }}
+          >
+            {/* HOSPITAL HEADER */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-[#0D47A1] pb-4">
+              {includeLogo && (
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-[#0D47A1] text-white font-bold text-xl flex items-center justify-center shadow-md overflow-hidden shrink-0">
+                    <img
+                      src={safehandshospital_logo}
+                      alt="Hospital Logo"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <div>
+                    <h2
+                      className="text-base md:text-lg font-bold text-[#0D47A1] tracking-tight"
+                      style={{ fontFamily: PP }}
+                    >
+                      {hospitalName}
+                    </h2>
+                    <p className="text-[11px] text-slate-500">
+                      {hospitalAddress}
+                    </p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">
+                      {hospitalPhone} | {hospitalEmail} | {hospitalWebsite}
+                    </p>
+                  </div>
+                </div>
+              )}
+              <div className="text-right sm:self-center">
+                <div className="text-[11px] font-mono font-bold text-[#0D47A1]">
+                  {hospitalGstin}
+                </div>
+                <div className="text-[10px] text-slate-400">
+                  NABH Accredited Medical Center
+                </div>
+              </div>
+            </div>
+
+            {/* DOCUMENT TITLE & META */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+              <div>
+                <h3
+                  className="text-lg font-bold text-[#111827] tracking-wider uppercase"
+                  style={{ fontFamily: PP }}
+                >
+                  TAX INVOICE / RECEIPT
+                </h3>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="font-mono font-bold text-[#0D47A1]">
+                    Invoice —{" "}
+                    {targetId
+                      ? targetId.startsWith("BL-")
+                        ? targetId
+                        : targetId.startsWith("INV-")
+                          ? `BL-2026-${targetId.replace("INV-", "").padStart(6, "0")}`
+                          : `BL-2026-${String(targetId).padStart(6, "0")}`
+                      : "BL-2026-000134"}
+                  </span>
+                  <span className="text-slate-400">•</span>
+                  <span className="text-slate-500">{invoiceDateStr}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <span className="text-[10px] text-slate-400 block">
+                    Receipt No
+                  </span>
+                  <span className="font-mono font-bold text-slate-700">
+                    {receiptNo}
+                  </span>
+                </div>
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-green-50 text-[#66BB6A] border border-green-200">
+                  {paymentStatus}
+                </span>
+              </div>
+            </div>
+
+            {/* PATIENT & OPD INFORMATION GRID */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-xl border border-slate-200 bg-white text-[11px]">
+              <div>
+                <span className="text-slate-400 block text-[10px]">
+                  Patient Name
+                </span>
+                <span
+                  className="font-bold text-[#111827]"
+                  style={{ fontFamily: PP }}
+                >
+                  {patientName}
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[10px]">MRN</span>
+                <span className="font-mono font-bold text-[#0D47A1]">
+                  {patientMrn}
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[10px]">
+                  Age & Gender
+                </span>
+                <span className="font-medium text-[#111827]">
+                  {patientAgeGender}
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[10px]">Mobile</span>
+                <span className="font-medium text-[#111827]">
+                  {patientMobile}
+                </span>
+              </div>
+
+              <div>
+                <span className="text-slate-400 block text-[10px]">
+                  Attending Doctor
+                </span>
+                <span className="font-semibold text-[#111827]">
+                  {doctorName}
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[10px]">
+                  Department
+                </span>
+                <span className="font-semibold text-[#009688]">
+                  {department}
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[10px]">
+                  Category
+                </span>
+                <span className="font-semibold text-[#0D47A1]">
+                  {patientCategory}
+                </span>
+              </div>
+            </div>
+
+            {/* PARTICULAR BILLING ITEMS TABLE */}
+            <div className="border border-slate-200 rounded-xl overflow-hidden">
+              <table
+                className="w-full text-left border-collapse text-xs"
+                style={{ fontFamily: RB }}
+              >
+                <thead>
+                  <tr className="bg-slate-100 border-b border-slate-200 text-slate-700 font-semibold text-[11px] uppercase">
+                    <th className="py-2.5 px-3">Service Description</th>
+                    <th className="py-2.5 px-3 text-center">Qty</th>
+                    <th className="py-2.5 px-3 text-right">Unit Price (₹)</th>
+                    <th className="py-2.5 px-3 text-right">Disc (₹)</th>
+                    <th className="py-2.5 px-3 text-right">Tax (%)</th>
+                    <th className="py-2.5 px-3 text-right">Total (₹)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {items.map((item) => (
+                    <tr key={item.id}>
+                      <td className="py-2.5 px-3 font-semibold text-[#111827]">
+                        {item.serviceName}
+                      </td>
+                      <td className="py-2.5 px-3 text-center">
+                        {item.quantity}
+                      </td>
+                      <td className="py-2.5 px-3 text-right">
+                        ₹{item.unitPrice.toLocaleString()}
+                      </td>
+                      <td className="py-2.5 px-3 text-right text-slate-500">
+                        ₹{item.discountAmount || 0}
+                      </td>
+                      <td className="py-2.5 px-3 text-right text-slate-500">
+                        {item.taxPercent || 0}%
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-bold text-[#0D47A1]">
+                        ₹
+                        {(
+                          item.totalAmount ||
+                          item.totalPrice ||
+                          item.unitPrice * item.quantity
+                        ).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                  {items.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={6}
+                        className="py-6 text-center text-slate-400 font-medium"
+                      >
+                        No itemized breakdown recorded for invoice #{targetId}.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* PAYMENT SUMMARY GRID */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-b border-slate-200 py-3">
+              <div className="space-y-1 text-slate-600 text-[11px]">
+                <div>
+                  <span className="font-semibold text-slate-700">
+                    Payment Mode:
+                  </span>{" "}
+                  {paymentMode}
+                </div>
+                <div>
+                  <span className="font-semibold text-slate-700">
+                    Reference Txn ID:
+                  </span>{" "}
+                  <span className="font-mono">{referenceNo}</span>
+                </div>
+                <div>
+                  <span className="font-semibold text-slate-700">
+                    Collected By:
+                  </span>{" "}
+                  {collectedBy}
+                </div>
+                <div>
+                  <span className="font-semibold text-slate-700">
+                    Collection Time:
+                  </span>{" "}
+                  {invoiceDateStr}
+                </div>
+              </div>
+
+              <div className="space-y-1.5 text-right text-xs">
+                <div className="flex justify-between text-slate-600">
+                  <span>Subtotal:</span>
+                  <span className="font-semibold text-[#111827]">
+                    ₹{subtotal.toLocaleString()}
+                  </span>
+                </div>
+                {discount > 0 && (
+                  <div className="flex justify-between text-[#66BB6A]">
+                    <span>Discount:</span>
+                    <span className="font-semibold">
+                      - ₹{discount.toLocaleString()}
+                    </span>
+                  </div>
+                )}
+                {taxGst > 0 && (
+                  <div className="flex justify-between text-slate-600">
+                    <span>Tax GST:</span>
+                    <span className="font-semibold">
+                      + ₹{taxGst.toLocaleString()}
+                    </span>
+                  </div>
+                )}
+                <div
+                  className="flex justify-between text-sm font-bold text-[#111827] border-t border-slate-200 pt-1.5"
+                  style={{ fontFamily: PP }}
+                >
+                  <span>Grand Total:</span>
+                  <span className="text-[#0D47A1]">
+                    ₹{grandTotal.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs font-bold text-[#66BB6A]">
+                  <span>Amount Received:</span>
+                  <span>₹{amountPaid.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-xs font-bold text-[#EF4444]">
+                  <span>Balance Due:</span>
+                  <span>₹{balanceDue.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* TERMS & POLICIES */}
+            {includeNotes && (
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 text-[10px] text-slate-600">
+                <div
+                  className="font-bold text-slate-700 uppercase"
+                  style={{ fontFamily: PP }}
+                >
+                  Terms & Instructions
+                </div>
+                <p className="whitespace-pre-line leading-relaxed">
+                  1. All payments are non-refundable once medical services are
+                  rendered.
+                  {"\n"}2. Please retain this official tax invoice receipt for
+                  insurance claim reimbursement.
+                  {"\n"}3. This is a computer-generated tax invoice for #
+                  {targetId}.
+                </p>
+              </div>
+            )}
+
+            {/* PRINT FOOTER */}
+            <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200">
+              {includeQrCode && (
+                <div className="flex items-center gap-3">
+                  <div className="w-14 h-14 bg-slate-100 border border-slate-300 rounded-lg flex flex-col items-center justify-center text-[9px] text-slate-500 font-mono text-center p-1">
+                    <div className="font-bold">QR VERIFY</div>
+                    <div className="text-[7px]">{targetId}</div>
+                  </div>
+                  <div className="text-[10px] text-slate-400">
+                    <div>Digitally Verified Invoice</div>
+                    <div>Scan QR to audit receipt #{receiptNo}</div>
+                  </div>
+                </div>
+              )}
+
+              <div className="text-right space-y-1">
+                <div
+                  className="text-[11px] font-bold text-slate-700"
+                  style={{ fontFamily: PP }}
+                >
+                  {collectedBy}
+                </div>
+                <div className="text-[10px] text-slate-400 border-t border-slate-300 pt-1 w-40 ml-auto">
+                  Authorized Cashier Signature & Seal
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center text-[10px] text-slate-400 pt-2 border-t border-slate-100">
+              Thank you for choosing {hospitalName}! Wishing you good health.
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* ── SHARE MODAL ── */}
       {showShareModal && (
@@ -764,7 +779,7 @@ export function InvoicePrintPreviewPage() {
               >
                 Share Invoice — #{targetId}
               </h3>
-              <button
+              <button aria-label="Close"
                 onClick={() => setShowShareModal(false)}
                 className="text-slate-400 hover:text-slate-600 cursor-pointer"
               >

@@ -35,6 +35,20 @@ function calculateAge(dateOfBirth?: string): number {
   return age >= 0 ? age : 0;
 }
 
+const PATIENT_TABLE_COLORS = [
+  "bg-[#0D47A1]",
+  "bg-[#009688]",
+  "bg-violet-600",
+  "bg-rose-500",
+  "bg-amber-600",
+];
+
+const PATIENT_TABLE_SIZES = {
+  sm: "w-7 h-7 text-xs",
+  md: "w-9 h-9 text-sm",
+  lg: "w-11 h-11 text-base",
+};
+
 function Avatar({
   name,
   size = "sm",
@@ -48,22 +62,10 @@ function Avatar({
     .join("")
     .slice(0, 2)
     .toUpperCase();
-  const colors = [
-    "bg-[#0D47A1]",
-    "bg-[#009688]",
-    "bg-violet-600",
-    "bg-rose-500",
-    "bg-amber-600",
-  ];
-  const color = colors[name.charCodeAt(0) % colors.length];
-  const sizes = {
-    sm: "w-7 h-7 text-xs",
-    md: "w-9 h-9 text-sm",
-    lg: "w-11 h-11 text-base",
-  };
+  const color = PATIENT_TABLE_COLORS[name.charCodeAt(0) % PATIENT_TABLE_COLORS.length];
   return (
     <div
-      className={`${sizes[size]} ${color} rounded-full flex items-center justify-center text-white font-semibold shrink-0`}
+      className={`${PATIENT_TABLE_SIZES[size]} ${color} rounded-full flex items-center justify-center text-white font-semibold shrink-0`}
     >
       {initials}
     </div>
@@ -271,7 +273,7 @@ export function PatientTable({
     <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
       {/* Click-outside Backdrop for Actions Dropdown */}
       {activeActionMenuId && (
-        <div
+        <div role="presentation"
           className="fixed inset-0 z-20 bg-transparent"
           onClick={() => onToggleActionMenu(null)}
         />
@@ -351,7 +353,7 @@ export function PatientTable({
                   const isActions = col.key === "actions";
 
                   return (
-                    <th
+                    <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
                       key={col.key}
                       onClick={() => handleSort(col.key)}
                       className={`px-4 py-3.5 ${
@@ -418,7 +420,7 @@ export function PatientTable({
                 const status = p.status || "Active";
 
                 return (
-                  <tr
+                  <tr tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
                     key={mrn}
                     className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
                     onClick={() => onSelectRow(p)}
@@ -630,7 +632,7 @@ export function PatientTable({
             </span>
             <div className="flex items-center gap-1.5 ml-2 border-l border-slate-200 pl-3">
               <span>Rows:</span>
-              <select
+              <select aria-label="Select option"
                 value={pageSize}
                 onChange={(e) => {
                   setPageSize(Number(e.target.value));

@@ -124,6 +124,14 @@ function DKpi({
   );
 }
 
+const NURSE_AVATAR_PALETTE = [
+  "bg-[#0D47A1]",
+  "bg-[#009688]",
+  "bg-violet-600",
+  "bg-rose-500",
+  "bg-amber-600",
+];
+
 function Av({
   name,
   size = "sm",
@@ -139,15 +147,7 @@ function Av({
     .join("")
     .slice(0, 2)
     .toUpperCase();
-  const palette = [
-    "bg-[#0D47A1]",
-    "bg-[#009688]",
-    "bg-violet-600",
-    "bg-rose-500",
-    "bg-amber-600",
-  ];
-  const bg =
-    palette[(safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) % palette.length];
+  const bg = NURSE_AVATAR_PALETTE[(safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) % NURSE_AVATAR_PALETTE.length];
   const sz = {
     sm: "w-7 h-7 text-xs",
     md: "w-9 h-9 text-sm",
@@ -165,6 +165,15 @@ function Av({
 
 type ChipVariant =
   "success" | "warning" | "error" | "info" | "teal" | "default";
+const NURSE_CHIP_MAP: Record<ChipVariant, string> = {
+  success: "bg-green-50 text-[#66BB6A]",
+  warning: "bg-amber-50 text-[#F59E0B]",
+  error: "bg-red-50 text-[#EF4444]",
+  info: "bg-blue-50 text-[#0D47A1]",
+  teal: "bg-teal-50 text-[#009688]",
+  default: "bg-slate-50 text-[#64748B]",
+};
+
 function Chip({
   label,
   variant = "default",
@@ -172,17 +181,9 @@ function Chip({
   label: string;
   variant?: ChipVariant;
 }) {
-  const map: Record<ChipVariant, string> = {
-    success: "bg-green-50 text-[#66BB6A]",
-    warning: "bg-amber-50 text-[#F59E0B]",
-    error: "bg-red-50 text-[#EF4444]",
-    info: "bg-blue-50 text-[#0D47A1]",
-    teal: "bg-teal-50 text-[#009688]",
-    default: "bg-slate-50 text-[#64748B]",
-  };
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${map[variant]}`}
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${NURSE_CHIP_MAP[variant]}`}
       style={{ fontFamily: RB }}
     >
       {label}

@@ -62,7 +62,7 @@ export function DoctorFilterBar({
             size={14}
             className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
           />
-          <input
+          <input aria-label="Input field"
             type="text"
             value={searchDoctorQuery}
             onChange={(e) => setSearchDoctorQuery(e.target.value)}
@@ -70,7 +70,7 @@ export function DoctorFilterBar({
             className="w-full pl-9 pr-8 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
           />
           {searchDoctorQuery && (
-            <button
+            <button aria-label="Close"
               onClick={() => setSearchDoctorQuery("")}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
             >
@@ -84,7 +84,7 @@ export function DoctorFilterBar({
             size={14}
             className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
           />
-          <input
+          <input aria-label="Input field"
             type="text"
             value={searchEmpIdQuery}
             onChange={(e) => setSearchEmpIdQuery(e.target.value)}
@@ -92,7 +92,7 @@ export function DoctorFilterBar({
             className="w-full pl-9 pr-8 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
           />
           {searchEmpIdQuery && (
-            <button
+            <button aria-label="Close"
               onClick={() => setSearchEmpIdQuery("")}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
             >
@@ -106,7 +106,7 @@ export function DoctorFilterBar({
             size={14}
             className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
           />
-          <input
+          <input aria-label="Input field"
             type="text"
             value={searchRegNoQuery}
             onChange={(e) => setSearchRegNoQuery(e.target.value)}
@@ -114,7 +114,7 @@ export function DoctorFilterBar({
             className="w-full pl-9 pr-8 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
           />
           {searchRegNoQuery && (
-            <button
+            <button aria-label="Close"
               onClick={() => setSearchRegNoQuery("")}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
             >
@@ -128,7 +128,7 @@ export function DoctorFilterBar({
         <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
           <Building2 size={13} className="text-slate-400" />
           <span className="text-slate-500 font-medium">Department:</span>
-          <select
+          <select aria-label="Select option"
             value={deptFilter}
             onChange={(e) => setDeptFilter(e.target.value)}
             className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
@@ -147,7 +147,7 @@ export function DoctorFilterBar({
         <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
           <Stethoscope size={13} className="text-slate-400" />
           <span className="text-slate-500 font-medium">Specialty:</span>
-          <select
+          <select aria-label="Select option"
             value={specialtyFilter}
             onChange={(e) => setSpecialtyFilter(e.target.value)}
             className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
@@ -166,7 +166,7 @@ export function DoctorFilterBar({
         <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
           <Clock size={13} className="text-slate-400" />
           <span className="text-slate-500 font-medium">Availability:</span>
-          <select
+          <select aria-label="Select option"
             value={availabilityFilter}
             onChange={(e) => setAvailabilityFilter(e.target.value)}
             className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
@@ -183,7 +183,7 @@ export function DoctorFilterBar({
         <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
           <Filter size={13} className="text-slate-400" />
           <span className="text-slate-500 font-medium">Status:</span>
-          <select
+          <select aria-label="Select option"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
@@ -199,7 +199,7 @@ export function DoctorFilterBar({
         <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
           <Award size={13} className="text-slate-400" />
           <span className="text-slate-500 font-medium">Experience:</span>
-          <select
+          <select aria-label="Select option"
             value={experienceFilter}
             onChange={(e) => setExperienceFilter(e.target.value)}
             className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"

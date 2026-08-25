@@ -528,12 +528,12 @@ export function EditStaffUserDrawer({
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
-      <div
+      <div role="presentation"
         className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs"
         onClick={onClose}
       />
       <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-lg bg-white shadow-2xl flex flex-col border-l border-gray-100 animate-in slide-in-from-right duration-200">
+        <div className="w-screen max-w-lg bg-white shadow-2xl flex flex-col border-l border-gray-100 transition-transform duration-200">
           <div className="px-6 py-4 bg-[#009688] text-white flex items-center justify-between shadow-sm">
             <div>
               <h2
@@ -546,7 +546,7 @@ export function EditStaffUserDrawer({
                 Modify profile info for {user.empId}
               </p>
             </div>
-            <button
+            <button aria-label="Close"
               onClick={onClose}
               className="p-1.5 text-white/80 hover:text-white rounded-lg hover:bg-white/10 cursor-pointer"
             >
@@ -700,21 +700,21 @@ export function EditStaffUserDrawer({
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-[#64748B] mb-1">
+                <span className="block text-xs font-bold text-[#64748B] mb-1">
                   System Access Role (Locked)
-                </label>
-                <input
+                
+                <input aria-label="Input field"
                   type="text"
                   readOnly
                   value={user.role}
                   className="w-full px-3 py-2.5 text-xs bg-slate-100 border border-[#E5E7EB] rounded-xl text-slate-500 outline-none font-semibold cursor-not-allowed"
-                />
+                /></span>
               </div>
               <div>
-                <label className="block text-xs font-bold text-[#111827] mb-1">
+                <span className="block text-xs font-bold text-[#111827] mb-1">
                   Account Status
-                </label>
-                <select
+                
+                <select aria-label="Select option"
                   value={form.status}
                   onChange={(e) => setForm({ ...form, status: e.target.value })}
                   className="w-full px-3 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#009688]"
@@ -723,55 +723,55 @@ export function EditStaffUserDrawer({
                   <option value="Inactive">Inactive</option>
                   <option value="Pending">Pending</option>
                   <option value="Suspended">Suspended</option>
-                </select>
+                </select></span>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#111827] mb-1">
+              <span className="block text-xs font-bold text-[#111827] mb-1">
                 Full Name *
-              </label>
-              <input
+              
+              <input aria-label="Input field"
                 type="text"
                 required
                 value={form.fullName}
                 onChange={(e) => setForm({ ...form, fullName: e.target.value })}
                 className="w-full px-3 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#009688]"
-              />
+              /></span>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-[#111827] mb-1">
+                <span className="block text-xs font-bold text-[#111827] mb-1">
                   Email Address *
-                </label>
-                <input
+                
+                <input aria-label="Input field"
                   type="email"
                   required
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   className="w-full px-3 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#009688]"
-                />
+                /></span>
               </div>
               <div>
-                <label className="block text-xs font-bold text-[#111827] mb-1">
+                <span className="block text-xs font-bold text-[#111827] mb-1">
                   Phone Number
-                </label>
-                <input
+                
+                <input aria-label="Input field"
                   type="text"
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                   className="w-full px-3 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#009688]"
-                />
+                /></span>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#111827] mb-1">
+              <span className="block text-xs font-bold text-[#111827] mb-1">
                 Department
-              </label>
+              </span>
               {isDoctor ? (
-                <select
+                <select aria-label="Select option"
                   value={form.department}
                   onChange={(e) =>
                     setForm({
@@ -793,7 +793,7 @@ export function EditStaffUserDrawer({
                   ))}
                 </select>
               ) : (
-                <input
+                <input aria-label="Input field"
                   type="text"
                   value={form.department}
                   onChange={(e) =>
@@ -821,10 +821,10 @@ export function EditStaffUserDrawer({
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-bold text-[#111827] mb-1">
+                    <span className="block text-xs font-bold text-[#111827] mb-1">
                       Reg Number
-                    </label>
-                    <input
+                    
+                    <input aria-label="Input field"
                       type="text"
                       value={form.medicalRegistrationNumber}
                       onChange={(e) =>
@@ -834,29 +834,29 @@ export function EditStaffUserDrawer({
                         })
                       }
                       className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
-                    />
+                    /></span>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-[#111827] mb-1">
+                    <span className="block text-xs font-bold text-[#111827] mb-1">
                       Qualification
-                    </label>
-                    <input
+                    
+                    <input aria-label="Input field"
                       type="text"
                       value={form.qualification}
                       onChange={(e) =>
                         setForm({ ...form, qualification: e.target.value })
                       }
                       className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
-                    />
+                    /></span>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-xs font-bold text-[#111827] mb-1">
+                    <span className="block text-xs font-bold text-[#111827] mb-1">
                       Experience (Yrs)
-                    </label>
-                    <input
+                    
+                    <input aria-label="Input field"
                       type="number"
                       value={form.yearsOfExperience}
                       onChange={(e) => {
@@ -867,13 +867,13 @@ export function EditStaffUserDrawer({
                         });
                       }}
                       className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
-                    />
+                    /></span>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-[#111827] mb-1">
+                    <span className="block text-xs font-bold text-[#111827] mb-1">
                       Consult Fee (₹)
-                    </label>
-                    <input
+                    
+                    <input aria-label="Input field"
                       type="number"
                       value={form.consultationFee}
                       onChange={(e) => {
@@ -884,15 +884,15 @@ export function EditStaffUserDrawer({
                         });
                       }}
                       className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
-                    />
+                    /></span>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#111827] mb-1">
+                  <span className="block text-xs font-bold text-[#111827] mb-1">
                     Slot Duration (Minutes)
-                  </label>
-                  <input
+                  
+                  <input aria-label="Input field"
                     type="number"
                     value={form.slotDurationMinutes}
                     onChange={(e) => {
@@ -903,15 +903,15 @@ export function EditStaffUserDrawer({
                       });
                     }}
                     className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
-                  />
+                  /></span>
                 </div>
 
                 {/* Pre-populated Schedule & Availability Editor */}
                 <div className="pt-3 border-t border-slate-100 space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="block text-xs font-bold text-[#111827]">
+                    <span className="block text-xs font-bold text-[#111827]">
                       Doctor Weekly Availability Schedule
-                    </label>
+                    </span>
                     <span className="text-[10px] text-slate-400 font-semibold uppercase">
                       AM/PM Format
                     </span>

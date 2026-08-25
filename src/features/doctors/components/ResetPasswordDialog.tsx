@@ -20,9 +20,9 @@ export function ResetPasswordDialog({
   if (!isOpen || !doctor) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs transition-opacity duration-200">
       <div
-        className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-[#E5E7EB] overflow-hidden animate-in zoom-in-95 duration-200"
+        className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-[#E5E7EB] overflow-hidden transition-transform duration-200"
         style={{ fontFamily: RB }}
       >
         <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
@@ -33,7 +33,7 @@ export function ResetPasswordDialog({
             <KeyRound size={16} className="text-amber-500" /> Administrative
             Password Reset
           </h3>
-          <button
+          <button aria-label="Close"
             onClick={onClose}
             className="text-white/80 hover:text-white cursor-pointer"
           >

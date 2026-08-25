@@ -197,7 +197,7 @@ export function DockableQueueWorkspace({
 
   return (
     <div
-      className="space-y-6 animate-in fade-in duration-200"
+      className="space-y-6 transition-opacity duration-200"
       style={{ fontFamily: RB }}
     >
       {/* HEADER & BREADCRUMB */}
@@ -288,7 +288,7 @@ export function DockableQueueWorkspace({
               size={14}
               className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
             />
-            <input
+            <input aria-label="Input field"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -299,7 +299,7 @@ export function DockableQueueWorkspace({
 
           {/* Filter Controls */}
           <div className="flex items-center gap-2 flex-wrap">
-            <select
+            <select aria-label="Select option"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="px-2.5 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] text-slate-700 font-medium"
@@ -311,7 +311,7 @@ export function DockableQueueWorkspace({
               <option value="Completed">Completed</option>
             </select>
 
-            <select
+            <select aria-label="Select option"
               value={visitTypeFilter}
               onChange={(e) => setVisitTypeFilter(e.target.value)}
               className="px-2.5 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] text-slate-700 font-medium"
@@ -322,7 +322,7 @@ export function DockableQueueWorkspace({
               <option value="Walk-In">Walk-In</option>
             </select>
 
-            <select
+            <select aria-label="Select option"
               value={timeFilter}
               onChange={(e) => setTimeFilter(e.target.value)}
               className="px-2.5 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] text-slate-700 font-medium"

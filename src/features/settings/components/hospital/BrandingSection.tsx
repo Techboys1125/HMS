@@ -73,7 +73,7 @@ export function BrandingSection({
       >
         {/* Logo Preview Card */}
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -83,8 +83,8 @@ export function BrandingSection({
             }}
           >
             Hospital Logo (PNG, SVG, JPEG)
-          </label>
-          <div
+          </span>
+          <div role="button"
             onClick={() => logoInputRef.current?.click()}
             style={{
               width: "100%",
@@ -168,7 +168,7 @@ export function BrandingSection({
 
         {/* Banner Preview Card */}
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -178,8 +178,8 @@ export function BrandingSection({
             }}
           >
             Hospital Header Banner (Optional)
-          </label>
-          <div
+          </span>
+          <div role="button"
             onClick={() => bannerInputRef.current?.click()}
             style={{
               width: "100%",
@@ -258,7 +258,7 @@ export function BrandingSection({
         }}
       >
         <div style={{ gridColumn: "span 2" }}>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -266,8 +266,8 @@ export function BrandingSection({
               color: "#374151",
               marginBottom: "6px",
             }}
-          ></label>
-          <input
+          >
+          <input aria-label="Input field"
             type="text"
             value={form.hospitalName}
             onChange={(e) => onChange("hospitalName", e.target.value)}
@@ -279,7 +279,7 @@ export function BrandingSection({
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
           {errors.hospitalName && (
             <span
               style={{
@@ -295,7 +295,7 @@ export function BrandingSection({
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -305,8 +305,8 @@ export function BrandingSection({
             }}
           >
             Hospital Short Name / Abbreviation
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={form.hospitalShortName}
             onChange={(e) => onChange("hospitalShortName", e.target.value)}
@@ -318,11 +318,11 @@ export function BrandingSection({
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -332,8 +332,8 @@ export function BrandingSection({
             }}
           >
             Hospital Tagline / Motto
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={form.hospitalTagline}
             onChange={(e) => onChange("hospitalTagline", e.target.value)}
@@ -345,11 +345,11 @@ export function BrandingSection({
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -359,8 +359,8 @@ export function BrandingSection({
             }}
           >
             Hospital Registration Number
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={form.registrationNumber}
             onChange={(e) => onChange("registrationNumber", e.target.value)}
@@ -372,11 +372,11 @@ export function BrandingSection({
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -386,8 +386,8 @@ export function BrandingSection({
             }}
           >
             Hospital License Number *
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={form.licenseNumber}
             onChange={(e) => onChange("licenseNumber", e.target.value)}
@@ -399,7 +399,7 @@ export function BrandingSection({
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
           {errors.licenseNumber && (
             <span
               style={{

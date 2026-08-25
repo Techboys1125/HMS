@@ -134,18 +134,18 @@ export const VitalsCard: React.FC<VitalsCardProps> = ({
             const isBmi = c.field === "bmi";
             return (
               <div key={c.field} className="space-y-1">
-                <label
+                <span
                   className="block text-[11px] font-semibold text-[#64748B]"
                   style={{ fontFamily: PP }}
                 >
                   {c.label}
-                </label>
+                </span>
                 {isBmi ? (
                   <div className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl bg-slate-100 text-slate-500 font-semibold select-none">
                     {computedBmi}
                   </div>
                 ) : (
-                  <input
+                  <input aria-label="Input field"
                     type="text"
                     value={values[c.field] || ""}
                     onChange={(e) => onChange(c.field, e.target.value)}

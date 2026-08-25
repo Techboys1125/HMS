@@ -101,8 +101,16 @@ function TimelineView({
 
         return (
           <div
+            role="button"
+            tabIndex={0}
             key={`${entry.type}-${entry.id}`}
             onClick={handleClick}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                handleClick();
+              }
+            }}
             className="flex items-start gap-3 bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/80 transition-colors cursor-pointer group"
           >
             <div
@@ -174,8 +182,16 @@ function PrescriptionsView({
         const status = rx.prescriptionStatus || "FINALIZED";
         return (
           <div
+            role="button"
+            tabIndex={0}
             key={rx.prescriptionId}
             onClick={() => onSelectPrescription(rx.prescriptionId)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onSelectPrescription(rx.prescriptionId);
+              }
+            }}
             className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/80 transition-colors cursor-pointer group"
           >
             <div className="flex items-center gap-3">
@@ -278,8 +294,16 @@ function BillingView({
         const payStatus = bill.paymentStatus || bill.billStatus || "PENDING";
         return (
           <div
+            role="button"
+            tabIndex={0}
             key={bill.billId}
             onClick={() => onSelectBill(bill)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onSelectBill(bill);
+              }
+            }}
             className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/80 transition-colors cursor-pointer group"
           >
             <div className="flex items-center gap-3">

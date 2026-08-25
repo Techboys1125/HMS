@@ -69,7 +69,7 @@ export function PreviewNotificationModal({
           >
             Notification Dispatch Preview
           </h3>
-          <button
+          <button aria-label="Close"
             onClick={onClose}
             style={{
               border: "none",

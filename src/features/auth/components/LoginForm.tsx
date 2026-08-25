@@ -64,7 +64,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
           {/* Form Error Message */}
           {errors.form && (
-            <div className="w-full p-2.5 mt-2.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 font-medium shadow-2xs flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
+            <div className="w-full p-2.5 mt-2.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 font-medium shadow-2xs flex items-center gap-2 transition-opacity fade-in slide-in-from-top-1 duration-200">
               <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
               <span>{errors.form}</span>
             </div>

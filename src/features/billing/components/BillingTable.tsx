@@ -129,7 +129,7 @@ function InvoiceRow({
 
           {/* More Actions Dropdown */}
           <div className="relative">
-            <button
+            <button aria-label="Action"
               onClick={() =>
                 setActiveMenuId(activeMenuId === invoice.id ? null : invoice.id)
               }

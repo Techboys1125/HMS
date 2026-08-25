@@ -20,22 +20,23 @@ interface InvestigationTableProps {
   ) => void;
 }
 
+const INVESTIGATION_OPTIONS: {
+  key: keyof InvestigationTableProps["values"];
+  label: string;
+}[] = [
+  { key: "cbc", label: "Complete Blood Count (CBC)" },
+  { key: "ecg", label: "12-Lead Electrocardiogram (ECG)" },
+  { key: "xray", label: "Chest X-Ray (PA View)" },
+  { key: "ultrasound", label: "Abdomen / Pelvis Ultrasound" },
+  { key: "other", label: "Other Diagnostics (Specify below)" },
+];
+
 export const InvestigationTable: React.FC<InvestigationTableProps> = ({
   values,
   customInvestigation,
   remarks,
   onChange,
 }) => {
-  const options: {
-    key: keyof InvestigationTableProps["values"];
-    label: string;
-  }[] = [
-    { key: "cbc", label: "Complete Blood Count (CBC)" },
-    { key: "ecg", label: "12-Lead Electrocardiogram (ECG)" },
-    { key: "xray", label: "Chest X-Ray (PA View)" },
-    { key: "ultrasound", label: "Abdomen / Pelvis Ultrasound" },
-    { key: "other", label: "Other Diagnostics (Specify below)" },
-  ];
 
   return (
     <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-sm space-y-4">
@@ -50,7 +51,7 @@ export const InvestigationTable: React.FC<InvestigationTableProps> = ({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-        {options.map((opt) => (
+        {INVESTIGATION_OPTIONS.map((opt) => (
           <label
             key={opt.key}
             className="flex items-start gap-2.5 p-3 border border-[#E5E7EB] rounded-xl hover:bg-slate-50 transition-colors cursor-pointer select-none"
@@ -76,13 +77,13 @@ export const InvestigationTable: React.FC<InvestigationTableProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label
+          <span
             className="block text-[11px] font-semibold text-[#64748B] mb-1"
             style={{ fontFamily: PP }}
           >
             Custom Investigation Details (If 'Other' selected)
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={customInvestigation}
             disabled={!values.other}
@@ -90,23 +91,23 @@ export const InvestigationTable: React.FC<InvestigationTableProps> = ({
             placeholder="e.g. 2D Echocardiogram, Troponin-I STAT"
             className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-xl bg-slate-50 outline-none focus:border-[#0D47A1] focus:bg-white transition-colors disabled:bg-slate-100 disabled:text-slate-400"
             style={{ fontFamily: RB }}
-          />
+          /></span>
         </div>
         <div>
-          <label
+          <span
             className="block text-[11px] font-semibold text-[#64748B] mb-1"
             style={{ fontFamily: PP }}
           >
             Clinical Remarks & Instructions
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={remarks}
             onChange={(e) => onChange("investigationRemarks", e.target.value)}
             placeholder="e.g. Perform Troponin test immediately and report result."
             className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-xl bg-slate-50 outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
             style={{ fontFamily: RB }}
-          />
+          /></span>
         </div>
       </div>
     </div>

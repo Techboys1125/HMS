@@ -45,7 +45,7 @@ export function DiscountConfiguration({
         }}
       >
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -55,8 +55,8 @@ export function DiscountConfiguration({
             }}
           >
             Maximum Concession Cap (%)
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="number"
             value={discountConfig.maxDiscountPct}
             onChange={(e) =>
@@ -73,11 +73,11 @@ export function DiscountConfiguration({
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -87,8 +87,8 @@ export function DiscountConfiguration({
             }}
           >
             Authorized Approval Roles
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={discountConfig.authorizedRoles}
             onChange={(e) =>
@@ -105,7 +105,7 @@ export function DiscountConfiguration({
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
 
         <div
@@ -135,7 +135,7 @@ export function DiscountConfiguration({
               Require admin sign-off above 10% discount
             </div>
           </div>
-          <input
+          <input aria-label="Toggle option"
             type="checkbox"
             checked={discountConfig.approvalRequired}
             onChange={(e) =>

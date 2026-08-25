@@ -103,7 +103,7 @@ export function GeneralAppointmentSettings() {
                 {item.sub}
               </div>
             </div>
-            <input
+            <input aria-label="Toggle option"
               type="checkbox"
               checked={
                 (generalConfig as unknown as Record<string, boolean>)[item.key]
@@ -133,7 +133,7 @@ export function GeneralAppointmentSettings() {
         }}
       >
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -143,8 +143,8 @@ export function GeneralAppointmentSettings() {
             }}
           >
             Maximum Advance Booking Limit (Days)
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="number"
             value={generalConfig.maxAdvanceBookingDays}
             onChange={(e) =>
@@ -161,10 +161,10 @@ export function GeneralAppointmentSettings() {
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -174,8 +174,8 @@ export function GeneralAppointmentSettings() {
             }}
           >
             Minimum Advance Booking Lead Time (Hours)
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="number"
             value={generalConfig.minAdvanceBookingHours}
             onChange={(e) =>
@@ -192,7 +192,7 @@ export function GeneralAppointmentSettings() {
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
       </div>
     </div>

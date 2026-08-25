@@ -72,12 +72,12 @@ export function PatientMyBillsPage() {
             className="flex items-center gap-2 text-xs text-[#64748B] mb-1 font-medium"
             style={{ fontFamily: RB }}
           >
-            <span
+            <button type="button"
               className="hover:text-[#0D47A1] cursor-pointer"
               onClick={() => navigate("/dashboard")}
             >
               Home
-            </span>
+            </button>
             <ChevronRight size={12} />
             <span className="text-[#0D47A1] font-semibold">My Bills</span>
           </div>
@@ -213,7 +213,7 @@ export function PatientMyBillsPage() {
               className="absolute left-3.5 top-2.5 text-slate-400"
               size={16}
             />
-            <input
+            <input aria-label="Input field"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -222,7 +222,7 @@ export function PatientMyBillsPage() {
             />
           </div>
           <div>
-            <select
+            <select aria-label="Select option"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 font-semibold text-slate-700 focus:bg-white focus:border-[#0D47A1] focus:outline-none"

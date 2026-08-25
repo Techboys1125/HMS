@@ -77,44 +77,45 @@ export function AppointmentDetailsDrawer({
       setIsLoadingTimeline(true);
       try {
         const res = await appointmentService.getQueueTimeline(aptId);
-        if (cancelled) return;
-        const resData = (res as { data?: unknown })?.data ?? res;
-        const events = Array.isArray(resData)
-          ? resData
-          : Array.isArray((resData as { events?: unknown[] })?.events)
-            ? (resData as { events: unknown[] }).events
-            : [];
+        if (!cancelled) {
+          const resData = (res as { data?: unknown })?.data ?? res;
+          const events = Array.isArray(resData)
+            ? resData
+            : Array.isArray((resData as { events?: unknown[] })?.events)
+              ? (resData as { events: unknown[] }).events
+              : [];
 
-        if (events.length > 0) {
-          const mapped = events.map((evtItem: unknown) => {
-            const e = (evtItem as Record<string, unknown>) || {};
-            const title = String(
-              e.remarks || e.eventType || e.newStatus || "Queue Event Updated",
-            );
-            const roleStr = e.role ? ` (${e.role})` : "";
-            const by = `${e.performedBy || "System"}${roleStr}`;
-            const timeRaw = String(e.timestamp || e.createdDate || "");
-            const formattedTime = timeRaw
-              ? timeRaw.includes("T")
-                ? timeRaw.replace("T", " ").slice(0, 19)
-                : timeRaw
-              : aptApptDate;
+          if (events.length > 0) {
+            const mapped = events.map((evtItem: unknown) => {
+              const e = (evtItem as Record<string, unknown>) || {};
+              const title = String(
+                e.remarks || e.eventType || e.newStatus || "Queue Event Updated",
+              );
+              const roleStr = e.role ? ` (${e.role})` : "";
+              const by = `${e.performedBy || "System"}${roleStr}`;
+              const timeRaw = String(e.timestamp || e.createdDate || "");
+              const formattedTime = timeRaw
+                ? timeRaw.includes("T")
+                  ? timeRaw.replace("T", " ").slice(0, 19)
+                  : timeRaw
+                : aptApptDate;
 
-            return {
-              title,
-              timestamp: formattedTime,
-              by,
-              status: "completed",
-            };
-          });
-          setApiTimelineEvents(mapped);
-        } else {
-          setApiTimelineEvents([]);
+              return {
+                title,
+                timestamp: formattedTime,
+                by,
+                status: "completed",
+              };
+            });
+            setApiTimelineEvents(mapped);
+          } else {
+            setApiTimelineEvents([]);
+          }
         }
       } catch {
         if (!cancelled) setApiTimelineEvents([]);
       } finally {
-        if (!cancelled) setIsLoadingTimeline(false);
+        setIsLoadingTimeline(false);
       }
     }
 
@@ -241,13 +242,13 @@ export function AppointmentDetailsDrawer({
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
-      <div
+      <div role="presentation"
         className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
         onClick={onClose}
       />
 
       <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
-        <div className="w-screen max-w-2xl bg-white shadow-2xl flex flex-col border-l border-gray-100 animate-in slide-in-from-right duration-200">
+        <div className="w-screen max-w-2xl bg-white shadow-2xl flex flex-col border-l border-gray-100 transition-transform duration-200">
           {/* STICKY HEADER */}
           <div className="px-6 py-4 bg-[#0D47A1] text-white flex items-center justify-between shadow-sm shrink-0">
             <div>
@@ -280,7 +281,7 @@ export function AppointmentDetailsDrawer({
             </div>
 
             <div className="flex items-center gap-2">
-              <button
+              <button aria-label="Close"
                 type="button"
                 onClick={onClose}
                 className="p-1.5 text-white/80 hover:text-white rounded-lg hover:bg-white/10 transition-colors"

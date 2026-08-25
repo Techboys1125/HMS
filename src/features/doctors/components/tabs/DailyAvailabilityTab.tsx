@@ -61,13 +61,13 @@ export function DailyAvailabilityTab({ doctor }: DailyAvailabilityTabProps) {
           </h3>
         </div>
         <div className="flex items-center gap-2">
-          <label className="text-xs font-semibold text-[#64748B]">Date:</label>
-          <input
+          <span className="text-xs font-semibold text-[#64748B]">Date:
+          <input aria-label="Input field"
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
             className="px-2.5 py-1 text-xs border border-[#E5E7EB] rounded-lg bg-white outline-none focus:border-[#0D47A1]"
-          />
+          /></span>
         </div>
       </div>
 

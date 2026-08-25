@@ -160,7 +160,7 @@ export function DoctorMedicalRecordsScreen() {
                 size={16}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
               />
-              <input
+              <input aria-label="Search records..."
                 type="text"
                 placeholder="Search records..."
                 value={searchQuery}
@@ -229,13 +229,13 @@ export function DoctorMedicalRecordsScreen() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button
+                    <button aria-label="View details"
                       onClick={() => triggerToast("Opening record details...")}
                       className="p-2 rounded-xl hover:bg-slate-100 text-slate-500"
                     >
                       <Eye size={16} />
                     </button>
-                    <button
+                    <button aria-label="Download"
                       onClick={() => triggerToast("Downloading record...")}
                       className="p-2 rounded-xl hover:bg-slate-100 text-slate-500"
                     >
@@ -250,7 +250,7 @@ export function DoctorMedicalRecordsScreen() {
       </div>
 
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-[#111827] text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700 animate-in slide-in-from-bottom-4 duration-200">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-[#111827] text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700 transition-transform duration-200">
           <CheckCircle2 className="w-5 h-5 text-[#66BB6A] shrink-0" />
           <span className="text-xs font-semibold" style={{ fontFamily: PP }}>
             {toastMsg}

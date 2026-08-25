@@ -139,19 +139,19 @@ export function PaymentHistoryPage() {
             className="flex items-center gap-2 text-xs text-[#64748B] mb-1 font-medium"
             style={{ fontFamily: RB }}
           >
-            <span
+            <button type="button"
               className="hover:text-[#0D47A1] cursor-pointer"
               onClick={() => navigate("/billing")}
             >
               Home
-            </span>
+            </button>
             <ChevronRight size={12} />
-            <span
+            <button type="button"
               className="hover:text-[#0D47A1] cursor-pointer"
               onClick={() => navigate("/billing")}
             >
               Billing & Payment
-            </span>
+            </button>
             <ChevronRight size={12} />
             <span className="text-[#0D47A1] font-semibold">
               Payment History
@@ -201,7 +201,7 @@ export function PaymentHistoryPage() {
               className="absolute left-3.5 top-2.5 text-slate-400"
               size={16}
             />
-            <input
+            <input aria-label="Input field"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -210,7 +210,7 @@ export function PaymentHistoryPage() {
             />
           </div>
           <div>
-            <select
+            <select aria-label="Select option"
               value={dateRange}
               onChange={(e) => setDateRange(e.target.value)}
               className="w-full px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 font-semibold text-slate-700 focus:bg-white focus:border-[#0D47A1] focus:outline-none"
@@ -221,7 +221,7 @@ export function PaymentHistoryPage() {
             </select>
           </div>
           <div>
-            <select
+            <select aria-label="Select option"
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="w-full px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 font-semibold text-slate-700 focus:bg-white focus:border-[#0D47A1] focus:outline-none"
@@ -238,7 +238,7 @@ export function PaymentHistoryPage() {
           style={{ fontFamily: RB }}
         >
           <div>
-            <select
+            <select aria-label="Select option"
               value={selectedMethod}
               onChange={(e) => setSelectedMethod(e.target.value)}
               className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 font-medium text-slate-700"
@@ -251,7 +251,7 @@ export function PaymentHistoryPage() {
             </select>
           </div>
           <div>
-            <select
+            <select aria-label="Select option"
               value={selectedCashier}
               onChange={(e) => setSelectedCashier(e.target.value)}
               className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 font-medium text-slate-700"
@@ -410,7 +410,7 @@ export function PaymentHistoryPage() {
                           <Printer size={14} />
                         </button>
                         <div className="relative">
-                          <button
+                          <button aria-label="Action"
                             onClick={() =>
                               setShowMoreMenuId(
                                 showMoreMenuId === p.receiptNo
@@ -469,7 +469,7 @@ export function PaymentHistoryPage() {
         >
           <div className="flex items-center gap-2">
             <span>Rows per page:</span>
-            <select
+            <select aria-label="Select option"
               value={rowsPerPage}
               onChange={(e) => {
                 const v = Number(e.currentTarget.value);
@@ -512,8 +512,8 @@ export function PaymentHistoryPage() {
 
       {/* PAYMENT DETAILS DRAWER */}
       {selectedDrawerPayment && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex justify-end animate-in fade-in duration-200">
-          <div className="bg-white w-full max-w-md h-full shadow-2xl p-6 overflow-y-auto space-y-5 animate-in slide-in-from-right duration-200">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex justify-end transition-opacity duration-200">
+          <div className="bg-white w-full max-w-md h-full shadow-2xl p-6 overflow-y-auto space-y-5 transition-transform duration-200">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <div>
                 <span className="text-[10px] text-[#0D47A1] font-bold uppercase tracking-wider">
@@ -526,7 +526,7 @@ export function PaymentHistoryPage() {
                   {selectedDrawerPayment.receiptNo}
                 </h3>
               </div>
-              <button
+              <button aria-label="Close"
                 onClick={() => setSelectedDrawerPayment(null)}
                 className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
               >

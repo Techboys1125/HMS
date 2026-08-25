@@ -158,7 +158,7 @@ export function MyProfilePage() {
     >
       <div className="max-w-4xl mx-auto space-y-4">
         <div className="flex items-center gap-3">
-          <button
+          <button aria-label="Previous"
             onClick={() => navigate(ROUTES.DASHBOARD)}
             className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
           >

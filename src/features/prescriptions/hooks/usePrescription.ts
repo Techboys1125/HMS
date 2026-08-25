@@ -96,28 +96,38 @@ export function usePrescription(mrn?: string, doctorNameFilter?: string) {
   };
 }
 
+const loadDetails = async (
+  id: string | number,
+  onError?: (msg: string) => void,
+) => {
+  try {
+    return await prescriptionService.getPrescriptionDetails(id);
+  } catch (err) {
+    const message =
+      err instanceof Error
+        ? err.message
+        : "Failed to load prescription details";
+    onError?.(message);
+    return null;
+  }
+};
+
+const closeDetails = () => {
+  prescriptionStoreActions.setSelectedPrescription(null);
+};
+
+const setFilterValue = (key: string, val: string) => {
+  prescriptionStoreActions.setFilters({ [key]: val });
+};
+
+const resetFilters = () => {
+  prescriptionStoreActions.resetFilters();
+};
+
 export function usePrescriptionDetails() {
   const { selectedPrescription, loading } = usePrescriptionStore();
 
-  const loadDetails = async (
-    id: string | number,
-    onError?: (msg: string) => void,
-  ) => {
-    try {
-      return await prescriptionService.getPrescriptionDetails(id);
-    } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Failed to load prescription details";
-      onError?.(message);
-      return null;
-    }
-  };
 
-  const closeDetails = () => {
-    prescriptionStoreActions.setSelectedPrescription(null);
-  };
 
   return {
     selectedPrescription,
@@ -130,13 +140,7 @@ export function usePrescriptionDetails() {
 export function usePrescriptionFilters() {
   const { filters } = usePrescriptionStore();
 
-  const setFilterValue = (key: string, val: string) => {
-    prescriptionStoreActions.setFilters({ [key]: val });
-  };
 
-  const resetFilters = () => {
-    prescriptionStoreActions.resetFilters();
-  };
 
   return {
     filters,

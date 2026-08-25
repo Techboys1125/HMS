@@ -873,19 +873,19 @@ export function CreateInvoiceWorkspacePage() {
             className="flex items-center gap-2 text-xs text-[#64748B] mb-1 font-medium"
             style={{ fontFamily: RB }}
           >
-            <span
+            <button type="button"
               className="hover:text-[#0D47A1] cursor-pointer"
               onClick={() => navigate("/billing")}
             >
               Home
-            </span>
+            </button>
             <ChevronRight size={12} />
-            <span
+            <button type="button"
               className="hover:text-[#0D47A1] cursor-pointer"
               onClick={() => navigate("/billing")}
             >
               Billing & Payment
-            </span>
+            </button>
             <ChevronRight size={12} />
             <span className="text-[#0D47A1] font-semibold">Create Invoice</span>
           </div>
@@ -965,7 +965,7 @@ export function CreateInvoiceWorkspacePage() {
               <strong>"Generate Invoice"</strong> to pass the required context.
             </p>
           </div>
-          <button
+          <button aria-label="Close"
             onClick={() => setValidationError(null)}
             className="text-red-400 hover:text-red-600"
           >
@@ -1008,18 +1008,18 @@ export function CreateInvoiceWorkspacePage() {
             </div>
 
             <div className="relative">
-              <label
+              <span
                 className="block text-xs font-semibold text-slate-700 mb-1"
                 style={{ fontFamily: RB }}
               >
                 Patient Search (MRN, Name, or Mobile) *
-              </label>
+              </span>
               <div className="relative">
                 <Search
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
                   size={15}
                 />
-                <input
+                <input aria-label="Input field"
                   type="text"
                   value={patientSearch}
                   onFocus={() =>
@@ -1241,7 +1241,7 @@ export function CreateInvoiceWorkspacePage() {
                             payload: cat,
                           })
                         }
-                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${patientCategory === cat ? "bg-[#0D47A1] text-white shadow-xs" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"}`}
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${patientCategory === cat ? "bg-[#0D47A1] text-white shadow-xs" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"}`}
                       >
                         {cat}
                       </button>
@@ -1392,7 +1392,7 @@ export function CreateInvoiceWorkspacePage() {
                       className="hover:bg-slate-50/70 transition-colors"
                     >
                       <td className="py-2 px-3">
-                        <select
+                        <select aria-label="Select option"
                           value={item.serviceName}
                           onChange={(e) => {
                             const found = SERVICE_CATALOG.find(
@@ -1432,7 +1432,7 @@ export function CreateInvoiceWorkspacePage() {
                       </td>
                       <td className="py-2 px-3 text-center">
                         <div className="inline-flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white">
-                          <button
+                          <button aria-label="Action"
                             type="button"
                             onClick={() =>
                               handleUpdateItem(
@@ -1448,7 +1448,7 @@ export function CreateInvoiceWorkspacePage() {
                           <span className="px-2 py-1 font-bold text-[#111827]">
                             {item.quantity}
                           </span>
-                          <button
+                          <button aria-label="Action"
                             type="button"
                             onClick={() =>
                               handleUpdateItem(
@@ -1464,7 +1464,7 @@ export function CreateInvoiceWorkspacePage() {
                         </div>
                       </td>
                       <td className="py-2 px-3 text-right">
-                        <input
+                        <input aria-label="Input field"
                           type="number"
                           value={item.unitPrice}
                           onChange={(e) =>
@@ -1480,7 +1480,7 @@ export function CreateInvoiceWorkspacePage() {
                         />
                       </td>
                       <td className="py-2 px-3 text-right">
-                        <input
+                        <input aria-label="Input field"
                           type="number"
                           value={item.discount}
                           onChange={(e) =>
@@ -1494,7 +1494,7 @@ export function CreateInvoiceWorkspacePage() {
                         />
                       </td>
                       <td className="py-2 px-3 text-right">
-                        <input
+                        <input aria-label="Input field"
                           type="number"
                           value={item.tax}
                           onChange={(e) =>
@@ -1573,9 +1573,9 @@ export function CreateInvoiceWorkspacePage() {
               style={{ fontFamily: RB }}
             >
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">
+                <span className="block text-slate-700 font-semibold mb-1">
                   Discount Type
-                </label>
+                </span>
                 <div className="flex items-center gap-4 mb-2">
                   <label className="flex items-center gap-1.5 cursor-pointer">
                     <input
@@ -1608,7 +1608,7 @@ export function CreateInvoiceWorkspacePage() {
                     <span>Percentage (%)</span>
                   </label>
                 </div>
-                <input
+                <input aria-label="Input field"
                   type="number"
                   value={discountValue}
                   onChange={(e) => {
@@ -1622,10 +1622,10 @@ export function CreateInvoiceWorkspacePage() {
                 />
               </div>
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">
+                <span className="block text-slate-700 font-semibold mb-1">
                   Tax Percentage (%)
-                </label>
-                <input
+                
+                <input aria-label="Input field"
                   type="number"
                   value={taxPercentage}
                   onChange={(e) => {
@@ -1636,13 +1636,13 @@ export function CreateInvoiceWorkspacePage() {
                     });
                   }}
                   className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 focus:bg-white focus:border-[#0D47A1] focus:outline-none"
-                />
+                /></span>
               </div>
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">
+                <span className="block text-slate-700 font-semibold mb-1">
                   Additional Charges (₹)
-                </label>
-                <input
+                
+                <input aria-label="Input field"
                   type="number"
                   value={additionalCharges}
                   onChange={(e) => {
@@ -1654,7 +1654,7 @@ export function CreateInvoiceWorkspacePage() {
                   }}
                   placeholder="e.g. PPE / Admin Fee"
                   className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 focus:bg-white focus:border-[#0D47A1] focus:outline-none"
-                />
+                /></span>
               </div>
             </div>
             <div
@@ -1662,10 +1662,10 @@ export function CreateInvoiceWorkspacePage() {
               style={{ fontFamily: RB }}
             >
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">
+                <span className="block text-slate-700 font-semibold mb-1">
                   Billing Remarks & Internal Notes
-                </label>
-                <textarea
+                </span>
+                <textarea aria-label="Text area"
                   rows={2}
                   value={billingRemarks}
                   onChange={(e) =>
@@ -1708,10 +1708,10 @@ export function CreateInvoiceWorkspacePage() {
               style={{ fontFamily: RB }}
             >
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">
+                <span className="block text-slate-700 font-semibold mb-1">
                   Payment Status *
-                </label>
-                <select
+                
+                <select aria-label="Select option"
                   value={paymentStatus}
                   onChange={(e) =>
                     handlePaymentStatusChange(e.target.value as PaymentStatus)
@@ -1721,13 +1721,13 @@ export function CreateInvoiceWorkspacePage() {
                   <option value="Paid">Paid</option>
                   <option value="Partially Paid">Partially Paid</option>
                   <option value="Pending">Pending</option>
-                </select>
+                </select></span>
               </div>
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">
+                <span className="block text-slate-700 font-semibold mb-1">
                   Payment Mode *
-                </label>
-                <select
+                
+                <select aria-label="Select option"
                   value={paymentMode}
                   onChange={(e) =>
                     setPaymentMode(e.target.value as PaymentMethod)
@@ -1740,13 +1740,13 @@ export function CreateInvoiceWorkspacePage() {
                   <option value="Bank Transfer">
                     Bank Transfer (NEFT/IMPS)
                   </option>
-                </select>
+                </select></span>
               </div>
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">
+                <span className="block text-slate-700 font-semibold mb-1">
                   Amount Received (₹) *
-                </label>
-                <input
+                
+                <input aria-label="Input field"
                   type="number"
                   min="0"
                   max={outstandingBalance}
@@ -1760,7 +1760,7 @@ export function CreateInvoiceWorkspacePage() {
                       ? "border-red-400 bg-red-50/50"
                       : "border-[#E5E7EB] bg-slate-50"
                   } font-bold text-[#111827] focus:bg-white focus:border-[#0D47A1] focus:outline-none`}
-                />
+                /></span>
                 {isOverpayment && (
                   <p className="text-[11px] text-red-600 mt-1">
                     Cannot exceed outstanding balance of ₹
@@ -1774,28 +1774,28 @@ export function CreateInvoiceWorkspacePage() {
                 )}
               </div>
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">
+                <span className="block text-slate-700 font-semibold mb-1">
                   Txn / Reference Number
-                </label>
-                <input
+                
+                <input aria-label="Input field"
                   type="text"
                   value={referenceNo}
                   onChange={(e) => setReferenceNo(e.target.value)}
                   placeholder="e.g. UPI/890123/OKAX"
                   className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 focus:bg-white focus:border-[#0D47A1] focus:outline-none font-mono"
-                />
+                /></span>
               </div>
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">
+                <span className="block text-slate-700 font-semibold mb-1">
                   Transaction Notes
-                </label>
-                <input
+                
+                <input aria-label="Input field"
                   type="text"
                   value={txnNotes}
                   onChange={(e) => setTxnNotes(e.target.value)}
                   placeholder="Optional cashier note..."
                   className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 focus:bg-white focus:border-[#0D47A1] focus:outline-none"
-                />
+                /></span>
               </div>
             </div>
           </div>
@@ -1987,7 +1987,7 @@ export function CreateInvoiceWorkspacePage() {
       {/* SUCCESS MODAL */}
       {showSuccessModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-2xl w-full max-w-md p-6 text-center space-y-4 animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-2xl w-full max-w-md p-6 text-center space-y-4 transition-transform duration-200">
             <div className="w-14 h-14 rounded-full bg-green-50 text-[#66BB6A] flex items-center justify-center mx-auto border-2 border-green-200">
               <CheckCircle2 size={32} />
             </div>

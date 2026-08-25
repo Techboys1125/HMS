@@ -90,6 +90,11 @@ const formatVitalValue = (val: unknown, unit: string) => {
   return `${str} ${unit}`;
 };
 
+
+const handlePrint = () => {
+    window.print();
+  };
+
 export function ConsultationDetailsScreen({
   consultationId,
   encounterId,
@@ -224,7 +229,9 @@ export function ConsultationDetailsScreen({
         let vitalsData: Record<string, unknown> | null = null;
         if (encIdNum > 0) {
           try {
-            vitalsData = (await vitalsApi.getVitals(encIdNum)) as unknown as Record<string, unknown>;
+            vitalsData = (await vitalsApi.getVitals(
+              encIdNum,
+            )) as unknown as Record<string, unknown>;
           } catch (e) {
             console.warn("Could not fetch vitals for encounter:", e);
           }
@@ -234,9 +241,10 @@ export function ConsultationDetailsScreen({
         let prescriptionData: Record<string, unknown> | null = null;
         if (encIdNum > 0) {
           try {
-            prescriptionData = (await encountersApi.getPrescriptionByEncounterId(
-              encIdNum,
-            )) as unknown as Record<string, unknown>;
+            prescriptionData =
+              (await encountersApi.getPrescriptionByEncounterId(
+                encIdNum,
+              )) as unknown as Record<string, unknown>;
           } catch (e) {
             console.warn("Could not fetch prescriptions for encounter:", e);
           }
@@ -248,7 +256,8 @@ export function ConsultationDetailsScreen({
         if (targetMrn && targetMrn !== "MRN-000000") {
           try {
             const patRes = await patientsApi.getPatientByMrn(targetMrn);
-            const p = ((patRes as unknown as Record<string, unknown>)?.data || patRes) as unknown as Record<string, unknown>;
+            const p = ((patRes as unknown as Record<string, unknown>)?.data ||
+              patRes) as unknown as Record<string, unknown>;
             if (p?.bloodGroup) {
               fetchedBloodGroup = String(p.bloodGroup);
             }
@@ -258,7 +267,9 @@ export function ConsultationDetailsScreen({
         }
 
         if (isMounted) {
-          const rawV = ((vitalsData?.data as Record<string, unknown>) || vitalsData || {}) as Record<string, unknown>;
+          const rawV = ((vitalsData?.data as Record<string, unknown>) ||
+            vitalsData ||
+            {}) as Record<string, unknown>;
           const h = rawV.height ?? rawV.heightCm ?? rawV.height_cm;
           const w = rawV.weight ?? rawV.weightKg ?? rawV.weight_kg;
           const temp = rawV.temperature ?? rawV.temperatureC ?? rawV.temp;
@@ -274,23 +285,31 @@ export function ConsultationDetailsScreen({
           const sugar = rawV.bloodSugar ?? rawV.sugar ?? rawV.bloodSugarMgDl;
           const bmiCalc =
             rawV.bmi ||
-            (h && w ? (Number(w) / Math.pow(Number(h) / 100, 2)).toFixed(1) : undefined);
+            (h && w
+              ? (Number(w) / Math.pow(Number(h) / 100, 2)).toFixed(1)
+              : undefined);
 
-          const rxDataObj = (prescriptionData?.data as Record<string, unknown>) || {};
+          const rxDataObj =
+            (prescriptionData?.data as Record<string, unknown>) || {};
           const meds = Array.isArray(rxDataObj?.items)
-            ? (rxDataObj.items as Record<string, unknown>[]).map((m: Record<string, unknown>, idx: number) => ({
-                id: String(m.prescriptionItemId || idx + 1),
-                name: String(m.medicationName || m.drugName || "Medication"),
-                dosage: String(m.dosage || "1 tab"),
-                frequency: String(m.frequency || "Once daily"),
-                duration: String(m.duration || "5 days"),
-                instructions: String(
-                  m.instructions || m.specialInstructions || "Take after meals",
-                ),
-              }))
+            ? (rxDataObj.items as Record<string, unknown>[]).map(
+                (m: Record<string, unknown>, idx: number) => ({
+                  id: String(m.prescriptionItemId || idx + 1),
+                  name: String(m.medicationName || m.drugName || "Medication"),
+                  dosage: String(m.dosage || "1 tab"),
+                  frequency: String(m.frequency || "Once daily"),
+                  duration: String(m.duration || "5 days"),
+                  instructions: String(
+                    m.instructions ||
+                      m.specialInstructions ||
+                      "Take after meals",
+                  ),
+                }),
+              )
             : [];
 
-          const rxPatient = (rxDataObj?.patient as Record<string, unknown>) || {};
+          const rxPatient =
+            (rxDataObj?.patient as Record<string, unknown>) || {};
 
           setRecord((prev) => ({
             ...prev,
@@ -362,9 +381,6 @@ export function ConsultationDetailsScreen({
 
   const navigate = useNavigate();
 
-  const handlePrint = () => {
-    window.print();
-  };
 
   const handleDownloadPdf = () => {
     downloadConsultationPdf(record);
@@ -973,9 +989,9 @@ export function ConsultationDetailsScreen({
                         None recommended
                       </span>
                     ) : (
-                      record.investigations.map((inv, idx) => (
+                      record.investigations.map((inv) => (
                         <span
-                          key={idx}
+                          key={inv}
                           className="px-3 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded-xl font-bold text-xs"
                           style={{ fontFamily: PP }}
                         >

@@ -454,19 +454,19 @@ export function PatientReportScreen({
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
-                <span
+                <button type="button"
                   className="hover:text-[#0D47A1] cursor-pointer"
                   onClick={onBack}
                 >
                   Hospital
-                </span>
+                </button>
                 <ChevronRight className="w-3.5 h-3.5" />
-                <span
+                <button type="button"
                   className="hover:text-[#0D47A1] cursor-pointer"
                   onClick={onBack}
                 >
                   Reports
-                </span>
+                </button>
                 <ChevronRight className="w-3.5 h-3.5" />
                 <span className="text-[#0D47A1] font-semibold">
                   Patient Report
@@ -535,7 +535,7 @@ export function PatientReportScreen({
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
-            <input
+            <input aria-label="Input field"
               type="text"
               value={searchQuery}
               onChange={(e) =>
@@ -567,10 +567,10 @@ export function PatientReportScreen({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3">
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Date Range
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={dateRange}
                 onChange={(e) =>
                   dispatch({
@@ -585,14 +585,14 @@ export function PatientReportScreen({
                 <option>Yesterday</option>
                 <option>Last 7 Days</option>
                 <option>This Month</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Gender
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={genderFilter}
                 onChange={(e) =>
                   dispatch({
@@ -607,14 +607,14 @@ export function PatientReportScreen({
                 <option>Male</option>
                 <option>Female</option>
                 <option>Other</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Age Group
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={ageGroupFilter}
                 onChange={(e) =>
                   dispatch({
@@ -632,14 +632,14 @@ export function PatientReportScreen({
                 <option>31â€“45</option>
                 <option>46â€“60</option>
                 <option>60+</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Department
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={deptFilter}
                 onChange={(e) =>
                   dispatch({
@@ -657,14 +657,14 @@ export function PatientReportScreen({
                 <option>Neurology</option>
                 <option>ENT</option>
                 <option>Pediatrics</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Doctor
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={doctorFilter}
                 onChange={(e) =>
                   dispatch({
@@ -681,14 +681,14 @@ export function PatientReportScreen({
                 <option>Dr. Priya Sharma</option>
                 <option>Dr. Arjun Mehta</option>
                 <option>Dr. Sunita Patel</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Visit Type
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={visitTypeFilter}
                 onChange={(e) =>
                   dispatch({
@@ -704,14 +704,14 @@ export function PatientReportScreen({
                 <option>Follow-up</option>
                 <option>Walk-in</option>
                 <option>Emergency</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Status
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={regStatusFilter}
                 onChange={(e) =>
                   dispatch({
@@ -726,7 +726,7 @@ export function PatientReportScreen({
                 <option>Active</option>
                 <option>Completed</option>
                 <option>Pending Follow-up</option>
-              </select>
+              </select></span>
             </div>
           </div>
 
@@ -1535,7 +1535,7 @@ export function PatientReportScreen({
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-[#F1F5F9] text-[11px] font-bold text-[#64748B] uppercase tracking-wider border-b border-[#E5E7EB]">
-                        <th
+                        <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
                           className="py-3.5 px-4 cursor-pointer hover:text-[#0D47A1]"
                           onClick={() => handleSort("mrn")}
                         >
@@ -1543,7 +1543,7 @@ export function PatientReportScreen({
                           {sortField === "mrn" &&
                             (sortOrder === "asc" ? "â†‘" : "â†“")}
                         </th>
-                        <th
+                        <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
                           className="py-3.5 px-4 cursor-pointer hover:text-[#0D47A1]"
                           onClick={() => handleSort("patientName")}
                         >
@@ -1649,7 +1649,7 @@ export function PatientReportScreen({
                     entries
                   </span>
                   <div className="flex items-center gap-2">
-                    <button
+                    <button aria-label="Previous"
                       disabled
                       className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
                     >
@@ -1658,7 +1658,7 @@ export function PatientReportScreen({
                     <span className="font-semibold text-[#111827]">
                       Page 1 of 1
                     </span>
-                    <button
+                    <button aria-label="Next"
                       disabled
                       className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
                     >
@@ -1891,7 +1891,7 @@ export function PatientReportScreen({
       {/* ENTERPRISE EXPORT REPORT MODAL */}
       {showExportModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] max-w-md w-full p-6 shadow-2xl relative animate-in fade-in zoom-in duration-150">
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] max-w-md w-full p-6 shadow-2xl relative transition-opacity duration-150">
             <div className="flex items-center justify-between pb-3 border-b border-[#E5E7EB] mb-4">
               <h3
                 className="text-base font-bold text-[#111827]"
@@ -1909,12 +1909,12 @@ export function PatientReportScreen({
 
             <div className="space-y-4 text-xs" style={{ fontFamily: RB }}>
               <div>
-                <label
+                <span
                   className="block font-semibold text-[#111827] mb-2"
                   style={{ fontFamily: PP }}
                 >
                   Export Format
-                </label>
+                </span>
                 <div className="grid grid-cols-3 gap-2">
                   <label
                     className={`flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition ${exportFormat === "pdf" ? "bg-blue-50 border-[#0D47A1] text-[#0D47A1] font-semibold" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
@@ -1959,12 +1959,12 @@ export function PatientReportScreen({
               </div>
 
               <div>
-                <label
+                <span
                   className="block font-semibold text-[#111827] mb-2"
                   style={{ fontFamily: PP }}
                 >
                   Export Scope
-                </label>
+                </span>
                 <div className="grid grid-cols-3 gap-2">
                   <label className="flex items-center gap-2">
                     <input
@@ -2004,12 +2004,12 @@ export function PatientReportScreen({
 
               {exportFormat !== "csv" && (
                 <div>
-                  <label
+                  <span
                     className="block font-semibold text-[#111827] mb-2"
                     style={{ fontFamily: PP }}
                   >
                     Include Options
-                  </label>
+                  </span>
                   <div className="grid grid-cols-2 gap-2">
                     <label className="flex items-center gap-2">
                       <input
@@ -2072,12 +2072,12 @@ export function PatientReportScreen({
               )}
 
               <div>
-                <label
+                <span
                   className="block font-semibold text-[#111827] mb-1"
                   style={{ fontFamily: PP }}
                 >
                   File Name
-                </label>
+                </span>
                 <div className="p-2.5 bg-slate-50 border border-[#E5E7EB] rounded-xl font-mono text-xs text-[#0D47A1] font-semibold">
                   Patient_Report_{dateRange.replace(/\s+/g, "_")}.
                   {exportFormat === "excel" ? "xlsx" : exportFormat}

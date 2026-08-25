@@ -69,7 +69,7 @@ export const ConsultationFilters: React.FC<ConsultationFiltersProps> = ({
           style={{ fontFamily: RB }}
         />
         {searchQuery && (
-          <button
+          <button aria-label="Close"
             onClick={() => onSearchChange("")}
             className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
           >
@@ -80,30 +80,30 @@ export const ConsultationFilters: React.FC<ConsultationFiltersProps> = ({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 pt-2 border-t border-gray-100">
         <div>
-          <label
+          <span
             className="block text-[11px] font-semibold text-[#64748B] mb-1"
             style={{ fontFamily: PP }}
           >
             Date
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="date"
             value={filterDate}
             onChange={(e) => onDateChange(e.target.value)}
             className="w-full px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1]"
             style={{ fontFamily: RB }}
-          />
+          /></span>
         </div>
 
         {showDoctorFilter && (
           <div>
-            <label
+            <span
               className="block text-[11px] font-semibold text-[#64748B] mb-1"
               style={{ fontFamily: PP }}
             >
               Doctor
-            </label>
-            <select
+            
+            <select aria-label="Select option"
               value={filterDoctor}
               onChange={(e) => onDoctorChange(e.target.value)}
               className="w-full px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1]"
@@ -114,19 +114,19 @@ export const ConsultationFilters: React.FC<ConsultationFiltersProps> = ({
                   {opt.label}
                 </option>
               ))}
-            </select>
+            </select></span>
           </div>
         )}
 
         {showDepartmentFilter && (
           <div>
-            <label
+            <span
               className="block text-[11px] font-semibold text-[#64748B] mb-1"
               style={{ fontFamily: PP }}
             >
               Department
-            </label>
-            <select
+            
+            <select aria-label="Select option"
               value={filterDepartment}
               onChange={(e) => onDepartmentChange(e.target.value)}
               className="w-full px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1]"
@@ -137,19 +137,19 @@ export const ConsultationFilters: React.FC<ConsultationFiltersProps> = ({
                   {opt.label}
                 </option>
               ))}
-            </select>
+            </select></span>
           </div>
         )}
 
         {showStatusFilter && (
           <div>
-            <label
+            <span
               className="block text-[11px] font-semibold text-[#64748B] mb-1"
               style={{ fontFamily: PP }}
             >
               Status
-            </label>
-            <select
+            
+            <select aria-label="Select option"
               value={filterStatus}
               onChange={(e) => onStatusChange(e.target.value)}
               className="w-full px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1]"
@@ -160,19 +160,19 @@ export const ConsultationFilters: React.FC<ConsultationFiltersProps> = ({
               <option value="CALLED">Called</option>
               <option value="IN_CONSULTATION">In Consultation</option>
               <option value="COMPLETED">Completed</option>
-            </select>
+            </select></span>
           </div>
         )}
 
         {showVisitTypeFilter && (
           <div>
-            <label
+            <span
               className="block text-[11px] font-semibold text-[#64748B] mb-1"
               style={{ fontFamily: PP }}
             >
               Visit Type
-            </label>
-            <select
+            
+            <select aria-label="Select option"
               value={filterVisitType}
               onChange={(e) => onVisitTypeChange(e.target.value)}
               className="w-full px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1]"
@@ -182,7 +182,7 @@ export const ConsultationFilters: React.FC<ConsultationFiltersProps> = ({
               <option value="First Visit">First Visit</option>
               <option value="Follow-up">Follow-up</option>
               <option value="Walk-In">Walk-In</option>
-            </select>
+            </select></span>
           </div>
         )}
       </div>

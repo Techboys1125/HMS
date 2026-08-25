@@ -195,6 +195,26 @@ const navIdToPath = (role: Role, navId: NavId): string => {
   return base[navId] || ROUTES.DASHBOARD;
 };
 
+const toHeaderMember = (m: FamilyMember): HeaderFamilyMember => ({
+  id: String(m.id),
+  patientName: m.patientName,
+  name: m.patientName,
+  relationship: m.relationship,
+  age: m.age,
+  gender: m.gender,
+  mrn: m.mrn,
+  verificationStatus: m.verificationStatus,
+  isPrimary: m.relationship === "Self",
+  status: m.patientStatus,
+  registeredMobile: "",
+  patientStatus: "",
+  lastAppointment: "",
+  upcomingAppointmentsCount: 0,
+  pendingBillsCount: 0,
+  pendingBillsAmount: 0,
+  activePrescriptionsCount: 0,
+});
+
 export function HMSAppShell({ onLogout }: { onLogout?: () => void }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -206,25 +226,6 @@ export function HMSAppShell({ onLogout }: { onLogout?: () => void }) {
   const [sidebarTheme, setSidebarTheme] = useState<"light" | "dark">("light");
   const portal = usePatientPortal();
 
-  const toHeaderMember = (m: FamilyMember): HeaderFamilyMember => ({
-    id: String(m.id),
-    patientName: m.patientName,
-    name: m.patientName,
-    relationship: m.relationship,
-    age: m.age,
-    gender: m.gender,
-    mrn: m.mrn,
-    verificationStatus: m.verificationStatus,
-    isPrimary: m.relationship === "Self",
-    status: m.patientStatus,
-    registeredMobile: "",
-    patientStatus: "",
-    lastAppointment: "",
-    upcomingAppointmentsCount: 0,
-    pendingBillsCount: 0,
-    pendingBillsAmount: 0,
-    activePrescriptionsCount: 0,
-  });
 
   const familyMembers: HeaderFamilyMember[] = (portal?.familyMembers ?? []).map(
     toHeaderMember,

@@ -50,7 +50,7 @@ export function BackupConfigSection() {
         }}
       >
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -60,8 +60,8 @@ export function BackupConfigSection() {
             }}
           >
             Backup Frequency
-          </label>
-          <select
+          
+          <select aria-label="Select option"
             value={backupConfig.frequency}
             onChange={(e) =>
               setBackupConfig((prev) => ({
@@ -81,11 +81,11 @@ export function BackupConfigSection() {
             <option>Daily</option>
             <option>Weekly</option>
             <option>Monthly</option>
-          </select>
+          </select></span>
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -95,8 +95,8 @@ export function BackupConfigSection() {
             }}
           >
             Scheduled Backup Time
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={backupConfig.backupTime}
             onChange={(e) =>
@@ -113,11 +113,11 @@ export function BackupConfigSection() {
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -127,8 +127,8 @@ export function BackupConfigSection() {
             }}
           >
             Retention Policy
-          </label>
-          <select
+          
+          <select aria-label="Select option"
             value={backupConfig.retentionPeriod}
             onChange={(e) =>
               setBackupConfig((prev) => ({
@@ -150,7 +150,7 @@ export function BackupConfigSection() {
             <option>30 Days</option>
             <option>60 Days</option>
             <option>90 Days</option>
-          </select>
+          </select></span>
         </div>
       </div>
 
@@ -204,7 +204,7 @@ export function BackupConfigSection() {
                 {item.sub}
               </div>
             </div>
-            <input
+            <input aria-label="Toggle option"
               type="checkbox"
               checked={
                 (backupConfig as unknown as Record<string, boolean>)[item.key]

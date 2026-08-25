@@ -80,7 +80,7 @@ export const OTPPage: React.FC<OTPPageProps> = ({
         </p>
 
         {error && (
-          <div className="w-full p-3.5 mt-4 bg-red-50 border border-red-200 rounded-xl text-xs sm:text-sm text-red-600 font-medium shadow-sm flex items-center gap-2.5 animate-in fade-in slide-in-from-top-1 duration-200">
+          <div className="w-full p-3.5 mt-4 bg-red-50 border border-red-200 rounded-xl text-xs sm:text-sm text-red-600 font-medium shadow-sm flex items-center gap-2.5 transition-opacity fade-in slide-in-from-top-1 duration-200">
             <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
             <span>{error}</span>
           </div>
@@ -98,7 +98,7 @@ export const OTPPage: React.FC<OTPPageProps> = ({
             "otp-slot-4",
             "otp-slot-5",
           ].map((slotKey, idx) => (
-            <input
+            <input aria-label="Input field"
               key={slotKey}
               ref={(el) => {
                 refs.current[idx] = el;

@@ -88,7 +88,7 @@ export const PrescriptionDrawer: React.FC<DrawerProps> = ({
 }) => {
   return (
     <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs flex justify-end">
-      <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-200">
+      <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between transition-transform duration-200">
         {/* Drawer Header */}
         <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-slate-50">
           <div>
@@ -105,7 +105,7 @@ export const PrescriptionDrawer: React.FC<DrawerProps> = ({
               {prescription.id}
             </span>
           </div>
-          <button
+          <button aria-label="Close"
             onClick={onClose}
             className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors"
           >
@@ -274,13 +274,13 @@ export const PrescriptionDrawer: React.FC<DrawerProps> = ({
               >
                 View Full Prescription
               </button>
-              <button
+              <button aria-label="Action"
                 onClick={onPrint}
                 className="px-3 py-2 rounded-xl bg-white border border-gray-200 text-slate-700 text-xs font-medium hover:bg-slate-100 transition-colors"
               >
                 <Printer size={14} />
               </button>
-              <button
+              <button aria-label="Download"
                 onClick={onDownload}
                 className="px-3 py-2 rounded-xl bg-white border border-gray-200 text-slate-700 text-xs font-medium hover:bg-slate-100 transition-colors"
               >
@@ -409,13 +409,15 @@ export const PrescriptionDetailsModal: React.FC<DetailsModalProps> = ({
       : "—";
 
   const allergies = Array.isArray(pRecord.allergies)
-    ? (pRecord.allergies as unknown[])
-        .map((a) => safeStr(a, ""))
-        .filter(Boolean)
+    ? (pRecord.allergies as unknown[]).flatMap((a) => {
+        const val = safeStr(a, "");
+        return val ? [val] : [];
+      })
     : Array.isArray(patientObj.allergies)
-      ? (patientObj.allergies as unknown[])
-          .map((a) => safeStr(a, ""))
-          .filter(Boolean)
+      ? (patientObj.allergies as unknown[]).flatMap((a) => {
+          const val = safeStr(a, "");
+          return val ? [val] : [];
+        })
       : [];
 
   const chiefComplaint = safeStr(
@@ -531,7 +533,7 @@ export const PrescriptionDetailsModal: React.FC<DetailsModalProps> = ({
         <div className="flex items-center gap-2">
           <button
             onClick={onClose}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-xs font-semibold transition-all shadow-xs cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-xs font-semibold transition-colors shadow-xs cursor-pointer"
             style={{ fontFamily: PP }}
           >
             <ChevronLeft size={14} />
@@ -539,7 +541,7 @@ export const PrescriptionDetailsModal: React.FC<DetailsModalProps> = ({
           </button>
           <button
             onClick={() => window.print()}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#009688] hover:bg-teal-50 text-xs font-semibold transition-all shadow-xs cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#009688] hover:bg-teal-50 text-xs font-semibold transition-colors shadow-xs cursor-pointer"
             style={{ fontFamily: PP }}
           >
             <Printer size={14} />
@@ -547,7 +549,7 @@ export const PrescriptionDetailsModal: React.FC<DetailsModalProps> = ({
           </button>
           <button
             onClick={onDownload}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-xs font-semibold transition-all shadow-xs cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-xs font-semibold transition-colors shadow-xs cursor-pointer"
             style={{ fontFamily: PP }}
           >
             <Download size={14} />
@@ -811,7 +813,7 @@ export const PrescriptionDetailsModal: React.FC<DetailsModalProps> = ({
 
                     return (
                       <tr
-                        key={idx}
+                        key={(mObj.id as string) || nameStr}
                         className="hover:bg-slate-50/50 transition-colors"
                       >
                         <td
@@ -958,8 +960,6 @@ export const PrescriptionDetailsModal: React.FC<DetailsModalProps> = ({
               </p>
             </div>
           </div>
-
-          
         </div>
       </div>
     </div>
@@ -979,7 +979,7 @@ export const PrescriptionPrintModal: React.FC<PrintModalProps> = ({
 }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 animate-in zoom-in-95 duration-150">
+      <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 transition-transform duration-150">
         <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-4">
           <div className="flex items-center gap-2">
             <Printer size={18} className="text-[#0D47A1]" />
@@ -990,7 +990,7 @@ export const PrescriptionPrintModal: React.FC<PrintModalProps> = ({
               Print Prescription Preview
             </h3>
           </div>
-          <button
+          <button aria-label="Close"
             onClick={onClose}
             className="text-slate-400 hover:text-slate-600"
           >

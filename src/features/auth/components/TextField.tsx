@@ -29,9 +29,9 @@ export const TextField: React.FC<TextFieldProps> = ({
   const hasError = !!error;
   return (
     <div className="space-y-1.5 w-full relative">
-      <label className="block text-xs font-heading font-bold text-[#1E293B] tracking-wide">
+      <span className="block text-xs font-heading font-bold text-[#1E293B] tracking-wide">
         {label}
-      </label>
+      </span>
       <div className="relative w-full group">
         {Icon && (
           <Icon

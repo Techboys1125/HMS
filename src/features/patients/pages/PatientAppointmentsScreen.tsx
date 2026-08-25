@@ -762,7 +762,7 @@ export function PatientAppointmentsScreen({
     >
       {/* Toast Feedback Banner */}
        {filterState.toastMsg && (
-        <div className="fixed top-5 right-5 z-50 bg-[#111827] text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200">
+        <div className="fixed top-5 right-5 z-50 bg-[#111827] text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 transition-opacity duration-200">
           <CheckCircle2 size={16} className="text-[#66BB6A]" />
            <span>{filterState.toastMsg}</span>
         </div>
@@ -944,7 +944,7 @@ export function PatientAppointmentsScreen({
                 size={15}
                 className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
               />
-               <input
+               <input aria-label="Input field"
                  type="text"
                  value={filterState.searchQuery}
                  onChange={(e) =>
@@ -967,7 +967,7 @@ export function PatientAppointmentsScreen({
               </div>
 
               {/* Status Filter */}
-               <select
+               <select aria-label="Select option"
                  value={filterState.statusFilter}
                  onChange={(e) =>
                    filterDispatch({
@@ -988,7 +988,7 @@ export function PatientAppointmentsScreen({
               </select>
 
               {/* Department Filter */}
-               <select
+               <select aria-label="Select option"
                  value={filterState.deptFilter}
                  onChange={(e) =>
                    filterDispatch({
@@ -1008,7 +1008,7 @@ export function PatientAppointmentsScreen({
               </select>
 
               {/* Date Range Filter */}
-               <select
+               <select aria-label="Select option"
                  value={filterState.dateRangeFilter}
                  onChange={(e) =>
                    filterDispatch({
@@ -1338,12 +1338,12 @@ export function PatientAppointmentsScreen({
       {/* ── 4. RIGHT DRAWER: BOOK / RESCHEDULE APPOINTMENT ── */}
       {booking.showBookDrawer && (
         <div className="fixed inset-0 z-50 overflow-hidden">
-          <div
+          <div role="presentation"
             className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
             onClick={() => closeBookDrawer()}
           />
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-lg bg-white shadow-2xl flex flex-col border-l border-gray-100 animate-in slide-in-from-right duration-200">
+            <div className="w-screen max-w-lg bg-white shadow-2xl flex flex-col border-l border-gray-100 transition-transform duration-200">
               {/* Drawer Header */}
               <div className="px-6 py-4 bg-[#0D47A1] text-white flex items-center justify-between shadow-sm">
                 <div>
@@ -1359,7 +1359,7 @@ export function PatientAppointmentsScreen({
                     Select doctor, date & available slot
                   </p>
                 </div>
-                <button
+                <button aria-label="Close"
                   onClick={() => closeBookDrawer()}
                   className="p-1.5 text-white/80 hover:text-white rounded-lg hover:bg-white/10"
                 >
@@ -1375,13 +1375,13 @@ export function PatientAppointmentsScreen({
               >
                 {/* 1. Department */}
                 <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] space-y-3">
-                  <label
+                  <span
                     className="block text-xs font-bold text-[#0D47A1] uppercase tracking-wider"
                     style={{ fontFamily: PP }}
                   >
                     1. Select Department
-                  </label>
-                  <select
+                  
+                  <select aria-label="Select option"
                     value={booking.formDept}
                     onChange={(e) => setBookingField("formDept", e.target.value)}
                     className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
@@ -1395,18 +1395,18 @@ export function PatientAppointmentsScreen({
                     <option value="Neurology">Neurology (Brain & Spine)</option>
                     <option value="Gynecology">Gynecology & Obstetrics</option>
                     <option value="Pediatrics">Pediatrics (Child Care)</option>
-                  </select>
+                  </select></span>
                 </div>
 
                 {/* 2. Doctor */}
                 <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] space-y-3">
-                  <label
+                  <span
                     className="block text-xs font-bold text-[#0D47A1] uppercase tracking-wider"
                     style={{ fontFamily: PP }}
                   >
                     2. Select Doctor
-                  </label>
-                  <select
+                  
+                  <select aria-label="Select option"
                     value={booking.formDoctor}
                     onChange={(e) => setBookingField("formDoctor", e.target.value)}
                     className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
@@ -1423,17 +1423,17 @@ export function PatientAppointmentsScreen({
                     <option value="Dr. Sunita Patel">
                       Dr. Sunita Patel — Gynecologist (9 yrs exp)
                     </option>
-                  </select>
+                  </select></span>
                 </div>
 
                 {/* 3. Visit Type, Date & Time Slots */}
                 <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] space-y-4">
-                  <label
+                  <span
                     className="block text-xs font-bold text-[#0D47A1] uppercase tracking-wider"
                     style={{ fontFamily: PP }}
                   >
                     3. Visit Type & Date Selection
-                  </label>
+                  </span>
 
                   {/* Visit Type Toggle */}
                   <div className="grid grid-cols-2 gap-2">
@@ -1466,7 +1466,7 @@ export function PatientAppointmentsScreen({
                     <span className="block text-[11px] text-[#64748B] mb-1 font-medium">
                       Select Preferred Date
                     </span>
-                    <input
+                    <input aria-label="Input field"
                       type="date"
                       value={booking.formDate}
                       onChange={(e) => setBookingField("formDate", e.target.value)}
@@ -1507,18 +1507,18 @@ export function PatientAppointmentsScreen({
 
                 {/* 4. Reason for Visit & Notes */}
                 <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] space-y-3">
-                  <label
+                  <span
                     className="block text-xs font-bold text-[#0D47A1] uppercase tracking-wider"
                     style={{ fontFamily: PP }}
                   >
                     4. Clinical Reason & Symptoms
-                  </label>
+                  </span>
 
                   <div>
                     <span className="block text-[11px] text-[#64748B] mb-1 font-medium">
                       Reason for Visit *
                     </span>
-                    <input
+                    <input aria-label="e.g. Routine follow-up, BP check, Chest tightness..."
                       type="text"
                       required
                       placeholder="e.g. Routine follow-up, BP check, Chest tightness..."
@@ -1532,7 +1532,7 @@ export function PatientAppointmentsScreen({
                     <span className="block text-[11px] text-[#64748B] mb-1 font-medium">
                       Additional Notes
                     </span>
-                    <textarea
+                    <textarea aria-label="Any symptoms, ongoing medications, or special requests..."
                       rows={2}
                       placeholder="Any symptoms, ongoing medications, or special requests..."
                       value={booking.formNotes}
@@ -1614,12 +1614,12 @@ export function PatientAppointmentsScreen({
       {/* ── 5. RIGHT DRAWER: APPOINTMENT DETAILS ── */}
       {booking.selectedDetailsAppt && (
         <div className="fixed inset-0 z-50 overflow-hidden">
-          <div
+          <div role="presentation"
             className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
             onClick={() => setSelectedDetails(null)}
           />
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-lg bg-white shadow-2xl flex flex-col border-l border-gray-100 animate-in slide-in-from-right duration-200">
+            <div className="w-screen max-w-lg bg-white shadow-2xl flex flex-col border-l border-gray-100 transition-transform duration-200">
               {/* Header */}
               <div className="px-6 py-4 bg-[#0D47A1] text-white flex items-center justify-between shadow-sm">
                 <div>
@@ -1633,7 +1633,7 @@ export function PatientAppointmentsScreen({
                     {booking.selectedDetailsAppt.id}
                   </span>
                 </div>
-                <button
+                <button aria-label="Close"
                   onClick={() => setSelectedDetails(null)}
                   className="p-1.5 text-white/80 hover:text-white rounded-lg hover:bg-white/10"
                 >

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useTransition } from "react";
 import {
   Calendar,
   Download,
@@ -119,7 +119,9 @@ export function ReceptionistDailyAppointmentReportScreen({
     "7 Days",
   );
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const [showLoadingDemo, setShowLoadingDemo] = useState(false);
+  const isLoading = isPending || showLoadingDemo;
   const [hasError, setHasError] = useState(false);
 
   const handleRefresh = () => {
@@ -165,19 +167,19 @@ export function ReceptionistDailyAppointmentReportScreen({
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
-                <span
+                <button type="button"
                   onClick={onBack}
                   className="hover:text-[#0D47A1] cursor-pointer"
                 >
                   Reception
-                </span>
+                </button>
                 <ChevronRight className="w-3.5 h-3.5" />
-                <span
+                <button type="button"
                   onClick={onBack}
                   className="hover:text-[#0D47A1] cursor-pointer"
                 >
                   Reports
-                </span>
+                </button>
                 <ChevronRight className="w-3.5 h-3.5" />
                 <span className="text-[#0D47A1] font-semibold">
                   Daily Appointment Report
@@ -253,7 +255,7 @@ export function ReceptionistDailyAppointmentReportScreen({
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
-            <input
+            <input aria-label="Input field"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -288,10 +290,10 @@ export function ReceptionistDailyAppointmentReportScreen({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Date Range
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={dateRange}
                 onChange={(e) => setDateRange(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -300,14 +302,14 @@ export function ReceptionistDailyAppointmentReportScreen({
                 <option>Yesterday</option>
                 <option>Last 7 Days</option>
                 <option>This Month</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Appointment Status
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={apptStatusFilter}
                 onChange={(e) => setApptStatusFilter(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -318,14 +320,14 @@ export function ReceptionistDailyAppointmentReportScreen({
                 <option>Waiting</option>
                 <option>Completed</option>
                 <option>Cancelled</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Check-In Status
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={checkInStatusFilter}
                 onChange={(e) => setCheckInStatusFilter(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -333,14 +335,14 @@ export function ReceptionistDailyAppointmentReportScreen({
                 <option>All Check-In Statuses</option>
                 <option>Checked-In</option>
                 <option>Pending Check-In</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Queue Status
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={queueStatusFilter}
                 onChange={(e) => setQueueStatusFilter(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -349,14 +351,14 @@ export function ReceptionistDailyAppointmentReportScreen({
                 <option>Waiting Room</option>
                 <option>In Consultation</option>
                 <option>Completed Queue</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Visit Type
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={visitTypeFilter}
                 onChange={(e) => setVisitTypeFilter(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -366,14 +368,14 @@ export function ReceptionistDailyAppointmentReportScreen({
                 <option>Follow-up</option>
                 <option>Routine Checkup</option>
                 <option>Walk-In</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Shift
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={shiftFilter}
                 onChange={(e) => setShiftFilter(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -382,7 +384,7 @@ export function ReceptionistDailyAppointmentReportScreen({
                 <option>Morning Shift</option>
                 <option>Afternoon Shift</option>
                 <option>Evening Shift</option>
-              </select>
+              </select></span>
             </div>
           </div>
 
@@ -410,7 +412,10 @@ export function ReceptionistDailyAppointmentReportScreen({
             </span>
             <button
               onClick={() => {
-                setIsLoading(!isLoading);
+                startTransition(() => {
+                setShowLoadingDemo(!showLoadingDemo);
+                setHasError(false);
+              });
                 setHasError(false);
               }}
               className={`px-2.5 py-1 rounded-lg border text-xs ${isLoading ? "bg-amber-50 border-amber-300 text-[#F59E0B]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
@@ -420,7 +425,7 @@ export function ReceptionistDailyAppointmentReportScreen({
             <button
               onClick={() => {
                 setHasError(!hasError);
-                setIsLoading(false);
+                setShowLoadingDemo(false);
               }}
               className={`px-2.5 py-1 rounded-lg border text-xs ${hasError ? "bg-red-50 border-red-[#EF4444] text-[#EF4444]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
             >
@@ -1072,7 +1077,7 @@ export function ReceptionistDailyAppointmentReportScreen({
                     {filteredAppointments.length} entries
                   </span>
                   <div className="flex items-center gap-2">
-                    <button
+                    <button aria-label="Previous"
                       disabled
                       className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
                     >
@@ -1081,7 +1086,7 @@ export function ReceptionistDailyAppointmentReportScreen({
                     <span className="font-semibold text-[#111827]">
                       Page 1 of 1
                     </span>
-                    <button
+                    <button aria-label="Next"
                       disabled
                       className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
                     >

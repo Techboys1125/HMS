@@ -96,7 +96,7 @@ export const PatientRegisterForm: React.FC<PatientRegisterFormProps> = ({
 
           {/* Form Errors */}
           {errors.form && (
-            <div className="w-full p-2.5 mt-2.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 font-medium shadow-2xs flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
+            <div className="w-full p-2.5 mt-2.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 font-medium shadow-2xs flex items-center gap-2 transition-opacity fade-in slide-in-from-top-1 duration-200">
               <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
               <span>{errors.form}</span>
             </div>
@@ -156,10 +156,10 @@ export const PatientRegisterForm: React.FC<PatientRegisterFormProps> = ({
 
             {/* Gender */}
             <div className="space-y-1.5 w-full">
-              <label className="block text-xs font-heading font-bold text-[#1E293B] tracking-wide">
+              <span className="block text-xs font-heading font-bold text-[#1E293B] tracking-wide">
                 Gender (Optional)
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={gender}
                 onChange={(e) => setGender(e.target.value)}
                 className="auth-input-field w-full py-2.5 px-3.5 text-xs sm:text-sm font-body rounded-xl border border-slate-200 bg-[#F8FAFC] text-[#0F172A] hover:bg-slate-100/70 focus:bg-white focus:border-[#0D47A1] focus:ring-2 focus:ring-[#0D47A1]/15 shadow-2xs outline-none transition-colors duration-200"
@@ -168,7 +168,7 @@ export const PatientRegisterForm: React.FC<PatientRegisterFormProps> = ({
                 <option value="MALE">Male</option>
                 <option value="FEMALE">Female</option>
                 <option value="OTHER">Other</option>
-              </select>
+              </select></span>
             </div>
           </div>
 

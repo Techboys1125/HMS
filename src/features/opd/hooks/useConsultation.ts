@@ -1,3 +1,11 @@
+const loadFullConsultationDetails = async (
+  consultationId: string | number,
+) => {
+  return await consultationService.loadFullConsultationDetails(
+    consultationId,
+  );
+};
+
 import { useQueryClient } from "@tanstack/react-query";
 import type { AppointmentRecord } from "../../appointments/types/appointment.types";
 import { useConsultationStore } from "../store/consultationStore";
@@ -48,13 +56,6 @@ export const useConsultation = () => {
     return result;
   };
 
-  const loadFullConsultationDetails = async (
-    consultationId: string | number,
-  ) => {
-    return await consultationService.loadFullConsultationDetails(
-      consultationId,
-    );
-  };
 
   return {
     selectedAppointment,

@@ -6,13 +6,7 @@ import React, {
   useEffect,
 } from "react";
 import { useNavigate } from "react-router";
-import {
-  Clock,
-  Download,
-  Phone,
-  Plus,
-  FolderOpen,
-} from "lucide-react";
+import { Clock, Download, Phone, Plus, FolderOpen } from "lucide-react";
 import { usePermissions } from "../../../permissions/usePermissions";
 import { useConsultation } from "../hooks/useConsultation";
 import { useQueue } from "../hooks/useQueue";
@@ -105,10 +99,9 @@ function mapQueueItemToConsultation(
   const normalizedStatus = normalizeStatus(rawStatus);
 
   const rawItem = item as unknown as Record<string, unknown>;
-  const patientObj = (item.patient || rawItem.patient || {}) as unknown as Record<
-    string,
-    unknown
-  >;
+  const patientObj = (item.patient ||
+    rawItem.patient ||
+    {}) as unknown as Record<string, unknown>;
   const doctorObj = (item.doctor || rawItem.doctor || {}) as unknown as Record<
     string,
     unknown
@@ -122,7 +115,7 @@ function mapQueueItemToConsultation(
     (rawItem.doctorFullName as string) ||
     (typeof rawItem.doctor === "string"
       ? rawItem.doctor
-      : (rawItem.doctor as Record<string, unknown>)?.name as string) ||
+      : ((rawItem.doctor as Record<string, unknown>)?.name as string)) ||
     defaultDoctorName ||
     "—";
 
@@ -134,7 +127,8 @@ function mapQueueItemToConsultation(
     (rawItem.departmentName as string) ||
     (typeof rawItem.department === "string"
       ? (rawItem.department as string)
-      : ((rawItem.department as Record<string, unknown>)?.departmentName as string) ||
+      : ((rawItem.department as Record<string, unknown>)
+          ?.departmentName as string) ||
         ((rawItem.department as Record<string, unknown>)?.name as string)) ||
     (rawItem.deptName as string) ||
     (rawItem.dept as string) ||
@@ -257,6 +251,27 @@ function mapQueueItemToConsultation(
     durationOfSymptoms: "",
   };
 }
+interface FilterState {
+  filterDate: string;
+  filterDoctor: string;
+  filterDepartment: string;
+  filterStatus: string;
+  filterVisitType: string;
+}
+
+type FilterAction = {
+  type: "SET_FIELD";
+  field: keyof FilterState;
+  value: string;
+};
+
+const filterReducer = (
+  state: FilterState,
+  action: FilterAction,
+): FilterState => ({
+  ...state,
+  [action.field]: action.value,
+});
 
 export function OPDConsultationPage({
   role: overrideRole,
@@ -343,25 +358,6 @@ export function OPDConsultationPage({
     );
   }, [mappedConsultations, resolvedRole]);
 
-  type FilterState = {
-    filterDate: string;
-    filterDoctor: string;
-    filterDepartment: string;
-    filterStatus: string;
-    filterVisitType: string;
-  };
-  type FilterAction = {
-    type: "SET_FIELD";
-    field: keyof FilterState;
-    value: string;
-  };
-  const filterReducer = (
-    state: FilterState,
-    action: FilterAction,
-  ): FilterState => ({
-    ...state,
-    [action.field]: action.value,
-  });
   const [filters, dispatch] = useReducer(filterReducer, {
     filterDate: getTodayDateString(),
     filterDoctor: "All",
@@ -409,7 +405,9 @@ export function OPDConsultationPage({
 
   const departmentOptions = useMemo(() => {
     const depts = Array.from(
-      new Set(consultations.flatMap((c) => (c.department ? [c.department] : []))),
+      new Set(
+        consultations.flatMap((c) => (c.department ? [c.department] : [])),
+      ),
     );
     return [
       { value: "All", label: "All Departments" },
@@ -702,7 +700,9 @@ export function OPDConsultationPage({
     },
   ];
 
-  const [viewingHistoryMrn, setViewingHistoryMrn] = useState<string | null>(null);
+  const [viewingHistoryMrn, setViewingHistoryMrn] = useState<string | null>(
+    null,
+  );
 
   if (viewingHistoryMrn) {
     return (
@@ -727,25 +727,38 @@ export function OPDConsultationPage({
   }
 
   if (selectedPrescriptionRecord) {
-    const pRec = selectedPrescriptionRecord as unknown as Record<string, unknown>;
+    const pRec = selectedPrescriptionRecord as unknown as Record<
+      string,
+      unknown
+    >;
     const pSub = (pRec.patient as Record<string, unknown>) || {};
     return (
       <ConsultationDetailsScreen
         consultationId={selectedPrescriptionRecord.id}
-        encounterId={selectedPrescriptionRecord.encounterId || selectedPrescriptionRecord.id}
+        encounterId={
+          selectedPrescriptionRecord.encounterId ||
+          selectedPrescriptionRecord.id
+        }
         initialRecord={{
           id: `ENC-${selectedPrescriptionRecord.encounterId || selectedPrescriptionRecord.id}`,
           visitDate: selectedPrescriptionRecord.date,
-          completionTime: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          completionTime: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
           patientName: selectedPrescriptionRecord.patientName,
           mrn: selectedPrescriptionRecord.mrn,
           age: selectedPrescriptionRecord.age,
           gender: selectedPrescriptionRecord.gender,
-          bloodGroup: (pRec.bloodGroup as string) || (pSub.bloodGroup as string) || "—",
-          doctorName: selectedPrescriptionRecord.doctorName || selectedPrescriptionRecord.doctor,
+          bloodGroup:
+            (pRec.bloodGroup as string) || (pSub.bloodGroup as string) || "—",
+          doctorName:
+            selectedPrescriptionRecord.doctorName ||
+            selectedPrescriptionRecord.doctor,
           department: selectedPrescriptionRecord.department,
           visitType: selectedPrescriptionRecord.visitType,
-          chiefComplaint: selectedPrescriptionRecord.chiefComplaint || "None recorded",
+          chiefComplaint:
+            selectedPrescriptionRecord.chiefComplaint || "None recorded",
           vitals: {
             height: selectedPrescriptionRecord.vitals?.height || "—",
             weight: selectedPrescriptionRecord.vitals?.weight || "—",
@@ -753,25 +766,30 @@ export function OPDConsultationPage({
             temperature: selectedPrescriptionRecord.vitals?.temp || "—",
             bp: selectedPrescriptionRecord.vitals?.bp || "—",
             pulse: selectedPrescriptionRecord.vitals?.pulse || "—",
-            respiratoryRate: selectedPrescriptionRecord.vitals?.respiratoryRate || "—",
+            respiratoryRate:
+              selectedPrescriptionRecord.vitals?.respiratoryRate || "—",
             spo2: selectedPrescriptionRecord.vitals?.spo2 || "—",
             bloodSugar: selectedPrescriptionRecord.vitals?.bloodSugar || "—",
           },
-          clinicalExamination: selectedPrescriptionRecord.clinicalExamination || "—",
+          clinicalExamination:
+            selectedPrescriptionRecord.clinicalExamination || "—",
           provisionalDiagnosis: "Recorded",
-          finalDiagnosis: selectedPrescriptionRecord.finalDiagnosis || "Recorded",
+          finalDiagnosis:
+            selectedPrescriptionRecord.finalDiagnosis || "Recorded",
           icdCode: selectedPrescriptionRecord.icdCode || "—",
-          medicines: (selectedPrescriptionRecord.medicines || []).map((m, idx: number) => {
-            const medObj = m as unknown as Record<string, unknown>;
-            return {
-              id: String(medObj.id || idx + 1),
-              name: String(medObj.name || "Medication"),
-              dosage: String(medObj.dosage || "1 tab"),
-              frequency: String(medObj.frequency || "Once daily"),
-              duration: String(medObj.duration || "5 days"),
-              instructions: String(medObj.instructions || "After food"),
-            };
-          }),
+          medicines: (selectedPrescriptionRecord.medicines || []).map(
+            (m, idx: number) => {
+              const medObj = m as unknown as Record<string, unknown>;
+              return {
+                id: String(medObj.id || idx + 1),
+                name: String(medObj.name || "Medication"),
+                dosage: String(medObj.dosage || "1 tab"),
+                frequency: String(medObj.frequency || "Once daily"),
+                duration: String(medObj.duration || "5 days"),
+                instructions: String(medObj.instructions || "After food"),
+              };
+            },
+          ),
           investigations: [],
           investigationRemarks: "—",
           symptoms: "—",
@@ -785,8 +803,12 @@ export function OPDConsultationPage({
           tokenNo: selectedPrescriptionRecord.tokenNo || "TK-01",
         }}
         onBack={() => setSelectedPrescriptionRecord(null)}
-        onViewHistory={(mrn) => setViewingHistoryMrn(mrn || selectedPrescriptionRecord.mrn)}
-        onViewPatientProfile={(mrn) => onPatientSelect?.(mrn || selectedPrescriptionRecord.mrn)}
+        onViewHistory={(mrn) =>
+          setViewingHistoryMrn(mrn || selectedPrescriptionRecord.mrn)
+        }
+        onViewPatientProfile={(mrn) =>
+          onPatientSelect?.(mrn || selectedPrescriptionRecord.mrn)
+        }
       />
     );
   }
@@ -970,8 +992,6 @@ export function OPDConsultationPage({
         consultations={consultations}
         tabCounts={tabCounts}
       />
-
-
 
       {/* View Prescription Modal */}
       <EncounterPrescriptionViewModal

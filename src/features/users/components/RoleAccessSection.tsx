@@ -47,9 +47,9 @@ export const RoleAccessSection: React.FC<RoleAccessSectionProps> = ({
       </h3>
 
       <div className="space-y-3">
-        <label className="block text-xs font-heading font-bold text-text-body">
+        <span className="block text-xs font-heading font-bold text-text-body">
           System Access Role *
-        </label>
+        </span>
 
         {/* Radio Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -58,7 +58,7 @@ export const RoleAccessSection: React.FC<RoleAccessSectionProps> = ({
             const isSelected = form.role === role.id;
 
             return (
-              <div
+              <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
                 key={role.id}
                 onClick={() => setFieldValue("role", role.id)}
                 className={`border rounded-2xl p-4 flex flex-col justify-between items-start gap-3 cursor-pointer transition-colors duration-200 ${

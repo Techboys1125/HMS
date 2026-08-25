@@ -17,59 +17,60 @@ interface ConsultationFormProps {
   onChange: (field: string, val: string) => void;
 }
 
+const CONSULTATION_FIELDS: {
+  key: keyof ConsultationFormProps["values"];
+  label: string;
+  sub: string;
+  color: string;
+}[] = [
+  {
+    key: "chiefComplaint",
+    label: "Chief Complaint",
+    sub: "Primary symptom / reason for visit",
+    color: "bg-red-500",
+  },
+  {
+    key: "durationOfSymptoms",
+    label: "Duration of Symptoms",
+    sub: "Onset and course",
+    color: "bg-orange-500",
+  },
+  {
+    key: "symptoms",
+    label: "Subjective Notes (Symptoms)",
+    sub: "Patient's detailed account of illness",
+    color: "bg-blue-600",
+  },
+  {
+    key: "clinicalExamination",
+    label: "Objective Notes (Examination)",
+    sub: "Clinical physical exam findings",
+    color: "bg-[#009688]",
+  },
+  {
+    key: "assessment",
+    label: "Clinical Assessment",
+    sub: "Clinical impression and differential diagnosis",
+    color: "bg-amber-500",
+  },
+  {
+    key: "advice",
+    label: "General Advice",
+    sub: "Specific guidance, warning signs, rest recommendations",
+    color: "bg-[#66BB6A]",
+  },
+  {
+    key: "lifestyleRecommendations",
+    label: "Lifestyle & Dietary Recommendations",
+    sub: "Salt restriction, exercise limitations, hydration",
+    color: "bg-purple-500",
+  },
+];
+
 export const ConsultationForm: React.FC<ConsultationFormProps> = ({
   values,
   onChange,
 }) => {
-  const fields: {
-    key: keyof ConsultationFormProps["values"];
-    label: string;
-    sub: string;
-    color: string;
-  }[] = [
-    {
-      key: "chiefComplaint",
-      label: "Chief Complaint",
-      sub: "Primary symptom / reason for visit",
-      color: "bg-red-500",
-    },
-    {
-      key: "durationOfSymptoms",
-      label: "Duration of Symptoms",
-      sub: "Onset and course",
-      color: "bg-orange-500",
-    },
-    {
-      key: "symptoms",
-      label: "Subjective Notes (Symptoms)",
-      sub: "Patient's detailed account of illness",
-      color: "bg-blue-600",
-    },
-    {
-      key: "clinicalExamination",
-      label: "Objective Notes (Examination)",
-      sub: "Clinical physical exam findings",
-      color: "bg-[#009688]",
-    },
-    {
-      key: "assessment",
-      label: "Clinical Assessment",
-      sub: "Clinical impression and differential diagnosis",
-      color: "bg-amber-500",
-    },
-    {
-      key: "advice",
-      label: "General Advice",
-      sub: "Specific guidance, warning signs, rest recommendations",
-      color: "bg-[#66BB6A]",
-    },
-    {
-      key: "lifestyleRecommendations",
-      label: "Lifestyle & Dietary Recommendations",
-      sub: "Salt restriction, exercise limitations, hydration",
-      color: "bg-purple-500",
-    },
-  ];
 
   return (
     <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-sm space-y-5">
@@ -84,7 +85,7 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({
       </div>
 
       <div className="space-y-4">
-        {fields.map((f) => {
+        {CONSULTATION_FIELDS.map((f) => {
           const isShort =
             f.key === "chiefComplaint" || f.key === "durationOfSymptoms";
           return (

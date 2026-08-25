@@ -207,7 +207,7 @@ export function WorkingHoursSchedule({
                   <tr key={day.dayOfWeek} className="border-b border-[#F1F5F9]">
                     <td className="p-3 font-bold">{day.dayOfWeek}</td>
                     <td className="p-3">
-                      <input
+                      <input aria-label="Toggle option"
                         type="checkbox"
                         checked={current.isOpen}
                         onChange={(e) =>
@@ -234,7 +234,7 @@ export function WorkingHoursSchedule({
                       />
                     </td>
                     <td className="p-3">
-                      <input
+                      <input aria-label="Input field"
                         className="w-28 rounded border border-[#D1D5DB] px-2 py-1"
                         value={breakItem.breakName}
                         disabled={!current.isOpen}

@@ -40,7 +40,7 @@ export const PrescriptionFilters: React.FC<PrescriptionFiltersProps> = ({
               size={14}
               className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
             />
-            <input
+            <input aria-label="Input field"
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -50,7 +50,7 @@ export const PrescriptionFilters: React.FC<PrescriptionFiltersProps> = ({
             />
           </div>
           <div>
-            <select
+            <select aria-label="Select option"
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white text-slate-700 font-medium"
@@ -91,7 +91,7 @@ export const PrescriptionFilters: React.FC<PrescriptionFiltersProps> = ({
             size={14}
             className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
           />
-          <input
+          <input aria-label="Input field"
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -101,7 +101,7 @@ export const PrescriptionFilters: React.FC<PrescriptionFiltersProps> = ({
           />
         </div>
         <div>
-          <select
+          <select aria-label="Select option"
             value={selectedDept}
             onChange={(e) => setSelectedDept?.(e.target.value)}
             className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white text-slate-700 font-medium"
@@ -115,7 +115,7 @@ export const PrescriptionFilters: React.FC<PrescriptionFiltersProps> = ({
           </select>
         </div>
         <div>
-          <select
+          <select aria-label="Select option"
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
             className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white text-slate-700 font-medium"
@@ -139,7 +139,7 @@ export const PrescriptionFilters: React.FC<PrescriptionFiltersProps> = ({
           >
             Date Range:
           </span>
-          <select
+          <select aria-label="Select option"
             value={dateRange}
             onChange={(e) => setDateRange?.(e.target.value)}
             className="px-2.5 py-1 text-xs bg-slate-50 border border-gray-200 rounded-lg outline-none text-slate-600 font-medium"

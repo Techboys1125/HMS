@@ -7,17 +7,17 @@ interface BillingRuleConfigurationProps {
   setBillingRules: (updater: (prev: RuleConfig) => RuleConfig) => void;
 }
 
+const RULE_CONFIG_ITEMS = [
+  { label: "Allow Partial Payments", key: "allowPartial" },
+  { label: "Allow Advance Deposit", key: "allowAdvance" },
+  { label: "Allow Refund Requests", key: "allowRefunds" },
+  { label: "Allow Bill Cancellation", key: "allowCancellation" },
+];
+
 export function BillingRuleConfiguration({
   billingRules,
   setBillingRules,
 }: BillingRuleConfigurationProps) {
-  const items = [
-    { label: "Allow Partial Payments", key: "allowPartial" },
-    { label: "Allow Advance Deposit", key: "allowAdvance" },
-    { label: "Allow Refund Requests", key: "allowRefunds" },
-    { label: "Allow Bill Cancellation", key: "allowCancellation" },
-  ];
-
   return (
     <div
       style={{
@@ -52,7 +52,7 @@ export function BillingRuleConfiguration({
           marginBottom: "16px",
         }}
       >
-        {items.map((item) => (
+        {RULE_CONFIG_ITEMS.map((item) => (
           <div
             key={item.key}
             style={{
@@ -74,7 +74,7 @@ export function BillingRuleConfiguration({
             >
               {item.label}
             </span>
-            <input
+            <input aria-label="Toggle option"
               type="checkbox"
               checked={
                 (billingRules as unknown as Record<string, boolean>)[item.key]
@@ -92,7 +92,7 @@ export function BillingRuleConfiguration({
       </div>
 
       <div style={{ width: "50%" }}>
-        <label
+        <span
           style={{
             display: "block",
             fontSize: "12px",
@@ -102,8 +102,8 @@ export function BillingRuleConfiguration({
           }}
         >
           Grace Period for Pending Payments (Days)
-        </label>
-        <input
+        
+        <input aria-label="Input field"
           type="number"
           value={billingRules.gracePeriodDays}
           onChange={(e) =>
@@ -120,7 +120,7 @@ export function BillingRuleConfiguration({
             fontSize: "13px",
             boxSizing: "border-box",
           }}
-        />
+        /></span>
       </div>
     </div>
   );

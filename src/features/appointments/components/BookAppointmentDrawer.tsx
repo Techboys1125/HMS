@@ -20,7 +20,7 @@ export function BookAppointmentDrawer({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-[#F1F5F9] w-screen h-screen flex flex-col animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 overflow-hidden bg-[#F1F5F9] w-screen h-screen flex flex-col transition-opacity duration-200">
       {/* Header Bar */}
       <div className="bg-white border-b border-[#E5E7EB] px-6 py-4 flex items-center justify-between shrink-0 shadow-xs">
         <div>

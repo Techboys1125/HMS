@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useTransition } from "react";
 import {
   Calendar,
   Download,
@@ -117,7 +117,9 @@ export function DoctorReportScreen({
     const now = new Date();
     return now.toISOString().slice(0, 16).replace("T", " ");
   });
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const [showLoadingDemo, setShowLoadingDemo] = useState(false);
+  const isLoading = isPending || showLoadingDemo;
   const [hasError, setHasError] = useState(false);
   const [trendDays, setTrendDays] = useState<"7 Days" | "30 Days" | "90 Days">(
     "7 Days",
@@ -315,19 +317,19 @@ export function DoctorReportScreen({
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
-                <span
+                <button type="button"
                   className="hover:text-[#0D47A1] cursor-pointer"
                   onClick={onBack}
                 >
                   Hospital
-                </span>
+                </button>
                 <ChevronRight className="w-3.5 h-3.5" />
-                <span
+                <button type="button"
                   className="hover:text-[#0D47A1] cursor-pointer"
                   onClick={onBack}
                 >
                   Reports
-                </span>
+                </button>
                 <ChevronRight className="w-3.5 h-3.5" />
                 <span className="text-[#0D47A1] font-semibold">
                   Doctor Report
@@ -404,7 +406,7 @@ export function DoctorReportScreen({
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
-            <input
+            <input aria-label="Input field"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -434,10 +436,10 @@ export function DoctorReportScreen({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Date Range
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={dateRange}
                 onChange={(e) => setDateRange(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -446,14 +448,14 @@ export function DoctorReportScreen({
                 <option>Yesterday</option>
                 <option>Last 7 Days</option>
                 <option>This Month</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Department
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={deptFilter}
                 onChange={(e) => setDeptFilter(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -465,14 +467,14 @@ export function DoctorReportScreen({
                 <option>Neurology</option>
                 <option>ENT</option>
                 <option>Pediatrics</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Doctor
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={doctorFilter}
                 onChange={(e) => setDoctorFilter(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -483,14 +485,14 @@ export function DoctorReportScreen({
                 <option>Dr. Priya Sharma</option>
                 <option>Dr. Arjun Mehta</option>
                 <option>Dr. Sunita Patel</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Consultation Status
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -500,14 +502,14 @@ export function DoctorReportScreen({
                 <option>Pending</option>
                 <option>Cancelled</option>
                 <option>Follow-up</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Appointment Type
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={aptTypeFilter}
                 onChange={(e) => setAptTypeFilter(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -516,14 +518,14 @@ export function DoctorReportScreen({
                 <option>New Visit</option>
                 <option>Follow-up</option>
                 <option>Walk-in</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Shift
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={shiftFilter}
                 onChange={(e) => setShiftFilter(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -532,7 +534,7 @@ export function DoctorReportScreen({
                 <option>Morning (08:00 - 14:00)</option>
                 <option>Evening (14:00 - 20:00)</option>
                 <option>Night Shift</option>
-              </select>
+              </select></span>
             </div>
           </div>
 
@@ -560,7 +562,10 @@ export function DoctorReportScreen({
             </span>
             <button
               onClick={() => {
-                setIsLoading(!isLoading);
+                startTransition(() => {
+                  setShowLoadingDemo(!showLoadingDemo);
+                  setHasError(false);
+                });
                 setHasError(false);
               }}
               className={`px-2.5 py-1 rounded-lg border text-xs ${isLoading ? "bg-amber-50 border-amber-300 text-[#F59E0B]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
@@ -570,7 +575,7 @@ export function DoctorReportScreen({
             <button
               onClick={() => {
                 setHasError(!hasError);
-                setIsLoading(false);
+                setShowLoadingDemo(false);
               }}
               className={`px-2.5 py-1 rounded-lg border text-xs ${hasError ? "bg-red-50 border-red-[#EF4444] text-[#EF4444]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
             >
@@ -1217,7 +1222,7 @@ export function DoctorReportScreen({
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-[#F1F5F9] text-[11px] font-bold text-[#64748B] uppercase tracking-wider border-b border-[#E5E7EB]">
-                        <th
+                        <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
                           className="py-3.5 px-4 cursor-pointer hover:text-[#0D47A1]"
                           onClick={() => handleSort("doctorId")}
                         >
@@ -1225,7 +1230,7 @@ export function DoctorReportScreen({
                           {sortField === "doctorId" &&
                             (sortOrder === "asc" ? "â†‘" : "â†“")}
                         </th>
-                        <th
+                        <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
                           className="py-3.5 px-4 cursor-pointer hover:text-[#0D47A1]"
                           onClick={() => handleSort("doctorName")}
                         >
@@ -1237,7 +1242,7 @@ export function DoctorReportScreen({
                         <th className="py-3.5 px-4 text-center">
                           Appointments
                         </th>
-                        <th
+                        <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
                           className="py-3.5 px-4 text-center cursor-pointer hover:text-[#0D47A1]"
                           onClick={() => handleSort("completed")}
                         >
@@ -1342,7 +1347,7 @@ export function DoctorReportScreen({
                     entries
                   </span>
                   <div className="flex items-center gap-2">
-                    <button
+                    <button aria-label="Previous"
                       disabled
                       className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
                     >
@@ -1351,7 +1356,7 @@ export function DoctorReportScreen({
                     <span className="font-semibold text-[#111827]">
                       Page 1 of 1
                     </span>
-                    <button
+                    <button aria-label="Next"
                       disabled
                       className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
                     >

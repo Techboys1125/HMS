@@ -56,7 +56,7 @@ export function BackupDetailsModal({
           >
             Backup Archive Specifications
           </h3>
-          <button
+          <button aria-label="Close"
             onClick={onClose}
             style={{
               border: "none",

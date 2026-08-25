@@ -309,7 +309,7 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm">
           <div className="text-xs text-[#64748B] font-medium">Search</div>
           <div className="mt-1">
-            <input
+            <input aria-label="Search MRN, name, phone..."
               type="text"
               placeholder="Search MRN, name, phone..."
               value={filters.searchQuery}

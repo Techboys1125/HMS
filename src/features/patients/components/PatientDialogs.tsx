@@ -63,7 +63,7 @@ export function PatientCancelAppointmentDialog({
     return (
       <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 max-sm:items-end">
         <div
-          className="w-full max-w-md bg-white rounded-2xl max-sm:rounded-b-none max-sm:rounded-t-2xl shadow-2xl overflow-hidden border border-gray-100 p-6 space-y-5 text-center animate-in zoom-in-95 duration-200"
+          className="w-full max-w-md bg-white rounded-2xl max-sm:rounded-b-none max-sm:rounded-t-2xl shadow-2xl overflow-hidden border border-gray-100 p-6 space-y-5 text-center transition-transform duration-200"
           style={{ fontFamily: RB }}
         >
           <div className="w-14 h-14 rounded-full bg-emerald-50 text-[#66BB6A] flex items-center justify-center mx-auto shadow-inner border border-emerald-100">
@@ -136,7 +136,7 @@ export function PatientCancelAppointmentDialog({
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 max-sm:items-end">
       <div
-        className="w-full max-w-md sm:max-w-lg bg-white rounded-2xl max-sm:rounded-b-none max-sm:rounded-t-2xl shadow-2xl overflow-hidden border border-gray-100 flex flex-col animate-in zoom-in-95 duration-200"
+        className="w-full max-w-md sm:max-w-lg bg-white rounded-2xl max-sm:rounded-b-none max-sm:rounded-t-2xl shadow-2xl overflow-hidden border border-gray-100 flex flex-col transition-transform duration-200"
         style={{ fontFamily: RB }}
       >
         {/* Header - Solid Danger Banner Theme matching Reschedule Appointment header style */}
@@ -155,7 +155,7 @@ export function PatientCancelAppointmentDialog({
               Are you sure you want to cancel this appointment?
             </p>
           </div>
-          <button
+          <button aria-label="Close"
             type="button"
             onClick={handleCloseAll}
             className="p-1.5 text-white/80 hover:text-white rounded-xl hover:bg-white/10 transition-colors"
@@ -233,13 +233,13 @@ export function PatientCancelAppointmentDialog({
 
           {/* Cancellation Reason Select */}
           <div>
-            <label
+            <span
               className="block text-xs font-bold text-[#111827] mb-1"
               style={{ fontFamily: PP }}
             >
               Cancellation Reason *
-            </label>
-            <select
+            
+            <select aria-label="Select option"
               value={reason}
               onChange={(e) => {
                 setReason(e.target.value);
@@ -260,7 +260,7 @@ export function PatientCancelAppointmentDialog({
                 Doctor Change Request
               </option>
               <option value="Other">Other</option>
-            </select>
+            </select></span>
             {validationError && (
               <p className="text-[11px] text-[#EF4444] font-semibold mt-1 flex items-center gap-1">
                 <AlertCircle size={12} /> {validationError}
@@ -270,13 +270,13 @@ export function PatientCancelAppointmentDialog({
 
           {/* Optional Comments */}
           <div>
-            <label
+            <span
               className="block text-xs font-bold text-[#111827] mb-1"
               style={{ fontFamily: PP }}
             >
               Additional Comments (Optional)
-            </label>
-            <textarea
+            </span>
+            <textarea aria-label="Text area"
               rows={2}
               value={comments}
               onChange={(e) => setComments(e.target.value)}
@@ -332,6 +332,20 @@ export function PatientCancelAppointmentDialog({
     </div>
   );
 }
+
+const parseSlotHour = (timeStr: string): number => {
+  if (!timeStr) return 0;
+  const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+  if (!match) {
+    const raw = parseInt(timeStr, 10);
+    return isNaN(raw) ? 0 : raw;
+  }
+  let h = parseInt(match[1], 10);
+  const p = match[3]?.toUpperCase();
+  if (p === "PM" && h < 12) h += 12;
+  if (p === "AM" && h === 12) h = 0;
+  return h;
+};
 
 export function PatientRescheduleAppointmentDialog({
   appointment,
@@ -470,48 +484,36 @@ export function PatientRescheduleAppointmentDialog({
       isBooked?: boolean;
       status?: string;
     }>) || []
-  )
-    .map((s) => {
-      const timeStr = s.time || s.startTime || s.slot || s.slotTime || "";
-      const statusUpper = (s.status || "").toUpperCase();
-      const isUnavailable =
-        s.available === false ||
-        s.isAvailable === false ||
-        s.isBooked === true ||
-        statusUpper === "BOOKED" ||
-        statusUpper === "RESERVED" ||
-        statusUpper === "TAKEN" ||
-        statusUpper === "FULL" ||
-        statusUpper === "OPD_BREAK" ||
-        statusUpper === "BREAK" ||
-        statusUpper === "UNAVAILABLE" ||
-        statusUpper === "OFF" ||
-        (isCurrentApptDate &&
-          currentApptTimeFormatted &&
-          formatTime(timeStr) === currentApptTimeFormatted);
-      return {
+  ).flatMap((s) => {
+    const timeStr = s.time || s.startTime || s.slot || s.slotTime || "";
+    if (!timeStr) return [];
+    const statusUpper = (s.status || "").toUpperCase();
+    const isUnavailable =
+      s.available === false ||
+      s.isAvailable === false ||
+      s.isBooked === true ||
+      statusUpper === "BOOKED" ||
+      statusUpper === "RESERVED" ||
+      statusUpper === "TAKEN" ||
+      statusUpper === "FULL" ||
+      statusUpper === "OPD_BREAK" ||
+      statusUpper === "BREAK" ||
+      statusUpper === "UNAVAILABLE" ||
+      statusUpper === "OFF" ||
+      (isCurrentApptDate &&
+        currentApptTimeFormatted &&
+        formatTime(timeStr) === currentApptTimeFormatted);
+    return [
+      {
         time: timeStr,
         available: !isUnavailable,
-      };
-    })
-    .filter((s) => Boolean(s.time));
+      },
+    ];
+  });
 
   const displaySlots =
     fetchedSlots.length > 0 ? fetchedSlots : defaultFallbackSlots;
 
-  const parseSlotHour = (timeStr: string): number => {
-    if (!timeStr) return 0;
-    const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
-    if (!match) {
-      const raw = parseInt(timeStr, 10);
-      return isNaN(raw) ? 0 : raw;
-    }
-    let h = parseInt(match[1], 10);
-    const p = match[3]?.toUpperCase();
-    if (p === "PM" && h < 12) h += 12;
-    if (p === "AM" && h === 12) h = 0;
-    return h;
-  };
 
   const morningSlots = displaySlots.filter((s) => {
     const h = parseSlotHour(s.time);
@@ -586,7 +588,7 @@ export function PatientRescheduleAppointmentDialog({
     return (
       <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
         <div
-          className="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 p-7 space-y-5 text-center animate-in zoom-in-95 duration-200"
+          className="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 p-7 space-y-5 text-center transition-transform duration-200"
           style={{ fontFamily: RB }}
         >
           {/* Top Checkmark Circle */}
@@ -714,7 +716,7 @@ export function PatientRescheduleAppointmentDialog({
                 handleCloseAll();
                 if (onViewDetails) onViewDetails(updatedAppt);
               }}
-              className="w-full sm:flex-1 py-3 px-5 rounded-xl bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center"
+              className="w-full sm:flex-1 py-3 px-5 rounded-xl bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-xs font-bold transition-colors shadow-sm flex items-center justify-center"
               style={{ fontFamily: PP }}
             >
               View Appointment Details
@@ -722,7 +724,7 @@ export function PatientRescheduleAppointmentDialog({
             <button
               type="button"
               onClick={handleCloseAll}
-              className="w-full sm:flex-1 py-3 px-5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all"
+              className="w-full sm:flex-1 py-3 px-5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-colors"
               style={{ fontFamily: PP }}
             >
               Return to My Appointments
@@ -737,7 +739,7 @@ export function PatientRescheduleAppointmentDialog({
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 max-sm:items-end">
       <div
-        className="w-full max-w-4xl max-h-[90vh] bg-white rounded-2xl max-sm:rounded-b-none max-sm:rounded-t-2xl shadow-2xl overflow-hidden border border-gray-100 flex flex-col animate-in zoom-in-95 duration-200"
+        className="w-full max-w-4xl max-h-[90vh] bg-white rounded-2xl max-sm:rounded-b-none max-sm:rounded-t-2xl shadow-2xl overflow-hidden border border-gray-100 flex flex-col transition-transform duration-200"
         style={{ fontFamily: RB }}
       >
         {/* Header - Teal Theme matching Image 2 */}
@@ -756,7 +758,7 @@ export function PatientRescheduleAppointmentDialog({
               Choose a new appointment date and available time slot.
             </p>
           </div>
-          <button
+          <button aria-label="Close"
             type="button"
             onClick={handleCloseAll}
             className="p-1.5 text-white/80 hover:text-white rounded-xl hover:bg-white/10 transition-colors"
@@ -826,7 +828,7 @@ export function PatientRescheduleAppointmentDialog({
                     Select New Date *
                   </h3>
                   <div className="flex items-center gap-2 text-xs text-[#009688] font-bold">
-                    <button
+                    <button aria-label="Previous"
                       type="button"
                       onClick={() =>
                         setCurrentMonth(new Date(year, month - 1, 1))
@@ -838,7 +840,7 @@ export function PatientRescheduleAppointmentDialog({
                     <span>
                       {monthName} {year}
                     </span>
-                    <button
+                    <button aria-label="Next"
                       type="button"
                       onClick={() =>
                         setCurrentMonth(new Date(year, month + 1, 1))
@@ -937,7 +939,7 @@ export function PatientRescheduleAppointmentDialog({
                                     : "Click to select slot"
                                 }
                                 onClick={() => setSelectedTimeSlot(s.time)}
-                                className={`p-2.5 rounded-xl text-xs font-semibold border transition-all text-center relative ${
+                                className={`p-2.5 rounded-xl text-xs font-semibold border transition-colors text-center relative ${
                                   isSelected
                                     ? "bg-[#009688] text-white border-[#009688] shadow-sm font-bold scale-[1.02]"
                                     : isBooked
@@ -980,7 +982,7 @@ export function PatientRescheduleAppointmentDialog({
                                     : "Click to select slot"
                                 }
                                 onClick={() => setSelectedTimeSlot(s.time)}
-                                className={`p-2.5 rounded-xl text-xs font-semibold border transition-all text-center relative ${
+                                className={`p-2.5 rounded-xl text-xs font-semibold border transition-colors text-center relative ${
                                   isSelected
                                     ? "bg-[#009688] text-white border-[#009688] shadow-sm font-bold scale-[1.02]"
                                     : isBooked
@@ -1023,7 +1025,7 @@ export function PatientRescheduleAppointmentDialog({
                                     : "Click to select slot"
                                 }
                                 onClick={() => setSelectedTimeSlot(s.time)}
-                                className={`p-2.5 rounded-xl text-xs font-semibold border transition-all text-center relative ${
+                                className={`p-2.5 rounded-xl text-xs font-semibold border transition-colors text-center relative ${
                                   isSelected
                                     ? "bg-[#009688] text-white border-[#009688] shadow-sm font-bold scale-[1.02]"
                                     : isBooked
@@ -1052,13 +1054,13 @@ export function PatientRescheduleAppointmentDialog({
               {/* SECTION 04: Reason for Rescheduling */}
               <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
                 <div>
-                  <label
+                  <span
                     className="block text-xs font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
                     Reschedule Reason *
-                  </label>
-                  <select
+                  
+                  <select aria-label="Select option"
                     value={rescheduleReason}
                     onChange={(e) => {
                       setRescheduleReason(e.target.value);
@@ -1078,12 +1080,12 @@ export function PatientRescheduleAppointmentDialog({
                     <option value="Travel">Travel</option>
                     <option value="Emergency">Emergency</option>
                     <option value="Other">Other</option>
-                  </select>
+                  </select></span>
                 </div>
 
                 {/* SECTION 05: Additional Remarks */}
                 <div>
-                  <label
+                  <span
                     className="block text-xs font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
@@ -1091,8 +1093,8 @@ export function PatientRescheduleAppointmentDialog({
                     <span className="font-normal text-slate-400">
                       (Optional)
                     </span>
-                  </label>
-                  <textarea
+                  </span>
+                  <textarea aria-label="Text area"
                     rows={2}
                     value={additionalNotes}
                     onChange={(e) => setAdditionalNotes(e.target.value)}

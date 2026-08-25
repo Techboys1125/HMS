@@ -1,3 +1,24 @@
+const getRoleBadgeStyle = (role: SystemRole) => {
+  switch (role) {
+    case "Super Admin":
+      return "bg-purple-50 text-purple-700 border-purple-200";
+    case "Hospital Admin":
+      return "bg-blue-50 text-[#0D47A1] border-blue-200";
+    case "Doctor":
+      return "bg-teal-50 text-[#009688] border-teal-200";
+    case "Nurse":
+      return "bg-emerald-50 text-emerald-700 border-emerald-200";
+    case "Receptionist":
+      return "bg-cyan-50 text-cyan-700 border-cyan-200";
+    case "Accountant":
+      return "bg-amber-50 text-[#F59E0B] border-amber-200";
+    case "Patient":
+      return "bg-indigo-50 text-indigo-700 border-indigo-200";
+    default:
+      return "bg-slate-50 text-slate-700 border-slate-200";
+  }
+};
+
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { ROUTES } from "../../../app/routes/routes";
@@ -565,26 +586,6 @@ export const UserManagement: React.FC = () => {
   const paginatedUsers = filteredUsers.slice(userStartIndex, userEndIndex);
 
   // Role badge styles
-  const getRoleBadgeStyle = (role: SystemRole) => {
-    switch (role) {
-      case "Super Admin":
-        return "bg-purple-50 text-purple-700 border-purple-200";
-      case "Hospital Admin":
-        return "bg-blue-50 text-[#0D47A1] border-blue-200";
-      case "Doctor":
-        return "bg-teal-50 text-[#009688] border-teal-200";
-      case "Nurse":
-        return "bg-emerald-50 text-emerald-700 border-emerald-200";
-      case "Receptionist":
-        return "bg-cyan-50 text-cyan-700 border-cyan-200";
-      case "Accountant":
-        return "bg-amber-50 text-[#F59E0B] border-amber-200";
-      case "Patient":
-        return "bg-indigo-50 text-indigo-700 border-indigo-200";
-      default:
-        return "bg-slate-50 text-slate-700 border-slate-200";
-    }
-  };
 
   if (isCreatingStaff) {
     return (
@@ -658,7 +659,7 @@ export const UserManagement: React.FC = () => {
       {userMgmtTab === "departments" ? (
         <DepartmentsSpecialtiesWorkspace />
       ) : (
-        <div className="bg-slate-50/50 rounded-2xl shadow-sm border border-gray-200 min-h-175 overflow-hidden flex flex-col font-medium animate-in fade-in zoom-in-95 duration-200 w-full space-y-6 relative p-6">
+        <div className="bg-slate-50/50 rounded-2xl shadow-sm border border-gray-200 min-h-175 overflow-hidden flex flex-col font-medium transition-opacity duration-200 w-full space-y-6 relative p-6">
           {/* ── 2. SUMMARY KPI CARDS ── */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Total Users */}
@@ -758,7 +759,7 @@ export const UserManagement: React.FC = () => {
                   size={15}
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
                 />
-                <input
+                <input aria-label="Input field"
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -766,7 +767,7 @@ export const UserManagement: React.FC = () => {
                   className="w-full pl-9 pr-3.5 py-2.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
                 />
                 {searchQuery && (
-                  <button
+                  <button aria-label="Close"
                     onClick={() => setSearchQuery("")}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                   >
@@ -781,7 +782,7 @@ export const UserManagement: React.FC = () => {
                 <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
                   <Shield size={13} className="text-slate-400" />
                   <span className="text-slate-500 font-medium">Role:</span>
-                  <select
+                  <select aria-label="Select option"
                     value={roleFilter}
                     onChange={(e) => setRoleFilter(e.target.value)}
                     className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
@@ -801,7 +802,7 @@ export const UserManagement: React.FC = () => {
                 <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
                   <Filter size={13} className="text-slate-400" />
                   <span className="text-slate-500 font-medium">Status:</span>
-                  <select
+                  <select aria-label="Select option"
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
                     className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
@@ -865,7 +866,7 @@ export const UserManagement: React.FC = () => {
                       className="text-[#64748B] font-bold"
                       style={{ fontFamily: PP }}
                     >
-                      <th
+                      <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
                         onClick={() => handleSort("empId")}
                         className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
                       >
@@ -874,7 +875,7 @@ export const UserManagement: React.FC = () => {
                           <ArrowUpDown size={12} className="text-slate-400" />
                         </div>
                       </th>
-                      <th
+                      <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
                         onClick={() => handleSort("fullName")}
                         className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
                       >
@@ -883,7 +884,7 @@ export const UserManagement: React.FC = () => {
                           <ArrowUpDown size={12} className="text-slate-400" />
                         </div>
                       </th>
-                      <th
+                      <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
                         onClick={() => handleSort("role")}
                         className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
                       >
@@ -895,7 +896,7 @@ export const UserManagement: React.FC = () => {
 
                       <th className="px-4 py-3.5">Email</th>
                       <th className="px-4 py-3.5">Phone</th>
-                      <th
+                      <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
                         onClick={() => handleSort("status")}
                         className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
                       >
@@ -1137,7 +1138,7 @@ export const UserManagement: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-1.5 ml-2 border-l border-slate-200 pl-3">
                   <span>Rows:</span>
-                  <select
+                  <select aria-label="Select option"
                     value={pageSize}
                     onChange={(e) => {
                       setPageSize(Number(e.target.value));
@@ -1205,12 +1206,12 @@ export const UserManagement: React.FC = () => {
       {/* ── 7. RIGHT DRAWER: VIEW DETAILS ── */}
       {detailsUser && (
         <div className="fixed inset-0 z-50 overflow-hidden">
-          <div
+          <div role="presentation"
             className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs"
             onClick={() => setDetailsUser(null)}
           />
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-lg bg-white shadow-2xl flex flex-col border-l border-gray-100 animate-in slide-in-from-right duration-200">
+            <div className="w-screen max-w-lg bg-white shadow-2xl flex flex-col border-l border-gray-100 transition-transform duration-200">
               <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between shadow-sm">
                 <div>
                   <h2
@@ -1223,7 +1224,7 @@ export const UserManagement: React.FC = () => {
                     Auditing record fields for {detailsUser.empId}
                   </p>
                 </div>
-                <button
+                <button aria-label="Close"
                   onClick={() => setDetailsUser(null)}
                   className="p-1.5 text-white/80 hover:text-white rounded-lg hover:bg-white/10 cursor-pointer"
                 >
@@ -1511,7 +1512,7 @@ export const UserManagement: React.FC = () => {
                 <Key size={16} className="text-amber-500" /> Administrative
                 Password Reset
               </h3>
-              <button
+              <button aria-label="Close"
                 onClick={() => setResetPassUser(null)}
                 className="text-white/80 hover:text-white cursor-pointer"
               >
@@ -1576,7 +1577,7 @@ export const UserManagement: React.FC = () => {
                 <Shield size={16} className="text-[#0D47A1]" /> Administrative
                 Account Control
               </h3>
-              <button
+              <button aria-label="Close"
                 onClick={() => setStatusDialogUser(null)}
                 className="text-white/80 hover:text-white cursor-pointer"
               >

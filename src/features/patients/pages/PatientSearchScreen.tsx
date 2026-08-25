@@ -497,7 +497,7 @@ export function PatientSearchScreen({
             size={16}
             className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
           />
-          <input
+          <input aria-label="Search by MRN, Name, or Phone..."
             type="text"
             placeholder="Search by MRN, Name, or Phone..."
             value={searchQuery}
@@ -507,7 +507,7 @@ export function PatientSearchScreen({
         </div>
 
         <div className="flex items-center gap-2 flex-wrap w-full md:w-auto">
-          <select
+          <select aria-label="Select option"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] focus:outline-none font-medium"
@@ -517,7 +517,7 @@ export function PatientSearchScreen({
             <option>Inactive</option>
           </select>
 
-          <select
+          <select aria-label="Select option"
             value={regTypeFilter}
             onChange={(e) => setRegTypeFilter(e.target.value)}
             className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] focus:outline-none font-medium"
@@ -527,7 +527,7 @@ export function PatientSearchScreen({
             <option>Online</option>
           </select>
 
-          <select
+          <select aria-label="Select option"
             value={genderFilter}
             onChange={(e) => setGenderFilter(e.target.value)}
             className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] focus:outline-none font-medium"
@@ -537,7 +537,7 @@ export function PatientSearchScreen({
             <option>Male</option>
           </select>
 
-          <select
+          <select aria-label="Select option"
             value={regDateFilter}
             onChange={(e) => setRegDateFilter(e.target.value)}
             className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] focus:outline-none font-medium"

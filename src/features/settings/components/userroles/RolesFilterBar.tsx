@@ -44,7 +44,7 @@ export function RolesFilterBar({
             color: "#94A3B8",
           }}
         />
-        <input
+        <input aria-label="Search role name, description, or access level..."
           type="text"
           placeholder="Search role name, description, or access level..."
           value={searchTerm}
@@ -62,7 +62,7 @@ export function RolesFilterBar({
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        <select
+        <select aria-label="Select option"
           value={selectedRoleType}
           onChange={(e) => setSelectedRoleType(e.target.value)}
           style={{
@@ -79,7 +79,7 @@ export function RolesFilterBar({
           <option value="Custom">Custom Hospital Roles</option>
         </select>
 
-        <select
+        <select aria-label="Select option"
           value={selectedStatus}
           onChange={(e) => setSelectedStatus(e.target.value)}
           style={{

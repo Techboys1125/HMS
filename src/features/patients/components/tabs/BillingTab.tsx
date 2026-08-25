@@ -93,8 +93,16 @@ export function PatientBillingTab({ patient }: BillingTabProps) {
 
             return (
               <div
+                role="button"
+                tabIndex={0}
                 key={invoice.id}
                 onClick={() => handleOpenInvoice(invoice)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleOpenInvoice(invoice);
+                  }
+                }}
                 className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/80 transition-colors cursor-pointer group"
               >
                 <div className="flex items-center gap-3">

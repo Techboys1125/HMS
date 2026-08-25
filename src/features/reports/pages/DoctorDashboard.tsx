@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useTransition } from "react";
 import { useNavigate } from "react-router";
 import { ROUTES } from "../../../app/routes/routes";
 import {
@@ -111,7 +111,9 @@ export function DoctorReportsDashboardScreen({
 
   const [trendDays, setTrendDays] = useState<"7" | "30" | "90">("7");
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const [showLoadingDemo, setShowLoadingDemo] = useState(false);
+  const isLoading = isPending || showLoadingDemo;
   const [hasError, setHasError] = useState(false);
 
   const handleRefresh = () => {
@@ -222,7 +224,7 @@ export function DoctorReportsDashboardScreen({
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
-            <input
+            <input aria-label="Input field"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -257,10 +259,10 @@ export function DoctorReportsDashboardScreen({
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Date Range
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={dateRangeFilter}
                 onChange={(e) => setDateRangeFilter(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -269,14 +271,14 @@ export function DoctorReportsDashboardScreen({
                 <option>Yesterday</option>
                 <option>Last 7 Days</option>
                 <option>This Month</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Appointment Status
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -285,14 +287,14 @@ export function DoctorReportsDashboardScreen({
                 <option>Completed</option>
                 <option>In Progress</option>
                 <option>Scheduled</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Visit Type
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={visitTypeFilter}
                 onChange={(e) => setVisitTypeFilter(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -301,7 +303,7 @@ export function DoctorReportsDashboardScreen({
                 <option>New Consultation</option>
                 <option>Follow-up Visit</option>
                 <option>Routine Checkup</option>
-              </select>
+              </select></span>
             </div>
           </div>
 
@@ -329,7 +331,10 @@ export function DoctorReportsDashboardScreen({
             </span>
             <button
               onClick={() => {
-                setIsLoading(!isLoading);
+                startTransition(() => {
+                  setShowLoadingDemo(!showLoadingDemo);
+                  setHasError(false);
+                });
                 setHasError(false);
               }}
               className={`px-2.5 py-1 rounded-lg border text-xs ${isLoading ? "bg-amber-50 border-amber-300 text-[#F59E0B]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
@@ -339,7 +344,7 @@ export function DoctorReportsDashboardScreen({
             <button
               onClick={() => {
                 setHasError(!hasError);
-                setIsLoading(false);
+                setShowLoadingDemo(false);
               }}
               className={`px-2.5 py-1 rounded-lg border text-xs ${hasError ? "bg-red-50 border-red-[#EF4444] text-[#EF4444]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
             >
@@ -396,7 +401,7 @@ export function DoctorReportsDashboardScreen({
               {/* TOP 6 DOCTOR KPI CARDS */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Card 1: Today's Appointments */}
-                <div
+                <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
                   onClick={() => navigate(ROUTES.DOCTOR_APPOINTMENTS)}
                   className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
                 >
@@ -439,7 +444,7 @@ export function DoctorReportsDashboardScreen({
                 </div>
 
                 {/* Card 2: My Patients */}
-                <div
+                <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
                   onClick={() => navigate(ROUTES.DOCTOR_PATIENTS)}
                   className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
                 >
@@ -482,7 +487,7 @@ export function DoctorReportsDashboardScreen({
                 </div>
 
                 {/* Card 3: Completed Consultations */}
-                <div
+                <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
                   onClick={() => navigate(ROUTES.DOCTOR_MY_SCHEDULE)}
                   className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
                 >
@@ -519,7 +524,7 @@ export function DoctorReportsDashboardScreen({
                 </div>
 
                 {/* Card 4: Follow-up Patients */}
-                <div
+                <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
                   onClick={() => navigate(ROUTES.DOCTOR_APPOINTMENTS)}
                   className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
                 >
@@ -556,7 +561,7 @@ export function DoctorReportsDashboardScreen({
                 </div>
 
                 {/* Card 5: Average Consultation Time */}
-                <div
+                <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
                   onClick={() => navigate(ROUTES.DOCTOR_MY_SCHEDULE)}
                   className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
                 >
@@ -593,7 +598,7 @@ export function DoctorReportsDashboardScreen({
                 </div>
 
                 {/* Card 6: Patient Satisfaction */}
-                <div
+                <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
                   onClick={() => navigate(ROUTES.DOCTOR_MY_SCHEDULE)}
                   className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between cursor-pointer group"
                 >

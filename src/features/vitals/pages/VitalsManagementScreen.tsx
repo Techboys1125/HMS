@@ -801,7 +801,7 @@ export function RecordPatientVitalsForm({
       {/* Toast Alert */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg border text-white text-xs font-semibold flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200 ${
+          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg border text-white text-xs font-semibold flex items-center gap-2 transition-opacity duration-200 ${
             toast.type === "success"
               ? "bg-[#66BB6A] border-green-300"
               : toast.type === "error"
@@ -962,10 +962,10 @@ export function RecordPatientVitalsForm({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-[#64748B] block">
+              <span className="text-[10px] font-bold text-[#64748B] block">
                 Chief Complaint
-              </label>
-              <textarea
+              </span>
+              <textarea aria-label="Text area"
                 value={chiefComplaint}
                 onChange={(e) => setChiefComplaint(e.target.value)}
                 placeholder="Enter chief complaint"
@@ -975,10 +975,10 @@ export function RecordPatientVitalsForm({
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-[#64748B] block">
+              <span className="text-[10px] font-bold text-[#64748B] block">
                 Symptoms
-              </label>
-              <textarea
+              </span>
+              <textarea aria-label="Text area"
                 value={symptoms}
                 onChange={(e) => setSymptoms(e.target.value)}
                 placeholder="Enter symptoms"
@@ -988,10 +988,10 @@ export function RecordPatientVitalsForm({
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-[#64748B] block">
+              <span className="text-[10px] font-bold text-[#64748B] block">
                 Diagnosis
-              </label>
-              <textarea
+              </span>
+              <textarea aria-label="Text area"
                 value={diagnosis}
                 onChange={(e) => setDiagnosis(e.target.value)}
                 placeholder="Provisional diagnosis"
@@ -1001,10 +1001,10 @@ export function RecordPatientVitalsForm({
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-[#64748B] block">
+              <span className="text-[10px] font-bold text-[#64748B] block">
                 Clinical Notes
-              </label>
-              <textarea
+              </span>
+              <textarea aria-label="Text area"
                 value={clinicalNotes}
                 onChange={(e) => setClinicalNotes(e.target.value)}
                 placeholder="Clinical observations"
@@ -1026,76 +1026,76 @@ export function RecordPatientVitalsForm({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-[#64748B] block">
+              <span className="text-[10px] font-bold text-[#64748B] block">
                 Height (cm)
-              </label>
-              <input
+              
+              <input aria-label="Input field"
                 type="number"
                 value={height}
                 onChange={(e) => setHeight(e.target.value)}
                 className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
-              />
+              /></span>
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-[#64748B] block">
+              <span className="text-[10px] font-bold text-[#64748B] block">
                 Weight (kg)
-              </label>
-              <input
+              
+              <input aria-label="Input field"
                 type="number"
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
                 className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
-              />
+              /></span>
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-[#64748B] block">
+              <span className="text-[10px] font-bold text-[#64748B] block">
                 Temperature
-              </label>
-              <input
+              
+              <input aria-label="Input field"
                 type="number"
                 step="0.1"
                 value={temperature}
                 onChange={(e) => setTemperature(e.target.value)}
                 className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
-              />
+              /></span>
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-[#64748B] block">
+              <span className="text-[10px] font-bold text-[#64748B] block">
                 Blood Pressure
-              </label>
-              <input
+              
+              <input aria-label="120/80"
                 value={bloodPressure}
                 placeholder="120/80"
                 onChange={(e) => setBloodPressure(e.target.value)}
                 className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700 font-mono"
-              />
+              /></span>
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-[#64748B] block">
+              <span className="text-[10px] font-bold text-[#64748B] block">
                 Pulse
-              </label>
-              <input
+              
+              <input aria-label="Input field"
                 type="number"
                 value={pulse}
                 onChange={(e) => setPulse(e.target.value)}
                 className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
-              />
+              /></span>
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-[#64748B] block">
+              <span className="text-[10px] font-bold text-[#64748B] block">
                 SpO₂
-              </label>
-              <input
+              
+              <input aria-label="Input field"
                 type="number"
                 value={spo2}
                 onChange={(e) => setSpo2(e.target.value)}
                 className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
-              />
+              /></span>
             </div>
           </div>
         </div>
@@ -1127,6 +1127,24 @@ export function RecordPatientVitalsForm({
 /* ─────────────────────────────────────────────────────────────────────────────
    MAIN SCREEN: VITALS MANAGEMENT CENTER (LANDING PAGE)
    ───────────────────────────────────────────────────────────────────────────── */
+const getVitalsStatus = (apt: AppointmentRecord) => {
+  if (apt.status === "Checked-In" || apt.status === "Waiting for Vitals")
+    return "Waiting for Vitals";
+  if (apt.notes?.includes("vitals in progress"))
+    return "Recording In Progress";
+  if (
+    apt.status === "In Consultation" ||
+    apt.status === "In Progress" ||
+    apt.status === "Waiting" ||
+    apt.status === "Waiting for Doctor" ||
+    apt.status === "Called" ||
+    apt.queueStatus === "WAITING_FOR_DOCTOR_CALL"
+  )
+    return "Ready For Consultation";
+  if (apt.status === "Completed") return "Vitals Recorded";
+  return "Waiting for Vitals";
+};
+
 export function RecordPatientVitalsScreen({
   onPatientSelect,
   onViewAppointmentDetails,
@@ -1316,23 +1334,6 @@ export function RecordPatientVitalsScreen({
   }, [appointments]);
 
   // Status map helper to determine vitals status string for an appointment
-  const getVitalsStatus = (apt: AppointmentRecord) => {
-    if (apt.status === "Checked-In" || apt.status === "Waiting for Vitals")
-      return "Waiting for Vitals";
-    if (apt.notes?.includes("vitals in progress"))
-      return "Recording In Progress";
-    if (
-      apt.status === "In Consultation" ||
-      apt.status === "In Progress" ||
-      apt.status === "Waiting" ||
-      apt.status === "Waiting for Doctor" ||
-      apt.status === "Called" ||
-      apt.queueStatus === "WAITING_FOR_DOCTOR_CALL"
-    )
-      return "Ready For Consultation";
-    if (apt.status === "Completed") return "Vitals Recorded";
-    return "Waiting for Vitals";
-  };
 
   // Calculated KPI Stats for Summary Cards
   const kpiStats = useMemo(() => {
@@ -1489,7 +1490,7 @@ export function RecordPatientVitalsScreen({
       {/* Toast Alert */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg border text-white text-xs font-semibold flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200 ${
+          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg border text-white text-xs font-semibold flex items-center gap-2 transition-opacity duration-200 ${
             toast.type === "success"
               ? "bg-[#66BB6A] border-green-300"
               : toast.type === "error"
@@ -1541,7 +1542,7 @@ export function RecordPatientVitalsScreen({
               size={14}
               className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
             />
-            <input
+            <input aria-label="Input field"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -1564,10 +1565,10 @@ export function RecordPatientVitalsScreen({
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1 border-t border-slate-100 text-xs">
           {/* Doctor */}
           <div>
-            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
               Doctor
-            </label>
-            <select
+            
+            <select aria-label="Select option"
               value={doctorFilter}
               onChange={(e) => setDoctorFilter(e.target.value)}
               className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
@@ -1578,15 +1579,15 @@ export function RecordPatientVitalsScreen({
                   {doc}
                 </option>
               ))}
-            </select>
+            </select></span>
           </div>
 
           {/* Department */}
           <div>
-            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
               Department
-            </label>
-            <select
+            
+            <select aria-label="Select option"
               value={deptFilter}
               onChange={(e) => setDeptFilter(e.target.value)}
               className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
@@ -1596,15 +1597,15 @@ export function RecordPatientVitalsScreen({
               <option value="General Medicine">General Medicine</option>
               <option value="Neurology">Neurology</option>
               <option value="Gynecology">Gynecology</option>
-            </select>
+            </select></span>
           </div>
 
           {/* Appointment Status */}
           <div>
-            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
               Apt Status
-            </label>
-            <select
+            
+            <select aria-label="Select option"
               value={aptStatusFilter}
               onChange={(e) => setAptStatusFilter(e.target.value)}
               className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
@@ -1613,15 +1614,15 @@ export function RecordPatientVitalsScreen({
               <option value="Waiting">Waiting</option>
               <option value="Checked-In">Checked-In</option>
               <option value="In Progress">In Progress</option>
-            </select>
+            </select></span>
           </div>
 
           {/* Vitals Status */}
           <div>
-            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
               Vitals Status
-            </label>
-            <select
+            
+            <select aria-label="Select option"
               value={vitalsStatusFilter}
               onChange={(e) => setVitalsStatusFilter(e.target.value)}
               className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
@@ -1635,15 +1636,15 @@ export function RecordPatientVitalsScreen({
               <option value="Ready For Consultation">
                 Ready For Consultation
               </option>
-            </select>
+            </select></span>
           </div>
 
           {/* Visit Type */}
           <div>
-            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
               Visit Type
-            </label>
-            <select
+            
+            <select aria-label="Select option"
               value={visitTypeFilter}
               onChange={(e) => setVisitTypeFilter(e.target.value)}
               className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
@@ -1651,7 +1652,7 @@ export function RecordPatientVitalsScreen({
               <option value="All">All Visits</option>
               <option value="First Visit">First Visit</option>
               <option value="Follow-up">Follow-up</option>
-            </select>
+            </select></span>
           </div>
         </div>
       </div>

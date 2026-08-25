@@ -47,7 +47,7 @@ export function SessionManagement() {
         }}
       >
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -57,8 +57,8 @@ export function SessionManagement() {
             }}
           >
             Auto Logout After Inactivity
-          </label>
-          <select
+          
+          <select aria-label="Select option"
             value={sessionConfig.autoLogoutMinutes}
             onChange={(e) =>
               setSessionConfig((prev) => ({
@@ -79,7 +79,7 @@ export function SessionManagement() {
             <option>15 Minutes</option>
             <option>30 Minutes</option>
             <option>60 Minutes</option>
-          </select>
+          </select></span>
         </div>
 
         <div
@@ -109,7 +109,7 @@ export function SessionManagement() {
               Show 60s countdown toast before logout
             </div>
           </div>
-          <input
+          <input aria-label="Toggle option"
             type="checkbox"
             checked={sessionConfig.timeoutWarning}
             onChange={(e) =>
@@ -149,7 +149,7 @@ export function SessionManagement() {
               Permit simultaneous login sessions
             </div>
           </div>
-          <input
+          <input aria-label="Toggle option"
             type="checkbox"
             checked={sessionConfig.allowConcurrent}
             onChange={(e) =>

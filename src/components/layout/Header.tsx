@@ -140,7 +140,7 @@ export function Header({
             size={15}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
           />
-          <input
+          <input aria-label="Search patients, appointments, records…"
             type="text"
             placeholder="Search patients, appointments, records…"
             className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-gray-100 rounded-lg text-slate-700 placeholder-slate-400 outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
@@ -181,7 +181,7 @@ export function Header({
             </button>
 
             {showPatientSelector && (
-              <div className="absolute left-0 sm:right-0 top-full mt-2 w-80 bg-white rounded-2xl border border-[#E5E7EB] shadow-2xl p-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="absolute left-0 sm:right-0 top-full mt-2 w-80 bg-white rounded-2xl border border-[#E5E7EB] shadow-2xl p-3 z-50 transition-opacity duration-150">
                 <div className="border-b border-[#E5E7EB] pb-2.5 mb-2 px-1">
                   <div
                     className="text-xs font-bold text-[#111827]"
@@ -318,7 +318,7 @@ export function Header({
           </button>
 
           {showProfileMenu && (
-            <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl border border-gray-200 shadow-xl shadow-slate-200/50 p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl border border-gray-200 shadow-xl shadow-slate-200/50 p-2 z-50 transition-opacity duration-150">
               <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl mb-1 border border-slate-100">
                 <Avatar name={displayName} size="md" />
                 <div className="min-w-0 flex-1">
@@ -395,7 +395,7 @@ export function Header({
       </div>
 
       {pendingSwitchMember && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 transition-opacity duration-150">
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 max-w-md w-full shadow-2xl space-y-4">
             <div className="flex items-center gap-3 border-b border-[#E5E7EB] pb-3">
               <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#0D47A1] flex items-center justify-center font-bold shrink-0">
@@ -506,7 +506,7 @@ export function Header({
       )}
 
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-[#111827] text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700 animate-in slide-in-from-bottom-4 duration-200">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-[#111827] text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700 transition-transform duration-200">
           <Check className="w-5 h-5 text-[#66BB6A] shrink-0" />
           <span className="text-xs font-semibold" style={{ fontFamily: PP }}>
             {toastMsg}

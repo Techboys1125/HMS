@@ -55,7 +55,7 @@ export function InvoiceConfiguration({
           }}
         >
           <div>
-            <label
+            <span
               style={{
                 display: "block",
                 fontSize: "12px",
@@ -65,8 +65,8 @@ export function InvoiceConfiguration({
               }}
             >
               Invoice Prefix
-            </label>
-            <input
+            
+            <input aria-label="Input field"
               type="text"
               value={invoiceConfig.prefix}
               onChange={(e) =>
@@ -83,11 +83,11 @@ export function InvoiceConfiguration({
                 fontSize: "13px",
                 boxSizing: "border-box",
               }}
-            />
+            /></span>
           </div>
 
           <div>
-            <label
+            <span
               style={{
                 display: "block",
                 fontSize: "12px",
@@ -97,8 +97,8 @@ export function InvoiceConfiguration({
               }}
             >
               Starting Invoice Number
-            </label>
-            <input
+            
+            <input aria-label="Input field"
               type="number"
               value={invoiceConfig.startingNumber}
               onChange={(e) =>
@@ -115,11 +115,11 @@ export function InvoiceConfiguration({
                 fontSize: "13px",
                 boxSizing: "border-box",
               }}
-            />
+            /></span>
           </div>
 
           <div>
-            <label
+            <span
               style={{
                 display: "block",
                 fontSize: "12px",
@@ -129,7 +129,7 @@ export function InvoiceConfiguration({
               }}
             >
               Live Format Preview
-            </label>
+            </span>
             <div
               style={{
                 width: "100%",
@@ -181,7 +181,7 @@ export function InvoiceConfiguration({
                 System automatically increments number on bill creation
               </div>
             </div>
-            <input
+            <input aria-label="Toggle option"
               type="checkbox"
               checked={invoiceConfig.autoGenerate}
               onChange={(e) =>
@@ -224,7 +224,7 @@ export function InvoiceConfiguration({
                 Permit authorized accountants to override invoice sequence
               </div>
             </div>
-            <input
+            <input aria-label="Toggle option"
               type="checkbox"
               checked={invoiceConfig.allowManual}
               onChange={(e) =>
@@ -279,7 +279,7 @@ export function InvoiceConfiguration({
           }}
         >
           <div>
-            <label
+            <span
               style={{
                 display: "block",
                 fontSize: "12px",
@@ -289,8 +289,8 @@ export function InvoiceConfiguration({
               }}
             >
               Official Tax Label Name
-            </label>
-            <input
+            
+            <input aria-label="Input field"
               type="text"
               value={taxConfig.taxName}
               onChange={(e) =>
@@ -304,11 +304,11 @@ export function InvoiceConfiguration({
                 fontSize: "13px",
                 boxSizing: "border-box",
               }}
-            />
+            /></span>
           </div>
 
           <div>
-            <label
+            <span
               style={{
                 display: "block",
                 fontSize: "12px",
@@ -318,8 +318,8 @@ export function InvoiceConfiguration({
               }}
             >
               Default Tax Percentage (%)
-            </label>
-            <input
+            
+            <input aria-label="Input field"
               type="number"
               value={taxConfig.defaultPercentage}
               onChange={(e) =>
@@ -336,11 +336,11 @@ export function InvoiceConfiguration({
                 fontSize: "13px",
                 boxSizing: "border-box",
               }}
-            />
+            /></span>
           </div>
 
           <div>
-            <label
+            <span
               style={{
                 display: "block",
                 fontSize: "12px",
@@ -350,8 +350,8 @@ export function InvoiceConfiguration({
               }}
             >
               Apply Tax To Scope
-            </label>
-            <select
+            
+            <select aria-label="Select option"
               value={taxConfig.applyTaxTo}
               onChange={(e) =>
                 setTaxConfig((prev) => ({
@@ -373,7 +373,7 @@ export function InvoiceConfiguration({
               <option>Registration & Badges</option>
               <option>Diagnostic & Lab Services</option>
               <option>Pharmacy Products</option>
-            </select>
+            </select></span>
           </div>
         </div>
 
@@ -409,7 +409,7 @@ export function InvoiceConfiguration({
                 Apply tax rate automatically during invoice generation
               </div>
             </div>
-            <input
+            <input aria-label="Toggle option"
               type="checkbox"
               checked={taxConfig.enableTax}
               onChange={(e) =>
@@ -452,7 +452,7 @@ export function InvoiceConfiguration({
                 Display CGST/SGST itemized breakdown on invoice print
               </div>
             </div>
-            <input
+            <input aria-label="Toggle option"
               type="checkbox"
               checked={taxConfig.showBreakdown}
               onChange={(e) =>

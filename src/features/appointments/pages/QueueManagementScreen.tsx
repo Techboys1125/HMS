@@ -19,6 +19,36 @@ import {
 } from "lucide-react";
 import { Pagination } from "../../../common/components/Pagination";
 
+const fetchQueue = async () => {
+  return appointmentService.getActiveAppointments();
+};
+
+const getStatusChipVariant = (status: string): ChipVariant => {
+  const s = status.toUpperCase();
+  switch (s) {
+    case "IN_CONSULTATION":
+    case "IN_PROGRESS":
+      return "teal";
+    case "WAITING_FOR_VITALS":
+    case "WAITING_FOR_DOCTOR_CALL":
+      return "warning";
+    case "CALLED":
+      return "info";
+    case "CHECKED_IN":
+      return "info";
+    case "BOOKED":
+    case "CONFIRMED":
+      return "info";
+    case "COMPLETED":
+      return "success";
+    case "NO_SHOW":
+    case "CANCELLED":
+      return "error";
+    default:
+      return "default";
+  }
+};
+
 export function QueueManagementScreen({
   onBack,
   onCheckInClick,
@@ -141,9 +171,6 @@ export function QueueManagementScreen({
 
   const [queueItems, setQueueItems] = useState<AppointmentRecord[]>([]);
 
-  const fetchQueue = async () => {
-    return appointmentService.getActiveAppointments();
-  };
 
   useEffect(() => {
     let cancelled = false;
@@ -247,31 +274,6 @@ export function QueueManagementScreen({
     setNoShowDialogApt(null);
   };
 
-  const getStatusChipVariant = (status: string): ChipVariant => {
-    const s = status.toUpperCase();
-    switch (s) {
-      case "IN_CONSULTATION":
-      case "IN_PROGRESS":
-        return "teal";
-      case "WAITING_FOR_VITALS":
-      case "WAITING_FOR_DOCTOR_CALL":
-        return "warning";
-      case "CALLED":
-        return "info";
-      case "CHECKED_IN":
-        return "info";
-      case "BOOKED":
-      case "CONFIRMED":
-        return "info";
-      case "COMPLETED":
-        return "success";
-      case "NO_SHOW":
-      case "CANCELLED":
-        return "error";
-      default:
-        return "default";
-    }
-  };
 
   return (
     <div
@@ -281,7 +283,7 @@ export function QueueManagementScreen({
       {/* Toast Notification */}
       {toastMsg && (
         <div
-          className={`fixed top-5 right-5 z-50 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200 ${toastType === "error" ? "bg-[#EF4444]" : "bg-[#111827]"}`}
+          className={`fixed top-5 right-5 z-50 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 transition-opacity duration-200 ${toastType === "error" ? "bg-[#EF4444]" : "bg-[#111827]"}`}
         >
           <AlertCircle
             size={16}
@@ -352,7 +354,7 @@ export function QueueManagementScreen({
             size={18}
             className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
           />
-          <input
+          <input aria-label="Input field"
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -363,7 +365,7 @@ export function QueueManagementScreen({
 
         <div className="flex items-center justify-between gap-3 flex-wrap pt-1 border-t border-slate-100">
           <div className="flex items-center gap-2 flex-wrap">
-            <select
+            <select aria-label="Select option"
               value={selectedDoctor}
               onChange={(e) => setSelectedDoctor(e.target.value)}
               className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] font-medium focus:outline-none"
@@ -371,7 +373,7 @@ export function QueueManagementScreen({
               <option>All Doctors</option>
             </select>
 
-            <select
+            <select aria-label="Select option"
               value={selectedDept}
               onChange={(e) => setSelectedDept(e.target.value)}
               className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] font-medium focus:outline-none"
@@ -384,7 +386,7 @@ export function QueueManagementScreen({
               ))}
             </select>
 
-            <select
+            <select aria-label="Select option"
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] font-medium focus:outline-none"
@@ -399,7 +401,7 @@ export function QueueManagementScreen({
               <option>Cancelled</option>
             </select>
 
-            <select
+            <select aria-label="Select option"
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
               className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] font-medium focus:outline-none"
@@ -729,7 +731,7 @@ export function QueueManagementScreen({
       {/* ── CONFIRMATION DIALOG: MARK NO SHOW ── */}
       {noShowDialogApt && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] max-w-md w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] max-w-md w-full p-6 shadow-2xl space-y-4 transition-opacity duration-200">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-red-50 text-[#EF4444] flex items-center justify-center shrink-0">
                 <AlertCircle size={20} />

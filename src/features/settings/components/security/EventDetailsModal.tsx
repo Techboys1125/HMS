@@ -53,7 +53,7 @@ export function EventDetailsModal({ event, onClose }: EventDetailsModalProps) {
           >
             Security Audit Log Details
           </h3>
-          <button
+          <button aria-label="Close"
             onClick={onClose}
             style={{
               border: "none",

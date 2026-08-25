@@ -104,7 +104,7 @@ export function PatientQueueStatusScreen() {
       style={{ fontFamily: RB }}
     >
       {toastMsg && (
-        <div className="fixed top-5 right-5 z-50 bg-[#111827] text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200">
+        <div className="fixed top-5 right-5 z-50 bg-[#111827] text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 transition-opacity duration-200">
           <CheckCircle2 size={16} className="text-[#66BB6A]" />
           <span>{toastMsg}</span>
         </div>

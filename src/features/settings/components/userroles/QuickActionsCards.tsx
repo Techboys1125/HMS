@@ -42,7 +42,7 @@ export function QuickActionsCards() {
         ].map((qa) => {
           const IconC = qa.icon;
           return (
-            <div
+            <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
               key={qa.title}
               onClick={qa.action}
               style={{

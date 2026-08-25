@@ -44,6 +44,43 @@ interface Department {
   active: boolean;
 }
 
+ const mapApiToDepartment = (d: ApiDepartment, index: number): Department => {
+   const deptId = String(d.departmentId || d.id || index + 1);
+   const deptName = d.departmentName || d.name || "Department";
+   const deptCode =
+     d.departmentCode ||
+     d.code ||
+     `DEP-${deptName.substring(0, 4).toUpperCase()}-0${index + 1}`;
+   const specsList = d.specialties
+     ?.flatMap((s) => (s.name ? [s.name] : []))
+     .join(", ");
+   const isActive =
+     d.active !== undefined
+       ? d.active
+       : d.status !== "INACTIVE" && d.status !== "Inactive";
+
+   return {
+     id: deptId,
+     code: deptCode,
+     name: deptName,
+     specialty: specsList || d.description || "General Specialty",
+     specialtyCount: d.specialties?.length || 0,
+     doctorsCount: d.doctorCount ?? d.doctorsCount ?? 0,
+     status: isActive ? "Active" : "Inactive",
+     lastUpdated: d.updatedAt
+       ? new Date(d.updatedAt).toLocaleDateString("en-IN", {
+           day: "numeric",
+           month: "short",
+           year: "numeric",
+         })
+       : "Recently updated",
+     description: d.description || `${deptName} clinical unit.`,
+     createdDate: d.createdDate || d.createdAt?.split("T")[0] || "2024",
+     rawSpecialties: d.specialties || [],
+     active: isActive,
+   };
+ };
+
 export function DepartmentsSpecialtiesWorkspace() {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
@@ -87,42 +124,6 @@ export function DepartmentsSpecialtiesWorkspace() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  const mapApiToDepartment = (d: ApiDepartment, index: number): Department => {
-    const deptId = String(d.departmentId || d.id || index + 1);
-    const deptName = d.departmentName || d.name || "Department";
-    const deptCode =
-      d.departmentCode ||
-      d.code ||
-      `DEP-${deptName.substring(0, 4).toUpperCase()}-0${index + 1}`;
-    const specsList = d.specialties
-      ?.flatMap((s) => (s.name ? [s.name] : []))
-      .join(", ");
-    const isActive =
-      d.active !== undefined
-        ? d.active
-        : d.status !== "INACTIVE" && d.status !== "Inactive";
-
-    return {
-      id: deptId,
-      code: deptCode,
-      name: deptName,
-      specialty: specsList || d.description || "General Specialty",
-      specialtyCount: d.specialties?.length || 0,
-      doctorsCount: d.doctorCount ?? d.doctorsCount ?? 0,
-      status: isActive ? "Active" : "Inactive",
-      lastUpdated: d.updatedAt
-        ? new Date(d.updatedAt).toLocaleDateString("en-IN", {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-          })
-        : "Recently updated",
-      description: d.description || `${deptName} clinical unit.`,
-      createdDate: d.createdDate || d.createdAt?.split("T")[0] || "2024",
-      rawSpecialties: d.specialties || [],
-      active: isActive,
-    };
-  };
 
   const loadDepartments = useCallback(async () => {
     try {
@@ -862,7 +863,7 @@ export function DepartmentsSpecialtiesWorkspace() {
               color: "#94A3B8",
             }}
           />
-          <input
+          <input aria-label="Search by department name or code..."
             type="text"
             placeholder="Search by department name or code..."
             value={searchTerm}
@@ -880,7 +881,7 @@ export function DepartmentsSpecialtiesWorkspace() {
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <select
+          <select aria-label="Select option"
             value={selectedTypeFilter}
             onChange={(e) => setSelectedTypeFilter(e.target.value)}
             style={{
@@ -900,7 +901,7 @@ export function DepartmentsSpecialtiesWorkspace() {
             ))}
           </select>
 
-          <select
+          <select aria-label="Select option"
             value={selectedStatusFilter}
             onChange={(e) => setSelectedStatusFilter(e.target.value)}
             style={{
@@ -1779,7 +1780,7 @@ export function DepartmentsSpecialtiesWorkspace() {
                     {selectedDept.name}
                   </h3>
                   {isEditMode ? (
-                    <select
+                    <select aria-label="Select option"
                       value={selectedDept.status}
                       onChange={(e) =>
                         setSelectedDept({
@@ -1853,7 +1854,7 @@ export function DepartmentsSpecialtiesWorkspace() {
                 >
                   <Edit2 size={14} /> {isEditMode ? "Cancel Edit" : "Edit"}
                 </button>
-                <button
+                <button aria-label="Edit"
                   onClick={() => {
                     setSelectedDept(null);
                     setIsEditMode(false);
@@ -1911,7 +1912,7 @@ export function DepartmentsSpecialtiesWorkspace() {
                   }}
                 >
                   <div>
-                    <label
+                    <span
                       style={{
                         display: "block",
                         color: "#64748B",
@@ -1920,9 +1921,9 @@ export function DepartmentsSpecialtiesWorkspace() {
                       }}
                     >
                       Department Name
-                    </label>
+                    </span>
                     {isEditMode ? (
-                      <input
+                      <input aria-label="Input field"
                         type="text"
                         value={selectedDept.name}
                         onChange={(e) =>
@@ -1946,7 +1947,7 @@ export function DepartmentsSpecialtiesWorkspace() {
                     )}
                   </div>
                   <div>
-                    <label
+                    <span
                       style={{
                         display: "block",
                         color: "#64748B",
@@ -1955,7 +1956,7 @@ export function DepartmentsSpecialtiesWorkspace() {
                       }}
                     >
                       Medical Specialties
-                    </label>
+                    </span>
                     {isEditMode ? (
                       <div
                         style={{
@@ -1965,7 +1966,7 @@ export function DepartmentsSpecialtiesWorkspace() {
                         }}
                       >
                         <div style={{ display: "flex", gap: "6px" }}>
-                          <input
+                          <input aria-label="Input field"
                             type="text"
                             value={editSpecialtyInput}
                             onChange={(e) =>
@@ -2045,7 +2046,7 @@ export function DepartmentsSpecialtiesWorkspace() {
                                   }}
                                 >
                                   {specName}
-                                  <button
+                                  <button aria-label="Action"
                                     type="button"
                                     onClick={() => {
                                       const filtered = (
@@ -2150,7 +2151,7 @@ export function DepartmentsSpecialtiesWorkspace() {
                   }}
                 ></div>
                 <div>
-                  <label
+                  <span
                     style={{
                       display: "block",
                       color: "#64748B",
@@ -2159,9 +2160,9 @@ export function DepartmentsSpecialtiesWorkspace() {
                     }}
                   >
                     Operational Description
-                  </label>
+                  </span>
                   {isEditMode ? (
-                    <textarea
+                    <textarea aria-label="Text input"
                       rows={3}
                       value={selectedDept.description}
                       onChange={(e) =>
@@ -2345,7 +2346,7 @@ export function DepartmentsSpecialtiesWorkspace() {
               >
                 Add New Hospital Department
               </h3>
-              <button
+              <button aria-label="Close"
                 onClick={() => setIsAddModalOpen(false)}
                 style={{
                   border: "none",
@@ -2362,7 +2363,7 @@ export function DepartmentsSpecialtiesWorkspace() {
               style={{ display: "flex", flexDirection: "column", gap: "14px" }}
             >
               <div>
-                <label
+                <span
                   style={{
                     display: "block",
                     fontSize: "12px",
@@ -2372,8 +2373,8 @@ export function DepartmentsSpecialtiesWorkspace() {
                   }}
                 >
                   Department Name *
-                </label>
-                <input
+                
+                <input aria-label="Input field"
                   type="text"
                   value={newDeptName}
                   onChange={(e) => setNewDeptName(e.target.value)}
@@ -2386,11 +2387,11 @@ export function DepartmentsSpecialtiesWorkspace() {
                     fontSize: "13px",
                     boxSizing: "border-box",
                   }}
-                />
+                /></span>
               </div>
 
               <div>
-                <label
+                <span
                   style={{
                     display: "block",
                     fontSize: "12px",
@@ -2400,8 +2401,8 @@ export function DepartmentsSpecialtiesWorkspace() {
                   }}
                 >
                   Department Code
-                </label>
-                <input
+                
+                <input aria-label="Input field"
                   type="text"
                   value={newDeptCode}
                   onChange={(e) => setNewDeptCode(e.target.value.toUpperCase())}
@@ -2414,11 +2415,11 @@ export function DepartmentsSpecialtiesWorkspace() {
                     fontSize: "13px",
                     boxSizing: "border-box",
                   }}
-                />
+                /></span>
               </div>
 
               <div>
-                <label
+                <span
                   style={{
                     display: "block",
                     fontSize: "12px",
@@ -2428,9 +2429,9 @@ export function DepartmentsSpecialtiesWorkspace() {
                   }}
                 >
                   Medical Specialties (Add one or more) *
-                </label>
+                </span>
                 <div style={{ display: "flex", gap: "8px" }}>
-                  <input
+                  <input aria-label="Input field"
                     type="text"
                     value={newSpecialtyInput}
                     onChange={(e) => setNewSpecialtyInput(e.target.value)}
@@ -2498,7 +2499,7 @@ export function DepartmentsSpecialtiesWorkspace() {
                         }}
                       >
                         {spec}
-                        <button
+                        <button aria-label="Action"
                           type="button"
                           onClick={() => {
                             setNewDeptSpecialties(

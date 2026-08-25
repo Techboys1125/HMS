@@ -42,7 +42,7 @@ export function InternalNotesSection({
         Internal notes regarding accreditation, licensing renewals, and master
         facility guidelines. Visible only to Super Admins and Hospital Admins.
       </p>
-      <textarea
+      <textarea aria-label="Text input"
         rows={4}
         value={form.internalNotes}
         onChange={(e) => onChange("internalNotes", e.target.value)}

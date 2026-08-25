@@ -49,8 +49,8 @@ export function QuickDetailsDrawer({
   if (!isOpen || !doctor) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right duration-300">
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-xs transition-opacity duration-200">
+      <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between overflow-y-auto transition-opacity slide-in-from-right duration-300">
         <div>
           <div className="p-5 border-b border-[#E5E7EB] flex items-center justify-between bg-slate-50">
             <div className="flex items-center gap-2">
@@ -62,7 +62,7 @@ export function QuickDetailsDrawer({
                 Quick Doctor Details
               </h2>
             </div>
-            <button
+            <button aria-label="Close"
               onClick={onClose}
               className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-200 transition-colors"
             >

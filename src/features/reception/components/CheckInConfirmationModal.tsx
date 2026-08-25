@@ -32,9 +32,9 @@ export const CheckInConfirmationModal: React.FC<
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/65 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 bg-slate-900/65 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity duration-200">
       <div
-        className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 relative flex flex-col items-center text-center space-y-4 animate-in zoom-in-95 duration-200"
+        className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 relative flex flex-col items-center text-center space-y-4 transition-transform duration-200"
         style={{ fontFamily: RB }}
       >
         {/* Close Icon Button */}
@@ -48,7 +48,7 @@ export const CheckInConfirmationModal: React.FC<
 
         {/* Animated Checkmark Circle */}
         <div className="w-16 h-16 rounded-full bg-emerald-50 border-4 border-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm shrink-0 mt-1">
-          <CheckCircle2 size={36} className="animate-in zoom-in duration-300" />
+          <CheckCircle2 size={36} className="transition-transform duration-300" />
         </div>
 
         {/* Modal Header */}

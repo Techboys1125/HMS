@@ -52,54 +52,54 @@ export const DiagnosisForm: React.FC<DiagnosisFormProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label
+          <span
             className="block text-[11px] font-semibold text-[#64748B] mb-1"
             style={{ fontFamily: PP }}
           >
             Provisional Diagnosis
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={provisionalDiagnosis}
             onChange={(e) => onChange("provisionalDiagnosis", e.target.value)}
             placeholder="e.g. Suspected Angina / Acute Coronary Syndrome"
             className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-xl bg-slate-50 outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
             style={{ fontFamily: RB }}
-          />
+          /></span>
         </div>
 
         <div>
-          <label
+          <span
             className="block text-[11px] font-semibold text-[#64748B] mb-1"
             style={{ fontFamily: PP }}
           >
             Final Diagnosis
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={finalDiagnosis}
             onChange={(e) => onChange("finalDiagnosis", e.target.value)}
             placeholder="e.g. Angina Pectoris, unspecified"
             className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-xl bg-slate-50 outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
             style={{ fontFamily: RB }}
-          />
+          /></span>
         </div>
       </div>
 
       {/* ICD-10 Search Bar */}
       <div className="relative">
-        <label
+        <span
           className="block text-[11px] font-semibold text-[#64748B] mb-1"
           style={{ fontFamily: PP }}
         >
           Search & Select ICD-10 Code
-        </label>
+        </span>
         <div className="relative">
           <Search
             size={16}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
           />
-          <input
+          <input aria-label="Input field"
             type="text"
             value={icdSearchQuery}
             onChange={(e) => {

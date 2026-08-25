@@ -1,3 +1,18 @@
+const getDisplayRole = (role: string) => {
+  switch (role) {
+    case "DOCTOR":
+      return "Doctor (OPD Clinical Portal)";
+    case "NURSE":
+      return "Nurse (Clinical Support)";
+    case "RECEPTIONIST":
+      return "Receptionist (Bookings & Queue)";
+    case "ACCOUNTANT":
+      return "Accountant (Billing & Financial)";
+    default:
+      return "Staff Member";
+  }
+};
+
 import React from "react";
 import {
   User,
@@ -20,20 +35,6 @@ export const ReviewInfoSection: React.FC<ReviewInfoSectionProps> = ({
   form,
   empIdPreview,
 }) => {
-  const getDisplayRole = (role: string) => {
-    switch (role) {
-      case "DOCTOR":
-        return "Doctor (OPD Clinical Portal)";
-      case "NURSE":
-        return "Nurse (Clinical Support)";
-      case "RECEPTIONIST":
-        return "Receptionist (Bookings & Queue)";
-      case "ACCOUNTANT":
-        return "Accountant (Billing & Financial)";
-      default:
-        return "Staff Member";
-    }
-  };
 
   return (
     <div className="space-y-6 animate-fade-in">

@@ -52,7 +52,7 @@ export const Pagination: React.FC<PaginationProps> = ({
             className="relative z-0 inline-flex rounded-md shadow-xs -space-x-px"
             aria-label="Pagination"
           >
-            <button
+            <button aria-label="Previous"
               disabled={currentPage === 1}
               onClick={() => onPageChange(currentPage - 1)}
               className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-xs font-semibold text-slate-500 hover:bg-slate-50 disabled:opacity-50"
@@ -76,7 +76,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                 </button>
               );
             })}
-            <button
+            <button aria-label="Next"
               disabled={currentPage === totalPages}
               onClick={() => onPageChange(currentPage + 1)}
               className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-xs font-semibold text-slate-500 hover:bg-slate-50 disabled:opacity-50"

@@ -1,3 +1,88 @@
+const handlePrint = () => {
+  window.print();
+};
+
+const formatDateTime = (dateStr?: string | null) => {
+  if (!dateStr) return "N/A";
+  try {
+    return new Date(dateStr).toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return dateStr;
+  }
+};
+
+const getDoseString = (dose?: PrescriptionMedicationItem["dose"]) => {
+  if (!dose) return "—";
+  if (typeof dose === "string") return dose;
+  if (typeof dose === "object") {
+    return `${dose.value ?? ""} ${dose.unit ?? ""}`.trim() || "—";
+  }
+  return "—";
+};
+
+const getFrequencyString = (
+  freq?: PrescriptionMedicationItem["frequency"],
+) => {
+  if (!freq) return "—";
+  if (typeof freq === "string") return freq;
+  if (typeof freq === "object") {
+    return freq.display || freq.code || "—";
+  }
+  return "—";
+};
+
+const getDurationString = (
+  duration?: PrescriptionMedicationItem["duration"],
+) => {
+  if (!duration) return "—";
+  if (typeof duration === "string") return duration;
+  if (typeof duration === "object") {
+    return `${duration.value ?? ""} ${duration.unit ?? ""}`.trim() || "—";
+  }
+  return "—";
+};
+
+const getQuantityString = (qty?: PrescriptionMedicationItem["quantity"]) => {
+  if (!qty && qty !== 0) return "—";
+  if (typeof qty === "string" || typeof qty === "number") return String(qty);
+  if (typeof qty === "object") {
+    return `${qty.value ?? ""} ${qty.unit ?? ""}`.trim() || "—";
+  }
+  return "—";
+};
+
+const getStatusBadge = (status?: string) => {
+  const s = String(status || "DRAFT").toUpperCase();
+  if (s === "FINALIZED" || s === "ISSUED" || s === "COMPLETED") {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+        <CheckCircle2 size={13} />
+        {s}
+      </span>
+    );
+  }
+  if (s === "CANCELLED" || s === "VOIDED") {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+        <FileWarning size={13} />
+        {s}
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+      <Clock size={13} />
+      {s}
+    </span>
+  );
+};
+
 import React, { useRef } from "react";
 import {
   X,
@@ -42,90 +127,12 @@ export const EncounterPrescriptionViewModal: React.FC<
 
   if (!isOpen || !encounterId) return null;
 
-  const handlePrint = () => {
-    window.print();
-  };
 
-  const formatDateTime = (dateStr?: string | null) => {
-    if (!dateStr) return "N/A";
-    try {
-      return new Date(dateStr).toLocaleString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch {
-      return dateStr;
-    }
-  };
 
-  const getDoseString = (dose?: PrescriptionMedicationItem["dose"]) => {
-    if (!dose) return "—";
-    if (typeof dose === "string") return dose;
-    if (typeof dose === "object") {
-      return `${dose.value ?? ""} ${dose.unit ?? ""}`.trim() || "—";
-    }
-    return "—";
-  };
 
-  const getFrequencyString = (
-    freq?: PrescriptionMedicationItem["frequency"],
-  ) => {
-    if (!freq) return "—";
-    if (typeof freq === "string") return freq;
-    if (typeof freq === "object") {
-      return freq.display || freq.code || "—";
-    }
-    return "—";
-  };
 
-  const getDurationString = (
-    duration?: PrescriptionMedicationItem["duration"],
-  ) => {
-    if (!duration) return "—";
-    if (typeof duration === "string") return duration;
-    if (typeof duration === "object") {
-      return `${duration.value ?? ""} ${duration.unit ?? ""}`.trim() || "—";
-    }
-    return "—";
-  };
 
-  const getQuantityString = (qty?: PrescriptionMedicationItem["quantity"]) => {
-    if (!qty && qty !== 0) return "—";
-    if (typeof qty === "string" || typeof qty === "number") return String(qty);
-    if (typeof qty === "object") {
-      return `${qty.value ?? ""} ${qty.unit ?? ""}`.trim() || "—";
-    }
-    return "—";
-  };
 
-  const getStatusBadge = (status?: string) => {
-    const s = String(status || "DRAFT").toUpperCase();
-    if (s === "FINALIZED" || s === "ISSUED" || s === "COMPLETED") {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-          <CheckCircle2 size={13} />
-          {s}
-        </span>
-      );
-    }
-    if (s === "CANCELLED" || s === "VOIDED") {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
-          <FileWarning size={13} />
-          {s}
-        </span>
-      );
-    }
-    return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-        <Clock size={13} />
-        {s}
-      </span>
-    );
-  };
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm overflow-y-auto flex justify-center items-start p-4 py-8">
@@ -163,7 +170,7 @@ export const EncounterPrescriptionViewModal: React.FC<
       <div
         id="printable-encounter-prescription-modal"
         ref={printableRef}
-        className="bg-white rounded-3xl max-w-4xl w-full shadow-2xl border border-slate-100 flex flex-col p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200 my-auto"
+        className="bg-white rounded-3xl max-w-4xl w-full shadow-2xl border border-slate-100 flex flex-col p-6 sm:p-8 transition-opacity duration-200 my-auto"
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-4 no-print">

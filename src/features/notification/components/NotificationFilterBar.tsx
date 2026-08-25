@@ -24,7 +24,7 @@ export function NotificationFilterBar({
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="relative flex-1">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B]" />
-          <input
+          <input aria-label="Input field"
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchQueryChange(e.target.value)}
@@ -36,7 +36,7 @@ export function NotificationFilterBar({
         <div className="flex flex-wrap items-center gap-2.5">
           <div className="flex items-center gap-1 text-xs">
             <span className="text-[#64748B]">Priority:</span>
-            <select
+            <select aria-label="Select option"
               value={priorityFilter}
               onChange={(e) => onPriorityFilterChange(e.target.value)}
               className="rounded-lg border border-[#E5E7EB] bg-white px-2.5 py-1.5 text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1]"
@@ -50,7 +50,7 @@ export function NotificationFilterBar({
 
           <div className="flex items-center gap-1 text-xs">
             <span className="text-[#64748B]">Status:</span>
-            <select
+            <select aria-label="Select option"
               value={statusFilter}
               onChange={(e) => onStatusFilterChange(e.target.value)}
               className="rounded-lg border border-[#E5E7EB] bg-white px-2.5 py-1.5 text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1]"

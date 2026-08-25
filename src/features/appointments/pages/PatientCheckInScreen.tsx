@@ -210,7 +210,7 @@ export function PatientCheckInScreen({
                 size={18}
                 className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
               />
-              <input
+              <input aria-label="Input field"
                 type="text"
                 value={aptSearchQuery}
                 onChange={(e) => setAptSearchQuery(e.target.value)}
@@ -224,7 +224,7 @@ export function PatientCheckInScreen({
               <div className="max-h-48 overflow-y-auto border border-[#E5E7EB] rounded-xl divide-y divide-gray-100 bg-white shadow-lg">
                 {searchResults.length > 0 ? (
                   searchResults.map((a) => (
-                    <div
+                    <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
                       key={a.id}
                       onClick={() => {
                         setSelectedApt(a);
@@ -417,22 +417,22 @@ export function PatientCheckInScreen({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                   {/* Arrival Time */}
                   <div>
-                    <label className="block font-semibold text-[#111827] mb-1">
+                    <span className="block font-semibold text-[#111827] mb-1">
                       Arrival Time (Auto-filled)
-                    </label>
-                    <input
+                    
+                    <input aria-label="Input field"
                       type="text"
                       readOnly
                       value={arrivalTime}
                       className="w-full px-3 py-2.5 rounded-xl bg-slate-100 border border-[#E5E7EB] font-mono text-xs text-[#111827] cursor-not-allowed"
-                    />
+                    /></span>
                   </div>
 
                   {/* Consultation Type */}
                   <div>
-                    <label className="block font-semibold text-[#111827] mb-1">
+                    <span className="block font-semibold text-[#111827] mb-1">
                       Consultation Category *
-                    </label>
+                    </span>
                     <div className="flex items-center gap-4 pt-1.5">
                       <label className="flex items-center gap-2 text-xs text-[#111827] cursor-pointer">
                         <input
@@ -459,10 +459,10 @@ export function PatientCheckInScreen({
 
                   {/* Remarks */}
                   <div className="sm:col-span-2">
-                    <label className="block font-semibold text-[#111827] mb-1">
+                    <span className="block font-semibold text-[#111827] mb-1">
                       Receptionist Check-In Remarks (Optional)
-                    </label>
-                    <textarea
+                    </span>
+                    <textarea aria-label="Text area"
                       rows={2}
                       value={remarks}
                       onChange={(e) => setRemarks(e.target.value)}
@@ -513,7 +513,7 @@ export function PatientCheckInScreen({
       {/* ── SUCCESS DIALOG MODAL ── */}
       {showSuccessModal && selectedApt && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] max-w-md w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] max-w-md w-full p-6 shadow-2xl space-y-5 transition-opacity duration-200">
             <div className="flex flex-col items-center text-center space-y-2">
               <div className="w-14 h-14 rounded-full bg-teal-50 text-[#009688] flex items-center justify-center mb-1">
                 <CheckCircle2 size={36} />

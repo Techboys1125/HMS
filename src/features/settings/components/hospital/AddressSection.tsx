@@ -44,7 +44,7 @@ export function AddressSection({ form, onChange }: AddressSectionProps) {
         }}
       >
         <div style={{ gridColumn: "span 2" }}>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -54,8 +54,8 @@ export function AddressSection({ form, onChange }: AddressSectionProps) {
             }}
           >
             Address Line 1 *
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={form.addressLine1}
             onChange={(e) => onChange("addressLine1", e.target.value)}
@@ -67,11 +67,11 @@ export function AddressSection({ form, onChange }: AddressSectionProps) {
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
 
         <div style={{ gridColumn: "span 2" }}>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -81,8 +81,8 @@ export function AddressSection({ form, onChange }: AddressSectionProps) {
             }}
           >
             Address Line 2 (Building / Suite / Landmark)
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={form.addressLine2}
             onChange={(e) => onChange("addressLine2", e.target.value)}
@@ -94,11 +94,11 @@ export function AddressSection({ form, onChange }: AddressSectionProps) {
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -108,8 +108,8 @@ export function AddressSection({ form, onChange }: AddressSectionProps) {
             }}
           >
             City
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={form.city}
             onChange={(e) => onChange("city", e.target.value)}
@@ -121,11 +121,11 @@ export function AddressSection({ form, onChange }: AddressSectionProps) {
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -135,8 +135,8 @@ export function AddressSection({ form, onChange }: AddressSectionProps) {
             }}
           >
             District
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={form.district}
             onChange={(e) => onChange("district", e.target.value)}
@@ -148,11 +148,11 @@ export function AddressSection({ form, onChange }: AddressSectionProps) {
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -162,8 +162,8 @@ export function AddressSection({ form, onChange }: AddressSectionProps) {
             }}
           >
             State / Province
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={form.state}
             onChange={(e) => onChange("state", e.target.value)}
@@ -175,11 +175,11 @@ export function AddressSection({ form, onChange }: AddressSectionProps) {
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -189,8 +189,8 @@ export function AddressSection({ form, onChange }: AddressSectionProps) {
             }}
           >
             Country
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={form.country}
             onChange={(e) => onChange("country", e.target.value)}
@@ -202,11 +202,11 @@ export function AddressSection({ form, onChange }: AddressSectionProps) {
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -216,8 +216,8 @@ export function AddressSection({ form, onChange }: AddressSectionProps) {
             }}
           >
             Postal / Zip Code
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={form.postalCode}
             onChange={(e) => onChange("postalCode", e.target.value)}
@@ -229,11 +229,11 @@ export function AddressSection({ form, onChange }: AddressSectionProps) {
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -243,8 +243,8 @@ export function AddressSection({ form, onChange }: AddressSectionProps) {
             }}
           >
             Google Map Embed URL
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={form.mapUrl}
             onChange={(e) => onChange("mapUrl", e.target.value)}
@@ -256,7 +256,7 @@ export function AddressSection({ form, onChange }: AddressSectionProps) {
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
       </div>
 

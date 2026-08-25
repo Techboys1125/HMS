@@ -25,6 +25,15 @@ const MONTH_NAMES = [
 
 const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
+const formatDisplayDate = (dateStr: string) => {
+  if (!dateStr) return "All Dates";
+  const parts = dateStr.split("-");
+  if (parts.length === 3) {
+    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+  }
+  return dateStr;
+};
+
 export function AppointmentDatePickerFilter({
   selectedDate,
   onChange,
@@ -71,14 +80,6 @@ export function AppointmentDatePickerFilter({
   }, []);
 
   // Format YYYY-MM-DD to DD-MM-YYYY for display input box
-  const formatDisplayDate = (dateStr: string) => {
-    if (!dateStr) return "All Dates";
-    const parts = dateStr.split("-");
-    if (parts.length === 3) {
-      return `${parts[2]}-${parts[1]}-${parts[0]}`;
-    }
-    return dateStr;
-  };
 
   // Month navigation
   const handlePrevMonth = () => {
@@ -197,7 +198,7 @@ export function AppointmentDatePickerFilter({
       </span>
 
       {/* Input Box Trigger */}
-      <div
+      <button type="button"
         onClick={handleToggleOpen}
         className="flex items-center justify-between gap-3 px-3.5 py-2 bg-white border border-[#E5E7EB] rounded-xl cursor-pointer hover:border-[#0D47A1] shadow-xs transition-colors w-44"
       >
@@ -205,11 +206,11 @@ export function AppointmentDatePickerFilter({
           {formatDisplayDate(selectedDate)}
         </span>
         <CalendarIcon size={15} className="text-slate-400 shrink-0" />
-      </div>
+      </button>
 
       {/* Popover Calendar Picker */}
       {isOpen && (
-        <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-[#E5E7EB] rounded-2xl shadow-xl p-4 w-72 animate-in zoom-in-95 duration-150">
+        <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-[#E5E7EB] rounded-2xl shadow-xl p-4 w-72 transition-transform duration-150">
           {/* Month / Year Header & Navigation */}
           <div className="flex items-center justify-between mb-3 px-1">
             <div

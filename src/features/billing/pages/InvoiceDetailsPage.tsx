@@ -201,7 +201,7 @@ export function InvoiceDetailsPage() {
     <div className="w-full bg-[#F1F5F9] min-h-screen p-4 md:p-6 pb-28 space-y-6">
       {/* Success Toast */}
       {actionSuccess && (
-        <div className="fixed top-4 right-4 bg-white rounded-xl border border-[#E5E7EB] shadow-lg p-3 flex items-center gap-2 z-50 animate-in slide-in-from-right">
+        <div className="fixed top-4 right-4 bg-white rounded-xl border border-[#E5E7EB] shadow-lg p-3 flex items-center gap-2 z-50 transition-opacity slide-in-from-right">
           <CheckCircle2 size={16} className="text-[#66BB6A]" />
           <span
             className="text-xs font-semibold text-[#111827]"
@@ -219,19 +219,19 @@ export function InvoiceDetailsPage() {
             className="flex items-center gap-2 text-xs text-[#64748B] mb-1 font-medium"
             style={{ fontFamily: RB }}
           >
-            <span
+            <button type="button"
               className="hover:text-[#0D47A1] cursor-pointer"
               onClick={() => navigate(isPatient ? "/dashboard" : "/billing")}
             >
               Home
-            </span>
+            </button>
             <ChevronRight size={12} />
-            <span
+            <button type="button"
               className="hover:text-[#0D47A1] cursor-pointer"
               onClick={() => navigate(backUrl)}
             >
               {isPatient ? "My Bills" : "Billing & Payments"}
-            </span>
+            </button>
             <ChevronRight size={12} />
             <span className="text-[#0D47A1] font-semibold">
               Invoice Details
@@ -277,7 +277,7 @@ export function InvoiceDetailsPage() {
           {!isPatient &&
             (canCancelAction || canVoidAction || canRefundAction) && (
               <div className="relative">
-                <button
+                <button aria-label="Action"
                   onClick={() => setShowMoreMenu(!showMoreMenu)}
                   className="p-2.5 rounded-xl bg-white border border-[#E5E7EB] text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-colors shadow-sm cursor-pointer"
                 >
@@ -794,7 +794,7 @@ export function InvoiceDetailsPage() {
               >
                 Process Refund
               </h3>
-              <button
+              <button aria-label="Action"
                 onClick={() => setShowRefundModal(false)}
                 className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
               >
@@ -817,10 +817,10 @@ export function InvoiceDetailsPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">
+                <span className="block text-slate-700 font-semibold mb-1">
                   Refund Amount (₹) *
-                </label>
-                <input
+                
+                <input aria-label="Input field"
                   type="number"
                   value={refundAmount || ""}
                   onChange={(e) => {
@@ -829,13 +829,13 @@ export function InvoiceDetailsPage() {
                   }}
                   max={paidAmount}
                   className="w-full px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 text-sm font-bold focus:bg-white focus:border-[#0D47A1] focus:outline-none"
-                />
+                /></span>
               </div>
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">
+                <span className="block text-slate-700 font-semibold mb-1">
                   Reason *
-                </label>
-                <textarea
+                </span>
+                <textarea aria-label="Text area"
                   rows={2}
                   value={refundReason}
                   onChange={(e) => setRefundReason(e.target.value)}

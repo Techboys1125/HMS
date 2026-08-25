@@ -25,7 +25,7 @@ export function NotificationSettingsDrawer({
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-white p-6 shadow-2xl flex flex-col justify-between h-full animate-in slide-in-from-right duration-200">
+      <div className="w-full max-w-md bg-white p-6 shadow-2xl flex flex-col justify-between h-full transition-transform duration-200">
         <div>
           <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-4 mb-5">
             <div>
@@ -40,7 +40,7 @@ export function NotificationSettingsDrawer({
                 {currentRole}.
               </p>
             </div>
-            <button
+            <button aria-label="Close"
               onClick={onClose}
               className="rounded-lg p-1 text-[#64748B] hover:bg-slate-100"
             >
@@ -58,7 +58,7 @@ export function NotificationSettingsDrawer({
 
             <div className="flex items-center justify-between">
               <span>Appointment Notifications</span>
-              <input
+              <input aria-label="Toggle option"
                 type="checkbox"
                 checked={settings.appointmentNotifs}
                 onChange={(e) =>
@@ -70,7 +70,7 @@ export function NotificationSettingsDrawer({
 
             <div className="flex items-center justify-between">
               <span>Patient Registration & Records</span>
-              <input
+              <input aria-label="Toggle option"
                 type="checkbox"
                 checked={settings.patientNotifs}
                 onChange={(e) =>
@@ -82,7 +82,7 @@ export function NotificationSettingsDrawer({
 
             <div className="flex items-center justify-between">
               <span>Billing & Payments Alerts</span>
-              <input
+              <input aria-label="Toggle option"
                 type="checkbox"
                 checked={settings.billingNotifs}
                 onChange={(e) =>
@@ -94,7 +94,7 @@ export function NotificationSettingsDrawer({
 
             <div className="flex items-center justify-between">
               <span>Reports & Analytics</span>
-              <input
+              <input aria-label="Toggle option"
                 type="checkbox"
                 checked={settings.reportsNotifs}
                 onChange={(e) =>
@@ -106,7 +106,7 @@ export function NotificationSettingsDrawer({
 
             <div className="flex items-center justify-between">
               <span>Security & Audit Alerts</span>
-              <input
+              <input aria-label="Toggle option"
                 type="checkbox"
                 checked={settings.securityAlerts}
                 onChange={(e) =>
@@ -127,7 +127,7 @@ export function NotificationSettingsDrawer({
 
             <div className="flex items-center justify-between">
               <span>Email Notifications</span>
-              <input
+              <input aria-label="Toggle option"
                 type="checkbox"
                 checked={settings.emailNotifs}
                 onChange={(e) => updateSetting("emailNotifs", e.target.checked)}
@@ -137,7 +137,7 @@ export function NotificationSettingsDrawer({
 
             <div className="flex items-center justify-between">
               <span>Push Notifications</span>
-              <input
+              <input aria-label="Toggle option"
                 type="checkbox"
                 checked={settings.pushNotifs}
                 onChange={(e) => updateSetting("pushNotifs", e.target.checked)}
@@ -147,7 +147,7 @@ export function NotificationSettingsDrawer({
 
             <div className="flex items-center justify-between">
               <span>Sound Alerts</span>
-              <input
+              <input aria-label="Toggle option"
                 type="checkbox"
                 checked={settings.soundAlerts}
                 onChange={(e) => updateSetting("soundAlerts", e.target.checked)}

@@ -107,7 +107,7 @@ export function RoleDetailsDrawer({ role, onClose }: RoleDetailsDrawerProps) {
             >
               <Edit2 size={14} /> {isRoleEditMode ? "Cancel Edit" : "Edit"}
             </button>
-            <button
+            <button aria-label="Close"
               onClick={onClose}
               style={{
                 border: "none",
@@ -163,7 +163,7 @@ export function RoleDetailsDrawer({ role, onClose }: RoleDetailsDrawerProps) {
               }}
             >
               <div>
-                <label
+                <span
                   style={{
                     display: "block",
                     color: "#64748B",
@@ -172,9 +172,9 @@ export function RoleDetailsDrawer({ role, onClose }: RoleDetailsDrawerProps) {
                   }}
                 >
                   Role Title
-                </label>
+                </span>
                 {isRoleEditMode ? (
-                  <input
+                  <input aria-label="Input field"
                     type="text"
                     defaultValue={role.name}
                     style={{
@@ -192,7 +192,7 @@ export function RoleDetailsDrawer({ role, onClose }: RoleDetailsDrawerProps) {
                 )}
               </div>
               <div>
-                <label
+                <span
                   style={{
                     display: "block",
                     color: "#64748B",
@@ -201,9 +201,9 @@ export function RoleDetailsDrawer({ role, onClose }: RoleDetailsDrawerProps) {
                   }}
                 >
                   Permission Tier
-                </label>
+                </span>
                 {isRoleEditMode ? (
-                  <select
+                  <select aria-label="Select option"
                     defaultValue={role.permissionLevel}
                     style={{
                       width: "100%",
@@ -227,7 +227,7 @@ export function RoleDetailsDrawer({ role, onClose }: RoleDetailsDrawerProps) {
               </div>
             </div>
             <div>
-              <label
+              <span
                 style={{
                   display: "block",
                   color: "#64748B",
@@ -236,9 +236,9 @@ export function RoleDetailsDrawer({ role, onClose }: RoleDetailsDrawerProps) {
                 }}
               >
                 Role Description
-              </label>
+              </span>
               {isRoleEditMode ? (
-                <textarea
+                <textarea aria-label="Text input"
                   rows={2}
                   defaultValue={role.description}
                   style={{
@@ -295,7 +295,7 @@ export function RoleDetailsDrawer({ role, onClose }: RoleDetailsDrawerProps) {
               }}
             >
               <div>
-                <label
+                <span
                   style={{
                     display: "block",
                     color: "#64748B",
@@ -304,9 +304,9 @@ export function RoleDetailsDrawer({ role, onClose }: RoleDetailsDrawerProps) {
                   }}
                 >
                   Default Dashboard
-                </label>
+                </span>
                 {isRoleEditMode ? (
-                  <input
+                  <input aria-label="Input field"
                     type="text"
                     defaultValue={role.defaultDashboard}
                     style={{
@@ -337,7 +337,7 @@ export function RoleDetailsDrawer({ role, onClose }: RoleDetailsDrawerProps) {
               </div>
             </div>
             <div>
-              <label
+              <span
                 style={{
                   display: "block",
                   color: "#64748B",
@@ -346,7 +346,7 @@ export function RoleDetailsDrawer({ role, onClose }: RoleDetailsDrawerProps) {
                 }}
               >
                 Accessible System Modules ({role.modules.length})
-              </label>
+              </span>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
                 {role.modules.map((m) => (
                   <span

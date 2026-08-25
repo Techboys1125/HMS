@@ -7,18 +7,18 @@ interface ReceiptConfigurationProps {
   setReceiptConfig: (updater: (prev: RecConfig) => RecConfig) => void;
 }
 
+const RECEIPT_CONFIG_ITEMS = [
+  { label: "Show Hospital Logo", key: "showLogo" },
+  { label: "Show Payment QR", key: "showQrCode" },
+  { label: "Show Payment Summary", key: "showPaymentSummary" },
+  { label: "Show Tax Breakdown", key: "showTaxDetails" },
+  { label: "Show Terms & Notes", key: "showTerms" },
+];
+
 export function ReceiptConfiguration({
   receiptConfig,
   setReceiptConfig,
 }: ReceiptConfigurationProps) {
-  const items = [
-    { label: "Show Hospital Logo", key: "showLogo" },
-    { label: "Show Payment QR", key: "showQrCode" },
-    { label: "Show Payment Summary", key: "showPaymentSummary" },
-    { label: "Show Tax Breakdown", key: "showTaxDetails" },
-    { label: "Show Terms & Notes", key: "showTerms" },
-  ];
-
   return (
     <div
       style={{
@@ -53,7 +53,7 @@ export function ReceiptConfiguration({
           marginBottom: "16px",
         }}
       >
-        {items.map((item) => (
+        {RECEIPT_CONFIG_ITEMS.map((item) => (
           <div
             key={item.key || item.label}
             style={{
@@ -64,7 +64,7 @@ export function ReceiptConfiguration({
               textAlign: "center",
             }}
           >
-            <input
+            <input aria-label="Toggle option"
               type="checkbox"
               checked={
                 (receiptConfig as unknown as Record<string, boolean>)[item.key]
@@ -96,7 +96,7 @@ export function ReceiptConfiguration({
       </div>
 
       <div>
-        <label
+        <span
           style={{
             display: "block",
             fontSize: "12px",
@@ -106,8 +106,8 @@ export function ReceiptConfiguration({
           }}
         >
           Official Receipt Footer Terms & Notes
-        </label>
-        <textarea
+        </span>
+        <textarea aria-label="Text input"
           rows={3}
           value={receiptConfig.footerNotes}
           onChange={(e) =>

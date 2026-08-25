@@ -225,7 +225,7 @@ export function PatientMedicalRecordsScreen({
     >
       {/* Toast Feedback */}
       {toastMsg && (
-        <div className="fixed top-5 right-5 z-50 bg-[#111827] text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200">
+        <div className="fixed top-5 right-5 z-50 bg-[#111827] text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 transition-opacity duration-200">
           <CheckCircle2 size={16} className="text-[#66BB6A]" />
           <span>{toastMsg}</span>
         </div>
@@ -410,7 +410,7 @@ export function PatientMedicalRecordsScreen({
                 size={15}
                 className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
               />
-              <input
+              <input aria-label="Input field"
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -420,7 +420,7 @@ export function PatientMedicalRecordsScreen({
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
-              <select
+              <select aria-label="Select option"
                 value={deptFilter}
                 onChange={(e) => setDeptFilter(e.target.value)}
                 className="px-3 py-1.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
@@ -430,7 +430,7 @@ export function PatientMedicalRecordsScreen({
                 <option value="General Medicine">General Medicine</option>
               </select>
 
-              <select
+              <select aria-label="Select option"
                 value={doctorFilter}
                 onChange={(e) => setDoctorFilter(e.target.value)}
                 className="px-3 py-1.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
@@ -538,7 +538,7 @@ export function PatientMedicalRecordsScreen({
                 size={15}
                 className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
               />
-              <input
+              <input aria-label="Input field"
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -548,7 +548,7 @@ export function PatientMedicalRecordsScreen({
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
-              <select
+              <select aria-label="Select option"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="px-3 py-1.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
@@ -685,7 +685,7 @@ export function PatientMedicalRecordsScreen({
       {/* ── 5. RIGHT DRAWER: PRESCRIPTION / VISIT DETAILS ── */}
       {(selectedRx || selectedVisit) && (
         <div className="fixed inset-0 z-50 overflow-hidden">
-          <div
+          <div role="presentation"
             className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
             onClick={() => {
               setSelectedRx(null);
@@ -693,7 +693,7 @@ export function PatientMedicalRecordsScreen({
             }}
           />
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-lg bg-white shadow-2xl flex flex-col border-l border-gray-100 animate-in slide-in-from-right duration-200">
+            <div className="w-screen max-w-lg bg-white shadow-2xl flex flex-col border-l border-gray-100 transition-transform duration-200">
               {/* Drawer Header */}
               <div className="px-6 py-4 bg-[#0D47A1] text-white flex items-center justify-between shadow-sm">
                 <div>
@@ -709,7 +709,7 @@ export function PatientMedicalRecordsScreen({
                     Clinical details & dosage schedule
                   </p>
                 </div>
-                <button
+                <button aria-label="Close"
                   onClick={() => {
                     setSelectedRx(null);
                     setSelectedVisit(null);

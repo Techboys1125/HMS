@@ -46,7 +46,7 @@ export function LoginProtection() {
         }}
       >
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -56,8 +56,8 @@ export function LoginProtection() {
             }}
           >
             Max Failed Login Attempts
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="number"
             value={loginProtection.maxFailedAttempts}
             onChange={(e) =>
@@ -74,11 +74,11 @@ export function LoginProtection() {
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -88,8 +88,8 @@ export function LoginProtection() {
             }}
           >
             Account Lock Duration
-          </label>
-          <select
+          
+          <select aria-label="Select option"
             value={loginProtection.lockDuration}
             onChange={(e) =>
               setLoginProtection((prev) => ({
@@ -111,7 +111,7 @@ export function LoginProtection() {
             <option>1 Hour</option>
             <option>24 Hours</option>
             <option>Manual Admin Unlock Only</option>
-          </select>
+          </select></span>
         </div>
 
         <div
@@ -141,7 +141,7 @@ export function LoginProtection() {
               Send instant alert email to Super Admin
             </div>
           </div>
-          <input
+          <input aria-label="Toggle option"
             type="checkbox"
             checked={loginProtection.notifyAdminOnLock}
             onChange={(e) =>

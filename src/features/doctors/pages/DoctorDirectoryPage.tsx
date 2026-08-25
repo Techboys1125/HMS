@@ -89,7 +89,7 @@ export function DoctorDirectoryPage() {
             size={14}
             className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
           />
-          <input
+          <input aria-label="Search doctors..."
             type="text"
             placeholder="Search doctors..."
             className="w-full pl-9 pr-8 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
@@ -117,7 +117,7 @@ export function DoctorDirectoryPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {doctors.map((doc) => (
-            <div
+            <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
               key={doc.id}
               onClick={() => setViewingProfile(doc)}
               className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"

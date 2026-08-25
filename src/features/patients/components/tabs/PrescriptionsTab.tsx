@@ -84,8 +84,16 @@ export function PatientPrescriptionsTab({
         <div className="space-y-2">
           {filtered.map((rx) => (
             <div
+              role="button"
+              tabIndex={0}
               key={rx.id}
               onClick={() => setSelectedPrescription(rx)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setSelectedPrescription(rx);
+                }
+              }}
               className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/80 transition-colors cursor-pointer group"
             >
               <div className="flex items-center gap-3">

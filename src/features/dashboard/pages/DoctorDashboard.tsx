@@ -62,7 +62,7 @@ function DKpi({
   onClick?: () => void;
 }) {
   return (
-    <div
+    <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
       onClick={onClick}
       className={`bg-white rounded-2xl border border-[#E5E7EB] p-5 flex flex-col gap-3 shadow-sm ${
         onClick
@@ -130,6 +130,14 @@ function DKpi({
   );
 }
 
+const DOCTOR_AVATAR_PALETTE = [
+  "bg-[#0D47A1]",
+  "bg-[#009688]",
+  "bg-violet-600",
+  "bg-rose-500",
+  "bg-amber-600",
+];
+
 function Av({
   name,
   size = "sm",
@@ -145,15 +153,7 @@ function Av({
     .join("")
     .slice(0, 2)
     .toUpperCase();
-  const palette = [
-    "bg-[#0D47A1]",
-    "bg-[#009688]",
-    "bg-violet-600",
-    "bg-rose-500",
-    "bg-amber-600",
-  ];
-  const bg =
-    palette[(safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) % palette.length];
+  const bg = DOCTOR_AVATAR_PALETTE[(safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) % DOCTOR_AVATAR_PALETTE.length];
   const sz = {
     sm: "w-7 h-7 text-xs",
     md: "w-9 h-9 text-sm",
@@ -171,6 +171,15 @@ function Av({
 
 type ChipVariant =
   "success" | "warning" | "error" | "info" | "teal" | "default";
+const DOCTOR_CHIP_MAP: Record<ChipVariant, string> = {
+  success: "bg-green-50 text-[#66BB6A]",
+  warning: "bg-amber-50 text-[#F59E0B]",
+  error: "bg-red-50 text-[#EF4444]",
+  info: "bg-blue-50 text-[#0D47A1]",
+  teal: "bg-teal-50 text-[#009688]",
+  default: "bg-slate-50 text-[#64748B]",
+};
+
 function Chip({
   label,
   variant = "default",
@@ -178,17 +187,9 @@ function Chip({
   label: string;
   variant?: ChipVariant;
 }) {
-  const map: Record<ChipVariant, string> = {
-    success: "bg-green-50 text-[#66BB6A]",
-    warning: "bg-amber-50 text-[#F59E0B]",
-    error: "bg-red-50 text-[#EF4444]",
-    info: "bg-blue-50 text-[#0D47A1]",
-    teal: "bg-teal-50 text-[#009688]",
-    default: "bg-slate-50 text-[#64748B]",
-  };
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${map[variant]}`}
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${DOCTOR_CHIP_MAP[variant]}`}
       style={{ fontFamily: RB }}
     >
       {label}
@@ -281,6 +282,12 @@ const hourKey = (time: string) => {
   return `${String(hour).padStart(2, "0")}:00`;
 };
 
+const parseMinutes = (val?: string) => {
+  if (!val) return 0;
+  const n = parseInt(val.replace(/[^\d]/g, ""), 10);
+  return Number.isNaN(n) ? 0 : n;
+};
+
 export function DoctorDashboard() {
   const navigate = useNavigate();
 
@@ -299,11 +306,6 @@ export function DoctorDashboard() {
   const timelineItems = useMemo(() => rawTimeline || [], [rawTimeline]);
   const consultationQueue = consultationQueueQuery.data;
 
-  const parseMinutes = (val?: string) => {
-    if (!val) return 0;
-    const n = parseInt(val.replace(/[^\d]/g, ""), 10);
-    return Number.isNaN(n) ? 0 : n;
-  };
 
   const hourlyProgress = useMemo(() => {
     const hours = Array.from(

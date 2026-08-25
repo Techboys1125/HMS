@@ -34,22 +34,8 @@ export interface DoctorProfileHeaderProps {
   onSelectTab: (tabId: string) => void;
 }
 
-export function DoctorProfileHeader({
-  doctor,
-  role,
-  isLoading,
-  visibleTabs,
-  onBack,
-  onRefresh,
-  onOpenEdit,
-  onOpenActivate,
-  onOpenDeactivate,
-  onSelectTab,
-}: DoctorProfileHeaderProps) {
-  const isAdmin = role === "ADMIN";
-  const isDoctor = role === "DOCTOR";
 
-  const getAvailStyle = (avail: DoctorAvailability) => {
+const getAvailStyle = (avail: DoctorAvailability) => {
     switch (avail) {
       case "Available Today":
         return {
@@ -74,6 +60,22 @@ export function DoctorProfileHeader({
     }
   };
 
+export function DoctorProfileHeader({
+  doctor,
+  role,
+  isLoading,
+  visibleTabs,
+  onBack,
+  onRefresh,
+  onOpenEdit,
+  onOpenActivate,
+  onOpenDeactivate,
+  onSelectTab,
+}: DoctorProfileHeaderProps) {
+  const isAdmin = role === "ADMIN";
+  const isDoctor = role === "DOCTOR";
+
+
   const availStyle = getAvailStyle(doctor.availability);
 
   return (
@@ -81,7 +83,7 @@ export function DoctorProfileHeader({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <button
+            <button aria-label="Previous"
               onClick={onBack}
               className="p-1.5 -ml-1.5 text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors"
             >

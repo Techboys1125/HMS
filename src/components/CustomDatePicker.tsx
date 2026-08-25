@@ -38,6 +38,16 @@ const MONTH_NAMES = [
 
 const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
+
+const formatDisplay = (dateStr: string) => {
+    if (!dateStr) return "";
+    const parts = dateStr.split("-");
+    if (parts.length === 3) {
+      return `${parts[2]} / ${parts[1]} / ${parts[0]}`;
+    }
+    return dateStr;
+  };
+
 export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
   value,
   onChange,
@@ -52,7 +62,9 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
   inputClassName,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"calendar" | "month" | "year">("calendar");
+  const [viewMode, setViewMode] = useState<"calendar" | "month" | "year">(
+    "calendar",
+  );
   const containerRef = useRef<HTMLDivElement>(null);
   const yearListRef = useRef<HTMLDivElement>(null);
 
@@ -94,7 +106,9 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
   // Auto scroll to active year when year mode opens
   useEffect(() => {
     if (viewMode === "year" && yearListRef.current) {
-      const selectedYearEl = yearListRef.current.querySelector("[data-selected='true']");
+      const selectedYearEl = yearListRef.current.querySelector(
+        "[data-selected='true']",
+      );
       if (selectedYearEl) {
         selectedYearEl.scrollIntoView({ block: "center", behavior: "smooth" });
       }
@@ -102,19 +116,13 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
   }, [viewMode]);
 
   // Format YYYY-MM-DD for display as DD / MM / YYYY
-  const formatDisplay = (dateStr: string) => {
-    if (!dateStr) return "";
-    const parts = dateStr.split("-");
-    if (parts.length === 3) {
-      return `${parts[2]} / ${parts[1]} / ${parts[0]}`;
-    }
-    return dateStr;
-  };
 
   // Generate Year options (e.g. 1920 to currentYear)
   const currentYear = new Date().getFullYear();
   const startYear = 1920;
-  const endYear = maxDate ? new Date(maxDate).getFullYear() || currentYear : currentYear + 5;
+  const endYear = maxDate
+    ? new Date(maxDate).getFullYear() || currentYear
+    : currentYear + 5;
   const years: number[] = [];
   for (let y = endYear; y >= startYear; y--) {
     years.push(y);
@@ -223,7 +231,8 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
     onChange("");
   };
 
-  const isLargeInput = inputClassName?.includes("py-5") || inputClassName?.includes("py-5.5");
+  const isLargeInput =
+    inputClassName?.includes("py-5") || inputClassName?.includes("py-5.5");
   const iconLeftClass = isLargeInput ? "left-5" : "left-3";
   const iconSize = isLargeInput ? 22 : 16;
   const textPaddingLeftClass = isLargeInput ? "!pl-14 sm:!pl-16" : "!pl-9";
@@ -232,9 +241,14 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
   return (
     <div className={`w-full relative ${className}`} ref={containerRef}>
       {label && (
-        <label className={labelClassName || "block text-xs font-semibold text-slate-600 mb-1.5"}>
+        <span
+          className={
+            labelClassName ||
+            "block text-xs font-semibold text-slate-600 mb-1.5"
+          }
+        >
           {label}
-        </label>
+        </span>
       )}
 
       {/* Input Field Trigger */}
@@ -250,7 +264,7 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
           }`}
         />
 
-        <div
+        <button type="button"
           onClick={() => {
             if (!disabled) {
               setIsOpen((prev) => !prev);
@@ -277,7 +291,7 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
           ) : (
             <span className="text-slate-400 font-normal">{placeholder}</span>
           )}
-        </div>
+        </button>
 
         {value && !disabled && (
           <button
@@ -292,7 +306,7 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
       </div>
 
       {error && (
-        <div className="mt-1 flex items-center gap-1 text-[11px] text-red-500 font-normal animate-in fade-in duration-200">
+        <div className="mt-1 flex items-center gap-1 text-[11px] text-red-500 font-normal transition-opacity duration-200">
           <AlertCircle size={12} className="shrink-0" />
           <span>{error}</span>
         </div>
@@ -300,8 +314,7 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
 
       {/* Styled Custom Calendar Popover: w-full matches input field width */}
       {isOpen && (
-        <div className="absolute left-0 top-full mt-2 z-50 bg-white border border-slate-200/90 rounded-2xl shadow-2xl p-4 sm:p-5 w-full min-w-[280px] max-w-md animate-in zoom-in-95 duration-150">
-          
+        <div className="absolute left-0 top-full mt-2 z-50 bg-white border border-slate-200/90 rounded-2xl shadow-2xl p-4 sm:p-5 w-full min-w-[280px] max-w-md transition-transform duration-150">
           {/* YEAR VIEW MODE */}
           {viewMode === "year" && (
             <div>
@@ -313,7 +326,9 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
                 >
                   <ChevronLeft size={16} /> Back to Calendar
                 </button>
-                <span className="text-xs font-bold text-slate-700">Select Year</span>
+                <span className="text-xs font-bold text-slate-700">
+                  Select Year
+                </span>
               </div>
               <div
                 ref={yearListRef}
@@ -330,7 +345,7 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
                         setViewYear(y);
                         setViewMode("calendar");
                       }}
-                      className={`py-2 text-xs font-bold rounded-xl transition-all ${
+                      className={`py-2 text-xs font-bold rounded-xl transition-colors ${
                         isSelected
                           ? "bg-[#0D47A1] text-white shadow-md shadow-[#0D47A1]/20 scale-105"
                           : "bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-[#0D47A1]"
@@ -355,7 +370,9 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
                 >
                   <ChevronLeft size={16} /> Back to Calendar
                 </button>
-                <span className="text-xs font-bold text-slate-700">Select Month</span>
+                <span className="text-xs font-bold text-slate-700">
+                  Select Month
+                </span>
               </div>
               <div className="grid grid-cols-3 gap-2 max-h-56 overflow-y-auto p-1 pr-1.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full">
                 {MONTH_NAMES.map((name, index) => {
@@ -368,7 +385,7 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
                         setViewMonth(index);
                         setViewMode("calendar");
                       }}
-                      className={`py-2.5 px-1 text-xs font-bold rounded-xl transition-all ${
+                      className={`py-2.5 px-1 text-xs font-bold rounded-xl transition-colors ${
                         isSelected
                           ? "bg-[#0D47A1] text-white shadow-md shadow-[#0D47A1]/20 scale-105"
                           : "bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-[#0D47A1]"
@@ -452,7 +469,7 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
                       type="button"
                       disabled={disabledDay}
                       onClick={() => handleSelectDay(item.dateStr)}
-                      className={`h-8 sm:h-9 w-8 sm:w-9 mx-auto flex items-center justify-center rounded-xl font-semibold transition-all duration-150 ${
+                      className={`h-8 sm:h-9 w-8 sm:w-9 mx-auto flex items-center justify-center rounded-xl font-semibold transition-colors duration-150 ${
                         disabledDay
                           ? "text-slate-200 opacity-40 cursor-not-allowed"
                           : isSelected

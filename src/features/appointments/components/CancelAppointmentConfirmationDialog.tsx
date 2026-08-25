@@ -66,13 +66,13 @@ export function CancelAppointmentConfirmationDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div
+      <div role="presentation"
         className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity"
         onClick={onClose}
       />
 
       <div
-        className="relative bg-white rounded-2xl border border-gray-100 shadow-2xl max-w-md w-full overflow-hidden z-10 animate-in zoom-in-95 duration-150"
+        className="relative bg-white rounded-2xl border border-gray-100 shadow-2xl max-w-md w-full overflow-hidden z-10 transition-transform duration-150"
         style={{ fontFamily: RB }}
       >
         <div className="p-5 bg-white border-b border-gray-100 flex items-start justify-between">
@@ -93,7 +93,7 @@ export function CancelAppointmentConfirmationDialog({
             </div>
           </div>
 
-          <button
+          <button aria-label="Close"
             type="button"
             onClick={onClose}
             className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
@@ -157,10 +157,10 @@ export function CancelAppointmentConfirmationDialog({
 
           <div className="space-y-3">
             <div>
-              <label className="block text-xs font-bold text-[#111827] mb-1">
+              <span className="block text-xs font-bold text-[#111827] mb-1">
                 Cancellation Reason *
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 ref={dropdownRef}
                 value={cancellationReason}
                 onChange={(e) => {
@@ -177,17 +177,17 @@ export function CancelAppointmentConfirmationDialog({
                 </option>
                 <option value="Incorrect Booking">Incorrect Booking</option>
                 <option value="Other">Other</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#111827] mb-1">
+              <span className="block text-xs font-bold text-[#111827] mb-1">
                 Additional Remarks{" "}
                 <span className="text-[10px] text-slate-400 font-normal">
                   (Optional)
                 </span>
-              </label>
-              <textarea
+              </span>
+              <textarea aria-label="Provide additional context or reason for cancellation..."
                 rows={2}
                 placeholder="Provide additional context or reason for cancellation..."
                 value={additionalRemarks}

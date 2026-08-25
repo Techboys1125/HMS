@@ -49,7 +49,7 @@ export function MaintenanceConfigSection({
         }}
       >
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -59,8 +59,8 @@ export function MaintenanceConfigSection({
             }}
           >
             Maintenance Date
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="date"
             value={maintConfig.scheduledDate}
             onChange={(e) =>
@@ -77,11 +77,11 @@ export function MaintenanceConfigSection({
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -91,8 +91,8 @@ export function MaintenanceConfigSection({
             }}
           >
             Start Time
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={maintConfig.startTime}
             onChange={(e) =>
@@ -109,11 +109,11 @@ export function MaintenanceConfigSection({
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -123,8 +123,8 @@ export function MaintenanceConfigSection({
             }}
           >
             Estimated End Time
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={maintConfig.endTime}
             onChange={(e) =>
@@ -141,12 +141,12 @@ export function MaintenanceConfigSection({
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
       </div>
 
       <div style={{ marginBottom: "16px" }}>
-        <label
+        <span
           style={{
             display: "block",
             fontSize: "12px",
@@ -156,8 +156,8 @@ export function MaintenanceConfigSection({
           }}
         >
           User Broadcast Maintenance Notice
-        </label>
-        <textarea
+        </span>
+        <textarea aria-label="Text input"
           rows={2}
           value={maintConfig.maintenanceMessage}
           onChange={(e) =>
@@ -197,7 +197,7 @@ export function MaintenanceConfigSection({
             Displays top notification banner across all active staff sessions
           </div>
         </div>
-        <input
+        <input aria-label="Toggle option"
           type="checkbox"
           checked={maintConfig.enableMaintenanceMode}
           onChange={(e) =>

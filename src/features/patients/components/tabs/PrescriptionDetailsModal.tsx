@@ -144,18 +144,23 @@ export function PrescriptionDetailsModal({
     initialData?.date;
 
   const dateStr = issueDateRaw
-    ? new Date(issueDateRaw as string | number | Date).toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      })
+    ? new Date(issueDateRaw as string | number | Date).toLocaleDateString(
+        "en-GB",
+        {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        },
+      )
     : new Date().toLocaleDateString("en-GB", {
         day: "2-digit",
         month: "short",
         year: "numeric",
       });
   const status = formatField(details?.status || initialData?.status, "Issued");
-  const medicines = (details?.medicines || initialData?.medicines || []) as unknown as Array<Record<string, unknown>>;
+  const medicines = (details?.medicines ||
+    initialData?.medicines ||
+    []) as unknown as Array<Record<string, unknown>>;
   const diagnosis = formatField(
     details?.outcome ||
       detObj?.diagnosis ||
@@ -168,14 +173,15 @@ export function PrescriptionDetailsModal({
     "",
   );
   const icdCode = formatField(
-    detObj?.icdCode || detObj?.icd10Code || initObj?.icdCode || initObj?.icd10Code,
+    detObj?.icdCode ||
+      detObj?.icd10Code ||
+      initObj?.icdCode ||
+      initObj?.icd10Code,
     "",
   );
   const followUpObj = (detObj?.followUp as Record<string, unknown>) || {};
   const followUpDate = formatField(
-    followUpObj.followUpDate ||
-      detObj?.followUp ||
-      initialData?.followUpDate,
+    followUpObj.followUpDate || detObj?.followUp || initialData?.followUpDate,
     "",
   );
   const bloodGroup = String(
@@ -188,7 +194,7 @@ export function PrescriptionDetailsModal({
       initObj?.bloodGroup ||
       initObj?.blood_group ||
       initPatObj?.bloodGroup ||
-      ""
+      "",
   ).trim();
   const advice = detObj?.advice as Record<string, unknown> | undefined;
 
@@ -201,7 +207,10 @@ export function PrescriptionDetailsModal({
 
     const medsRows = medicines
       .map((m: Record<string, unknown>, idx: number) => {
-        const medName = formatField(m.medicineName || m.name, `Medication #${idx + 1}`);
+        const medName = formatField(
+          m.medicineName || m.name,
+          `Medication #${idx + 1}`,
+        );
         const dose = formatField(m.dosage || m.dose, "—");
         const freq = formatField(m.frequency, "—");
         const dur = formatField(m.duration, "—");
@@ -345,9 +354,9 @@ export function PrescriptionDetailsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs transition-opacity duration-150">
       <div
-        className="bg-white rounded-2xl border border-[#E5E7EB] shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+        className="bg-white rounded-2xl border border-[#E5E7EB] shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden transition-transform duration-200"
         style={{ fontFamily: RB }}
       >
         {/* Modal Header */}
@@ -380,7 +389,7 @@ export function PrescriptionDetailsModal({
             >
               {status}
             </span>
-            <button
+            <button aria-label="Close"
               onClick={onClose}
               className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
             >
@@ -409,7 +418,13 @@ export function PrescriptionDetailsModal({
                     MRN: {patient.mrn} · {patient.age ?? 0} Y /{" "}
                     {patient.gender || "Unknown"}
                     {bloodGroup && (
-                      <> · Blood: <strong className="text-red-600 font-bold">{bloodGroup}</strong></>
+                      <>
+                        {" "}
+                        · Blood:{" "}
+                        <strong className="text-red-600 font-bold">
+                          {bloodGroup}
+                        </strong>
+                      </>
                     )}
                   </div>
                   {patient.phone && (
@@ -438,10 +453,17 @@ export function PrescriptionDetailsModal({
                   <span className="text-[10px] font-bold text-[#0D47A1] uppercase tracking-wider block mb-1">
                     Diagnosis / Clinical Notes
                   </span>
-                  {diagnosis && <div className="text-slate-700 font-medium">{diagnosis}</div>}
+                  {diagnosis && (
+                    <div className="text-slate-700 font-medium">
+                      {diagnosis}
+                    </div>
+                  )}
                   {icdCode && (
                     <div className="text-[11px] text-slate-500 font-mono">
-                      ICD Code: <span className="font-bold text-[#0D47A1]">{icdCode}</span>
+                      ICD Code:{" "}
+                      <span className="font-bold text-[#0D47A1]">
+                        {icdCode}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -476,48 +498,58 @@ export function PrescriptionDetailsModal({
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {medicines.map((m: Record<string, unknown>, idx: number) => {
-                          const medName = formatField(
-                            m.medicineName || m.name,
-                            `Medication #${idx + 1}`,
-                          );
-                          const strengthStr = formatField(m.strength, "");
-                          const strength = strengthStr
-                            ? ` (${strengthStr})`
-                            : "";
-                          const dose = formatField(m.dosage || m.dose, "—");
-                          const freq = formatField(m.frequency, "—");
-                          const dur = formatField(m.duration, "—");
-                          const inst = formatField(
-                            m.instructions,
-                            "As directed",
-                          );
+                        {medicines.map(
+                          (m: Record<string, unknown>, idx: number) => {
+                            const medName = formatField(
+                              m.medicineName || m.name,
+                              `Medication #${idx + 1}`,
+                            );
+                            const strengthStr = formatField(m.strength, "");
+                            const strength = strengthStr
+                              ? ` (${strengthStr})`
+                              : "";
+                            const dose = formatField(m.dosage || m.dose, "—");
+                            const freq = formatField(m.frequency, "—");
+                            const dur = formatField(m.duration, "—");
+                            const inst = formatField(
+                              m.instructions,
+                              "As directed",
+                            );
 
-                          return (
-                            <tr key={medName || `med-${m.dosage || idx}`} className="hover:bg-slate-50/50">
-                              <td className="py-2.5 px-3 font-semibold text-[#111827]">
-                                {medName}
-                                {strength && (
-                                  <span className="text-slate-400 font-normal">
-                                    {strength}
-                                  </span>
-                                )}
-                              </td>
-                              <td className="py-2.5 px-3 text-slate-600 font-medium">
-                                {dose}
-                              </td>
-                              <td className="py-2.5 px-3 text-slate-600 font-medium">
-                                {freq}
-                              </td>
-                              <td className="py-2.5 px-3 text-slate-600 font-medium">
-                                {dur}
-                              </td>
-                              <td className="py-2.5 px-3 text-slate-500 italic text-[11px]">
-                                {inst}
-                              </td>
-                            </tr>
-                          );
-                        })}
+                            return (
+                              <tr
+                                key={
+                                  (m.id as string) ||
+                                  (m.medicineName as string) ||
+                                  (m.name as string) ||
+                                  medName
+                                }
+                                className="hover:bg-slate-50/50"
+                              >
+                                <td className="py-2.5 px-3 font-semibold text-[#111827]">
+                                  {medName}
+                                  {strength && (
+                                    <span className="text-slate-400 font-normal">
+                                      {strength}
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="py-2.5 px-3 text-slate-600 font-medium">
+                                  {dose}
+                                </td>
+                                <td className="py-2.5 px-3 text-slate-600 font-medium">
+                                  {freq}
+                                </td>
+                                <td className="py-2.5 px-3 text-slate-600 font-medium">
+                                  {dur}
+                                </td>
+                                <td className="py-2.5 px-3 text-slate-500 italic text-[11px]">
+                                  {inst}
+                                </td>
+                              </tr>
+                            );
+                          },
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -526,7 +558,9 @@ export function PrescriptionDetailsModal({
 
               {/* Advice & Instructions */}
               {advice &&
-                Boolean(advice.general || advice.diet || advice.precautions) && (
+                Boolean(
+                  advice.general || advice.diet || advice.precautions,
+                ) && (
                   <div className="p-3 bg-amber-50/60 rounded-xl border border-amber-100 text-xs space-y-1.5">
                     <div className="flex items-center gap-1.5 text-amber-800 font-bold">
                       <AlertTriangle size={13} />

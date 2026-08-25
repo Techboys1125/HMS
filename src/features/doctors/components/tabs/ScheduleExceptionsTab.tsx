@@ -42,13 +42,10 @@ export function ScheduleExceptionsTab({
         const targetId = resolveDoctorId(doctor);
         const data = await doctorsService.getScheduleExceptions(targetId);
         if (!cancelled) setExceptions(data || []);
-      } catch(err) {
-       console.log(err);
-       
+      } catch (err) {
+        console.log(err);
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
     void loadExceptions();
@@ -127,10 +124,10 @@ export function ScheduleExceptionsTab({
         <div className="bg-slate-50 border border-[#E5E7EB] rounded-xl p-4 space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+              <span className="block text-[11px] font-bold text-[#64748B] mb-1">
                 Type
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={newException.exceptionType}
                 onChange={(e) =>
                   setNewException({
@@ -146,13 +143,13 @@ export function ScheduleExceptionsTab({
                 <option value="SURGERY">Surgery</option>
                 <option value="EMERGENCY">Emergency</option>
                 <option value="OTHER">Other</option>
-              </select>
+              </select></span>
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+              <span className="block text-[11px] font-bold text-[#64748B] mb-1">
                 Start Date
-              </label>
-              <input
+              
+              <input aria-label="Input field"
                 type="date"
                 value={newException.startDate}
                 onChange={(e) =>
@@ -162,26 +159,26 @@ export function ScheduleExceptionsTab({
                   })
                 }
                 className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-lg outline-none focus:border-[#0D47A1]"
-              />
+              /></span>
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+              <span className="block text-[11px] font-bold text-[#64748B] mb-1">
                 End Date
-              </label>
-              <input
+              
+              <input aria-label="Input field"
                 type="date"
                 value={newException.endDate}
                 onChange={(e) =>
                   setNewException({ ...newException, endDate: e.target.value })
                 }
                 className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-lg outline-none focus:border-[#0D47A1]"
-              />
+              /></span>
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+              <span className="block text-[11px] font-bold text-[#64748B] mb-1">
                 Action
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={newException.action}
                 onChange={(e) =>
                   setNewException({
@@ -192,13 +189,13 @@ export function ScheduleExceptionsTab({
                 className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-lg outline-none focus:border-[#0D47A1]"
               >
                 <option value="BLOCK_APPOINTMENTS">Block Appointments</option>
-              </select>
+              </select></span>
             </div>
             <div className="sm:col-span-2">
-              <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+              <span className="block text-[11px] font-bold text-[#64748B] mb-1">
                 Reason
-              </label>
-              <input
+              
+              <input aria-label="Input field"
                 type="text"
                 value={newException.reason}
                 onChange={(e) =>
@@ -206,7 +203,7 @@ export function ScheduleExceptionsTab({
                 }
                 placeholder="Reason for exception"
                 className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-lg outline-none focus:border-[#0D47A1]"
-              />
+              /></span>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -287,7 +284,7 @@ export function ScheduleExceptionsTab({
                 </div>
               </div>
               {canEdit && (
-                <button
+                <button aria-label="Delete"
                   type="button"
                   onClick={() => handleDelete(exc.id!)}
                   className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"

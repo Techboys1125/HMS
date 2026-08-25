@@ -123,7 +123,7 @@ export function TemplateDetailsDrawer({
                 <Edit2 size={14} /> {isEditMode ? "Cancel Edit" : "Edit"}
               </button>
             )}
-            <button
+            <button aria-label="Close"
               onClick={onClose}
               style={{
                 border: "none",
@@ -176,7 +176,7 @@ export function TemplateDetailsDrawer({
               }}
             >
               <div>
-                <label
+                <span
                   style={{
                     display: "block",
                     color: "#64748B",
@@ -185,9 +185,9 @@ export function TemplateDetailsDrawer({
                   }}
                 >
                   Template Name
-                </label>
+                </span>
                 {isEditMode && serverConnected ? (
-                  <input
+                  <input aria-label="Input field"
                     type="text"
                     value={template.name}
                     onChange={(e) => onTemplateChange({ name: e.target.value })}
@@ -206,7 +206,7 @@ export function TemplateDetailsDrawer({
                 )}
               </div>
               <div>
-                <label
+                <span
                   style={{
                     display: "block",
                     color: "#64748B",
@@ -215,9 +215,9 @@ export function TemplateDetailsDrawer({
                   }}
                 >
                   Event Type
-                </label>
+                </span>
                 {isEditMode && serverConnected ? (
-                  <input
+                  <input aria-label="Input field"
                     type="text"
                     value={template.category}
                     onChange={(e) =>
@@ -260,7 +260,7 @@ export function TemplateDetailsDrawer({
               Configuration & Content Payload
             </h4>
             <div style={{ fontSize: "12px", marginBottom: "12px" }}>
-              <label
+              <span
                 style={{
                   display: "block",
                   color: "#64748B",
@@ -269,9 +269,9 @@ export function TemplateDetailsDrawer({
                 }}
               >
                 Delivery Channel Scope
-              </label>
+              </span>
               {isEditMode && serverConnected ? (
-                <input
+                <input aria-label="Input field"
                   type="text"
                   value={template.channel}
                   onChange={(e) =>
@@ -292,7 +292,7 @@ export function TemplateDetailsDrawer({
               )}
             </div>
             <div>
-              <label
+              <span
                 style={{
                   display: "block",
                   color: "#64748B",
@@ -301,9 +301,9 @@ export function TemplateDetailsDrawer({
                 }}
               >
                 Message Body
-              </label>
+              </span>
               {isEditMode && serverConnected ? (
-                <textarea
+                <textarea aria-label="Text input"
                   rows={4}
                   value={template.body || ""}
                   onChange={(e) => onTemplateChange({ body: e.target.value })}

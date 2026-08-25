@@ -10,6 +10,21 @@ interface UserAvatarProps {
   className?: string;
 }
 
+const USER_AVATAR_COLORS = [
+  "bg-[#0D47A1]",
+  "bg-[#009688]",
+  "bg-violet-600",
+  "bg-rose-500",
+  "bg-amber-600",
+];
+
+const USER_AVATAR_SIZES = {
+  sm: "w-7 h-7 text-xs",
+  md: "w-9 h-9 text-sm",
+  lg: "w-12 h-12 text-base",
+  xl: "w-16 h-16 text-xl",
+};
+
 export const UserAvatar: React.FC<UserAvatarProps> = ({
   name,
   size = "md",
@@ -36,22 +51,8 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
         .toUpperCase()
     : "?";
 
-  const colors = [
-    "bg-[#0D47A1]",
-    "bg-[#009688]",
-    "bg-violet-600",
-    "bg-rose-500",
-    "bg-amber-600",
-  ];
   const charCode = (name && name.charCodeAt(0)) || 0;
-  const color = colors[charCode % colors.length];
-
-  const sizes = {
-    sm: "w-7 h-7 text-xs",
-    md: "w-9 h-9 text-sm",
-    lg: "w-12 h-12 text-base",
-    xl: "w-16 h-16 text-xl",
-  };
+  const color = USER_AVATAR_COLORS[charCode % USER_AVATAR_COLORS.length];
 
   if (imageSource && !imageError) {
     return (
@@ -59,14 +60,14 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
         src={imageSource}
         alt={name || "User avatar"}
         onError={() => imageSource && setFailedImageSource(imageSource)}
-        className={`${sizes[size]} rounded-full object-cover shrink-0 border border-slate-200 shadow-xs ${className}`}
+        className={`${USER_AVATAR_SIZES[size]} rounded-full object-cover shrink-0 border border-slate-200 shadow-xs ${className}`}
       />
     );
   }
 
   return (
     <div
-      className={`${sizes[size]} ${color} rounded-full flex items-center justify-center text-white font-semibold shrink-0 select-none ${className}`}
+      className={`${USER_AVATAR_SIZES[size]} ${color} rounded-full flex items-center justify-center text-white font-semibold shrink-0 select-none ${className}`}
     >
       {initials || "?"}
     </div>

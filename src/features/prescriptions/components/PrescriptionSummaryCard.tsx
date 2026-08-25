@@ -148,32 +148,33 @@ export const PrescriptionSummaryCard: React.FC<
   // Doctor or Admin KPIs
   const cards = [
     {
-      title: "Today's Prescriptions",
-      count: "14",
-      trend: "+12% vs yesterday",
-      Icon: Pill,
+      title: "Total Prescriptions",
+      count: prescriptions.length,
+      trend: "+12% this month",
       color: "#0D47A1",
+      Icon: Pill,
     },
     {
-      title: "Issued Prescriptions",
-      count: "184",
-      trend: "92% completed",
-      Icon: CheckCircle2,
+      title: "Issued / Active",
+      count: prescriptions.filter((r) => r.status === "Issued").length,
+      trend: "+5% active",
       color: "#009688",
+      Icon: Activity,
     },
     {
-      title: "Follow-up Cases",
-      count: "42",
-      trend: "+4 scheduled this wk",
+      title: "Completed Rx",
+      count: prescriptions.filter((r) => r.status === "Completed").length,
+      trend: "+8% completed",
+      color: "#16A34A",
+      Icon: CheckCircle2,
+    },
+    {
+      title: "Upcoming Follow-ups",
+      count: prescriptions.filter((r) => Boolean(r.followup || r.followupDate))
+        .length,
+      trend: "Scheduled",
+      color: "#D97706",
       Icon: Clock,
-      color: "#F59E0B",
-    },
-    {
-      title: "Recently Printed",
-      count: "28",
-      trend: "100% digital sync",
-      Icon: Download,
-      color: "#66BB6A",
     },
   ];
 

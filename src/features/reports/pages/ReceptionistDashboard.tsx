@@ -515,7 +515,15 @@ export function ReceptionistReportsDashboardScreen({
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Card 1: Today's Registrations */}
                 <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => navigate(ROUTES.PATIENTS)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      navigate(ROUTES.PATIENTS);
+                    }
+                  }}
                   className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -554,7 +562,15 @@ export function ReceptionistReportsDashboardScreen({
 
                 {/* Card 2: Today's Appointments */}
                 <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => navigate(ROUTES.APPOINTMENTS)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      navigate(ROUTES.APPOINTMENTS);
+                    }
+                  }}
                   className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -593,7 +609,15 @@ export function ReceptionistReportsDashboardScreen({
 
                 {/* Card 3: Checked-In Patients */}
                 <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => navigate(ROUTES.QUEUE)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      navigate(ROUTES.QUEUE);
+                    }
+                  }}
                   className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-2">

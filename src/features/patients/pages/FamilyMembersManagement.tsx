@@ -620,7 +620,7 @@ export function FamilyMembersManagement({
             size={16}
             className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]"
           />
-          <input
+          <input aria-label="Input field"
             type="text"
             value={filters.searchTerm}
             onChange={(e) => setFilter("searchTerm", e.target.value)}
@@ -629,7 +629,7 @@ export function FamilyMembersManagement({
             style={{ fontFamily: RB }}
           />
           {filters.searchTerm && (
-            <button
+            <button aria-label="Close"
               onClick={() => setFilter("searchTerm", "")}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
             >
@@ -651,7 +651,7 @@ export function FamilyMembersManagement({
           </div>
 
           {/* Relationship Filter */}
-          <select
+          <select aria-label="Select option"
             value={filters.relFilter}
             onChange={(e) => setFilter("relFilter", e.target.value)}
             className="px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs font-medium text-[#111827] outline-none focus:border-[#0D47A1]"
@@ -673,7 +673,7 @@ export function FamilyMembersManagement({
           </select>
 
           {/* Status Filter */}
-          <select
+          <select aria-label="Select option"
             value={filters.statusFilter}
             onChange={(e) => setFilter("statusFilter", e.target.value)}
             className="px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs font-medium text-[#111827] outline-none focus:border-[#0D47A1]"
@@ -944,8 +944,8 @@ export function FamilyMembersManagement({
           ── FAMILY MEMBER DETAILS DRAWER (VIEW) ──
           ══════════════════════════════════════════════════════════════════ */}
       {viewDrawerMember && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between overflow-hidden animate-in slide-in-from-right duration-200">
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-sm transition-opacity duration-200">
+          <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between overflow-hidden transition-transform duration-200">
             {/* ── Drawer Header ── */}
             <div className="p-5 border-b border-[#E5E7EB] bg-slate-50">
               <div className="flex items-center justify-between mb-3">
@@ -955,7 +955,7 @@ export function FamilyMembersManagement({
                 >
                   Family Member Details
                 </h3>
-                <button
+                <button aria-label="Close"
                   onClick={() => drawerDispatch({ type: "CLOSE_VIEW_DRAWER" })}
                   className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
                 >
@@ -1175,7 +1175,7 @@ export function FamilyMembersManagement({
                   Recent Records
                 </h4>
                 <div className="space-y-2">
-                  <div
+                  <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
                     className="flex items-center gap-3 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs hover:shadow-sm transition-shadow cursor-pointer"
                     onClick={() => handleNavigateAppointments(viewDrawerMember)}
                   >
@@ -1196,7 +1196,7 @@ export function FamilyMembersManagement({
                     </div>
                     <ChevronRight size={14} className="text-slate-300" />
                   </div>
-                  <div
+                  <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
                     className="flex items-center gap-3 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs hover:shadow-sm transition-shadow cursor-pointer"
                     onClick={() => handleNavigateAppointments(viewDrawerMember)}
                   >
@@ -1218,7 +1218,7 @@ export function FamilyMembersManagement({
                     </div>
                     <ChevronRight size={14} className="text-slate-300" />
                   </div>
-                  <div
+                  <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
                     className="flex items-center gap-3 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs hover:shadow-sm transition-shadow cursor-pointer"
                     onClick={() =>
                       handleNavigatePrescriptions(viewDrawerMember)
@@ -1241,7 +1241,7 @@ export function FamilyMembersManagement({
                     </div>
                     <ChevronRight size={14} className="text-slate-300" />
                   </div>
-                  <div
+                  <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
                     className="flex items-center gap-3 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs hover:shadow-sm transition-shadow cursor-pointer"
                     onClick={() => handleNavigateBills(viewDrawerMember)}
                   >
@@ -1359,7 +1359,7 @@ export function FamilyMembersManagement({
 
       {/* ── REMOVE FAMILY MEMBER CONFIRMATION DIALOG ── */}
       {removeDialogMember && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 transition-opacity duration-150">
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 max-w-md w-full shadow-2xl space-y-4">
             {/* HEADER */}
             <div className="flex items-center gap-3 border-b border-[#E5E7EB] pb-3">
@@ -1462,7 +1462,7 @@ export function FamilyMembersManagement({
                     3000,
                   );
                 }}
-                className="px-5 py-2 bg-[#EF4444] text-white rounded-xl text-xs font-semibold hover:bg-red-600 transition-all shadow-sm flex items-center gap-1.5"
+                className="px-5 py-2 bg-[#EF4444] text-white rounded-xl text-xs font-semibold hover:bg-red-600 transition-colors shadow-sm flex items-center gap-1.5"
                 style={{ fontFamily: PP }}
               >
                 <UserX size={14} />
@@ -1475,7 +1475,7 @@ export function FamilyMembersManagement({
 
       {/* ── SUCCESS TOAST NOTIFICATION ── */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-[#111827] text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700 animate-in slide-in-from-bottom-4 duration-200">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-[#111827] text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700 transition-transform duration-200">
           <CheckCircle2 className="w-5 h-5 text-[#66BB6A] shrink-0" />
           <span className="text-xs font-semibold" style={{ fontFamily: PP }}>
             {toastMessage}

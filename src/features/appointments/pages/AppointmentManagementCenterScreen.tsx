@@ -66,6 +66,28 @@ export interface Props {
   onRegisterPatientClick?: () => void;
 }
 
+interface FilterState {
+  searchQuery: string;
+  statusFilter: string;
+  doctorFilter: string;
+  deptFilter: string;
+  visitTypeFilter: string;
+}
+
+type FilterAction = {
+  type: "SET_FIELD";
+  field: keyof FilterState;
+  value: string;
+};
+
+const filterReducer = (
+  state: FilterState,
+  action: FilterAction,
+): FilterState => ({
+  ...state,
+  [action.field]: action.value,
+});
+
 export function AppointmentManagementCenterScreen({
   onPatientSelect,
   onStartConsultation,
@@ -89,26 +111,6 @@ export function AppointmentManagementCenterScreen({
   );
   const [viewMode, setViewMode] = useState<"directory" | "queue">("directory");
 
-  // Search & Filter state
-  type FilterState = {
-    searchQuery: string;
-    statusFilter: string;
-    doctorFilter: string;
-    deptFilter: string;
-    visitTypeFilter: string;
-  };
-  type FilterAction = {
-    type: "SET_FIELD";
-    field: keyof FilterState;
-    value: string;
-  };
-  const filterReducer = (
-    state: FilterState,
-    action: FilterAction,
-  ): FilterState => ({
-    ...state,
-    [action.field]: action.value,
-  });
   const [filters, dispatch] = useReducer(filterReducer, {
     searchQuery: "",
     statusFilter: "All",
@@ -438,7 +440,7 @@ export function AppointmentManagementCenterScreen({
       {/* Toast Notification */}
       {toastMsg && (
         <div
-          className={`fixed top-5 right-5 z-50 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200 ${toastType === "error" ? "bg-[#EF4444]" : "bg-[#111827]"}`}
+          className={`fixed top-5 right-5 z-50 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 transition-opacity duration-200 ${toastType === "error" ? "bg-[#EF4444]" : "bg-[#111827]"}`}
         >
           <CheckCircle2
             size={16}
@@ -683,6 +685,7 @@ export function AppointmentManagementCenterScreen({
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
                 />
                 <input
+                  aria-label="Input field"
                   type="text"
                   value={filters.searchQuery}
                   onChange={(e) => setFilter("searchQuery", e.target.value)}
@@ -691,6 +694,7 @@ export function AppointmentManagementCenterScreen({
                 />
                 {filters.searchQuery && (
                   <button
+                    aria-label="Close"
                     onClick={() => setFilter("searchQuery", "")}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                   >
@@ -709,6 +713,7 @@ export function AppointmentManagementCenterScreen({
                   <Filter size={13} className="text-slate-400" />
                   <span className="text-slate-500 font-medium">Status:</span>
                   <select
+                    aria-label="Select option"
                     value={filters.statusFilter}
                     onChange={(e) => setFilter("statusFilter", e.target.value)}
                     className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
@@ -735,6 +740,7 @@ export function AppointmentManagementCenterScreen({
                     <Stethoscope size={13} className="text-slate-400" />
                     <span className="text-slate-500 font-medium">Doctor:</span>
                     <select
+                      aria-label="Select option"
                       value={filters.doctorFilter}
                       onChange={(e) =>
                         setFilter("doctorFilter", e.target.value)
@@ -755,6 +761,7 @@ export function AppointmentManagementCenterScreen({
                   <Building2 size={13} className="text-slate-400" />
                   <span className="text-slate-500 font-medium">Dept:</span>
                   <select
+                    aria-label="Select option"
                     value={filters.deptFilter}
                     onChange={(e) => {
                       const selectedDeptVal = e.target.value;
@@ -790,6 +797,7 @@ export function AppointmentManagementCenterScreen({
                     Visit Type:
                   </span>
                   <select
+                    aria-label="Select option"
                     value={filters.visitTypeFilter}
                     onChange={(e) =>
                       setFilter("visitTypeFilter", e.target.value)
@@ -1240,6 +1248,13 @@ export function AppointmentManagementCenterScreen({
                           style={{ fontFamily: PP }}
                         >
                           <th
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                (e.currentTarget as HTMLElement).click();
+                              }
+                            }}
                             onClick={() => handleSort("id")}
                             className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
                           >
@@ -1252,6 +1267,13 @@ export function AppointmentManagementCenterScreen({
                             </div>
                           </th>
                           <th
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                (e.currentTarget as HTMLElement).click();
+                              }
+                            }}
                             onClick={() => handleSort("patientName")}
                             className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
                           >
@@ -1269,6 +1291,13 @@ export function AppointmentManagementCenterScreen({
                             <th className="px-4 py-3.5">Department</th>
                           )}
                           <th
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                (e.currentTarget as HTMLElement).click();
+                              }
+                            }}
                             onClick={() => handleSort("timeSlot")}
                             className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
                           >
@@ -1298,6 +1327,14 @@ export function AppointmentManagementCenterScreen({
 
                             <td className="px-4 py-3.5">
                               <div
+                                tabIndex={0}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    (e.currentTarget as HTMLElement).click();
+                                  }
+                                }}
+                                role="button"
                                 onClick={() => onPatientSelect?.(apt.patientId)}
                                 className="flex items-center gap-2 cursor-pointer hover:underline"
                               >

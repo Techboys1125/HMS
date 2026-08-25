@@ -116,15 +116,15 @@ export const ConsultationDetailsSection: React.FC<
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Primary Department */}
         <div className="space-y-1">
-          <label className="block text-xs font-heading font-bold text-text-body">
+          <span className="block text-xs font-heading font-bold text-text-body">
             Primary Department *
-          </label>
+          </span>
           <div className="relative">
             <Building2
               size={16}
               className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
             />
-            <select
+            <select aria-label="Select option"
               value={form.primaryDepartment}
               onChange={handlePrimaryDepartmentChange}
               className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-colors text-[#1E293B] cursor-pointer ${
@@ -149,16 +149,16 @@ export const ConsultationDetailsSection: React.FC<
 
         {/* Secondary Department (Optional) */}
         <div className="space-y-1">
-          <label className="block text-xs font-heading font-bold text-text-body">
+          <span className="block text-xs font-heading font-bold text-text-body">
             Secondary Department{" "}
             <span className="text-slate-400 font-normal">(Optional)</span>
-          </label>
+          </span>
           <div className="relative">
             <Building2
               size={16}
               className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
             />
-            <select
+            <select aria-label="Select option"
               value={form.secondaryDepartment}
               onChange={handleSecondaryDepartmentChange}
               className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-[#1E293B] cursor-pointer"
@@ -179,15 +179,15 @@ export const ConsultationDetailsSection: React.FC<
 
         {/* Primary Specialty */}
         <div className="space-y-1">
-          <label className="block text-xs font-heading font-bold text-text-body">
+          <span className="block text-xs font-heading font-bold text-text-body">
             Primary Specialty *
-          </label>
+          </span>
           <div className="relative">
             <Briefcase
               size={16}
               className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
             />
-            <select
+            <select aria-label="Select option"
               value={form.primarySpecialty}
               onChange={(e) =>
                 setFieldValue("primarySpecialty", e.target.value)
@@ -218,16 +218,16 @@ export const ConsultationDetailsSection: React.FC<
 
         {/* Secondary Specialty (Optional) */}
         <div className="space-y-1">
-          <label className="block text-xs font-heading font-bold text-text-body">
+          <span className="block text-xs font-heading font-bold text-text-body">
             Secondary Specialty{" "}
             <span className="text-slate-400 font-normal">(Optional)</span>
-          </label>
+          </span>
           <div className="relative">
             <Briefcase
               size={16}
               className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
             />
-            <select
+            <select aria-label="Select option"
               value={form.secondarySpecialty}
               onChange={(e) =>
                 setFieldValue("secondarySpecialty", e.target.value)
@@ -252,14 +252,14 @@ export const ConsultationDetailsSection: React.FC<
 
         {/* Consultation Fee */}
         <div className="space-y-1">
-          <label className="block text-xs font-heading font-bold text-text-body">
+          <span className="block text-xs font-heading font-bold text-text-body">
             Consultation Fee (₹) *
-          </label>
+          </span>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">
               ₹
             </span>
-            <input
+            <input aria-label="Input field"
               type="number"
               min={0}
               value={form.consultationFee}
@@ -281,42 +281,42 @@ export const ConsultationDetailsSection: React.FC<
 
         {/* Qualification */}
         <div className="space-y-1">
-          <label className="block text-xs font-heading font-bold text-text-body">
+          <span className="block text-xs font-heading font-bold text-text-body">
             Qualification{" "}
             <span className="text-slate-400 font-normal">(Optional)</span>
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={form.qualification}
             onChange={(e) => setFieldValue("qualification", e.target.value)}
             placeholder="e.g. MBBS, MD, DM (Cardiology)"
             className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-text-body"
-          />
+          /></span>
         </div>
 
         {/* Years of Experience */}
         <div className="space-y-1">
-          <label className="block text-xs font-heading font-bold text-text-body">
+          <span className="block text-xs font-heading font-bold text-text-body">
             Years of Experience{" "}
             <span className="text-slate-400 font-normal">(Optional)</span>
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="number"
             min={0}
             value={form.yearsOfExperience}
             onChange={(e) => setFieldValue("yearsOfExperience", e.target.value)}
             placeholder="e.g. 10"
             className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-text-body"
-          />
+          /></span>
         </div>
 
         {/* Doctor Code */}
         <div className="space-y-1">
-          <label className="block text-xs font-heading font-bold text-text-body">
+          <span className="block text-xs font-heading font-bold text-text-body">
             Doctor Code{" "}
             <span className="text-slate-400 font-normal">(Optional)</span>
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={form.doctorCode}
             onChange={(e) =>
@@ -324,15 +324,15 @@ export const ConsultationDetailsSection: React.FC<
             }
             placeholder="e.g. DOC-CARD-01"
             className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-text-body font-mono uppercase"
-          />
+          /></span>
         </div>
 
         {/* Slot Duration Minutes */}
         <div className="space-y-1">
-          <label className="block text-xs font-heading font-bold text-text-body">
+          <span className="block text-xs font-heading font-bold text-text-body">
             Slot Duration (Minutes)
-          </label>
-          <select
+          
+          <select aria-label="Select option"
             value={form.slotDurationMinutes}
             onChange={(e) =>
               setFieldValue("slotDurationMinutes", e.target.value)
@@ -345,7 +345,7 @@ export const ConsultationDetailsSection: React.FC<
             <option value="30">30 Minutes</option>
             <option value="45">45 Minutes</option>
             <option value="60">60 Minutes</option>
-          </select>
+          </select></span>
         </div>
       </div>
     </div>

@@ -50,7 +50,7 @@ export function SchedulePreviewModal({ onClose }: { onClose: () => void }) {
           >
             Operational OPD Slot Preview (15-Min Intervals)
           </h3>
-          <button
+          <button aria-label="Close"
             onClick={onClose}
             style={{
               border: "none",

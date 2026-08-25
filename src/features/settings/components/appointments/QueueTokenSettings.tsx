@@ -93,7 +93,7 @@ export function QueueTokenSettings() {
                 {item.sub}
               </div>
             </div>
-            <input
+            <input aria-label="Toggle option"
               type="checkbox"
               checked={
                 (queueConfig as unknown as Record<string, boolean>)[item.key]
@@ -123,7 +123,7 @@ export function QueueTokenSettings() {
         }}
       >
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -133,8 +133,8 @@ export function QueueTokenSettings() {
             }}
           >
             Token Prefix
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={queueConfig.tokenPrefix}
             onChange={(e) =>
@@ -151,10 +151,10 @@ export function QueueTokenSettings() {
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -164,8 +164,8 @@ export function QueueTokenSettings() {
             }}
           >
             Starting Token No.
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="number"
             value={queueConfig.startTokenNo}
             onChange={(e) =>
@@ -182,10 +182,10 @@ export function QueueTokenSettings() {
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -195,8 +195,8 @@ export function QueueTokenSettings() {
             }}
           >
             Max Daily Queue Cap
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="number"
             value={queueConfig.maxQueueSize}
             onChange={(e) =>
@@ -213,10 +213,10 @@ export function QueueTokenSettings() {
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -226,8 +226,8 @@ export function QueueTokenSettings() {
             }}
           >
             Daily Queue Reset Time
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={queueConfig.queueResetTime}
             onChange={(e) =>
@@ -244,7 +244,7 @@ export function QueueTokenSettings() {
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
       </div>
     </div>

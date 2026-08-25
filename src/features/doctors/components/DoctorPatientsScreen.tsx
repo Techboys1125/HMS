@@ -18,6 +18,31 @@ type PatientRow = {
   visits: number;
 };
 
+ const processDoctorPatients = (data: { items?: Patient[] } | null) => {
+   if (!data?.items) return [];
+   return data.items.map((item) => {
+     const p = mapApiPatientToPatientRecord(item);
+     const rawP = p as unknown as Record<string, unknown>;
+     const ageVal =
+       p.age && Number(p.age) > 0
+         ? Number(p.age)
+         : rawP.patientAge && Number(rawP.patientAge) > 0
+           ? Number(rawP.patientAge)
+           : 0;
+
+     return {
+       id: String(p.id || p.mrn || ""),
+       name: p.fullName || p.name || p.patientName || "Unknown",
+       mrn: p.mrn || "",
+       gender: p.gender || "Unknown",
+       age: ageVal,
+       mobile: p.mobileNumber || p.phone || p.mobile || "",
+       lastVisit: p.lastVisit || p.lastVisitDate || "",
+       visits: p.totalVisits || p.visitCount || 0,
+     };
+   });
+ };
+
 export function DoctorPatientsScreen() {
   const { user } = useAuthStore();
   const doctorId = user?.doctorId || user?.doctorProfile?.doctorId;
@@ -40,29 +65,6 @@ export function DoctorPatientsScreen() {
     ? "Doctor profile not linked to your account. Please contact administrator."
     : error;
 
-  const processDoctorPatients = (data: { items?: Patient[] } | null) => {
-    if (!data?.items) return [];
-    return data.items.map(mapApiPatientToPatientRecord).map((p) => {
-      const rawP = p as unknown as Record<string, unknown>;
-      const ageVal =
-        p.age && Number(p.age) > 0
-          ? Number(p.age)
-          : rawP.patientAge && Number(rawP.patientAge) > 0
-            ? Number(rawP.patientAge)
-            : 0;
-
-      return {
-        id: String(p.id || p.mrn || ""),
-        name: p.fullName || p.name || p.patientName || "Unknown",
-        mrn: p.mrn || "",
-        gender: p.gender || "Unknown",
-        age: ageVal,
-        mobile: p.mobileNumber || p.phone || p.mobile || "",
-        lastVisit: p.lastVisit || p.lastVisitDate || "",
-        visits: p.totalVisits || p.visitCount || 0,
-      };
-    });
-  };
 
   const fetchPatients = async () => {
     const id = doctorIdRef.current;
@@ -182,7 +184,7 @@ export function DoctorPatientsScreen() {
                 size={16}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
               />
-              <input
+              <input aria-label="Search patients by name, MRN, or phone..."
                 type="text"
                 placeholder="Search patients by name, MRN, or phone..."
                 value={searchQuery}

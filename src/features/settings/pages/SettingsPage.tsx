@@ -15,13 +15,14 @@ import {
 import { BottomActionBar } from "../components/shell/BottomActionBar";
 import {
   Building2,
-  Shield,
   Calendar,
   CreditCard,
   Bell,
   Lock,
   Database,
   Sliders,
+  ShieldCheck,
+  Stethoscope,
 } from "lucide-react";
 
 const RB = "'Roboto', system-ui, sans-serif";
@@ -30,6 +31,72 @@ interface SettingsPageProps {
   onNavigate?: (screen: string) => void;
 }
 
+const QUICK_CONFIG_CARDS = [
+  {
+    id: "general",
+    title: "General",
+    description: "System overview & status",
+    icon: Sliders,
+    status: "Overview",
+  },
+  {
+    id: "hospital-info",
+    title: "Hospital Information",
+    description: "Branding, contact & address",
+    icon: Building2,
+    status: "Configured",
+  },
+  {
+    id: "user-roles",
+    title: "User Roles & Permissions",
+    description: "RBAC & access control",
+    icon: ShieldCheck,
+    status: "Active",
+  },
+  {
+    id: "opd-config",
+    title: "OPD & Clinical Configuration",
+    description: "Consultation & queue settings",
+    icon: Stethoscope,
+    status: "Active",
+  },
+  {
+    id: "appointment-settings",
+    title: "Appointment & Scheduling",
+    description: "Slots, working hours & holidays",
+    icon: Calendar,
+    status: "Configured",
+  },
+  {
+    id: "billing-config",
+    title: "Billing & Financial Settings",
+    description: "Invoicing, taxes & payment rules",
+    icon: CreditCard,
+    status: "Configured",
+  },
+  {
+    id: "notification-settings",
+    title: "Notifications & Messaging",
+    description: "Templates, SMS & Email alerts",
+    icon: Bell,
+    status: "Configured",
+  },
+  {
+    id: "security-audit",
+    title: "Security, Auth & Compliance",
+    description: "Session, 2FA & Audit policy",
+    icon: Lock,
+    status: "Secured",
+  },
+  {
+    id: "backup-maintenance",
+    title: "Backup, Restore & Maintenance",
+    description: "Database export & system logs",
+    icon: Database,
+    status: "Healthy",
+  },
+];
+
 export function SettingsPage({ onNavigate }: SettingsPageProps) {
   void onNavigate;
   const [activeMenu, setActiveMenu] = useState<string>("general");
@@ -37,65 +104,6 @@ export function SettingsPage({ onNavigate }: SettingsPageProps) {
   const generalSettingsRef = useRef<GeneralSettingsContentHandle>(null);
 
   // Quick Configuration Toolbar items
-  const quickConfigCards = [
-    {
-      id: "general",
-      title: "General",
-      description: "System overview & status",
-      icon: Sliders,
-      status: "Overview",
-    },
-    {
-      id: "hospital-info",
-      title: "Hospital Information",
-      description: "Branding, contact & address",
-      icon: Building2,
-      status: "Configured",
-    },
-    {
-      id: "roles-permissions",
-      title: "User Roles & Permissions",
-      description: "RBAC & matrix policies",
-      icon: Shield,
-      status: "Configured",
-    },
-    {
-      id: "appointments",
-      title: "Appointment Configuration",
-      description: "Slot timing & token rules",
-      icon: Calendar,
-      status: "Pending",
-    },
-    {
-      id: "billing",
-      title: "Billing Configuration",
-      description: "Invoice, tax & payments",
-      icon: CreditCard,
-      status: "Configured",
-    },
-    {
-      id: "notifications",
-      title: "Notification & Communication",
-      description: "SMS, email & templates",
-      icon: Bell,
-      status: "Configured",
-    },
-    {
-      id: "security",
-      title: "Security Settings",
-      description: "2FA, passwords & SIEM",
-      icon: Lock,
-      status: "Configured",
-    },
-    {
-      id: "backup",
-      title: "Backup & Maintenance",
-      description: "DB dumps & health check",
-      icon: Database,
-      status: "Configured",
-    },
-  ];
-
   const handleSave = (message?: string) => {
     setSaveStatus(message ?? "Settings saved successfully!");
     setTimeout(() => setSaveStatus(null), 3000);
@@ -114,7 +122,7 @@ export function SettingsPage({ onNavigate }: SettingsPageProps) {
   };
 
   const activeTitle =
-    quickConfigCards.find((q) => q.id === activeMenu)?.title ||
+    QUICK_CONFIG_CARDS.find((q) => q.id === activeMenu)?.title ||
     "Settings Workspace";
 
   return (
@@ -133,7 +141,7 @@ export function SettingsPage({ onNavigate }: SettingsPageProps) {
 
       {/* ─── HORIZONTAL QUICK CONFIGURATION TOOLBAR ────────────────────── */}
       <QuickConfigToolbar
-        items={quickConfigCards}
+        items={QUICK_CONFIG_CARDS}
         activeId={activeMenu}
         onSelect={setActiveMenu}
       />
@@ -156,17 +164,20 @@ export function SettingsPage({ onNavigate }: SettingsPageProps) {
             />
           ) : activeMenu === "hospital-info" ? (
             <HospitalInformationPage />
-          ) : activeMenu === "roles-permissions" ? (
+          ) : activeMenu === "user-roles" ||
+            activeMenu === "roles-permissions" ? (
             <UserRolesPermissionsPage />
-          ) : activeMenu === "appointments" ? (
+          ) : activeMenu === "appointment-settings" ||
+            activeMenu === "appointments" ? (
             <AppointmentConfigurationPage />
-          ) : activeMenu === "billing" ? (
+          ) : activeMenu === "billing-config" || activeMenu === "billing" ? (
             <BillingConfigurationPage />
-          ) : activeMenu === "notifications" ? (
+          ) : activeMenu === "notification-settings" ||
+            activeMenu === "notifications" ? (
             <NotificationCommunicationPage />
-          ) : activeMenu === "security" ? (
+          ) : activeMenu === "security-audit" || activeMenu === "security" ? (
             <SecuritySettingsPage />
-          ) : activeMenu === "backup" ? (
+          ) : activeMenu === "backup-maintenance" || activeMenu === "backup" ? (
             <BackupMaintenancePage />
           ) : null}
         </div>

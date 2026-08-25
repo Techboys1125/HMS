@@ -143,13 +143,13 @@ export const PrescriptionTable: React.FC<PrescriptionTableProps> = ({
                       >
                         <Eye size={13} /> View
                       </button>
-                      <button
+                      <button aria-label="Action"
                         onClick={() => onPrint(rx)}
                         className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
                       >
                         <Printer size={14} />
                       </button>
-                      <button
+                      <button aria-label="Download"
                         onClick={() => onDownload(rx.id)}
                         className="p-1.5 rounded-lg text-slate-500 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors"
                       >
@@ -372,7 +372,7 @@ export const PrescriptionTable: React.FC<PrescriptionTableProps> = ({
                       <Download size={14} />
                     </button>
                     <div className="relative">
-                      <button
+                      <button aria-label="Action"
                         onClick={() =>
                           setOpenMoreMenuId(
                             openMoreMenuId === rx.id ? null : rx.id,

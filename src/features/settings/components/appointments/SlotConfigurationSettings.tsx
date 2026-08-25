@@ -48,7 +48,7 @@ export function SlotConfigurationSettings() {
         }}
       >
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -58,8 +58,8 @@ export function SlotConfigurationSettings() {
             }}
           >
             Default Consultation Duration
-          </label>
-          <select
+          
+          <select aria-label="Select option"
             value={slotConfig.defaultDuration}
             onChange={(e) =>
               setSlotConfig((prev) => ({
@@ -82,11 +82,11 @@ export function SlotConfigurationSettings() {
             <option>30 Minutes</option>
             <option>45 Minutes</option>
             <option>60 Minutes</option>
-          </select>
+          </select></span>
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -96,8 +96,8 @@ export function SlotConfigurationSettings() {
             }}
           >
             Buffer Time Between Patients
-          </label>
-          <select
+          
+          <select aria-label="Select option"
             value={slotConfig.bufferTime}
             onChange={(e) =>
               setSlotConfig((prev) => ({
@@ -118,11 +118,11 @@ export function SlotConfigurationSettings() {
             <option>5 Minutes</option>
             <option>10 Minutes</option>
             <option>15 Minutes</option>
-          </select>
+          </select></span>
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -132,8 +132,8 @@ export function SlotConfigurationSettings() {
             }}
           >
             Maximum Patients Allowed Per Slot
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="number"
             value={slotConfig.maxPatientsPerSlot}
             onChange={(e) =>
@@ -150,7 +150,7 @@ export function SlotConfigurationSettings() {
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
       </div>
 
@@ -174,7 +174,7 @@ export function SlotConfigurationSettings() {
             slots
           </div>
         </div>
-        <input
+        <input aria-label="Toggle option"
           type="checkbox"
           checked={slotConfig.enableDoubleBooking}
           onChange={(e) =>

@@ -14,9 +14,8 @@ import type {
   DoctorAvailability,
   DoctorStatus,
 } from "../types/doctors.types";
-import type { AppPermission } from "../../../permissions/types";
 import { usePermissions } from "../../../permissions/usePermissions";
-import { PP } from "../constants/doctors.constants";
+import { PP, DOCTOR_TABLE_COLUMNS } from "../constants/doctors.constants";
 import UserAvatar from "../../../common/components/UserAvatar";
 
 function getAvailabilityBadgeStyle(avail: DoctorAvailability) {
@@ -117,24 +116,9 @@ export function DoctorTable({
   const endIndex = Math.min(startIndex + pageSize, filteredDoctors.length);
   const paginatedDoctors = filteredDoctors.slice(startIndex, endIndex);
 
-  const columns: Array<{
-    key: keyof DoctorRecord | null;
-    label: string;
-    align?: string;
-    perm?: AppPermission;
-  }> = [
-    { key: "id", label: "Doctor ID" },
-    { key: "name", label: "Doctor Name" },
-    { key: "department", label: "Department" },
-    { key: "specialty", label: "Specialty" },
-    { key: null, label: "Qualification" },
-    { key: null, label: "Experience" },
-    { key: "consultationFee", label: "Fee ($)", perm: "DOCTOR_FEE_VIEW" },
-    { key: "availability", label: "Availability" },
-    { key: "status", label: "Status" },
-    { key: null, label: "Actions", align: "text-right" },
-  ];
-  const visibleColumns = columns.filter((col) => !col.perm || can(col.perm));
+  const visibleColumns = DOCTOR_TABLE_COLUMNS.filter(
+    (col) => !col.perm || can(col.perm),
+  );
 
   return (
     <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
@@ -144,6 +128,13 @@ export function DoctorTable({
             <tr className="text-[#64748B] font-bold" style={{ fontFamily: PP }}>
               {visibleColumns.map((col) => (
                 <th
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      (e.currentTarget as HTMLElement).click();
+                    }
+                  }}
                   key={col.label}
                   onClick={
                     col.key
@@ -254,6 +245,13 @@ export function DoctorTable({
                     className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
                   >
                     <td
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          (e.currentTarget as HTMLElement).click();
+                        }
+                      }}
                       onClick={() => onViewProfile(doc)}
                       className="px-4 py-3.5 font-mono font-bold text-[#0D47A1] hover:underline"
                     >
@@ -261,6 +259,13 @@ export function DoctorTable({
                     </td>
 
                     <td
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          (e.currentTarget as HTMLElement).click();
+                        }
+                      }}
                       onClick={() => onViewProfile(doc)}
                       className="px-4 py-3.5"
                     >
@@ -431,6 +436,7 @@ export function DoctorTable({
             <div className="flex items-center gap-1.5 ml-2 border-l border-slate-200 pl-3">
               <span>Rows:</span>
               <select
+                aria-label="Select option"
                 value={pageSize}
                 onChange={(e) => {
                   setPageSize(Number(e.target.value));

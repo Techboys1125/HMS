@@ -217,32 +217,34 @@ function downloadCsv(records: AuditRecord[], filename: string): void {
   anchor.click();
   URL.revokeObjectURL(url);
 }
+interface FilterState {
+  currentWorkspace: AuditCategory;
+  searchQuery: string;
+  selectedDateRange: string;
+  selectedModule: string;
+  selectedDepartment: string;
+  selectedRole: string;
+  selectedUser: string;
+  selectedSeverity: string;
+  selectedStatus: string;
+  selectedEventType: string;
+}
+
+type FilterAction = {
+  type: "SET_FIELD";
+  field: keyof FilterState;
+  value: string;
+};
+
+const filterReducer = (
+  state: FilterState,
+  action: FilterAction,
+): FilterState => ({
+  ...state,
+  [action.field]: action.value,
+});
 
 export function AuditLogManagementPage() {
-  type FilterState = {
-    currentWorkspace: AuditCategory;
-    searchQuery: string;
-    selectedDateRange: string;
-    selectedModule: string;
-    selectedDepartment: string;
-    selectedRole: string;
-    selectedUser: string;
-    selectedSeverity: string;
-    selectedStatus: string;
-    selectedEventType: string;
-  };
-  type FilterAction = {
-    type: "SET_FIELD";
-    field: keyof FilterState;
-    value: string;
-  };
-  const filterReducer = (
-    state: FilterState,
-    action: FilterAction,
-  ): FilterState => ({
-    ...state,
-    [action.field]: action.value,
-  });
   const [filters, dispatch] = useReducer(filterReducer, {
     currentWorkspace: "All Logs" as AuditCategory,
     searchQuery: "",
@@ -1007,7 +1009,7 @@ export function AuditLogManagementPage() {
       <section className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
         <div className="relative">
           <Search className="w-5 h-5 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
+          <input aria-label="Input field"
             type="search"
             value={filters.searchQuery}
             onChange={(event) => setFilter("searchQuery", event.target.value)}

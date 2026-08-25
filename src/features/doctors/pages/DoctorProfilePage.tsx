@@ -51,6 +51,9 @@ interface AuthUser {
   };
 }
 
+const fmt = (v: string | number | undefined | null, fallback = "—") =>
+  v != null && v !== "" ? String(v) : fallback;
+
 export function DoctorProfilePage() {
   const user = useAuthStore((state) => state.user);
   const [doctor, setDoctor] = useState<DoctorRecord | null>(null);
@@ -267,9 +270,7 @@ export function DoctorProfilePage() {
           );
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
 
@@ -360,8 +361,6 @@ export function DoctorProfilePage() {
     }
   };
 
-  const fmt = (v: string | number | undefined | null, fallback = "—") =>
-    v != null && v !== "" ? String(v) : fallback;
 
   if (loading) {
     return (
@@ -522,9 +521,9 @@ export function DoctorProfilePage() {
 
           {editingPersonal && (
             <div className="mb-5 p-4 bg-slate-50 border border-[#E2E8F0] rounded-xl">
-              <label className="block text-[11px] font-bold text-[#1E293B] mb-2">
+              <span className="block text-[11px] font-bold text-[#1E293B] mb-2">
                 Profile Photo
-              </label>
+              </span>
               <div className="flex items-center gap-4">
                 <UserAvatar
                   name={personalForm.fullName || name}
@@ -591,12 +590,12 @@ export function DoctorProfilePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+              <span className="block text-[11px] font-bold text-[#64748B] mb-1">
                 <User size={11} className="inline mr-1" />
                 Full Name
-              </label>
+              </span>
               {editingPersonal ? (
-                <input
+                <input aria-label="Input field"
                   type="text"
                   value={personalForm.fullName}
                   onChange={(e) =>
@@ -614,12 +613,12 @@ export function DoctorProfilePage() {
               )}
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+              <span className="block text-[11px] font-bold text-[#64748B] mb-1">
                 <Mail size={11} className="inline mr-1" />
                 Email
-              </label>
+              </span>
               {editingPersonal ? (
-                <input
+                <input aria-label="Input field"
                   type="email"
                   value={personalForm.email}
                   onChange={(e) =>
@@ -634,12 +633,12 @@ export function DoctorProfilePage() {
               )}
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+              <span className="block text-[11px] font-bold text-[#64748B] mb-1">
                 <Phone size={11} className="inline mr-1" />
                 Phone
-              </label>
+              </span>
               {editingPersonal ? (
-                <input
+                <input aria-label="Input field"
                   type="text"
                   value={personalForm.mobile}
                   onChange={(e) =>
@@ -654,11 +653,11 @@ export function DoctorProfilePage() {
               )}
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+              <span className="block text-[11px] font-bold text-[#64748B] mb-1">
                 Gender
-              </label>
+              </span>
               {editingPersonal ? (
-                <select
+                <select aria-label="Select option"
                   value={personalForm.gender}
                   onChange={(e) =>
                     setPersonalForm({ ...personalForm, gender: e.target.value })
@@ -679,11 +678,11 @@ export function DoctorProfilePage() {
               )}
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+              <span className="block text-[11px] font-bold text-[#64748B] mb-1">
                 Date of Birth
-              </label>
+              </span>
               {editingPersonal ? (
-                <input
+                <input aria-label="Input field"
                   type="date"
                   value={personalForm.dateOfBirth}
                   onChange={(e) =>
@@ -701,9 +700,9 @@ export function DoctorProfilePage() {
               )}
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+              <span className="block text-[11px] font-bold text-[#64748B] mb-1">
                 Employee ID
-              </label>
+              </span>
               <div className="bg-slate-50 border border-transparent rounded-lg px-3 py-2 text-xs text-[#111827]">
                 {fmt(doctor?.empId || authUser?.employeeId)}
               </div>
@@ -711,12 +710,12 @@ export function DoctorProfilePage() {
           </div>
 
           <div className="mt-3">
-            <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+            <span className="block text-[11px] font-bold text-[#64748B] mb-1">
               <MapPin size={11} className="inline mr-1" />
               Address
-            </label>
+            </span>
             {editingPersonal ? (
-              <input
+              <input aria-label="Input field"
                 type="text"
                 value={personalForm.address}
                 onChange={(e) =>
@@ -732,11 +731,11 @@ export function DoctorProfilePage() {
           </div>
 
           <div className="mt-3">
-            <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+            <span className="block text-[11px] font-bold text-[#64748B] mb-1">
               Professional Bio
-            </label>
+            </span>
             {editingPersonal ? (
-              <textarea
+              <textarea aria-label="Text input"
                 rows={3}
                 value={personalForm.bio}
                 onChange={(e) =>
@@ -762,53 +761,53 @@ export function DoctorProfilePage() {
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+              <span className="block text-[11px] font-bold text-[#64748B] mb-1">
                 <Stethoscope size={11} className="inline mr-1" />
                 Specialty
-              </label>
+              </span>
               <div className="bg-slate-50 border border-transparent rounded-lg px-3 py-2 text-xs text-[#111827]">
                 {fmt(doctor?.specialty)}
               </div>
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+              <span className="block text-[11px] font-bold text-[#64748B] mb-1">
                 <Building2 size={11} className="inline mr-1" />
                 Department
-              </label>
+              </span>
               <div className="bg-slate-50 border border-transparent rounded-lg px-3 py-2 text-xs text-[#111827]">
                 {fmt(doctor?.department)}
               </div>
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+              <span className="block text-[11px] font-bold text-[#64748B] mb-1">
                 <GraduationCap size={11} className="inline mr-1" />
                 Qualification
-              </label>
+              </span>
               <div className="bg-slate-50 border border-transparent rounded-lg px-3 py-2 text-xs text-[#111827]">
                 {fmt(doctor?.qualification)}
               </div>
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+              <span className="block text-[11px] font-bold text-[#64748B] mb-1">
                 Experience
-              </label>
+              </span>
               <div className="bg-slate-50 border border-transparent rounded-lg px-3 py-2 text-xs text-[#111827]">
                 {doctor?.experienceYrs ? `${doctor.experienceYrs} years` : "—"}
               </div>
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+              <span className="block text-[11px] font-bold text-[#64748B] mb-1">
                 <Hash size={11} className="inline mr-1" />
                 Registration Number
-              </label>
+              </span>
               <div className="bg-slate-50 border border-transparent rounded-lg px-3 py-2 text-xs text-[#111827]">
                 {fmt(doctor?.regNumber)}
               </div>
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+              <span className="block text-[11px] font-bold text-[#64748B] mb-1">
                 Consultation Fee
-              </label>
+              </span>
               <div className="bg-slate-50 border border-transparent rounded-lg px-3 py-2 text-xs text-[#111827]">
                 {doctor?.consultationFee ? `₹${doctor.consultationFee}` : "—"}
               </div>
@@ -840,9 +839,9 @@ export function DoctorProfilePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="sm:col-span-2">
-              <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+              <span className="block text-[11px] font-bold text-[#64748B] mb-1">
                 Current Password
-              </label>
+              </span>
               <div className="relative">
                 <input
                   type={showCurrentPw ? "text" : "password"}
@@ -856,7 +855,7 @@ export function DoctorProfilePage() {
                   placeholder="Enter current password"
                   className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 pr-9 text-xs text-[#111827] outline-none focus:border-[#0D47A1]"
                 />
-                <button
+                <button aria-label="View details"
                   type="button"
                   onClick={() => setShowCurrentPw(!showCurrentPw)}
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
@@ -866,9 +865,9 @@ export function DoctorProfilePage() {
               </div>
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+              <span className="block text-[11px] font-bold text-[#64748B] mb-1">
                 New Password
-              </label>
+              </span>
               <div className="relative">
                 <input
                   type={showNewPw ? "text" : "password"}
@@ -882,7 +881,7 @@ export function DoctorProfilePage() {
                   placeholder="Enter new password"
                   className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 pr-9 text-xs text-[#111827] outline-none focus:border-[#0D47A1]"
                 />
-                <button
+                <button aria-label="View details"
                   type="button"
                   onClick={() => setShowNewPw(!showNewPw)}
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
@@ -892,10 +891,10 @@ export function DoctorProfilePage() {
               </div>
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+              <span className="block text-[11px] font-bold text-[#64748B] mb-1">
                 Confirm New Password
-              </label>
-              <input
+              
+              <input aria-label="Input field"
                 type="password"
                 value={passwordForm.confirmPassword}
                 onChange={(e) =>
@@ -906,7 +905,7 @@ export function DoctorProfilePage() {
                 }
                 placeholder="Confirm new password"
                 className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-xs text-[#111827] outline-none focus:border-[#0D47A1]"
-              />
+              /></span>
             </div>
           </div>
 

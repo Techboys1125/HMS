@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useTransition } from "react";
 import {
   Calendar,
   Download,
@@ -86,6 +86,96 @@ function CircularProgress({
   );
 }
 
+
+const renderStatusChip = (status?: string) => {
+    const map: Record<string, { bg: string; text: string; dot: string }> = {
+      Completed: {
+        bg: "bg-green-50 border-green-200",
+        text: "text-[#66BB6A]",
+        dot: "bg-[#66BB6A]",
+      },
+      COMPLETED: {
+        bg: "bg-green-50 border-green-200",
+        text: "text-[#66BB6A]",
+        dot: "bg-[#66BB6A]",
+      },
+      Scheduled: {
+        bg: "bg-blue-50 border-blue-200",
+        text: "text-[#0D47A1]",
+        dot: "bg-[#0D47A1]",
+      },
+      SCHEDULED: {
+        bg: "bg-blue-50 border-blue-200",
+        text: "text-[#0D47A1]",
+        dot: "bg-[#0D47A1]",
+      },
+      BOOKED: {
+        bg: "bg-blue-50 border-blue-200",
+        text: "text-[#0D47A1]",
+        dot: "bg-[#0D47A1]",
+      },
+      CONFIRMED: {
+        bg: "bg-blue-50 border-blue-200",
+        text: "text-[#0D47A1]",
+        dot: "bg-[#0D47A1]",
+      },
+      Waiting: {
+        bg: "bg-teal-50 border-teal-200",
+        text: "text-[#009688]",
+        dot: "bg-[#009688]",
+      },
+      WAITING: {
+        bg: "bg-teal-50 border-teal-200",
+        text: "text-[#009688]",
+        dot: "bg-[#009688]",
+      },
+      CHECKED_IN: {
+        bg: "bg-teal-50 border-teal-200",
+        text: "text-[#009688]",
+        dot: "bg-[#009688]",
+      },
+      IN_CONSULTATION: {
+        bg: "bg-amber-50 border-amber-200",
+        text: "text-[#F59E0B]",
+        dot: "bg-[#F59E0B]",
+      },
+      Cancelled: {
+        bg: "bg-red-50 border-red-200",
+        text: "text-[#EF4444]",
+        dot: "bg-[#EF4444]",
+      },
+      CANCELLED: {
+        bg: "bg-red-50 border-red-200",
+        text: "text-[#EF4444]",
+        dot: "bg-[#EF4444]",
+      },
+      "No Show": {
+        bg: "bg-amber-50 border-amber-200",
+        text: "text-[#F59E0B]",
+        dot: "bg-[#F59E0B]",
+      },
+      NO_SHOW: {
+        bg: "bg-amber-50 border-amber-200",
+        text: "text-[#F59E0B]",
+        dot: "bg-[#F59E0B]",
+      },
+    };
+    const defaultStyle = {
+      bg: "bg-slate-50 border-slate-200",
+      text: "text-slate-600",
+      dot: "bg-slate-400",
+    };
+    const style = (status && map[status]) || defaultStyle;
+    return (
+      <span
+        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${style.bg} ${style.text}`}
+      >
+        <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
+        {status || "Unknown"}
+      </span>
+    );
+  };
+
 export function DailyAppointmentReportScreen({
   onBack,
 }: {
@@ -101,7 +191,9 @@ export function DailyAppointmentReportScreen({
   const [visitTypeFilter, setVisitTypeFilter] = useState("All Visit Types");
   const [shiftFilter, setShiftFilter] = useState("All Shifts");
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const [showLoadingDemo, setShowLoadingDemo] = useState(false);
+  const isLoading = isPending || showLoadingDemo;
   const [hasError, setHasError] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportFormat, setExportFormat] = useState<"pdf" | "excel" | "csv">(
@@ -463,94 +555,6 @@ export function DailyAppointmentReportScreen({
     }
   };
 
-  const renderStatusChip = (status?: string) => {
-    const map: Record<string, { bg: string; text: string; dot: string }> = {
-      Completed: {
-        bg: "bg-green-50 border-green-200",
-        text: "text-[#66BB6A]",
-        dot: "bg-[#66BB6A]",
-      },
-      COMPLETED: {
-        bg: "bg-green-50 border-green-200",
-        text: "text-[#66BB6A]",
-        dot: "bg-[#66BB6A]",
-      },
-      Scheduled: {
-        bg: "bg-blue-50 border-blue-200",
-        text: "text-[#0D47A1]",
-        dot: "bg-[#0D47A1]",
-      },
-      SCHEDULED: {
-        bg: "bg-blue-50 border-blue-200",
-        text: "text-[#0D47A1]",
-        dot: "bg-[#0D47A1]",
-      },
-      BOOKED: {
-        bg: "bg-blue-50 border-blue-200",
-        text: "text-[#0D47A1]",
-        dot: "bg-[#0D47A1]",
-      },
-      CONFIRMED: {
-        bg: "bg-blue-50 border-blue-200",
-        text: "text-[#0D47A1]",
-        dot: "bg-[#0D47A1]",
-      },
-      Waiting: {
-        bg: "bg-teal-50 border-teal-200",
-        text: "text-[#009688]",
-        dot: "bg-[#009688]",
-      },
-      WAITING: {
-        bg: "bg-teal-50 border-teal-200",
-        text: "text-[#009688]",
-        dot: "bg-[#009688]",
-      },
-      CHECKED_IN: {
-        bg: "bg-teal-50 border-teal-200",
-        text: "text-[#009688]",
-        dot: "bg-[#009688]",
-      },
-      IN_CONSULTATION: {
-        bg: "bg-amber-50 border-amber-200",
-        text: "text-[#F59E0B]",
-        dot: "bg-[#F59E0B]",
-      },
-      Cancelled: {
-        bg: "bg-red-50 border-red-200",
-        text: "text-[#EF4444]",
-        dot: "bg-[#EF4444]",
-      },
-      CANCELLED: {
-        bg: "bg-red-50 border-red-200",
-        text: "text-[#EF4444]",
-        dot: "bg-[#EF4444]",
-      },
-      "No Show": {
-        bg: "bg-amber-50 border-amber-200",
-        text: "text-[#F59E0B]",
-        dot: "bg-[#F59E0B]",
-      },
-      NO_SHOW: {
-        bg: "bg-amber-50 border-amber-200",
-        text: "text-[#F59E0B]",
-        dot: "bg-[#F59E0B]",
-      },
-    };
-    const defaultStyle = {
-      bg: "bg-slate-50 border-slate-200",
-      text: "text-slate-600",
-      dot: "bg-slate-400",
-    };
-    const style = (status && map[status]) || defaultStyle;
-    return (
-      <span
-        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${style.bg} ${style.text}`}
-      >
-        <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
-        {status || "Unknown"}
-      </span>
-    );
-  };
 
   return (
     <div
@@ -562,19 +566,19 @@ export function DailyAppointmentReportScreen({
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
-                <span
+                <button type="button"
                   className="hover:text-[#0D47A1] cursor-pointer"
                   onClick={onBack}
                 >
                   Hospital
-                </span>
+                </button>
                 <ChevronRight className="w-3.5 h-3.5" />
-                <span
+                <button type="button"
                   className="hover:text-[#0D47A1] cursor-pointer"
                   onClick={onBack}
                 >
                   Reports
-                </span>
+                </button>
                 <ChevronRight className="w-3.5 h-3.5" />
                 <span className="text-[#0D47A1] font-semibold">
                   Daily Appointment Report
@@ -642,7 +646,7 @@ export function DailyAppointmentReportScreen({
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
-            <input
+            <input aria-label="Input field"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -670,10 +674,10 @@ export function DailyAppointmentReportScreen({
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Date Range
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={dateRange}
                 onChange={(e) => setDateRange(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -682,13 +686,13 @@ export function DailyAppointmentReportScreen({
                 <option>Yesterday</option>
                 <option>Last 7 Days</option>
                 <option>This Month</option>
-              </select>
+              </select></span>
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Department
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={deptFilter}
                 onChange={(e) => setDeptFilter(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -700,13 +704,13 @@ export function DailyAppointmentReportScreen({
                 <option>Neurology</option>
                 <option>ENT</option>
                 <option>Pediatrics</option>
-              </select>
+              </select></span>
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Doctor
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={doctorFilter}
                 onChange={(e) => setDoctorFilter(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -717,13 +721,13 @@ export function DailyAppointmentReportScreen({
                 <option>Dr. Priya Sharma</option>
                 <option>Dr. Arjun Mehta</option>
                 <option>Dr. Sunita Patel</option>
-              </select>
+              </select></span>
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Appointment Status
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -734,13 +738,13 @@ export function DailyAppointmentReportScreen({
                 <option>Waiting</option>
                 <option>Cancelled</option>
                 <option>No Show</option>
-              </select>
+              </select></span>
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Visit Type
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={visitTypeFilter}
                 onChange={(e) => setVisitTypeFilter(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -750,13 +754,13 @@ export function DailyAppointmentReportScreen({
                 <option>Follow-up</option>
                 <option>Walk-in</option>
                 <option>Emergency</option>
-              </select>
+              </select></span>
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Shift
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={shiftFilter}
                 onChange={(e) => setShiftFilter(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -765,7 +769,7 @@ export function DailyAppointmentReportScreen({
                 <option>Morning (08 AM - 02 PM)</option>
                 <option>Evening (02 PM - 08 PM)</option>
                 <option>Night Shift</option>
-              </select>
+              </select></span>
             </div>
           </div>
           <div className="flex items-center justify-end gap-3 mt-4 pt-3 border-t border-[#E5E7EB]">
@@ -791,7 +795,10 @@ export function DailyAppointmentReportScreen({
             </span>
             <button
               onClick={() => {
-                setIsLoading(!isLoading);
+                startTransition(() => {
+                  setShowLoadingDemo(!showLoadingDemo);
+                  setHasError(false);
+                });
                 setHasError(false);
               }}
               className={`px-2.5 py-1 rounded-lg border text-xs ${isLoading ? "bg-amber-50 border-amber-300 text-[#F59E0B]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
@@ -801,7 +808,7 @@ export function DailyAppointmentReportScreen({
             <button
               onClick={() => {
                 setHasError(!hasError);
-                setIsLoading(false);
+                setShowLoadingDemo(false);
               }}
               className={`px-2.5 py-1 rounded-lg border text-xs ${hasError ? "bg-red-50 border-red-300 text-[#EF4444]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
             >
@@ -1333,7 +1340,7 @@ export function DailyAppointmentReportScreen({
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-[#F1F5F9] text-[11px] font-bold text-[#64748B] uppercase tracking-wider border-b border-[#E5E7EB]">
-                        <th
+                        <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
                           className="py-3.5 px-4 cursor-pointer hover:text-[#0D47A1]"
                           onClick={() => handleSort("id")}
                         >
@@ -1341,7 +1348,7 @@ export function DailyAppointmentReportScreen({
                           {sortField === "id" &&
                             (sortOrder === "asc" ? "↑" : "↓")}
                         </th>
-                        <th
+                        <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
                           className="py-3.5 px-4 cursor-pointer hover:text-[#0D47A1]"
                           onClick={() => handleSort("patientName")}
                         >
@@ -1438,7 +1445,7 @@ export function DailyAppointmentReportScreen({
                     entries
                   </span>
                   <div className="flex items-center gap-2">
-                    <button
+                    <button aria-label="Previous"
                       disabled
                       className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
                     >
@@ -1447,7 +1454,7 @@ export function DailyAppointmentReportScreen({
                     <span className="font-semibold text-[#111827]">
                       Page 1 of 1
                     </span>
-                    <button
+                    <button aria-label="Next"
                       disabled
                       className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
                     >
@@ -1485,7 +1492,7 @@ export function DailyAppointmentReportScreen({
 
       {showExportModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] max-w-md w-full p-6 shadow-2xl relative animate-in fade-in zoom-in duration-150">
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] max-w-md w-full p-6 shadow-2xl relative transition-opacity duration-150">
             <div className="flex items-center justify-between pb-3 border-b border-[#E5E7EB] mb-4">
               <h3
                 className="text-base font-bold text-[#111827]"
@@ -1493,7 +1500,7 @@ export function DailyAppointmentReportScreen({
               >
                 Export Daily Appointment Report
               </h3>
-              <button
+              <button aria-label="Download"
                 onClick={() => setShowExportModal(false)}
                 className="p-1 rounded-lg text-[#64748B] hover:text-[#111827] hover:bg-slate-100 transition"
               >
@@ -1502,12 +1509,12 @@ export function DailyAppointmentReportScreen({
             </div>
             <div className="space-y-4 text-xs" style={{ fontFamily: RB }}>
               <div>
-                <label
+                <span
                   className="block font-semibold text-[#111827] mb-2"
                   style={{ fontFamily: PP }}
                 >
                   Export Format
-                </label>
+                </span>
                 <div className="grid grid-cols-3 gap-2">
                   <label
                     className={`flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition ${exportFormat === "pdf" ? "bg-blue-50 border-[#0D47A1] text-[#0D47A1] font-semibold" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
@@ -1551,12 +1558,12 @@ export function DailyAppointmentReportScreen({
                 </div>
               </div>
               <div>
-                <label
+                <span
                   className="block font-semibold text-[#111827] mb-2"
                   style={{ fontFamily: PP }}
                 >
                   Export Scope
-                </label>
+                </span>
                 <div className="grid grid-cols-3 gap-2">
                   <label className="flex items-center gap-2">
                     <input
@@ -1595,12 +1602,12 @@ export function DailyAppointmentReportScreen({
               </div>
               {exportFormat !== "csv" && (
                 <div>
-                  <label
+                  <span
                     className="block font-semibold text-[#111827] mb-2"
                     style={{ fontFamily: PP }}
                   >
                     Include Options
-                  </label>
+                  </span>
                   <div className="grid grid-cols-2 gap-2">
                     <label className="flex items-center gap-2">
                       <input
@@ -1662,12 +1669,12 @@ export function DailyAppointmentReportScreen({
                 </div>
               )}
               <div>
-                <label
+                <span
                   className="block font-semibold text-[#111827] mb-1"
                   style={{ fontFamily: PP }}
                 >
                   File Name
-                </label>
+                </span>
                 <div className="p-2.5 bg-slate-50 border border-[#E5E7EB] rounded-xl font-mono text-xs text-[#0D47A1] font-semibold">
                   Daily_Appointment_Report_{dateRange.replace(/\s+/g, "_")}.
                   {exportFormat === "excel" ? "xlsx" : exportFormat}

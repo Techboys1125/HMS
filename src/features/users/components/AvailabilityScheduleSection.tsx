@@ -195,9 +195,9 @@ export const AvailabilityScheduleSection: React.FC<
 
               {/* Start Time */}
               <div className="col-span-1 space-y-1">
-                <label className="block text-[10px] font-semibold text-slate-400 uppercase">
+                <span className="block text-[10px] font-semibold text-slate-400 uppercase">
                   Start Time
-                </label>
+                </span>
                 <TimeSelect
                   disabled={!sched.isAvailable}
                   value={sched.startTime}
@@ -213,9 +213,9 @@ export const AvailabilityScheduleSection: React.FC<
 
               {/* End Time */}
               <div className="col-span-1 space-y-1">
-                <label className="block text-[10px] font-semibold text-slate-400 uppercase">
+                <span className="block text-[10px] font-semibold text-slate-400 uppercase">
                   End Time
-                </label>
+                </span>
                 <TimeSelect
                   disabled={!sched.isAvailable}
                   value={sched.endTime}

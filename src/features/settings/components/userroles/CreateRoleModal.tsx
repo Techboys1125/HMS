@@ -52,7 +52,7 @@ export function CreateRoleModal({ onClose }: CreateRoleModalProps) {
           >
             Create Custom Role Definition
           </h3>
-          <button
+          <button aria-label="Close"
             onClick={onClose}
             style={{
               border: "none",
@@ -67,7 +67,7 @@ export function CreateRoleModal({ onClose }: CreateRoleModalProps) {
 
         <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
           <div>
-            <label
+            <span
               style={{
                 display: "block",
                 fontSize: "12px",
@@ -77,8 +77,8 @@ export function CreateRoleModal({ onClose }: CreateRoleModalProps) {
               }}
             >
               Role Name *
-            </label>
-            <input
+            
+            <input aria-label="e.g. Clinical Research Coordinator"
               type="text"
               placeholder="e.g. Clinical Research Coordinator"
               style={{
@@ -89,11 +89,11 @@ export function CreateRoleModal({ onClose }: CreateRoleModalProps) {
                 fontSize: "13px",
                 boxSizing: "border-box",
               }}
-            />
+            /></span>
           </div>
 
           <div>
-            <label
+            <span
               style={{
                 display: "block",
                 fontSize: "12px",
@@ -103,8 +103,8 @@ export function CreateRoleModal({ onClose }: CreateRoleModalProps) {
               }}
             >
               Role Description *
-            </label>
-            <textarea
+            </span>
+            <textarea aria-label="Describe duties and permission scope..."
               rows={3}
               placeholder="Describe duties and permission scope..."
               style={{
@@ -120,7 +120,7 @@ export function CreateRoleModal({ onClose }: CreateRoleModalProps) {
           </div>
 
           <div>
-            <label
+            <span
               style={{
                 display: "block",
                 fontSize: "12px",
@@ -130,8 +130,8 @@ export function CreateRoleModal({ onClose }: CreateRoleModalProps) {
               }}
             >
               Default Landing Dashboard
-            </label>
-            <select
+            
+            <select aria-label="Select option"
               style={{
                 width: "100%",
                 padding: "8px 12px",
@@ -145,7 +145,7 @@ export function CreateRoleModal({ onClose }: CreateRoleModalProps) {
               <option>Doctor Clinical Dashboard</option>
               <option>Nurse Dashboard</option>
               <option>Reception Dashboard</option>
-            </select>
+            </select></span>
           </div>
 
           <div

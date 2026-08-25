@@ -469,8 +469,8 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
     "w-full px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] text-xs text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#0D47A1]/20 focus:border-[#0D47A1]";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border border-[#E5E7EB] overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs transition-opacity duration-200">
+      <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border border-[#E5E7EB] overflow-hidden transition-transform duration-200 max-h-[90vh] flex flex-col">
         <div className="p-5 border-b border-[#E5E7EB] bg-slate-50 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 font-bold text-sm flex items-center justify-center border border-purple-100">
@@ -489,7 +489,7 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
               </p>
             </div>
           </div>
-          <button
+          <button aria-label="Close"
             onClick={onClose}
             className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-200 transition-colors"
           >
@@ -667,7 +667,7 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                                     <span className="text-[10px] text-[#64748B] shrink-0">
                                       Slot duration (min)
                                     </span>
-                                    <input
+                                    <input aria-label="Input field"
                                       type="number"
                                       min={5}
                                       max={120}
@@ -694,7 +694,7 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                                             key={brk.startTime || bIdx}
                                             className="flex items-center gap-1.5"
                                           >
-                                            <select
+                                            <select aria-label="Select option"
                                               value={brk.breakType}
                                               onChange={(e) =>
                                                 setDraftBreak(pIdx, bIdx, {
@@ -982,8 +982,8 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
         </div>
 
         {exceptionFormOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
-            <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-[#E5E7EB] overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs transition-opacity duration-200">
+            <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-[#E5E7EB] overflow-hidden transition-transform duration-200">
               <div className="p-4 border-b border-[#E5E7EB] bg-slate-50 flex items-center justify-between">
                 <h4
                   className="text-sm font-bold text-[#111827]"
@@ -993,7 +993,7 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                     ? "Edit Schedule Exception"
                     : "New Schedule Exception"}
                 </h4>
-                <button
+                <button aria-label="Edit"
                   onClick={() => {
                     setExceptionFormOpen(false);
                     setEditingException(null);
@@ -1006,10 +1006,10 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
               <div className="p-5 space-y-3.5">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] font-bold text-[#64748B] mb-1">
+                    <span className="block text-[10px] font-bold text-[#64748B] mb-1">
                       Exception Type
-                    </label>
-                    <select
+                    
+                    <select aria-label="Select option"
                       value={exceptionForm.exceptionType}
                       onChange={(e) =>
                         setExceptionForm((prev) => ({
@@ -1024,13 +1024,13 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                           {t}
                         </option>
                       ))}
-                    </select>
+                    </select></span>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-[#64748B] mb-1">
+                    <span className="block text-[10px] font-bold text-[#64748B] mb-1">
                       Action
-                    </label>
-                    <select
+                    
+                    <select aria-label="Select option"
                       value={exceptionForm.action}
                       onChange={(e) =>
                         setExceptionForm((prev) => ({
@@ -1045,15 +1045,15 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                           {a}
                         </option>
                       ))}
-                    </select>
+                    </select></span>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] font-bold text-[#64748B] mb-1">
+                    <span className="block text-[10px] font-bold text-[#64748B] mb-1">
                       Start Date
-                    </label>
-                    <input
+                    
+                    <input aria-label="Input field"
                       type="date"
                       value={exceptionForm.startDate}
                       onChange={(e) =>
@@ -1063,13 +1063,13 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                         }))
                       }
                       className={inputClass}
-                    />
+                    /></span>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-[#64748B] mb-1">
+                    <span className="block text-[10px] font-bold text-[#64748B] mb-1">
                       End Date
-                    </label>
-                    <input
+                    
+                    <input aria-label="Input field"
                       type="date"
                       value={exceptionForm.endDate}
                       onChange={(e) =>
@@ -1079,7 +1079,7 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                         }))
                       }
                       className={inputClass}
-                    />
+                    /></span>
                   </div>
                 </div>
                 <div>
@@ -1106,9 +1106,9 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                 {!exceptionForm.isFullDay && (
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[10px] font-bold text-[#64748B] mb-1">
+                      <span className="block text-[10px] font-bold text-[#64748B] mb-1">
                         Start Time
-                      </label>
+                      </span>
                       <TimeSelect
                         value={exceptionForm.startTime}
                         onChange={(val) =>
@@ -1121,9 +1121,9 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-[#64748B] mb-1">
+                      <span className="block text-[10px] font-bold text-[#64748B] mb-1">
                         End Time
-                      </label>
+                      </span>
                       <TimeSelect
                         value={exceptionForm.endTime}
                         onChange={(val) =>
@@ -1138,10 +1138,10 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                   </div>
                 )}
                 <div>
-                  <label className="block text-[10px] font-bold text-[#64748B] mb-1">
+                  <span className="block text-[10px] font-bold text-[#64748B] mb-1">
                     Reason
-                  </label>
-                  <input
+                  
+                  <input aria-label="Input field"
                     type="text"
                     value={exceptionForm.reason}
                     onChange={(e) =>
@@ -1152,7 +1152,7 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                     }
                     placeholder="e.g. Family vacation, conference, surgery..."
                     className={inputClass}
-                  />
+                  /></span>
                 </div>
               </div>
               <div className="p-4 border-t border-[#E5E7EB] bg-slate-50 flex items-center justify-end gap-2">
@@ -1187,8 +1187,8 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
         )}
 
         {confirmDeleteException && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
-            <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl border border-[#E5E7EB] overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs transition-opacity duration-200">
+            <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl border border-[#E5E7EB] overflow-hidden transition-transform duration-200">
               <div className="p-5">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-9 h-9 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
@@ -1240,8 +1240,8 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
         )}
 
         {confirmDeletePeriod && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
-            <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl border border-[#E5E7EB] overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs transition-opacity duration-200">
+            <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl border border-[#E5E7EB] overflow-hidden transition-transform duration-200">
               <div className="p-5">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-9 h-9 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
@@ -1300,7 +1300,7 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
       </div>
 
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-60 flex items-center gap-3 bg-[#111827] text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700 animate-in slide-in-from-bottom-4 duration-200">
+        <div className="fixed bottom-6 right-6 z-60 flex items-center gap-3 bg-[#111827] text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700 transition-transform duration-200">
           <CheckCircle2 className="w-5 h-5 text-[#66BB6A] shrink-0" />
           <span className="text-xs font-semibold" style={{ fontFamily: PP }}>
             {toastMsg}

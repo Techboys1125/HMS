@@ -36,6 +36,26 @@ interface ActivePatientProfile extends Omit<
   } | null;
 }
 
+const getInitials = (nameStr: string) => {
+  if (!nameStr) return "P";
+  const parts = nameStr.trim().split(" ");
+  if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  return nameStr.substring(0, 2).toUpperCase();
+};
+
+const getPasswordStrength = (pass: string) => {
+  if (!pass) return { score: 0, label: "None", color: "bg-slate-200" };
+  let score = 0;
+  if (pass.length >= 8) score += 33;
+  if (/[a-z]/.test(pass) && /[A-Z]/.test(pass) && /[0-9]/.test(pass))
+    score += 33;
+  if (/[^A-Za-z0-9]/.test(pass)) score += 34;
+  if (score <= 33) return { score: 33, label: "Weak", color: "bg-[#EF4444]" };
+  if (score <= 66)
+    return { score: 66, label: "Medium", color: "bg-[#F59E0B]" };
+  return { score: 100, label: "Strong", color: "bg-[#66BB6A]" };
+};
+
 export function PatientProfileCenterScreen({
   activePatient,
   onAddFamilyMember,
@@ -249,12 +269,6 @@ export function PatientProfileCenterScreen({
     reader.readAsDataURL(file);
   };
 
-  const getInitials = (nameStr: string) => {
-    if (!nameStr) return "P";
-    const parts = nameStr.trim().split(" ");
-    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    return nameStr.substring(0, 2).toUpperCase();
-  };
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -311,18 +325,6 @@ export function PatientProfileCenterScreen({
   };
 
   // Password Strength Score
-  const getPasswordStrength = (pass: string) => {
-    if (!pass) return { score: 0, label: "None", color: "bg-slate-200" };
-    let score = 0;
-    if (pass.length >= 8) score += 33;
-    if (/[a-z]/.test(pass) && /[A-Z]/.test(pass) && /[0-9]/.test(pass))
-      score += 33;
-    if (/[^A-Za-z0-9]/.test(pass)) score += 34;
-    if (score <= 33) return { score: 33, label: "Weak", color: "bg-[#EF4444]" };
-    if (score <= 66)
-      return { score: 66, label: "Medium", color: "bg-[#F59E0B]" };
-    return { score: 100, label: "Strong", color: "bg-[#66BB6A]" };
-  };
 
   const passStrength = getPasswordStrength(newPassword);
 
@@ -333,7 +335,7 @@ export function PatientProfileCenterScreen({
     >
       {/* Toast Feedback */}
       {toastMsg && (
-        <div className="fixed top-5 right-5 z-50 bg-[#111827] text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200">
+        <div className="fixed top-5 right-5 z-50 bg-[#111827] text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 transition-opacity duration-200">
           <CheckCircle2 size={16} className="text-[#66BB6A]" />
           <span>{toastMsg}</span>
         </div>
@@ -621,10 +623,10 @@ export function PatientProfileCenterScreen({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div>
-                <label className="block text-[#111827] font-semibold mb-1">
+                <span className="block text-[#111827] font-semibold mb-1">
                   Full Name *
-                </label>
-                <input
+                
+                <input aria-label="Input field"
                   type="text"
                   required
                   value={editForm.name}
@@ -632,14 +634,14 @@ export function PatientProfileCenterScreen({
                     setEditForm({ ...editForm, name: e.target.value })
                   }
                   className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                />
+                /></span>
               </div>
 
               <div>
-                <label className="block text-[#111827] font-semibold mb-1">
+                <span className="block text-[#111827] font-semibold mb-1">
                   Phone Number *
-                </label>
-                <input
+                
+                <input aria-label="Input field"
                   type="text"
                   required
                   value={editForm.phone}
@@ -647,14 +649,14 @@ export function PatientProfileCenterScreen({
                     setEditForm({ ...editForm, phone: e.target.value })
                   }
                   className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                />
+                /></span>
               </div>
 
               <div>
-                <label className="block text-[#111827] font-semibold mb-1">
+                <span className="block text-[#111827] font-semibold mb-1">
                   Email Address *
-                </label>
-                <input
+                
+                <input aria-label="Input field"
                   type="email"
                   required
                   value={editForm.email}
@@ -662,28 +664,28 @@ export function PatientProfileCenterScreen({
                     setEditForm({ ...editForm, email: e.target.value })
                   }
                   className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                />
+                /></span>
               </div>
 
               <div>
-                <label className="block text-[#111827] font-semibold mb-1">
+                <span className="block text-[#111827] font-semibold mb-1">
                   Date of Birth
-                </label>
-                <input
+                
+                <input aria-label="Input field"
                   type="date"
                   value={editForm.dob}
                   onChange={(e) =>
                     setEditForm({ ...editForm, dob: e.target.value })
                   }
                   className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                />
+                /></span>
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-[#111827] font-semibold mb-1">
+                <span className="block text-[#111827] font-semibold mb-1">
                   Residential Address *
-                </label>
-                <input
+                
+                <input aria-label="Input field"
                   type="text"
                   required
                   value={editForm.address}
@@ -691,14 +693,14 @@ export function PatientProfileCenterScreen({
                     setEditForm({ ...editForm, address: e.target.value })
                   }
                   className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                />
+                /></span>
               </div>
 
               <div>
-                <label className="block text-[#111827] font-semibold mb-1">
+                <span className="block text-[#111827] font-semibold mb-1">
                   Emergency Contact Name
-                </label>
-                <input
+                
+                <input aria-label="Input field"
                   type="text"
                   value={editForm.emergencyName}
                   onChange={(e) =>
@@ -708,14 +710,14 @@ export function PatientProfileCenterScreen({
                     })
                   }
                   className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                />
+                /></span>
               </div>
 
               <div>
-                <label className="block text-[#111827] font-semibold mb-1">
+                <span className="block text-[#111827] font-semibold mb-1">
                   Emergency Contact Phone
-                </label>
-                <input
+                
+                <input aria-label="Input field"
                   type="text"
                   value={editForm.emergencyPhone}
                   onChange={(e) =>
@@ -725,7 +727,7 @@ export function PatientProfileCenterScreen({
                     })
                   }
                   className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                />
+                /></span>
               </div>
             </div>
 
@@ -764,31 +766,31 @@ export function PatientProfileCenterScreen({
 
             <div className="space-y-4 max-w-md text-xs">
               <div>
-                <label className="block text-[#111827] font-semibold mb-1">
+                <span className="block text-[#111827] font-semibold mb-1">
                   Current Password *
-                </label>
-                <input
+                
+                <input aria-label="Enter current password"
                   type="password"
                   required
                   placeholder="Enter current password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                />
+                /></span>
               </div>
 
               <div>
-                <label className="block text-[#111827] font-semibold mb-1">
+                <span className="block text-[#111827] font-semibold mb-1">
                   New Password *
-                </label>
-                <input
+                
+                <input aria-label="Enter new password"
                   type="password"
                   required
                   placeholder="Enter new password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                />
+                /></span>
               </div>
 
               {/* Password Strength Meter */}
@@ -810,17 +812,17 @@ export function PatientProfileCenterScreen({
               )}
 
               <div>
-                <label className="block text-[#111827] font-semibold mb-1">
+                <span className="block text-[#111827] font-semibold mb-1">
                   Confirm New Password *
-                </label>
-                <input
+                
+                <input aria-label="Re-enter new password"
                   type="password"
                   required
                   placeholder="Re-enter new password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                />
+                /></span>
               </div>
             </div>
 

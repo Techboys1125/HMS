@@ -30,6 +30,11 @@ export interface ProfileTabProps {
   onSave?: (updated: DoctorRecord) => void;
 }
 
+const fieldStyle = (editable: boolean) =>
+  editable
+    ? "bg-white border border-[#CBD5E1] rounded-lg px-3 py-2 text-xs text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] w-full transition-colors"
+    : "bg-slate-50 border border-slate-200/60 rounded-lg px-3 py-2 text-xs text-[#111827] w-full";
+
 export function ProfileTab({ doctor, canEdit, onSave }: ProfileTabProps) {
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState<DoctorRecord>(doctor);
@@ -92,10 +97,6 @@ export function ProfileTab({ doctor, canEdit, onSave }: ProfileTabProps) {
     }
   };
 
-  const fieldStyle = (editable: boolean) =>
-    editable
-      ? "bg-white border border-[#CBD5E1] rounded-lg px-3 py-2 text-xs text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] w-full transition-colors"
-      : "bg-slate-50 border border-slate-200/60 rounded-lg px-3 py-2 text-xs text-[#111827] w-full";
 
   const displayPhoto = photoPreviewUrl || formData.photoUrl || formData.photo;
 
@@ -136,12 +137,12 @@ export function ProfileTab({ doctor, canEdit, onSave }: ProfileTabProps) {
             src={displayPhoto || undefined}
           />
           <div className="space-y-1.5 flex-1 min-w-0">
-            <label className="block text-xs font-bold text-[#111827]">
+            <span className="block text-xs font-bold text-[#111827]">
               Profile Photo{" "}
               {editing && (
                 <span className="text-[#0D47A1] font-normal">(Editable)</span>
               )}
-            </label>
+            </span>
             {editing ? (
               <div>
                 <input
@@ -201,11 +202,11 @@ export function ProfileTab({ doctor, canEdit, onSave }: ProfileTabProps) {
         {/* Personal Inputs Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <div>
-            <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+            <span className="block text-[11px] font-bold text-[#64748B] mb-1">
               Full Name
-            </label>
+            </span>
             {editing ? (
-              <input
+              <input aria-label="Input field"
                 type="text"
                 value={formData.fullName || formData.name}
                 onChange={(e) =>
@@ -226,12 +227,12 @@ export function ProfileTab({ doctor, canEdit, onSave }: ProfileTabProps) {
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+            <span className="block text-[11px] font-bold text-[#64748B] mb-1">
               <Phone size={12} className="inline mr-1 text-[#0D47A1]" />
               Phone / Mobile
-            </label>
+            </span>
             {editing ? (
-              <input
+              <input aria-label="Input field"
                 type="text"
                 value={formData.phone || ""}
                 onChange={(e) =>
@@ -246,12 +247,12 @@ export function ProfileTab({ doctor, canEdit, onSave }: ProfileTabProps) {
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+            <span className="block text-[11px] font-bold text-[#64748B] mb-1">
               <Mail size={12} className="inline mr-1 text-[#0D47A1]" />
               Email Address
-            </label>
+            </span>
             {editing ? (
-              <input
+              <input aria-label="Input field"
                 type="email"
                 value={formData.email || ""}
                 onChange={(e) =>
@@ -266,12 +267,12 @@ export function ProfileTab({ doctor, canEdit, onSave }: ProfileTabProps) {
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+            <span className="block text-[11px] font-bold text-[#64748B] mb-1">
               <User size={12} className="inline mr-1 text-[#0D47A1]" />
               Gender
-            </label>
+            </span>
             {editing ? (
-              <select
+              <select aria-label="Select option"
                 value={formData.gender || "Male"}
                 onChange={(e) =>
                   setFormData({
@@ -291,12 +292,12 @@ export function ProfileTab({ doctor, canEdit, onSave }: ProfileTabProps) {
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+            <span className="block text-[11px] font-bold text-[#64748B] mb-1">
               <Calendar size={12} className="inline mr-1 text-[#0D47A1]" />
               Date of Birth
-            </label>
+            </span>
             {editing ? (
-              <input
+              <input aria-label="Input field"
                 type="date"
                 value={formData.dob || ""}
                 onChange={(e) =>
@@ -310,12 +311,12 @@ export function ProfileTab({ doctor, canEdit, onSave }: ProfileTabProps) {
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+            <span className="block text-[11px] font-bold text-[#64748B] mb-1">
               <MapPin size={12} className="inline mr-1 text-[#0D47A1]" />
               Residential Address
-            </label>
+            </span>
             {editing ? (
-              <input
+              <input aria-label="Input field"
                 type="text"
                 value={formData.address || ""}
                 onChange={(e) =>
@@ -331,11 +332,11 @@ export function ProfileTab({ doctor, canEdit, onSave }: ProfileTabProps) {
         </div>
 
         <div>
-          <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+          <span className="block text-[11px] font-bold text-[#64748B] mb-1">
             Professional Bio / Summary
-          </label>
+          </span>
           {editing ? (
-            <textarea
+            <textarea aria-label="Text area"
               rows={3}
               value={formData.bio || ""}
               onChange={(e) =>
@@ -409,85 +410,85 @@ export function ProfileTab({ doctor, canEdit, onSave }: ProfileTabProps) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-1">
           <div>
-            <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+            <span className="block text-[11px] font-bold text-[#64748B] mb-1">
               <Hash size={12} className="inline mr-1 text-slate-500" />
               Doctor ID
-            </label>
+            </span>
             <div className={fieldStyle(false)}>{formData.id || "—"}</div>
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+            <span className="block text-[11px] font-bold text-[#64748B] mb-1">
               <Building2 size={12} className="inline mr-1 text-slate-500" />
               Employee ID
-            </label>
+            </span>
             <div className={fieldStyle(false)}>{formData.empId || "—"}</div>
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+            <span className="block text-[11px] font-bold text-[#64748B] mb-1">
               <ShieldCheck size={12} className="inline mr-1 text-teal-600" />
               Registration Number
-            </label>
+            </span>
             <div className={fieldStyle(false)}>{formData.regNumber || "—"}</div>
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+            <span className="block text-[11px] font-bold text-[#64748B] mb-1">
               <GraduationCap
                 size={12}
                 className="inline mr-1 text-purple-600"
               />
               Qualification
-            </label>
+            </span>
             <div className={fieldStyle(false)}>
               {formData.qualification || "—"}
             </div>
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+            <span className="block text-[11px] font-bold text-[#64748B] mb-1">
               <Stethoscope size={12} className="inline mr-1 text-blue-600" />
               Experience
-            </label>
+            </span>
             <div className={fieldStyle(false)}>
               {formData.experienceYrs ? `${formData.experienceYrs} years` : "—"}
             </div>
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+            <span className="block text-[11px] font-bold text-[#64748B] mb-1">
               <Tag size={12} className="inline mr-1 text-amber-600" />
               Department
-            </label>
+            </span>
             <div className={fieldStyle(false)}>
               {formData.department || "—"}
             </div>
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+            <span className="block text-[11px] font-bold text-[#64748B] mb-1">
               <Hash size={12} className="inline mr-1 text-indigo-600" />
               Specialty
-            </label>
+            </span>
             <div className={fieldStyle(false)}>{formData.specialty || "—"}</div>
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+            <span className="block text-[11px] font-bold text-[#64748B] mb-1">
               <CreditCard size={12} className="inline mr-1 text-green-600" />
               Consultation Fee
-            </label>
+            </span>
             <div className={fieldStyle(false)}>
               {formData.consultationFee ? `₹${formData.consultationFee}` : "—"}
             </div>
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+            <span className="block text-[11px] font-bold text-[#64748B] mb-1">
               <Clock size={12} className="inline mr-1 text-slate-500" />
               Slot Duration
-            </label>
+            </span>
             <div className={fieldStyle(false)}>
               {formData.slotDurationMinutes
                 ? `${formData.slotDurationMinutes} mins`

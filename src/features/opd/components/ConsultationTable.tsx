@@ -1,60 +1,6 @@
-import React, { useState } from "react";
-import { Stethoscope } from "lucide-react";
-import type { ConsultationRecord, OauthRole } from "../types/consultation";
-import { StatusChip } from "./StatusChip";
-import { Avatar } from "./Avatar";
-import { ConsultationActionMenu } from "./ConsultationActionMenu";
-import { Pagination } from "../../../common/components/Pagination";
-
-const PP = "'Poppins', system-ui, sans-serif";
-const RB = "'Roboto', system-ui, sans-serif";
-
-export interface ConsultationTableProps {
-  role: OauthRole;
-  filteredConsultations: ConsultationRecord[];
-  isLoading: boolean;
-  onStartConsultation?: (id: string) => void;
-  onOpenConsultation?: (id: string) => void;
-  onCallPatient?: (item: ConsultationRecord) => void;
-  onViewDetails?: (id: string) => void;
-  onViewHistory?: (mrn: string) => void;
-  onPatientSelect?: (mrn: string) => void;
-  onPrint?: (item: ConsultationRecord) => void;
-  onResetFilters: () => void;
-  canStartConsultation?: boolean;
-  canPrint?: boolean;
-}
-
-const visitTypeColors: Record<string, string> = {
-  "First Visit": "bg-blue-50 text-blue-700",
-  Walk: "bg-amber-50 text-amber-700",
-  "Walk-In": "bg-amber-50 text-amber-700",
-  Follow: "bg-purple-50 text-purple-700",
-  "Follow-up": "bg-purple-50 text-purple-700",
+const getVisitTypeColor = (visitType: string): string => {
+  return visitTypeColors[visitType] || "bg-slate-100 text-slate-600";
 };
-
-export const ConsultationTable: React.FC<ConsultationTableProps> = ({
-  role,
-  filteredConsultations,
-  isLoading,
-  onStartConsultation,
-  onOpenConsultation,
-  onCallPatient,
-  onViewDetails,
-  onResetFilters,
-  canStartConsultation = false,
-}) => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
-  const totalPages = Math.ceil(filteredConsultations.length / pageSize);
-  const paginatedConsultations = filteredConsultations.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize,
-  );
-
-  const getVisitTypeColor = (visitType: string): string => {
-    return visitTypeColors[visitType] || "bg-slate-100 text-slate-600";
-  };
 
   const formatAppointmentTime = (time?: string): string => {
     if (!time) return "";
@@ -119,6 +65,62 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
     hour = hour % 12 || 12;
     return `${hour}:${minute} ${suffix}`;
   };
+
+import React, { useState } from "react";
+import { Stethoscope } from "lucide-react";
+import type { ConsultationRecord, OauthRole } from "../types/consultation";
+import { StatusChip } from "./StatusChip";
+import { Avatar } from "./Avatar";
+import { ConsultationActionMenu } from "./ConsultationActionMenu";
+import { Pagination } from "../../../common/components/Pagination";
+
+const PP = "'Poppins', system-ui, sans-serif";
+const RB = "'Roboto', system-ui, sans-serif";
+
+export interface ConsultationTableProps {
+  role: OauthRole;
+  filteredConsultations: ConsultationRecord[];
+  isLoading: boolean;
+  onStartConsultation?: (id: string) => void;
+  onOpenConsultation?: (id: string) => void;
+  onCallPatient?: (item: ConsultationRecord) => void;
+  onViewDetails?: (id: string) => void;
+  onViewHistory?: (mrn: string) => void;
+  onPatientSelect?: (mrn: string) => void;
+  onPrint?: (item: ConsultationRecord) => void;
+  onResetFilters: () => void;
+  canStartConsultation?: boolean;
+  canPrint?: boolean;
+}
+
+const visitTypeColors: Record<string, string> = {
+  "First Visit": "bg-blue-50 text-blue-700",
+  Walk: "bg-amber-50 text-amber-700",
+  "Walk-In": "bg-amber-50 text-amber-700",
+  Follow: "bg-purple-50 text-purple-700",
+  "Follow-up": "bg-purple-50 text-purple-700",
+};
+
+export const ConsultationTable: React.FC<ConsultationTableProps> = ({
+  role,
+  filteredConsultations,
+  isLoading,
+  onStartConsultation,
+  onOpenConsultation,
+  onCallPatient,
+  onViewDetails,
+  onResetFilters,
+  canStartConsultation = false,
+}) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.ceil(filteredConsultations.length / pageSize);
+  const paginatedConsultations = filteredConsultations.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+
+
 
   if (isLoading) {
     return (

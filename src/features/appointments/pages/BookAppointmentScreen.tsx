@@ -21,6 +21,49 @@ import { departmentsApi } from "../../users/api/departments.api";
 import { doctorsApi } from "../../doctors/api/doctors.api";
 import type { DoctorDailySlot } from "../../doctors/types/doctors.types";
 
+const formatSlotTime = (timeStr: string) => {
+  const parts = timeStr.split(":");
+  if (parts.length < 2) return timeStr;
+  let hour = parseInt(parts[0], 10);
+  const minute = parts[1];
+  const ampm = hour >= 12 ? "PM" : "AM";
+  hour = hour % 12;
+  hour = hour ? hour : 12;
+  const strHour = hour < 10 ? `0${hour}` : `${hour}`;
+  return `${strHour}:${minute} ${ampm}`;
+};
+
+ const isTimeSlotPassed = (slotTimeStr: string, targetDateStr: string) => {
+   const todayStr = new Date().toISOString().split("T")[0];
+   if (targetDateStr !== todayStr) return false;
+
+   let hour: number;
+   let minute: number;
+
+   if (slotTimeStr.includes("AM") || slotTimeStr.includes("PM")) {
+     const cleanTime = slotTimeStr.replace(/(AM|PM)/i, "").trim();
+     const parts = cleanTime.split(":");
+     hour = parseInt(parts[0] || "0", 10);
+     minute = parseInt(parts[1] || "0", 10);
+     if (slotTimeStr.toUpperCase().includes("PM") && hour < 12) {
+       hour += 12;
+     }
+     if (slotTimeStr.toUpperCase().includes("AM") && hour === 12) {
+       hour = 0;
+     }
+   } else {
+     const parts = slotTimeStr.split(":");
+     hour = parseInt(parts[0] || "0", 10);
+     minute = parseInt(parts[1] || "0", 10);
+   }
+
+   const now = new Date();
+   const slotDateTime = new Date();
+   slotDateTime.setHours(hour, minute, 0, 0);
+
+   return slotDateTime.getTime() <= now.getTime();
+ };
+
 export function BookAppointmentScreen({
   role = "receptionist",
   onBack,
@@ -415,48 +458,7 @@ export function BookAppointmentScreen({
     };
   }, [currentDoctor, selectedDate]);
 
-  const formatSlotTime = (timeStr: string) => {
-    const parts = timeStr.split(":");
-    if (parts.length < 2) return timeStr;
-    let hour = parseInt(parts[0], 10);
-    const minute = parts[1];
-    const ampm = hour >= 12 ? "PM" : "AM";
-    hour = hour % 12;
-    hour = hour ? hour : 12;
-    const strHour = hour < 10 ? `0${hour}` : `${hour}`;
-    return `${strHour}:${minute} ${ampm}`;
-  };
 
-  const isTimeSlotPassed = (slotTimeStr: string, targetDateStr: string) => {
-    const todayStr = new Date().toISOString().split("T")[0];
-    if (targetDateStr !== todayStr) return false;
-
-    let hour: number;
-    let minute: number;
-
-    if (slotTimeStr.includes("AM") || slotTimeStr.includes("PM")) {
-      const cleanTime = slotTimeStr.replace(/(AM|PM)/i, "").trim();
-      const parts = cleanTime.split(":");
-      hour = parseInt(parts[0] || "0", 10);
-      minute = parseInt(parts[1] || "0", 10);
-      if (slotTimeStr.toUpperCase().includes("PM") && hour < 12) {
-        hour += 12;
-      }
-      if (slotTimeStr.toUpperCase().includes("AM") && hour === 12) {
-        hour = 0;
-      }
-    } else {
-      const parts = slotTimeStr.split(":");
-      hour = parseInt(parts[0] || "0", 10);
-      minute = parseInt(parts[1] || "0", 10);
-    }
-
-    const now = new Date();
-    const slotDateTime = new Date();
-    slotDateTime.setHours(hour, minute, 0, 0);
-
-    return slotDateTime.getTime() <= now.getTime();
-  };
 
   const dynamicTimeSlotGroups = useMemo(() => {
     if (!selectedDocKey || !currentDoctor) {
@@ -699,7 +701,7 @@ export function BookAppointmentScreen({
                   size={18}
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
                 />
-                <input
+                <input aria-label="Input field"
                   type="text"
                   value={patientQuery}
                   onChange={(e) => setPatientQuery(e.target.value)}
@@ -713,7 +715,7 @@ export function BookAppointmentScreen({
               <div className="max-h-48 overflow-y-auto border border-[#E5E7EB] rounded-xl divide-y divide-gray-100 bg-white shadow-lg">
                 {searchedPatients.length > 0 ? (
                   searchedPatients.map((p) => (
-                    <div
+                    <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
                       key={
                         p.id
                           ? `pat-id-${p.id}`
@@ -822,10 +824,10 @@ export function BookAppointmentScreen({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
               <div>
-                <label className="block font-semibold text-[#111827] mb-1">
+                <span className="block font-semibold text-[#111827] mb-1">
                   Select Department *
-                </label>
-                <select
+                
+                <select aria-label="Select option"
                   value={selectedDept}
                   onChange={(e) => handleDeptChange(e.target.value)}
                   className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#009688] font-medium"
@@ -839,14 +841,14 @@ export function BookAppointmentScreen({
                       {dept.departmentName}
                     </option>
                   ))}
-                </select>
+                </select></span>
               </div>
 
               <div>
-                <label className="block font-semibold text-[#111827] mb-1">
+                <span className="block font-semibold text-[#111827] mb-1">
                   Specialty
-                </label>
-                <select
+                
+                <select aria-label="Select option"
                   value={selectedSpecialty}
                   disabled={!selectedDept}
                   onChange={(e) => {
@@ -876,14 +878,14 @@ export function BookAppointmentScreen({
                       ))}
                     </>
                   )}
-                </select>
+                </select></span>
               </div>
             </div>
 
             <div className="space-y-2 pt-2">
-              <label className="block text-xs font-semibold text-[#111827]">
+              <span className="block text-xs font-semibold text-[#111827]">
                 Available Doctors *
-              </label>
+              </span>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {!selectedDept ? (
                   <div className="col-span-full p-6 text-center text-xs text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200 flex flex-col items-center justify-center gap-1">
@@ -911,7 +913,7 @@ export function BookAppointmentScreen({
                   filteredDoctors.map((doc) => {
                     const isSelected = selectedDocKey === doc.key;
                     return (
-                      <div
+                      <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
                         key={doc.key}
                         onClick={() => setSelectedDocKey(doc.key)}
                         className={`p-3.5 rounded-xl border cursor-pointer transition-colors flex items-start gap-3 ${
@@ -971,9 +973,9 @@ export function BookAppointmentScreen({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#111827] mb-2">
+              <span className="block text-xs font-semibold text-[#111827] mb-2">
                 Select Date *
-              </label>
+              </span>
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                 {availableDates.map((item) => {
                   const isSelected = selectedDate === item.date;
@@ -1004,9 +1006,9 @@ export function BookAppointmentScreen({
             </div>
 
             <div className="space-y-3 pt-2">
-              <label className="block text-xs font-semibold text-[#111827]">
+              <span className="block text-xs font-semibold text-[#111827]">
                 Select Time Slot *
-              </label>
+              </span>
 
               {!selectedDocKey || !currentDoctor ? (
                 <div className="p-4 text-center text-xs text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200">
@@ -1138,9 +1140,9 @@ export function BookAppointmentScreen({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#111827] mb-2">
+              <span className="block text-xs font-semibold text-[#111827] mb-2">
                 Visit Type *
-              </label>
+              </span>
               <div className="flex items-center gap-6">
                 <label className="flex items-center gap-2 text-xs text-[#111827] cursor-pointer">
                   <input
@@ -1167,10 +1169,10 @@ export function BookAppointmentScreen({
             </div>
 
             <div className="text-xs">
-              <label className="block font-semibold text-[#111827] mb-1">
+              <span className="block font-semibold text-[#111827] mb-1">
                 Chief Complaint / Symptoms *
-              </label>
-              <textarea
+              </span>
+              <textarea aria-label="Text area"
                 rows={2}
                 value={chiefComplaint}
                 onChange={(e) => setChiefComplaint(e.target.value)}
@@ -1180,10 +1182,10 @@ export function BookAppointmentScreen({
             </div>
 
             <div className="text-xs">
-              <label className="block font-semibold text-[#111827] mb-1">
+              <span className="block font-semibold text-[#111827] mb-1">
                 Receptionist Remarks (Optional)
-              </label>
-              <textarea
+              </span>
+              <textarea aria-label="Text area"
                 rows={2}
                 value={remarks}
                 onChange={(e) => setRemarks(e.target.value)}
@@ -1197,7 +1199,7 @@ export function BookAppointmentScreen({
 
       <div className="sticky bottom-0 bg-white border-t border-[#E5E7EB] p-4 rounded-2xl shadow-lg flex items-center justify-between z-10">
         {bookingError && (
-          <div className="absolute bottom-full left-0 right-0 mb-2 mx-4 p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-[#EF4444] font-semibold flex items-center gap-2 animate-in fade-in">
+          <div className="absolute bottom-full left-0 right-0 mb-2 mx-4 p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-[#EF4444] font-semibold flex items-center gap-2 transition-opacity fade-in">
             <AlertCircle size={14} /> {bookingError}
           </div>
         )}
@@ -1229,7 +1231,7 @@ export function BookAppointmentScreen({
       {showSuccessModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div
-            className="bg-white rounded-3xl max-w-lg w-full p-7 shadow-2xl space-y-5 text-center animate-in zoom-in-95 duration-200 border border-slate-100"
+            className="bg-white rounded-3xl max-w-lg w-full p-7 shadow-2xl space-y-5 text-center transition-transform duration-200 border border-slate-100"
             style={{ fontFamily: RB }}
           >
             {/* Top Checkmark Circle */}
@@ -1358,7 +1360,7 @@ export function BookAppointmentScreen({
                   else if (onConfirmSuccess) onConfirmSuccess(confirmedAptId);
                   else if (onBack) onBack();
                 }}
-                className="w-full sm:flex-1 py-3 px-5 rounded-xl bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center"
+                className="w-full sm:flex-1 py-3 px-5 rounded-xl bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-xs font-bold transition-colors shadow-sm flex items-center justify-center"
                 style={{ fontFamily: PP }}
               >
                 View Appointment Details
@@ -1384,7 +1386,7 @@ export function BookAppointmentScreen({
                   else if (onConfirmSuccess) onConfirmSuccess(confirmedAptId);
                   else if (onBack) onBack();
                 }}
-                className="w-full sm:flex-1 py-3 px-5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all"
+                className="w-full sm:flex-1 py-3 px-5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-colors"
                 style={{ fontFamily: PP }}
               >
                 Return to My Appointments

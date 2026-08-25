@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import {
   Download,
   RefreshCw,
@@ -60,6 +60,9 @@ export type AccountantKpiType =
   | "Payment Collection Rate"
   | "Average Invoice Value";
 
+const ACCOUNTANT_KPI_TREND_DATA: Array<{ date: string; value: number }> = [];
+const ACCOUNTANT_KPI_DONUT_DATA: Array<{ name: string; value: number; color: string }> = [];
+
 export function AccountantDashboardKpiDetailScreen({
   onBack,
   onOpenReport,
@@ -86,14 +89,13 @@ export function AccountantDashboardKpiDetailScreen({
     "Today" | "7 Days" | "30 Days" | "90 Days" | "1 Year"
   >("7 Days");
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const [showLoadingDemo, setShowLoadingDemo] = useState(false);
+  const isLoading = isPending || showLoadingDemo;
   const [hasError, setHasError] = useState(false);
 
   const meta: AccountantKpiMeta =
     ({} as Record<string, AccountantKpiMeta>)[selectedKpi] ?? {};
-  const trendData: Array<{ date: string; value: number }> = [];
-  const donutData: Array<{ name: string; value: number; color: string }> = [];
-
   const handleRefresh = () => {
     setIsRefreshing(true);
     setTimeout(() => setIsRefreshing(false), 600);
@@ -119,19 +121,19 @@ export function AccountantDashboardKpiDetailScreen({
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
-                <span
+                <button type="button"
                   onClick={onBack}
                   className="hover:text-[#0D47A1] cursor-pointer"
                 >
                   Accountant
-                </span>
+                </button>
                 <ChevronRight className="w-3.5 h-3.5" />
-                <span
+                <button type="button"
                   onClick={onBack}
                   className="hover:text-[#0D47A1] cursor-pointer"
                 >
                   Reports
-                </span>
+                </button>
                 <ChevronRight className="w-3.5 h-3.5" />
                 <span className="text-[#0D47A1] font-semibold">
                   Dashboard KPI Detail
@@ -219,7 +221,7 @@ export function AccountantDashboardKpiDetailScreen({
               <div className="flex items-center gap-2 text-xs font-semibold text-[#64748B] mb-1">
                 <span>Select Financial KPI Metric:</span>
               </div>
-              <select
+              <select aria-label="Select option"
                 value={selectedKpi}
                 onChange={(e) =>
                   setSelectedKpi(e.target.value as AccountantKpiType)
@@ -310,7 +312,7 @@ export function AccountantDashboardKpiDetailScreen({
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
-            <input
+            <input aria-label="Input field"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -345,10 +347,10 @@ export function AccountantDashboardKpiDetailScreen({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Date Range
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={dateRange}
                 onChange={(e) => setDateRange(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -357,14 +359,14 @@ export function AccountantDashboardKpiDetailScreen({
                 <option>Yesterday</option>
                 <option>Last 7 Days</option>
                 <option>This Month</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Invoice Status
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={invoiceStatusFilter}
                 onChange={(e) => setInvoiceStatusFilter(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -373,14 +375,14 @@ export function AccountantDashboardKpiDetailScreen({
                 <option>Issued</option>
                 <option>Cleared</option>
                 <option>Overdue</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Payment Status
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={paymentStatusFilter}
                 onChange={(e) => setPaymentStatusFilter(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -390,14 +392,14 @@ export function AccountantDashboardKpiDetailScreen({
                 <option>Pending</option>
                 <option>Partially Paid</option>
                 <option>Refunded</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Payment Method
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={paymentMethodFilter}
                 onChange={(e) => setPaymentMethodFilter(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -407,14 +409,14 @@ export function AccountantDashboardKpiDetailScreen({
                 <option>Card</option>
                 <option>UPI</option>
                 <option>Bank Transfer</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Collected By
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={collectedByFilter}
                 onChange={(e) => setCollectedByFilter(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -422,7 +424,7 @@ export function AccountantDashboardKpiDetailScreen({
                 <option>All Collectors</option>
                 <option>Robert Vance</option>
                 <option>Elena Rostova</option>
-              </select>
+              </select></span>
             </div>
           </div>
 
@@ -450,7 +452,10 @@ export function AccountantDashboardKpiDetailScreen({
             </span>
             <button
               onClick={() => {
-                setIsLoading(!isLoading);
+                startTransition(() => {
+                  setShowLoadingDemo(!showLoadingDemo);
+                  setHasError(false);
+                });
                 setHasError(false);
               }}
               className={`px-2.5 py-1 rounded-lg border text-xs ${isLoading ? "bg-amber-50 border-amber-300 text-[#F59E0B]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
@@ -460,7 +465,7 @@ export function AccountantDashboardKpiDetailScreen({
             <button
               onClick={() => {
                 setHasError(!hasError);
-                setIsLoading(false);
+                setShowLoadingDemo(false);
               }}
               className={`px-2.5 py-1 rounded-lg border text-xs ${hasError ? "bg-red-50 border-red-[#EF4444] text-[#EF4444]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
             >
@@ -551,7 +556,7 @@ export function AccountantDashboardKpiDetailScreen({
                   <div className="h-60">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart
-                        data={trendData}
+                        data={ACCOUNTANT_KPI_TREND_DATA}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <defs>
@@ -646,7 +651,7 @@ export function AccountantDashboardKpiDetailScreen({
                   <div className="h-60">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
-                        data={trendData}
+                        data={ACCOUNTANT_KPI_TREND_DATA}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -703,7 +708,7 @@ export function AccountantDashboardKpiDetailScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsPie>
                         <Pie
-                          data={donutData}
+                          data={ACCOUNTANT_KPI_DONUT_DATA}
                           cx="50%"
                           cy="50%"
                           innerRadius={45}
@@ -711,7 +716,7 @@ export function AccountantDashboardKpiDetailScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {donutData.map((entry) => (
+                          {ACCOUNTANT_KPI_DONUT_DATA.map((entry) => (
                             <Cell key={entry.name} fill={entry.color} />
                           ))}
                         </Pie>

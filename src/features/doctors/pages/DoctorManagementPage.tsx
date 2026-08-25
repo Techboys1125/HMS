@@ -22,6 +22,23 @@ import { usersApi } from "../../users/api/users.api";
 import { departmentsApi } from "../../users/api/departments.api";
 import { DoctorProfileScreen } from "../components/DoctorProfileScreen";
 
+const fetchDoctors = async () => {
+  const res = await doctorsService.getAll();
+  const overrides = JSON.parse(
+    localStorage.getItem("doctor_status_overrides:v1") || "{}",
+  );
+  return res.items.map((r: DoctorRecord) => {
+    if (overrides[r.id]) {
+      return {
+        ...r,
+        status: overrides[r.id].status,
+        availability: overrides[r.id].availability,
+      };
+    }
+    return r;
+  });
+};
+
 export function DoctorManagementPage() {
   const user = useAuthStore((state) => state.user);
   const currentRole = normalizeRole(String(user?.role ?? "ADMIN"));
@@ -83,22 +100,6 @@ export function DoctorManagementPage() {
     resetFilters,
   } = useDoctorFilters(doctors);
 
-  const fetchDoctors = async () => {
-    const res = await doctorsService.getAll();
-    const overrides = JSON.parse(
-      localStorage.getItem("doctor_status_overrides:v1") || "{}",
-    );
-    return res.items.map((r: DoctorRecord) => {
-      if (overrides[r.id]) {
-        return {
-          ...r,
-          status: overrides[r.id].status,
-          availability: overrides[r.id].availability,
-        };
-      }
-      return r;
-    });
-  };
 
   useEffect(() => {
     let cancelled = false;
@@ -117,9 +118,7 @@ export function DoctorManagementPage() {
       } catch (err) {
         console.error("Failed to load doctor management data:", err);
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
 
@@ -342,7 +341,7 @@ export function DoctorManagementPage() {
       style={{ fontFamily: RB }}
     >
       {toastMsg && (
-        <div className="fixed top-5 right-5 z-50 bg-[#111827] text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200">
+        <div className="fixed top-5 right-5 z-50 bg-[#111827] text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 transition-opacity duration-200">
           <CheckCircle2 size={16} className="text-[#66BB6A]" />
           <span>{toastMsg}</span>
         </div>

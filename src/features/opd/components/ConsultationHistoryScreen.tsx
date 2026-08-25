@@ -592,7 +592,15 @@ export function ConsultationHistoryScreen({
                         <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden transition-all">
                           {/* Card Header Bar */}
                           <div
+                            role="button"
+                            tabIndex={0}
                             onClick={() => toggleExpand(item.id)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                toggleExpand(item.id);
+                              }
+                            }}
                             className="p-5 bg-slate-50/60 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 border-b border-gray-100"
                           >
                             <div className="space-y-1">
@@ -685,8 +693,8 @@ export function ConsultationHistoryScreen({
                                           <td colSpan={4} className="py-2 px-3 italic text-slate-500">No medications prescribed.</td>
                                         </tr>
                                       ) : (
-                                        item.medicines.map((m, idx) => (
-                                          <tr key={idx}>
+                                        item.medicines.map((m) => (
+                                          <tr key={`${m.name}-${m.dosage}-${m.freq}`}>
                                             <td className="py-1.5 px-3 font-bold text-[#111827]" style={{ fontFamily: PP }}>{m.name}</td>
                                             <td className="py-1.5 px-3">{m.dosage}</td>
                                             <td className="py-1.5 px-3 text-blue-700">{m.freq}</td>
@@ -707,8 +715,8 @@ export function ConsultationHistoryScreen({
                                     {item.investigations.length === 0 ? (
                                       <span className="text-slate-500 italic">None recommended</span>
                                     ) : (
-                                      item.investigations.map((inv, idx) => (
-                                        <span key={idx} className="px-2.5 py-0.5 bg-purple-50 text-purple-700 border border-purple-200 rounded font-semibold text-[11px]" style={{ fontFamily: PP }}>
+                                      item.investigations.map((inv) => (
+                                        <span key={inv} className="px-2.5 py-0.5 bg-purple-50 text-purple-700 border border-purple-200 rounded font-semibold text-[11px]" style={{ fontFamily: PP }}>
                                           {inv}
                                         </span>
                                       ))

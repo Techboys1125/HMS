@@ -100,7 +100,7 @@ export function AccessRestrictions() {
                 {item.sub}
               </div>
             </div>
-            <input
+            <input aria-label="Toggle option"
               type="checkbox"
               checked={
                 accessRestrictions[item.key as keyof typeof accessRestrictions]

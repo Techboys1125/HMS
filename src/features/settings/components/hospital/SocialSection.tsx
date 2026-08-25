@@ -44,7 +44,7 @@ export function SocialSection({ form, onChange }: SocialSectionProps) {
         }}
       >
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -54,8 +54,8 @@ export function SocialSection({ form, onChange }: SocialSectionProps) {
             }}
           >
             Official WhatsApp Business Number
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={form.whatsapp}
             onChange={(e) => onChange("whatsapp", e.target.value)}
@@ -67,11 +67,11 @@ export function SocialSection({ form, onChange }: SocialSectionProps) {
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -81,8 +81,8 @@ export function SocialSection({ form, onChange }: SocialSectionProps) {
             }}
           >
             Facebook Page URL
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={form.facebook}
             onChange={(e) => onChange("facebook", e.target.value)}
@@ -94,11 +94,11 @@ export function SocialSection({ form, onChange }: SocialSectionProps) {
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -108,8 +108,8 @@ export function SocialSection({ form, onChange }: SocialSectionProps) {
             }}
           >
             LinkedIn Organization Page
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={form.linkedin}
             onChange={(e) => onChange("linkedin", e.target.value)}
@@ -121,11 +121,11 @@ export function SocialSection({ form, onChange }: SocialSectionProps) {
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -135,8 +135,8 @@ export function SocialSection({ form, onChange }: SocialSectionProps) {
             }}
           >
             Instagram Profile
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="text"
             value={form.instagram}
             onChange={(e) => onChange("instagram", e.target.value)}
@@ -148,7 +148,7 @@ export function SocialSection({ form, onChange }: SocialSectionProps) {
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
       </div>
     </div>

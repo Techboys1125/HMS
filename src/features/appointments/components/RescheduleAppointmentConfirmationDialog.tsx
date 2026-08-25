@@ -21,6 +21,30 @@ import { PP, RB } from "../constants/appointment.constants";
 import { formatTime } from "../../../lib/time-utils";
 import { useAppointmentSlots } from "../hooks/useAppointmentSlots";
 
+type FormState = {
+  selectedDate: string;
+  selectedTimeSlot: string;
+  rescheduleReason: string;
+  additionalRemarks: string;
+};
+type FormAction =
+  | { type: "SET_FIELD"; field: keyof FormState; value: string }
+  | { type: "RESET"; defaultDate: string };
+
+const formReducer = (state: FormState, action: FormAction): FormState => {
+  switch (action.type) {
+    case "SET_FIELD":
+      return { ...state, [action.field]: action.value };
+    case "RESET":
+      return {
+        selectedDate: action.defaultDate,
+        selectedTimeSlot: "",
+        rescheduleReason: "Patient Request",
+        additionalRemarks: "",
+      };
+  }
+};
+
 export function RescheduleAppointmentConfirmationDialog({
   apt,
   isOpen,
@@ -38,28 +62,6 @@ export function RescheduleAppointmentConfirmationDialog({
     remarks?: string,
   ) => void;
 }) {
-  type FormState = {
-    selectedDate: string;
-    selectedTimeSlot: string;
-    rescheduleReason: string;
-    additionalRemarks: string;
-  };
-  type FormAction =
-    | { type: "SET_FIELD"; field: keyof FormState; value: string }
-    | { type: "RESET"; defaultDate: string };
-  const formReducer = (state: FormState, action: FormAction): FormState => {
-    switch (action.type) {
-      case "SET_FIELD":
-        return { ...state, [action.field]: action.value };
-      case "RESET":
-        return {
-          selectedDate: action.defaultDate,
-          selectedTimeSlot: "",
-          rescheduleReason: "Patient Request",
-          additionalRemarks: "",
-        };
-    }
-  };
   const [form, dispatch] = useReducer(formReducer, {
     selectedDate: "",
     selectedTimeSlot: "",
@@ -194,12 +196,13 @@ export function RescheduleAppointmentConfirmationDialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
+        role="presentation"
         className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity"
         onClick={onClose}
       />
 
       <div
-        className="relative bg-white rounded-2xl border border-gray-100 shadow-2xl max-w-lg w-full overflow-hidden z-10 animate-in zoom-in-95 duration-150"
+        className="relative bg-white rounded-2xl border border-gray-100 shadow-2xl max-w-lg w-full overflow-hidden z-10 transition-transform duration-150"
         style={{ fontFamily: RB }}
       >
         {/* Header */}
@@ -222,6 +225,7 @@ export function RescheduleAppointmentConfirmationDialog({
           </div>
 
           <button
+            aria-label="Close"
             type="button"
             onClick={onClose}
             className="p-1 text-white/80 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
@@ -291,23 +295,25 @@ export function RescheduleAppointmentConfirmationDialog({
           {/* Calendar Picker */}
           <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-3">
             <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-              <label
+              <span
                 className="text-xs font-bold text-[#111827] flex items-center gap-1.5"
                 style={{ fontFamily: PP }}
               >
                 <CalendarIcon size={14} className="text-[#009688]" /> Select New
                 Appointment Date *
-              </label>
-              <input
-                ref={dateInputRef}
-                type="date"
-                value={form.selectedDate}
-                onChange={(e) => {
-                  setField("selectedDate", e.target.value);
-                  if (errors.date) setErrors((prev) => ({ ...prev, date: "" }));
-                }}
-                className="px-2.5 py-1 text-xs bg-slate-50 border border-slate-200 rounded-lg text-[#111827] font-mono outline-none focus:border-[#009688]"
-              />
+                <input
+                  aria-label="Input field"
+                  ref={dateInputRef}
+                  type="date"
+                  value={form.selectedDate}
+                  onChange={(e) => {
+                    setField("selectedDate", e.target.value);
+                    if (errors.date)
+                      setErrors((prev) => ({ ...prev, date: "" }));
+                  }}
+                  className="px-2.5 py-1 text-xs bg-slate-50 border border-slate-200 rounded-lg text-[#111827] font-mono outline-none focus:border-[#009688]"
+                />
+              </span>
             </div>
 
             <div className="bg-slate-50/70 p-3 rounded-xl border border-slate-200/80 space-y-2">
@@ -320,6 +326,7 @@ export function RescheduleAppointmentConfirmationDialog({
                 </span>
                 <div className="flex items-center gap-1">
                   <button
+                    aria-label="Previous"
                     type="button"
                     onClick={handlePrevMonth}
                     className="p-1 rounded hover:bg-slate-200 text-slate-600"
@@ -327,6 +334,7 @@ export function RescheduleAppointmentConfirmationDialog({
                     <ChevronLeft size={14} />
                   </button>
                   <button
+                    aria-label="Next"
                     type="button"
                     onClick={handleNextMonth}
                     className="p-1 rounded hover:bg-slate-200 text-slate-600"
@@ -396,13 +404,13 @@ export function RescheduleAppointmentConfirmationDialog({
           {/* Time Slot Picker */}
           <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-3">
             <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-              <label
+              <span
                 className="text-xs font-bold text-[#111827] flex items-center gap-1.5"
                 style={{ fontFamily: PP }}
               >
                 <Clock size={14} className="text-[#009688]" /> Available Time
                 Slots *
-              </label>
+              </span>
               <span className="text-[10px] font-mono text-teal-600 font-bold">
                 Duration: {docAvail.slotDuration}
               </span>
@@ -437,7 +445,7 @@ export function RescheduleAppointmentConfirmationDialog({
                             setErrors((prev) => ({ ...prev, slot: "" }));
                         }
                       }}
-                      className={`py-2 px-1.5 rounded-xl text-xs font-mono font-semibold transition-all border text-center ${
+                      className={`py-2 px-1.5 rounded-xl text-xs font-mono font-semibold transition-colors border text-center ${
                         isSelected
                           ? "bg-[#0D47A1] text-white border-[#0D47A1] shadow-xs"
                           : isAvailable
@@ -461,39 +469,43 @@ export function RescheduleAppointmentConfirmationDialog({
           {/* Reason & Remarks */}
           <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-3">
             <div>
-              <label className="block text-xs font-bold text-[#111827] mb-1">
+              <span className="block text-xs font-bold text-[#111827] mb-1">
                 Reschedule Reason *
-              </label>
-              <select
-                value={form.rescheduleReason}
-                onChange={(e) => {
-                  setField("rescheduleReason", e.target.value);
-                  if (errors.reason)
-                    setErrors((prev) => ({ ...prev, reason: "" }));
-                }}
-                className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] font-medium outline-none focus:border-[#009688]"
-              >
-                <option value="Patient Request">Patient Request</option>
-                <option value="Doctor Unavailable">Doctor Unavailable</option>
-                <option value="Scheduling Conflict">Scheduling Conflict</option>
-                <option value="Hospital Operational Change">
-                  Hospital Operational Change
-                </option>
-                <option value="Administrative Adjustment">
-                  Administrative Adjustment
-                </option>
-                <option value="Other">Other</option>
-              </select>
+                <select
+                  aria-label="Select option"
+                  value={form.rescheduleReason}
+                  onChange={(e) => {
+                    setField("rescheduleReason", e.target.value);
+                    if (errors.reason)
+                      setErrors((prev) => ({ ...prev, reason: "" }));
+                  }}
+                  className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] font-medium outline-none focus:border-[#009688]"
+                >
+                  <option value="Patient Request">Patient Request</option>
+                  <option value="Doctor Unavailable">Doctor Unavailable</option>
+                  <option value="Scheduling Conflict">
+                    Scheduling Conflict
+                  </option>
+                  <option value="Hospital Operational Change">
+                    Hospital Operational Change
+                  </option>
+                  <option value="Administrative Adjustment">
+                    Administrative Adjustment
+                  </option>
+                  <option value="Other">Other</option>
+                </select>
+              </span>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#111827] mb-1">
+              <span className="block text-xs font-bold text-[#111827] mb-1">
                 Additional Remarks{" "}
                 <span className="text-[10px] text-slate-400 font-normal">
                   (Optional)
                 </span>
-              </label>
+              </span>
               <textarea
+                aria-label="Provide additional notes..."
                 rows={2}
                 placeholder="Provide additional notes..."
                 value={form.additionalRemarks}

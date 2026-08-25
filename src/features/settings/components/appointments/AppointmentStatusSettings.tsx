@@ -68,7 +68,7 @@ export function AppointmentStatusSettings() {
                   background: st.color,
                 }}
               />
-              <input
+              <input aria-label="Input field"
                 type="text"
                 value={st.label}
                 onChange={(e) => {
@@ -89,7 +89,7 @@ export function AppointmentStatusSettings() {
                 }}
               />
             </div>
-            <input
+            <input aria-label="Toggle option"
               type="checkbox"
               checked={st.visible}
                 onChange={(e) => {

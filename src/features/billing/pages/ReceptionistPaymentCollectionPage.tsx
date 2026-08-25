@@ -19,6 +19,28 @@ import type {
   PaymentReceiveResponse,
 } from "../types/billing.types";
 
+type PaymentFormState = {
+  searchQuery: string;
+  paymentMethod: PaymentMethod;
+  amount: number;
+  referenceNumber: string;
+  remarks: string;
+};
+
+type PaymentFormAction = {
+  type: "SET_FIELD";
+  field: keyof PaymentFormState;
+  value: string | number;
+};
+
+const paymentFormReducer = (
+  state: PaymentFormState,
+  action: PaymentFormAction,
+): PaymentFormState => ({
+  ...state,
+  [action.field]: action.value,
+});
+
 export function ReceptionistPaymentCollectionPage() {
   const navigate = useNavigate();
   const {
@@ -31,25 +53,6 @@ export function ReceptionistPaymentCollectionPage() {
     [billsData],
   );
 
-  type PaymentFormState = {
-    searchQuery: string;
-    paymentMethod: PaymentMethod;
-    amount: number;
-    referenceNumber: string;
-    remarks: string;
-  };
-  type PaymentFormAction = {
-    type: "SET_FIELD";
-    field: keyof PaymentFormState;
-    value: string | number;
-  };
-  const paymentFormReducer = (
-    state: PaymentFormState,
-    action: PaymentFormAction,
-  ): PaymentFormState => ({
-    ...state,
-    [action.field]: action.value,
-  });
   const [form, dispatch] = useReducer(paymentFormReducer, {
     searchQuery: "",
     paymentMethod: "Cash" as PaymentMethod,
@@ -153,19 +156,21 @@ export function ReceptionistPaymentCollectionPage() {
             className="flex items-center gap-2 text-xs text-[#64748B] mb-1 font-medium"
             style={{ fontFamily: RB }}
           >
-            <span
+            <button
+              type="button"
               className="hover:text-[#0D47A1] cursor-pointer"
               onClick={() => navigate("/billing")}
             >
               Home
-            </span>
+            </button>
             <ChevronRight size={12} />
-            <span
+            <button
+              type="button"
               className="hover:text-[#0D47A1] cursor-pointer"
               onClick={() => navigate("/billing")}
             >
               Billing & Payments
-            </span>
+            </button>
             <ChevronRight size={12} />
             <span className="text-[#0D47A1] font-semibold">
               Receptionist Collection
@@ -281,6 +286,7 @@ export function ReceptionistPaymentCollectionPage() {
                 size={16}
               />
               <input
+                aria-label="Input field"
                 type="text"
                 value={form.searchQuery}
                 onChange={(e) => setField("searchQuery", e.target.value)}
@@ -305,6 +311,14 @@ export function ReceptionistPaymentCollectionPage() {
               ) : (
                 filteredInvoices.map((inv) => (
                   <div
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        (e.currentTarget as HTMLElement).click();
+                      }
+                    }}
+                    role="button"
                     key={inv.id}
                     onClick={() => handleSelectBill(inv)}
                     className={`p-4 rounded-xl border cursor-pointer transition-colors ${selectedBill?.id === inv.id ? "border-[#0D47A1] bg-blue-50 shadow-sm" : "border-[#E5E7EB] bg-white hover:bg-slate-50"}`}
@@ -416,9 +430,9 @@ export function ReceptionistPaymentCollectionPage() {
 
                 {/* Payment Method */}
                 <div>
-                  <label className="block text-slate-700 font-semibold mb-2">
+                  <span className="block text-slate-700 font-semibold mb-2">
                     Payment Method *
-                  </label>
+                  </span>
                   <div className="grid grid-cols-2 gap-2">
                     {(
                       [
@@ -442,19 +456,20 @@ export function ReceptionistPaymentCollectionPage() {
 
                 {/* Amount */}
                 <div>
-                  <label className="block text-slate-700 font-semibold mb-1">
+                  <span className="block text-slate-700 font-semibold mb-1">
                     Amount (₹) *
-                  </label>
-                  <input
-                    type="number"
-                    value={form.amount || ""}
-                    onChange={(e) => {
-                      const v = e.currentTarget.valueAsNumber;
-                      setField("amount", Number.isFinite(v) ? v : 0);
-                    }}
-                    max={selectedBill.balance}
-                    className="w-full px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 text-sm font-bold text-[#111827] focus:bg-white focus:border-[#0D47A1] focus:outline-none"
-                  />
+                    <input
+                      aria-label="Input field"
+                      type="number"
+                      value={form.amount || ""}
+                      onChange={(e) => {
+                        const v = e.currentTarget.valueAsNumber;
+                        setField("amount", Number.isFinite(v) ? v : 0);
+                      }}
+                      max={selectedBill.balance}
+                      className="w-full px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 text-sm font-bold text-[#111827] focus:bg-white focus:border-[#0D47A1] focus:outline-none"
+                    />
+                  </span>
                   <button
                     type="button"
                     onClick={() => setField("amount", selectedBill.balance)}
@@ -466,26 +481,28 @@ export function ReceptionistPaymentCollectionPage() {
 
                 {/* Reference */}
                 <div>
-                  <label className="block text-slate-700 font-semibold mb-1">
+                  <span className="block text-slate-700 font-semibold mb-1">
                     Reference Number
-                  </label>
-                  <input
-                    type="text"
-                    value={form.referenceNumber}
-                    onChange={(e) =>
-                      setField("referenceNumber", e.target.value)
-                    }
-                    placeholder="e.g. UPI Ref / Cash receipt no"
-                    className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 text-xs font-mono focus:bg-white focus:border-[#0D47A1] focus:outline-none"
-                  />
+                    <input
+                      aria-label="Input field"
+                      type="text"
+                      value={form.referenceNumber}
+                      onChange={(e) =>
+                        setField("referenceNumber", e.target.value)
+                      }
+                      placeholder="e.g. UPI Ref / Cash receipt no"
+                      className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 text-xs font-mono focus:bg-white focus:border-[#0D47A1] focus:outline-none"
+                    />
+                  </span>
                 </div>
 
                 {/* Remarks */}
                 <div>
-                  <label className="block text-slate-700 font-semibold mb-1">
+                  <span className="block text-slate-700 font-semibold mb-1">
                     Remarks
-                  </label>
+                  </span>
                   <textarea
+                    aria-label="Text area"
                     rows={2}
                     value={form.remarks}
                     onChange={(e) => setField("remarks", e.target.value)}
@@ -565,7 +582,7 @@ export function ReceptionistPaymentCollectionPage() {
       {/* SUCCESS MODAL */}
       {showSuccess && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-2xl w-full max-w-md p-6 text-center space-y-4 animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-2xl w-full max-w-md p-6 text-center space-y-4 transition-transform duration-200">
             <div className="w-14 h-14 rounded-full bg-green-50 text-[#66BB6A] flex items-center justify-center mx-auto border-2 border-green-200">
               <CheckCircle2 size={32} />
             </div>

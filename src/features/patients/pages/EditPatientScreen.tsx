@@ -319,7 +319,7 @@ export function EditPatientScreen({
         {/* Header Breadcrumbs */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-1">
-            <button
+            <button aria-label="Previous"
               onClick={onBack}
               className="p-1.5 -ml-1.5 text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
             >
@@ -383,7 +383,7 @@ export function EditPatientScreen({
                     title="Upload Photo"
                   >
                     <Upload size={14} />
-                    <input
+                    <input aria-label="Input field"
                       id="photo-upload"
                       type="file"
                       accept="image/*"
@@ -404,7 +404,7 @@ export function EditPatientScreen({
                     PNG, max 2MB).
                   </p>
                   <div className="pt-1">
-                    <input
+                    <input aria-label="Input field"
                       type="text"
                       value={photoUrl}
                       onChange={(e) => setPhotoUrl(e.target.value)}
@@ -427,25 +427,25 @@ export function EditPatientScreen({
                   <div>
                     <label className="block text-xs font-medium text-slate-700 mb-1.5">
                       MRN / Patient ID
+                      <input
+                        type="text"
+                        value={activeMrn || "AUTO-GENERATED"}
+                        disabled
+                        className="w-full px-3 py-2 text-sm bg-slate-50 border border-gray-200 rounded-lg text-slate-500 font-mono outline-none cursor-not-allowed"
+                      />
                     </label>
-                    <input
-                      type="text"
-                      value={activeMrn || "AUTO-GENERATED"}
-                      disabled
-                      className="w-full px-3 py-2 text-sm bg-slate-50 border border-gray-200 rounded-lg text-slate-500 font-mono outline-none cursor-not-allowed"
-                    />
                   </div>
                   <div className="md:col-span-2">
                     <label className="block text-xs font-medium text-slate-700 mb-1.5">
                       Full Name <span className="text-red-500">*</span>
+                      <input
+                        type="text"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        placeholder="Enter patient full name"
+                        className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
+                      />
                     </label>
-                    <input
-                      type="text"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      placeholder="Enter patient full name"
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
-                    />
                   </div>
                   <div>
                     <CustomDatePicker
@@ -460,86 +460,86 @@ export function EditPatientScreen({
                   <div>
                     <label className="block text-xs font-medium text-slate-700 mb-1.5">
                       Age
+                      <input
+                        type="text"
+                        value={calculatedAge ? `${calculatedAge} Years` : "—"}
+                        readOnly
+                        className="w-full px-3 py-2 text-sm bg-slate-50 border border-gray-200 rounded-lg text-slate-500 outline-none"
+                      />
                     </label>
-                    <input
-                      type="text"
-                      value={calculatedAge ? `${calculatedAge} Years` : "—"}
-                      readOnly
-                      className="w-full px-3 py-2 text-sm bg-slate-50 border border-gray-200 rounded-lg text-slate-500 outline-none"
-                    />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-700 mb-1.5">
                       Gender
+                      <select
+                        value={gender}
+                        onChange={(e) => setGender(e.target.value)}
+                        className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors cursor-pointer"
+                      >
+                        {GENDERS.map((g) => (
+                          <option key={g.value} value={g.value}>
+                            {g.label}
+                          </option>
+                        ))}
+                      </select>
                     </label>
-                    <select
-                      value={gender}
-                      onChange={(e) => setGender(e.target.value)}
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors cursor-pointer"
-                    >
-                      {GENDERS.map((g) => (
-                        <option key={g.value} value={g.value}>
-                          {g.label}
-                        </option>
-                      ))}
-                    </select>
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-700 mb-1.5">
                       Blood Group
+                      <select
+                        value={bloodGroup}
+                        onChange={(e) => setBloodGroup(e.target.value)}
+                        className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors cursor-pointer"
+                      >
+                        {BLOOD_GROUPS.map((b) => (
+                          <option key={b.value} value={b.value}>
+                            {b.label}
+                          </option>
+                        ))}
+                      </select>
                     </label>
-                    <select
-                      value={bloodGroup}
-                      onChange={(e) => setBloodGroup(e.target.value)}
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors cursor-pointer"
-                    >
-                      {BLOOD_GROUPS.map((b) => (
-                        <option key={b.value} value={b.value}>
-                          {b.label}
-                        </option>
-                      ))}
-                    </select>
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-700 mb-1.5">
                       Marital Status
+                      <select
+                        value={maritalStatus}
+                        onChange={(e) => setMaritalStatus(e.target.value)}
+                        className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors cursor-pointer"
+                      >
+                        {MARITAL_STATUSES.map((m) => (
+                          <option key={m.value} value={m.value}>
+                            {m.label}
+                          </option>
+                        ))}
+                      </select>
                     </label>
-                    <select
-                      value={maritalStatus}
-                      onChange={(e) => setMaritalStatus(e.target.value)}
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors cursor-pointer"
-                    >
-                      {MARITAL_STATUSES.map((m) => (
-                        <option key={m.value} value={m.value}>
-                          {m.label}
-                        </option>
-                      ))}
-                    </select>
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-700 mb-1.5">
                       Phone / Mobile Number{" "}
                       <span className="text-red-500">*</span>
+                      <input
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="+91 98765 43210"
+                        className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
+                      />
                     </label>
-                    <input
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="+91 98765 43210"
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
-                    />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-700 mb-1.5">
                       Email Address
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="patient@example.com"
+                        className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
+                      />
                     </label>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="patient@example.com"
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
-                    />
                   </div>
                 </div>
               </section>
@@ -556,42 +556,44 @@ export function EditPatientScreen({
                   <div>
                     <label className="block text-xs font-medium text-slate-700 mb-1.5">
                       Contact Person Name
+                      <input
+                        type="text"
+                        value={emergencyName}
+                        onChange={(e) => setEmergencyName(e.target.value)}
+                        placeholder="Name of Next of Kin"
+                        className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
+                      />
                     </label>
-                    <input
-                      type="text"
-                      value={emergencyName}
-                      onChange={(e) => setEmergencyName(e.target.value)}
-                      placeholder="Name of Next of Kin"
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
-                    />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-700 mb-1.5">
                       Relationship
+                      <select
+                        value={emergencyRelationship}
+                        onChange={(e) =>
+                          setEmergencyRelationship(e.target.value)
+                        }
+                        className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors cursor-pointer"
+                      >
+                        {RELATIONSHIPS.map((r) => (
+                          <option key={r.value} value={r.value}>
+                            {r.label}
+                          </option>
+                        ))}
+                      </select>
                     </label>
-                    <select
-                      value={emergencyRelationship}
-                      onChange={(e) => setEmergencyRelationship(e.target.value)}
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors cursor-pointer"
-                    >
-                      {RELATIONSHIPS.map((r) => (
-                        <option key={r.value} value={r.value}>
-                          {r.label}
-                        </option>
-                      ))}
-                    </select>
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-700 mb-1.5">
                       Emergency Phone Number
+                      <input
+                        type="tel"
+                        value={emergencyPhone}
+                        onChange={(e) => setEmergencyPhone(e.target.value)}
+                        placeholder="+91 98765 00000"
+                        className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
+                      />
                     </label>
-                    <input
-                      type="tel"
-                      value={emergencyPhone}
-                      onChange={(e) => setEmergencyPhone(e.target.value)}
-                      placeholder="+91 98765 00000"
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
-                    />
                   </div>
                 </div>
               </section>
@@ -608,50 +610,50 @@ export function EditPatientScreen({
                   <div className="md:col-span-3">
                     <label className="block text-xs font-medium text-slate-700 mb-1.5">
                       Street Address
+                      <input
+                        type="text"
+                        value={addressLine}
+                        onChange={(e) => setAddressLine(e.target.value)}
+                        placeholder="Door No, Street Name, Landmark"
+                        className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
+                      />
                     </label>
-                    <input
-                      type="text"
-                      value={addressLine}
-                      onChange={(e) => setAddressLine(e.target.value)}
-                      placeholder="Door No, Street Name, Landmark"
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
-                    />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-700 mb-1.5">
                       City
+                      <input
+                        type="text"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        placeholder="City Name"
+                        className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
+                      />
                     </label>
-                    <input
-                      type="text"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      placeholder="City Name"
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
-                    />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-700 mb-1.5">
                       State / Province
+                      <input
+                        type="text"
+                        value={state}
+                        onChange={(e) => setState(e.target.value)}
+                        placeholder="State Name"
+                        className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
+                      />
                     </label>
-                    <input
-                      type="text"
-                      value={state}
-                      onChange={(e) => setState(e.target.value)}
-                      placeholder="State Name"
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
-                    />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-700 mb-1.5">
                       Postal Code / PIN
+                      <input
+                        type="text"
+                        value={postalCode}
+                        onChange={(e) => setPostalCode(e.target.value)}
+                        placeholder="600001"
+                        className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors font-mono"
+                      />
                     </label>
-                    <input
-                      type="text"
-                      value={postalCode}
-                      onChange={(e) => setPostalCode(e.target.value)}
-                      placeholder="600001"
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors font-mono"
-                    />
                   </div>
                 </div>
               </section>
@@ -668,70 +670,70 @@ export function EditPatientScreen({
                   <div>
                     <label className="block text-xs font-medium text-slate-700 mb-1.5">
                       Registration Type
+                      <select
+                        value={registrationType}
+                        onChange={(e) => setRegistrationType(e.target.value)}
+                        className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors cursor-pointer"
+                      >
+                        {REGISTRATION_TYPES.map((rt) => (
+                          <option key={rt.value} value={rt.value}>
+                            {rt.label}
+                          </option>
+                        ))}
+                      </select>
                     </label>
-                    <select
-                      value={registrationType}
-                      onChange={(e) => setRegistrationType(e.target.value)}
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors cursor-pointer"
-                    >
-                      {REGISTRATION_TYPES.map((rt) => (
-                        <option key={rt.value} value={rt.value}>
-                          {rt.label}
-                        </option>
-                      ))}
-                    </select>
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-700 mb-1.5">
                       Patient Category
+                      <select
+                        value={patientCategory}
+                        onChange={(e) => setPatientCategory(e.target.value)}
+                        className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors cursor-pointer"
+                      >
+                        {PATIENT_CATEGORIES.map((pc) => (
+                          <option key={pc.value} value={pc.value}>
+                            {pc.label}
+                          </option>
+                        ))}
+                      </select>
                     </label>
-                    <select
-                      value={patientCategory}
-                      onChange={(e) => setPatientCategory(e.target.value)}
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors cursor-pointer"
-                    >
-                      {PATIENT_CATEGORIES.map((pc) => (
-                        <option key={pc.value} value={pc.value}>
-                          {pc.label}
-                        </option>
-                      ))}
-                    </select>
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-700 mb-1.5">
                       Assigned Doctor
+                      <input
+                        type="text"
+                        value={assignedDoctor}
+                        onChange={(e) => setAssignedDoctor(e.target.value)}
+                        placeholder="Dr. Arjun Mehta"
+                        className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
+                      />
                     </label>
-                    <input
-                      type="text"
-                      value={assignedDoctor}
-                      onChange={(e) => setAssignedDoctor(e.target.value)}
-                      placeholder="Dr. Arjun Mehta"
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
-                    />
                   </div>
                   <div className="md:col-span-3">
-                    <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    <span className="block text-xs font-medium text-slate-700 mb-1.5">
                       Known Allergies (Comma Separated)
-                    </label>
-                    <input
-                      type="text"
-                      value={allergies}
-                      onChange={(e) => setAllergies(e.target.value)}
-                      placeholder="e.g. Penicillin, Peanuts, Sulfa Drugs"
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
-                    />
+                      <input aria-label="Input field"
+                        type="text"
+                        value={allergies}
+                        onChange={(e) => setAllergies(e.target.value)}
+                        placeholder="e.g. Penicillin, Peanuts, Sulfa Drugs"
+                        className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
+                      />
+                    </span>
                   </div>
                   <div className="md:col-span-3">
-                    <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    <span className="block text-xs font-medium text-slate-700 mb-1.5">
                       Existing Medical Conditions / History
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={medicalConditions}
-                      onChange={(e) => setMedicalConditions(e.target.value)}
-                      placeholder="Summary of pre-existing conditions, surgeries, or chronic illness..."
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors resize-none"
-                    />
+                      <textarea aria-label="Text area"
+                        rows={3}
+                        value={medicalConditions}
+                        onChange={(e) => setMedicalConditions(e.target.value)}
+                        placeholder="Summary of pre-existing conditions, surgeries, or chronic illness..."
+                        className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors resize-none"
+                      />
+                    </span>
                   </div>
                 </div>
               </section>

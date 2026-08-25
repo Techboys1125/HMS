@@ -768,13 +768,13 @@ export function DoctorScheduleScreen() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button
+                  <button aria-label="Previous"
                     onClick={() => shiftMonth(-1)}
                     className="p-2 rounded-xl border border-[#E5E7EB] text-[#64748B] hover:bg-slate-50 transition-colors"
                   >
                     <ChevronLeft size={16} />
                   </button>
-                  <button
+                  <button aria-label="Next"
                     onClick={() => shiftMonth(1)}
                     className="p-2 rounded-xl border border-[#E5E7EB] text-[#64748B] hover:bg-slate-50 transition-colors"
                   >
@@ -860,7 +860,7 @@ export function DoctorScheduleScreen() {
       </div>
 
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-[#111827] text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700 animate-in slide-in-from-bottom-4 duration-200">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-[#111827] text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700 transition-transform duration-200">
           <CheckCircle2 className="w-5 h-5 text-[#66BB6A] shrink-0" />
           <span className="text-xs font-semibold" style={{ fontFamily: PP }}>
             {toastMsg}

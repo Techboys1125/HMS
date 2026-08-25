@@ -16,8 +16,8 @@ export function usePatientQueue() {
     portal?.activeMrn || portal?.primaryMrn || user?.patientId || user?.mrn;
   const isValidPatient = Boolean(
     rawMrn &&
-      !String(rawMrn).includes("MRN-PATIENT") &&
-      !String(rawMrn).includes("Generating"),
+    !String(rawMrn).includes("MRN-PATIENT") &&
+    !String(rawMrn).includes("Generating"),
   );
 
   const mrn = isValidPatient ? rawMrn : undefined;
@@ -42,8 +42,8 @@ export function usePatientQueue() {
       } catch (err: unknown) {
         if (!cancelled) {
           if (
-            (err instanceof ApiError &&
-              (err.status === 404 || err.response?.status === 404))
+            err instanceof ApiError &&
+            (err.status === 404 || err.response?.status === 404)
           ) {
             setQueue(null);
             setError(null);
@@ -58,9 +58,7 @@ export function usePatientQueue() {
           }
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     }
 

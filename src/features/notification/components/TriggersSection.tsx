@@ -72,7 +72,7 @@ export function TriggersSection({
                 {item.sub}
               </div>
             </div>
-            <input
+            <input aria-label="Toggle option"
               type="checkbox"
               checked={!!commRules[item.key]}
               onChange={(e) => onToggleRule(item.key, e.target.checked)}

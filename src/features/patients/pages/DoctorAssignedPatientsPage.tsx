@@ -75,7 +75,7 @@ export function DoctorAssignedPatientsPage({ doctorId }: { doctorId: string }) {
         ) : (
           <div className="space-y-2">
             {patients.map((patient) => (
-              <div
+              <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
                 key={patient.mrn}
                 onClick={() => setSelectedPatient(patient)}
                 className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/50 cursor-pointer transition-colors"

@@ -17,7 +17,7 @@ export function InvoiceDetailsDrawer({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-2xl w-full max-w-xl overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-2xl w-full max-w-xl overflow-hidden transition-transform duration-200">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-slate-50">
           <div>
             <span className="text-[10px] text-[#0D47A1] font-bold tracking-widest uppercase">
@@ -30,7 +30,7 @@ export function InvoiceDetailsDrawer({
               {invoice.id}
             </h3>
           </div>
-          <button
+          <button aria-label="Close"
             onClick={onClose}
             className="text-slate-400 hover:text-slate-600 cursor-pointer"
           >

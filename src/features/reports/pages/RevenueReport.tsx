@@ -234,6 +234,69 @@ function CircularProgress({
   );
 }
 
+const formatCurrency = (amount: number) => {
+  return INR_CURRENCY_FORMATTER.format(amount);
+};
+
+const renderStatusChip = (status?: string) => {
+  const map: Record<string, { bg: string; text: string; dot: string }> = {
+    Paid: {
+      bg: "bg-green-50 border-green-200",
+      text: "text-[#66BB6A]",
+      dot: "bg-[#66BB6A]",
+    },
+    PAID: {
+      bg: "bg-green-50 border-green-200",
+      text: "text-[#66BB6A]",
+      dot: "bg-[#66BB6A]",
+    },
+    "Partially Paid": {
+      bg: "bg-blue-50 border-blue-200",
+      text: "text-[#0D47A1]",
+      dot: "bg-[#0D47A1]",
+    },
+    PARTIALLY_PAID: {
+      bg: "bg-blue-50 border-blue-200",
+      text: "text-[#0D47A1]",
+      dot: "bg-[#0D47A1]",
+    },
+    Pending: {
+      bg: "bg-amber-50 border-amber-200",
+      text: "text-[#F59E0B]",
+      dot: "bg-[#F59E0B]",
+    },
+    PENDING: {
+      bg: "bg-amber-50 border-amber-200",
+      text: "text-[#F59E0B]",
+      dot: "bg-[#F59E0B]",
+    },
+    Cancelled: {
+      bg: "bg-red-50 border-red-200",
+      text: "text-[#EF4444]",
+      dot: "bg-[#EF4444]",
+    },
+    CANCELLED: {
+      bg: "bg-red-50 border-red-200",
+      text: "text-[#EF4444]",
+      dot: "bg-[#EF4444]",
+    },
+  };
+  const defaultStyle = {
+    bg: "bg-slate-50 border-slate-200",
+    text: "text-slate-600",
+    dot: "bg-slate-400",
+  };
+  const style = (status && map[status]) || defaultStyle;
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${style.bg} ${style.text}`}
+    >
+      <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
+      {status || "Unknown"}
+    </span>
+  );
+};
+
 export function DailyRevenueReportScreen({
   onBack,
 }: {
@@ -455,9 +518,6 @@ export function DailyRevenueReportScreen({
     };
   }, [collectionRateData, revenueDetailsList]);
 
-  const formatCurrency = (amount: number) => {
-    return INR_CURRENCY_FORMATTER.format(amount);
-  };
 
   // Filtered records
   const filteredData = useMemo(() => {
@@ -531,64 +591,6 @@ export function DailyRevenueReportScreen({
   };
 
   // Status Chip helper
-  const renderStatusChip = (status?: string) => {
-    const map: Record<string, { bg: string; text: string; dot: string }> = {
-      Paid: {
-        bg: "bg-green-50 border-green-200",
-        text: "text-[#66BB6A]",
-        dot: "bg-[#66BB6A]",
-      },
-      PAID: {
-        bg: "bg-green-50 border-green-200",
-        text: "text-[#66BB6A]",
-        dot: "bg-[#66BB6A]",
-      },
-      "Partially Paid": {
-        bg: "bg-blue-50 border-blue-200",
-        text: "text-[#0D47A1]",
-        dot: "bg-[#0D47A1]",
-      },
-      PARTIALLY_PAID: {
-        bg: "bg-blue-50 border-blue-200",
-        text: "text-[#0D47A1]",
-        dot: "bg-[#0D47A1]",
-      },
-      Pending: {
-        bg: "bg-amber-50 border-amber-200",
-        text: "text-[#F59E0B]",
-        dot: "bg-[#F59E0B]",
-      },
-      PENDING: {
-        bg: "bg-amber-50 border-amber-200",
-        text: "text-[#F59E0B]",
-        dot: "bg-[#F59E0B]",
-      },
-      Cancelled: {
-        bg: "bg-red-50 border-red-200",
-        text: "text-[#EF4444]",
-        dot: "bg-[#EF4444]",
-      },
-      CANCELLED: {
-        bg: "bg-red-50 border-red-200",
-        text: "text-[#EF4444]",
-        dot: "bg-[#EF4444]",
-      },
-    };
-    const defaultStyle = {
-      bg: "bg-slate-50 border-slate-200",
-      text: "text-slate-600",
-      dot: "bg-slate-400",
-    };
-    const style = (status && map[status]) || defaultStyle;
-    return (
-      <span
-        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${style.bg} ${style.text}`}
-      >
-        <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
-        {status || "Unknown"}
-      </span>
-    );
-  };
 
   return (
     <div
@@ -601,19 +603,19 @@ export function DailyRevenueReportScreen({
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
-                <span
+                <button type="button"
                   className="hover:text-[#0D47A1] cursor-pointer"
                   onClick={onBack}
                 >
                   Hospital
-                </span>
+                </button>
                 <ChevronRight className="w-3.5 h-3.5" />
-                <span
+                <button type="button"
                   className="hover:text-[#0D47A1] cursor-pointer"
                   onClick={onBack}
                 >
                   Reports
-                </span>
+                </button>
                 <ChevronRight className="w-3.5 h-3.5" />
                 <span className="text-[#0D47A1] font-semibold">
                   Daily Revenue Report
@@ -688,7 +690,7 @@ export function DailyRevenueReportScreen({
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
-            <input
+            <input aria-label="Input field"
               type="text"
               value={state.searchQuery}
               onChange={(e) =>
@@ -720,10 +722,10 @@ export function DailyRevenueReportScreen({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Date Range
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={dateRange}
                 onChange={(e) =>
                   dispatch({
@@ -737,14 +739,14 @@ export function DailyRevenueReportScreen({
                 <option>Yesterday</option>
                 <option>Last 7 Days</option>
                 <option>This Month</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Department
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={deptFilter}
                 onChange={(e) =>
                   dispatch({
@@ -761,14 +763,14 @@ export function DailyRevenueReportScreen({
                 <option>Neurology</option>
                 <option>ENT</option>
                 <option>Pediatrics</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Doctor
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={doctorFilter}
                 onChange={(e) =>
                   dispatch({
@@ -784,14 +786,14 @@ export function DailyRevenueReportScreen({
                 <option>Dr. Priya Sharma</option>
                 <option>Dr. Arjun Mehta</option>
                 <option>Dr. Sunita Patel</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Payment Status
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={paymentStatusFilter}
                 onChange={(e) =>
                   dispatch({
@@ -809,14 +811,14 @@ export function DailyRevenueReportScreen({
                 <option>Partially Paid</option>
                 <option>Pending</option>
                 <option>Cancelled</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Payment Method
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={paymentMethodFilter}
                 onChange={(e) =>
                   dispatch({
@@ -834,14 +836,14 @@ export function DailyRevenueReportScreen({
                 <option>Card</option>
                 <option>UPI</option>
                 <option>Bank Transfer</option>
-              </select>
+              </select></span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Report Period
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={reportPeriodFilter}
                 onChange={(e) =>
                   dispatch({
@@ -857,7 +859,7 @@ export function DailyRevenueReportScreen({
                 <option>Daily</option>
                 <option>Weekly</option>
                 <option>Monthly</option>
-              </select>
+              </select></span>
             </div>
           </div>
 
@@ -894,7 +896,7 @@ export function DailyRevenueReportScreen({
             {appliedFilters.dateRange !== "Today" && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-[#0D47A1] border border-blue-200 font-medium">
                 Period: {appliedFilters.dateRange}
-                <button
+                <button aria-label="Filter"
                   onClick={() => {
                     dispatch({
                       type: "SET_FILTER",
@@ -914,7 +916,7 @@ export function DailyRevenueReportScreen({
             {appliedFilters.dept !== "All Departments" && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-teal-50 text-[#009688] border border-teal-200 font-medium">
                 Dept: {appliedFilters.dept}
-                <button
+                <button aria-label="Filter"
                   onClick={() => {
                     dispatch({
                       type: "SET_FILTER",
@@ -934,7 +936,7 @@ export function DailyRevenueReportScreen({
             {appliedFilters.doctor !== "All Doctors" && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-[#66BB6A] border border-emerald-200 font-medium">
                 Doctor: {appliedFilters.doctor}
-                <button
+                <button aria-label="Filter"
                   onClick={() => {
                     dispatch({
                       type: "SET_FILTER",
@@ -954,7 +956,7 @@ export function DailyRevenueReportScreen({
             {appliedFilters.paymentStatus !== "All Statuses" && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-[#F59E0B] border border-amber-200 font-medium">
                 Status: {appliedFilters.paymentStatus}
-                <button
+                <button aria-label="Filter"
                   onClick={() => {
                     dispatch({
                       type: "SET_FILTER",
@@ -977,7 +979,7 @@ export function DailyRevenueReportScreen({
             {appliedFilters.paymentMethod !== "All Methods" && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-medium">
                 Method: {appliedFilters.paymentMethod}
-                <button
+                <button aria-label="Filter"
                   onClick={() => {
                     dispatch({
                       type: "SET_FILTER",
@@ -1000,7 +1002,7 @@ export function DailyRevenueReportScreen({
             {searchQuery && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-[#111827] border border-slate-300 font-medium">
                 Search: "{searchQuery}"
-                <button
+                <button aria-label="Action"
                   onClick={() => dispatch({ type: "SET_SEARCH", payload: "" })}
                   className="hover:text-red-500 font-bold ml-1"
                 >
@@ -1684,7 +1686,7 @@ export function DailyRevenueReportScreen({
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-[#F1F5F9] text-[11px] font-bold text-[#64748B] uppercase tracking-wider border-b border-[#E5E7EB]">
-                        <th
+                        <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
                           className="py-3.5 px-4 cursor-pointer hover:text-[#0D47A1]"
                           onClick={() => handleSort("id")}
                         >
@@ -1692,7 +1694,7 @@ export function DailyRevenueReportScreen({
                           {sortField === "id" &&
                             (sortOrder === "asc" ? "â†‘" : "â†“")}
                         </th>
-                        <th
+                        <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
                           className="py-3.5 px-4 cursor-pointer hover:text-[#0D47A1]"
                           onClick={() => handleSort("patientName")}
                         >
@@ -1703,7 +1705,7 @@ export function DailyRevenueReportScreen({
                         <th className="py-3.5 px-4">MRN</th>
                         <th className="py-3.5 px-4">Doctor</th>
                         <th className="py-3.5 px-4">Department</th>
-                        <th
+                        <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
                           className="py-3.5 px-4 text-right cursor-pointer hover:text-[#0D47A1]"
                           onClick={() => handleSort("invoiceAmount")}
                         >
@@ -1799,7 +1801,7 @@ export function DailyRevenueReportScreen({
                     entries
                   </span>
                   <div className="flex items-center gap-2">
-                    <button
+                    <button aria-label="Previous"
                       disabled
                       className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
                     >
@@ -1808,7 +1810,7 @@ export function DailyRevenueReportScreen({
                     <span className="font-semibold text-[#111827]">
                       Page 1 of 1
                     </span>
-                    <button
+                    <button aria-label="Next"
                       disabled
                       className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
                     >
@@ -1840,7 +1842,7 @@ export function DailyRevenueReportScreen({
       {/* ENTERPRISE EXPORT REPORT MODAL */}
       {showExportModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] max-w-md w-full p-6 shadow-2xl relative animate-in fade-in zoom-in duration-150">
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] max-w-md w-full p-6 shadow-2xl relative transition-opacity duration-150">
             <div className="flex items-center justify-between pb-3 border-b border-[#E5E7EB] mb-4">
               <h3
                 className="text-base font-bold text-[#111827]"
@@ -1863,12 +1865,12 @@ export function DailyRevenueReportScreen({
 
             <div className="space-y-4 text-xs" style={{ fontFamily: RB }}>
               <div>
-                <label
+                <span
                   className="block font-semibold text-[#111827] mb-2"
                   style={{ fontFamily: PP }}
                 >
                   Export Format
-                </label>
+                </span>
                 <div className="grid grid-cols-3 gap-2">
                   <label
                     className={`flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition ${exportFormat === "pdf" ? "bg-blue-50 border-[#0D47A1] text-[#0D47A1] font-semibold" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
@@ -1928,12 +1930,12 @@ export function DailyRevenueReportScreen({
               </div>
 
               <div>
-                <label
+                <span
                   className="block font-semibold text-[#111827] mb-2"
                   style={{ fontFamily: PP }}
                 >
                   Export Scope
-                </label>
+                </span>
                 <div className="grid grid-cols-3 gap-2">
                   <label className="flex items-center gap-2">
                     <input
@@ -1988,12 +1990,12 @@ export function DailyRevenueReportScreen({
 
               {exportFormat !== "csv" && (
                 <div>
-                  <label
+                  <span
                     className="block font-semibold text-[#111827] mb-2"
                     style={{ fontFamily: PP }}
                   >
                     Include Options
-                  </label>
+                  </span>
                   <div className="grid grid-cols-2 gap-2">
                     <label className="flex items-center gap-2">
                       <input
@@ -2076,12 +2078,12 @@ export function DailyRevenueReportScreen({
               )}
 
               <div>
-                <label
+                <span
                   className="block font-semibold text-[#111827] mb-1"
                   style={{ fontFamily: PP }}
                 >
                   File Name
-                </label>
+                </span>
                 <div className="p-2.5 bg-slate-50 border border-[#E5E7EB] rounded-xl font-mono text-xs text-[#0D47A1] font-semibold">
                   Daily_Revenue_Report_{dateRange.replace(/\s+/g, "_")}.
                   {exportFormat === "excel" ? "xlsx" : exportFormat}

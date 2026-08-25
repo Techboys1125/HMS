@@ -226,6 +226,9 @@ function safeNumber(val: unknown, fallback = 0): number {
   return fallback;
 }
 
+const formatCurrency = (amount: number) =>
+  INR_CURRENCY_FORMATTER.format(amount);
+
 export function AdminReportsDashboardScreen({
   onOpenReport,
 }: {
@@ -732,7 +735,6 @@ export function AdminReportsDashboardScreen({
     }
   };
 
-  const formatCurrency = (amount: number) => INR_CURRENCY_FORMATTER.format(amount);
 
   return (
     <div
@@ -817,7 +819,7 @@ export function AdminReportsDashboardScreen({
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
-            <input
+            <input aria-label="Input field"
               type="text"
               value={searchQuery}
               onChange={(e) =>
@@ -847,7 +849,7 @@ export function AdminReportsDashboardScreen({
         {!isDataLoading && !isDataError && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
             {/* Card 1: Daily Appointments */}
-            <div
+            <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
               onClick={() => navigate(ROUTES.APPOINTMENTS)}
               className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
             >
@@ -896,7 +898,7 @@ export function AdminReportsDashboardScreen({
             </div>
 
             {/* Card 2: Patient Registrations */}
-            <div
+            <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
               onClick={() => navigate(ROUTES.PATIENTS)}
               className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
             >
@@ -945,7 +947,7 @@ export function AdminReportsDashboardScreen({
             </div>
 
             {/* Card 3: Daily Revenue */}
-            <div
+            <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
               onClick={() => navigate(ROUTES.BILLING)}
               className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
             >
@@ -988,7 +990,7 @@ export function AdminReportsDashboardScreen({
             </div>
 
             {/* Card 4: Invoices Summary */}
-            <div
+            <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
               onClick={() => navigate(ROUTES.BILLING)}
               className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
             >
@@ -1039,7 +1041,7 @@ export function AdminReportsDashboardScreen({
             </div>
 
             {/* Card 5: Doctor Performance */}
-            <div
+            <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
               onClick={() => navigate(ROUTES.DOCTORS)}
               className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
             >
@@ -1088,7 +1090,7 @@ export function AdminReportsDashboardScreen({
             </div>
 
             {/* Card 6: Collection Rate Circular */}
-            <div
+            <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
               onClick={() => navigate(ROUTES.BILLING)}
               className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between cursor-pointer group"
             >
@@ -1141,10 +1143,10 @@ export function AdminReportsDashboardScreen({
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Date Range
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={dateRangeFilter}
                 onChange={(e) =>
                   dispatch({
@@ -1160,13 +1162,13 @@ export function AdminReportsDashboardScreen({
                 <option>Last 30 Days</option>
                 <option>This Month</option>
                 <option>Last Quarter</option>
-              </select>
+              </select></span>
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Department
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={deptFilter}
                 onChange={(e) =>
                   dispatch({
@@ -1184,13 +1186,13 @@ export function AdminReportsDashboardScreen({
                 <option>Neurology</option>
                 <option>ENT</option>
                 <option>Pediatrics</option>
-              </select>
+              </select></span>
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Doctor
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={doctorFilter}
                 onChange={(e) =>
                   dispatch({
@@ -1206,13 +1208,13 @@ export function AdminReportsDashboardScreen({
                 <option>Dr. Bessie Cooper</option>
                 <option>Dr. Cody Fisher</option>
                 <option>Dr. Dianne Russell</option>
-              </select>
+              </select></span>
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Visit Type
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={visitTypeFilter}
                 onChange={(e) =>
                   dispatch({
@@ -1226,13 +1228,13 @@ export function AdminReportsDashboardScreen({
                 <option>All Visit Types</option>
                 <option>New</option>
                 <option>Follow-up</option>
-              </select>
+              </select></span>
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Appointment Status
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={statusFilter}
                 onChange={(e) =>
                   dispatch({
@@ -1247,7 +1249,7 @@ export function AdminReportsDashboardScreen({
                 <option>Completed</option>
                 <option>Pending Audit</option>
                 <option>Archived</option>
-              </select>
+              </select></span>
             </div>
           </div>
           <div className="flex items-center justify-end gap-3 mt-4 pt-3 border-t border-[#E5E7EB]">
@@ -1285,7 +1287,7 @@ export function AdminReportsDashboardScreen({
               {appliedFilters.dateRange !== "Today" && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-[#0D47A1] border border-blue-200 font-medium">
                   Date: {appliedFilters.dateRange}
-                  <button
+                  <button aria-label="Filter"
                     onClick={() => {
                       dispatch({
                         type: "SET_FILTER",
@@ -1306,7 +1308,7 @@ export function AdminReportsDashboardScreen({
               {appliedFilters.dept !== "All Departments" && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-teal-50 text-[#009688] border border-teal-200 font-medium">
                   Dept: {appliedFilters.dept}
-                  <button
+                  <button aria-label="Filter"
                     onClick={() => {
                       dispatch({
                         type: "SET_FILTER",
@@ -1327,7 +1329,7 @@ export function AdminReportsDashboardScreen({
               {appliedFilters.doctor !== "All Doctors" && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-[#66BB6A] border border-emerald-200 font-medium">
                   Doctor: {appliedFilters.doctor}
-                  <button
+                  <button aria-label="Filter"
                     onClick={() => {
                       dispatch({
                         type: "SET_FILTER",
@@ -1348,7 +1350,7 @@ export function AdminReportsDashboardScreen({
               {appliedFilters.visitType !== "All Visit Types" && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-[#F59E0B] border border-amber-200 font-medium">
                   Visit: {appliedFilters.visitType}
-                  <button
+                  <button aria-label="Filter"
                     onClick={() => {
                       dispatch({
                         type: "SET_FILTER",
@@ -1372,7 +1374,7 @@ export function AdminReportsDashboardScreen({
               {appliedFilters.status !== "All Statuses" && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-50 text-[#0D47A1] border border-indigo-200 font-medium">
                   Status: {appliedFilters.status}
-                  <button
+                  <button aria-label="Filter"
                     onClick={() => {
                       dispatch({
                         type: "SET_FILTER",
@@ -1393,7 +1395,7 @@ export function AdminReportsDashboardScreen({
               {state.searchQuery && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-[#111827] border border-slate-300 font-medium">
                   Search: "{state.searchQuery}"
-                  <button
+                  <button aria-label="Action"
                     onClick={() =>
                       dispatch({ type: "SET_SEARCH", payload: "" })
                     }
@@ -1955,7 +1957,7 @@ export function AdminReportsDashboardScreen({
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-[#F1F5F9] text-[11px] font-bold text-[#64748B] uppercase tracking-wider border-b border-[#E5E7EB]">
-                        <th
+                        <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
                           className="py-3.5 px-4 cursor-pointer hover:text-[#0D47A1]"
                           onClick={() => handleSort("doctorName")}
                         >
@@ -1964,7 +1966,7 @@ export function AdminReportsDashboardScreen({
                             (sortOrder === "asc" ? "↑" : "↓")}
                         </th>
                         <th className="py-3.5 px-4">Department</th>
-                        <th
+                        <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
                           className="py-3.5 px-4 text-center cursor-pointer hover:text-[#0D47A1]"
                           onClick={() => handleSort("appointments")}
                         >
@@ -1974,7 +1976,7 @@ export function AdminReportsDashboardScreen({
                         </th>
                         <th className="py-3.5 px-4 text-center">Completed</th>
                         <th className="py-3.5 px-4 text-center">Cancelled</th>
-                        <th
+                        <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
                           className="py-3.5 px-4 text-right cursor-pointer hover:text-[#0D47A1]"
                           onClick={() => handleSort("revenue")}
                         >
@@ -2065,7 +2067,7 @@ export function AdminReportsDashboardScreen({
                 <div className="p-4 bg-[#F1F5F9] border-t border-[#E5E7EB] flex items-center justify-between text-xs text-[#64748B]">
                   <span>Showing 1 to 5 of 5 doctor records</span>
                   <div className="flex items-center gap-2">
-                    <button
+                    <button aria-label="Previous"
                       disabled
                       className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
                     >
@@ -2074,7 +2076,7 @@ export function AdminReportsDashboardScreen({
                     <span className="font-semibold text-[#111827]">
                       Page 1 of 1
                     </span>
-                    <button
+                    <button aria-label="Next"
                       disabled
                       className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
                     >
@@ -2108,8 +2110,8 @@ export function AdminReportsDashboardScreen({
       {/* REPORT MODAL PREVIEW */}
       {selectedReportModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] max-w-xl w-full p-6 shadow-2xl relative animate-in fade-in zoom-in duration-200">
-            <button
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] max-w-xl w-full p-6 shadow-2xl relative transition-opacity duration-200">
+            <button aria-label="Action"
               onClick={() => setSelectedReportModal(null)}
               className="absolute top-4 right-4 p-1 rounded-lg text-[#64748B] hover:text-[#111827] hover:bg-slate-100 transition"
             >
@@ -2184,7 +2186,7 @@ export function AdminReportsDashboardScreen({
       {/* ENTERPRISE EXPORT REPORT MODAL */}
       {showExportModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] max-w-md w-full p-6 shadow-2xl relative animate-in fade-in zoom-in duration-150">
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] max-w-md w-full p-6 shadow-2xl relative transition-opacity duration-150">
             <div className="flex items-center justify-between pb-3 border-b border-[#E5E7EB] mb-4">
               <h3
                 className="text-base font-bold text-[#111827]"
@@ -2192,7 +2194,7 @@ export function AdminReportsDashboardScreen({
               >
                 Export Report
               </h3>
-              <button
+              <button aria-label="Download"
                 onClick={() => setShowExportModal(false)}
                 className="p-1 rounded-lg text-[#64748B] hover:text-[#111827] hover:bg-slate-100 transition"
               >
@@ -2201,12 +2203,12 @@ export function AdminReportsDashboardScreen({
             </div>
             <div className="space-y-4 text-xs" style={{ fontFamily: RB }}>
               <div>
-                <label
+                <span
                   className="block font-semibold text-[#111827] mb-2"
                   style={{ fontFamily: PP }}
                 >
                   Export Format
-                </label>
+                </span>
                 <div className="grid grid-cols-3 gap-2">
                   <label
                     className={`flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition ${exportFormat === "pdf" ? "bg-blue-50 border-[#0D47A1] text-[#0D47A1] font-semibold" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
@@ -2250,12 +2252,12 @@ export function AdminReportsDashboardScreen({
                 </div>
               </div>
               <div>
-                <label
+                <span
                   className="block font-semibold text-[#111827] mb-2"
                   style={{ fontFamily: PP }}
                 >
                   Report Scope
-                </label>
+                </span>
                 <div className="space-y-1.5">
                   <label className="flex items-center gap-2">
                     <input
@@ -2294,12 +2296,12 @@ export function AdminReportsDashboardScreen({
               </div>
               {exportFormat !== "csv" && (
                 <div>
-                  <label
+                  <span
                     className="block font-semibold text-[#111827] mb-2"
                     style={{ fontFamily: PP }}
                   >
                     Include Options
-                  </label>
+                  </span>
                   <div className="grid grid-cols-2 gap-2">
                     <label className="flex items-center gap-2">
                       <input
@@ -2361,12 +2363,12 @@ export function AdminReportsDashboardScreen({
                 </div>
               )}
               <div>
-                <label
+                <span
                   className="block font-semibold text-[#111827] mb-1"
                   style={{ fontFamily: PP }}
                 >
                   File Name
-                </label>
+                </span>
                 <div className="p-2.5 bg-slate-50 border border-[#E5E7EB] rounded-xl font-mono text-xs text-[#0D47A1] font-semibold">
                   {getAutoGeneratedFileName()}
                 </div>

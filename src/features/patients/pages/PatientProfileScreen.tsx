@@ -33,6 +33,71 @@ import {
 import { useAuthStore } from "../../auth/store/auth.store";
 import { can, type Role } from "../utils/patientPermissions";
 
+const PATIENT_PROFILE_TABS = [
+  {
+    id: "overview" as const,
+    label: "Overview",
+    action: "viewProfile" as const,
+  },
+  {
+    id: "appointments" as const,
+    label: "Appointments",
+    action: "viewAppointments" as const,
+  },
+  {
+    id: "visits" as const,
+    label: "Visit History",
+    action: "viewAppointments" as const,
+  },
+  {
+    id: "billing" as const,
+    label: "Billing",
+    action: "viewBilling" as const,
+  },
+  {
+    id: "documents" as const,
+    label: "Documents",
+    action: "viewProfile" as const,
+  },
+];
+
+const getStatusChipVariant = (status: string) => {
+  switch (status) {
+    case "Scheduled":
+    case "CONFIRMED":
+      return "info";
+    case "Checked-In":
+    case "Waiting for Vitals":
+      return "teal";
+    case "Waiting":
+    case "Waiting for Doctor":
+      return "warning";
+    case "Completed":
+      return "success";
+    case "Cancelled":
+      return "error";
+    case "Paid":
+      return "success";
+    case "Pending":
+      return "warning";
+    default:
+      return "default";
+  }
+};
+
+const formatDisplayDate = (dateStr: string) => {
+  if (!dateStr) return "—";
+  try {
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  } catch {
+    return dateStr;
+  }
+};
+
 export function PatientProfileScreen({
   onBack,
   onEditPatient,
@@ -106,9 +171,7 @@ export function PatientProfileScreen({
       } catch {
         if (!cancelled) setError("Failed to load patient data");
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     }
 
@@ -248,42 +311,7 @@ export function PatientProfileScreen({
     billingPage * billingPageSize,
   );
 
-  const getStatusChipVariant = (status: string) => {
-    switch (status) {
-      case "Scheduled":
-      case "CONFIRMED":
-        return "info";
-      case "Checked-In":
-      case "Waiting for Vitals":
-        return "teal";
-      case "Waiting":
-      case "Waiting for Doctor":
-        return "warning";
-      case "Completed":
-        return "success";
-      case "Cancelled":
-        return "error";
-      case "Paid":
-        return "success";
-      case "Pending":
-        return "warning";
-      default:
-        return "default";
-    }
-  };
 
-  const formatDisplayDate = (dateStr: string) => {
-    if (!dateStr) return "—";
-    try {
-      return new Date(dateStr).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    } catch {
-      return dateStr;
-    }
-  };
 
   const userRole = useAuthStore((s) => s.user?.role);
   const normalizedRole: Role =
@@ -299,35 +327,7 @@ export function PatientProfileScreen({
               ? "DOCTOR"
               : "ADMIN";
 
-  const allTabs = [
-    {
-      id: "overview" as const,
-      label: "Overview",
-      action: "viewProfile" as const,
-    },
-    {
-      id: "appointments" as const,
-      label: "Appointments",
-      action: "viewAppointments" as const,
-    },
-    {
-      id: "visits" as const,
-      label: "Visit History",
-      action: "viewAppointments" as const,
-    },
-    {
-      id: "billing" as const,
-      label: "Billing",
-      action: "viewBilling" as const,
-    },
-    {
-      id: "documents" as const,
-      label: "Documents",
-      action: "viewProfile" as const,
-    },
-  ];
-
-  const tabs = allTabs.filter((t) => can(normalizedRole, t.action));
+  const tabs = PATIENT_PROFILE_TABS.filter((t) => can(normalizedRole, t.action));
 
   if (loading) {
     return (
@@ -374,7 +374,7 @@ export function PatientProfileScreen({
         {/* ── HEADER & BREADCRUMBS ── */}
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <button
+            <button aria-label="Previous"
               onClick={onBack}
               className="p-1.5 -ml-1.5 text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors"
             >
@@ -751,12 +751,33 @@ export function PatientProfileScreen({
                           >
                             <div>
                               <div className="font-bold text-[#111827] text-xs">
-                                {typeof a.doctor === "object" && a.doctor !== null
-                                  ? (a.doctor as { fullName?: string; name?: string; doctorName?: string }).fullName ||
-                                    (a.doctor as { fullName?: string; name?: string; doctorName?: string }).name ||
-                                    (a.doctor as { fullName?: string; name?: string; doctorName?: string }).doctorName ||
+                                {typeof a.doctor === "object" &&
+                                a.doctor !== null
+                                  ? (
+                                      a.doctor as {
+                                        fullName?: string;
+                                        name?: string;
+                                        doctorName?: string;
+                                      }
+                                    ).fullName ||
+                                    (
+                                      a.doctor as {
+                                        fullName?: string;
+                                        name?: string;
+                                        doctorName?: string;
+                                      }
+                                    ).name ||
+                                    (
+                                      a.doctor as {
+                                        fullName?: string;
+                                        name?: string;
+                                        doctorName?: string;
+                                      }
+                                    ).doctorName ||
                                     "Doctor"
-                                  : String(a.doctor || a.doctorName || "Doctor")}
+                                  : String(
+                                      a.doctor || a.doctorName || "Doctor",
+                                    )}
                               </div>
                               <div className="text-[11px] text-slate-500">
                                 {typeof a.department === "object"
@@ -838,12 +859,35 @@ export function PatientProfileScreen({
                                 item.id || item.appointmentId || "",
                               );
                               const doctorName =
-                                typeof item.doctor === "object" && item.doctor !== null
-                                  ? (item.doctor as { fullName?: string; name?: string; doctorName?: string }).fullName ||
-                                    (item.doctor as { fullName?: string; name?: string; doctorName?: string }).name ||
-                                    (item.doctor as { fullName?: string; name?: string; doctorName?: string }).doctorName ||
+                                typeof item.doctor === "object" &&
+                                item.doctor !== null
+                                  ? (
+                                      item.doctor as {
+                                        fullName?: string;
+                                        name?: string;
+                                        doctorName?: string;
+                                      }
+                                    ).fullName ||
+                                    (
+                                      item.doctor as {
+                                        fullName?: string;
+                                        name?: string;
+                                        doctorName?: string;
+                                      }
+                                    ).name ||
+                                    (
+                                      item.doctor as {
+                                        fullName?: string;
+                                        name?: string;
+                                        doctorName?: string;
+                                      }
+                                    ).doctorName ||
                                     "Doctor"
-                                   : String(item.doctor || item.doctorName || "Doctor");
+                                  : String(
+                                      item.doctor ||
+                                        item.doctorName ||
+                                        "Doctor",
+                                    );
                               const deptName =
                                 typeof item.department === "object"
                                   ? (
@@ -974,7 +1018,7 @@ export function PatientProfileScreen({
                               const doctorName =
                                 typeof v.doctor === "object"
                                   ? (v.doctor as { name?: string }).name
-                                   : String(v.doctor || v.doctorName || "—");
+                                  : String(v.doctor || v.doctorName || "—");
                               const deptName =
                                 typeof v.department === "object"
                                   ? (

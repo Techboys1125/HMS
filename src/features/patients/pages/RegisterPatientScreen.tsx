@@ -793,7 +793,7 @@ export function RegisterPatientScreen({
                     <label className={labelBase}>
                       Relationship to Account Holder{" "}
                       <span className="text-red-500">*</span>
-                    </label>
+                    
                     <select
                       value={form.relationship}
                       onChange={(e) => set("relationship", e.target.value)}
@@ -810,7 +810,7 @@ export function RegisterPatientScreen({
                       <option value="SON">Son</option>
                       <option value="DAUGHTER">Daughter</option>
                       <option value="OTHER">Other</option>
-                    </select>
+                    </select></label>
                     {fieldError("relationship")}
                   </div>
                 )}
@@ -818,7 +818,7 @@ export function RegisterPatientScreen({
                 <div className="md:col-span-2">
                   <label className={labelBase}>
                     Full Name <span className="text-red-500">*</span>
-                  </label>
+                  
                   <input
                     type="text"
                     value={form.fullName}
@@ -826,14 +826,14 @@ export function RegisterPatientScreen({
                     onBlur={() => markTouched("fullName")}
                     placeholder="e.g. Eleanor Vance"
                     className={fClass("fullName")}
-                  />
+                  /></label>
                   {fieldError("fullName")}
                 </div>
 
                 <div>
                   <label className={labelBase}>
                     Gender <span className="text-red-500">*</span>
-                  </label>
+                  
                   <select
                     value={form.gender}
                     onChange={(e) => set("gender", e.target.value)}
@@ -845,21 +845,21 @@ export function RegisterPatientScreen({
                         {g.label}
                       </option>
                     ))}
-                  </select>
+                  </select></label>
                   {fieldError("gender")}
                 </div>
 
                 <div>
                   <label className={labelBase}>
                     Date of Birth <span className="text-red-500">*</span>
-                  </label>
+                  
                   <CustomDatePicker
                     value={form.dateOfBirth}
                     onChange={(val) => set("dateOfBirth", val)}
                     maxDate={todayStr}
                     error={touched.dateOfBirth ? errors.dateOfBirth : undefined}
                     inputClassName={fClass("dateOfBirth")}
-                  />
+                  /></label>
                 </div>
 
                 <div>
@@ -868,7 +868,7 @@ export function RegisterPatientScreen({
                     <span className="text-slate-400 font-normal">
                       (Auto Calculated)
                     </span>
-                  </label>
+                  
                   <input
                     type="text"
                     value={
@@ -878,13 +878,13 @@ export function RegisterPatientScreen({
                     }
                     disabled
                     className={inputDisabled}
-                  />
+                  /></label>
                 </div>
 
                 <div>
                   <label className={labelBase}>
                     Mobile Number <span className="text-red-500">*</span>
-                  </label>
+                  
                   <input
                     type="tel"
                     value={form.mobileNumber}
@@ -892,12 +892,12 @@ export function RegisterPatientScreen({
                     onBlur={() => markTouched("mobileNumber")}
                     placeholder="+91 98765 43210"
                     className={fClass("mobileNumber")}
-                  />
+                  /></label>
                   {fieldError("mobileNumber")}
                 </div>
 
                 <div>
-                  <label className={labelBase}>Email Address</label>
+                  <label className={labelBase}>Email Address
                   <input
                     type="email"
                     value={form.email}
@@ -905,12 +905,12 @@ export function RegisterPatientScreen({
                     onBlur={() => markTouched("email")}
                     placeholder="patient@example.com"
                     className={fClass("email")}
-                  />
+                  /></label>
                   {fieldError("email")}
                 </div>
 
                 <div>
-                  <label className={labelBase}>Blood Group *</label>
+                  <label className={labelBase}>Blood Group *
                   <select
                     value={form.bloodGroup}
                     onChange={(e) => set("bloodGroup", e.target.value)}
@@ -924,11 +924,11 @@ export function RegisterPatientScreen({
                         {bg.label}
                       </option>
                     ))}
-                  </select>
+                  </select></label>
                 </div>
 
                 <div>
-                  <label className={labelBase}>Marital Status</label>
+                  <label className={labelBase}>Marital Status
                   <select
                     value={form.maritalStatus}
                     onChange={(e) => set("maritalStatus", e.target.value)}
@@ -942,18 +942,18 @@ export function RegisterPatientScreen({
                         {ms.label}
                       </option>
                     ))}
-                  </select>
+                  </select></label>
                 </div>
 
                 <div>
-                  <label className={labelBase}>Aadhar Number</label>
+                  <label className={labelBase}>Aadhar Number
                   <input
                     type="text"
                     value={form.nationalId}
                     onChange={(e) => set("nationalId", e.target.value)}
                     placeholder="Aadhar Number"
                     className={inputBase}
-                  />
+                  /></label>
                 </div>
               </div>
             </div>
@@ -968,40 +968,40 @@ export function RegisterPatientScreen({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                 <div className="md:col-span-2">
-                  <label className={labelBase}>Address Line 1</label>
+                  <label className={labelBase}>Address Line 1
                   <input
                     type="text"
                     value={form.addressLine1}
                     onChange={(e) => set("addressLine1", e.target.value)}
                     placeholder="House / Flat No., Building, Street"
                     className={inputBase}
-                  />
+                  /></label>
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className={labelBase}>Address Line 2</label>
+                  <label className={labelBase}>Address Line 2
                   <input
                     type="text"
                     value={form.addressLine2}
                     onChange={(e) => set("addressLine2", e.target.value)}
                     placeholder="Landmark, Cross Street"
                     className={inputBase}
-                  />
+                  /></label>
                 </div>
 
                 <div>
-                  <label className={labelBase}>City</label>
+                  <label className={labelBase}>City
                   <input
                     type="text"
                     value={form.city}
                     onChange={(e) => set("city", e.target.value)}
                     placeholder="City Name"
                     className={inputBase}
-                  />
+                  /></label>
                 </div>
 
                 <div>
-                  <label className={labelBase}>State</label>
+                  <label className={labelBase}>State
                   <select
                     value={form.state}
                     onChange={(e) => set("state", e.target.value)}
@@ -1013,11 +1013,11 @@ export function RegisterPatientScreen({
                         {s}
                       </option>
                     ))}
-                  </select>
+                  </select></label>
                 </div>
 
                 <div>
-                  <label className={labelBase}>Pincode</label>
+                  <label className={labelBase}>Pincode
                   <input
                     type="text"
                     value={form.pincode}
@@ -1026,18 +1026,18 @@ export function RegisterPatientScreen({
                     placeholder="6-digit Pincode"
                     maxLength={6}
                     className={fClass("pincode")}
-                  />
+                  /></label>
                   {fieldError("pincode")}
                 </div>
 
                 <div>
-                  <label className={labelBase}>Country</label>
+                  <label className={labelBase}>Country
                   <input
                     type="text"
                     value={form.country}
                     onChange={(e) => set("country", e.target.value)}
                     className={inputBase}
-                  />
+                  /></label>
                 </div>
               </div>
             </div>
@@ -1052,18 +1052,18 @@ export function RegisterPatientScreen({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                 <div>
-                  <label className={labelBase}>Emergency Contact Name</label>
+                  <label className={labelBase}>Emergency Contact Name
                   <input
                     type="text"
                     value={form.ecName}
                     onChange={(e) => set("ecName", e.target.value)}
                     placeholder="Full name of emergency contact"
                     className={inputBase}
-                  />
+                  /></label>
                 </div>
 
                 <div>
-                  <label className={labelBase}>Relationship</label>
+                  <label className={labelBase}>Relationship
                   <select
                     value={form.ecRelationship}
                     onChange={(e) => set("ecRelationship", e.target.value)}
@@ -1074,31 +1074,31 @@ export function RegisterPatientScreen({
                         {r.label}
                       </option>
                     ))}
-                  </select>
+                  </select></label>
                 </div>
 
                 <div>
-                  <label className={labelBase}>Mobile Number</label>
+                  <label className={labelBase}>Mobile Number
                   <input
                     type="tel"
                     value={form.ecMobile}
                     onChange={(e) => set("ecMobile", e.target.value)}
                     placeholder="+91 98765 00000"
                     className={inputBase}
-                  />
+                  /></label>
                 </div>
 
                 <div>
                   <label className={labelBase}>
                     Alternative Contact Number
-                  </label>
+                  
                   <input
                     type="tel"
                     value={form.ecAltMobile}
                     onChange={(e) => set("ecAltMobile", e.target.value)}
                     placeholder="Landline or Secondary Mobile"
                     className={inputBase}
-                  />
+                  /></label>
                 </div>
               </div>
             </div>
@@ -1116,36 +1116,36 @@ export function RegisterPatientScreen({
 
                 <div className="grid grid-cols-1 gap-y-5">
                   <div>
-                    <label className={labelBase}>Known Allergies</label>
+                    <label className={labelBase}>Known Allergies
                     <input
                       type="text"
                       value={form.knownAllergies}
                       onChange={(e) => set("knownAllergies", e.target.value)}
                       placeholder="e.g. Penicillin, Peanuts, Latex"
                       className={inputBase}
-                    />
+                    /></label>
                   </div>
 
                   <div>
-                    <label className={labelBase}>Chronic Diseases</label>
+                    <label className={labelBase}>Chronic Diseases
                     <input
                       type="text"
                       value={form.chronicDiseases}
                       onChange={(e) => set("chronicDiseases", e.target.value)}
                       placeholder="e.g. Type 2 Diabetes, Hypertension, Asthma"
                       className={inputBase}
-                    />
+                    /></label>
                   </div>
 
                   <div>
-                    <label className={labelBase}>Special Notes</label>
+                    <label className={labelBase}>Special Notes
                     <textarea
                       rows={3}
                       value={form.specialNotes}
                       onChange={(e) => set("specialNotes", e.target.value)}
                       placeholder="e.g. Requires wheelchair assistance, prefers afternoon slots"
                       className={inputBase + " resize-none"}
-                    />
+                    /></label>
                   </div>
                 </div>
               </div>

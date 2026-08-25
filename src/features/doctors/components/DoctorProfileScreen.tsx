@@ -279,6 +279,26 @@ const exceptionFormReducer = (
   }
 };
 
+const isSameWeek = (dateStr: string) => {
+  const d = new Date(dateStr + "T00:00:00");
+  const now = new Date();
+  if (isNaN(d.getTime())) return false;
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - now.getDay());
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 6);
+  return d >= startOfWeek && d <= endOfWeek;
+};
+
+const isSameMonth = (dateStr: string) => {
+  const d = new Date(dateStr + "T00:00:00");
+  const now = new Date();
+  if (isNaN(d.getTime())) return false;
+  return (
+    d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
+  );
+};
+
 export function DoctorProfileScreen({
   doctor,
   doctorId,
@@ -669,25 +689,7 @@ export function DoctorProfileScreen({
     .toUpperCase()
     .slice(0, 2);
 
-  const isSameWeek = (dateStr: string) => {
-    const d = new Date(dateStr + "T00:00:00");
-    const now = new Date();
-    if (isNaN(d.getTime())) return false;
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - now.getDay());
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6);
-    return d >= startOfWeek && d <= endOfWeek;
-  };
 
-  const isSameMonth = (dateStr: string) => {
-    const d = new Date(dateStr + "T00:00:00");
-    const now = new Date();
-    if (isNaN(d.getTime())) return false;
-    return (
-      d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
-    );
-  };
 
   const matchesDateFilter = useCallback(
     (dateStr: string) => {
@@ -978,7 +980,7 @@ export function DoctorProfileScreen({
       style={{ fontFamily: RB }}
     >
       {toastMsg && (
-        <div className="fixed top-5 right-5 z-50 bg-[#111827] text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200">
+        <div className="fixed top-5 right-5 z-50 bg-[#111827] text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 transition-opacity duration-200">
           <CheckCircle2 size={16} className="text-[#66BB6A]" />
           <span>{toastMsg}</span>
         </div>
@@ -1261,7 +1263,7 @@ export function DoctorProfileScreen({
                   <Calendar size={15} className="text-[#0D47A1]" /> Daily Slot
                   Availability
                 </h4>
-                <input
+                <input aria-label="Input field"
                   type="date"
                   value={availDate}
                   onChange={(e) =>
@@ -1376,7 +1378,7 @@ export function DoctorProfileScreen({
                   size={14}
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
                 />
-                <input
+                <input aria-label="Input field"
                   type="text"
                   value={filterState.apptSearch}
                   onChange={(e) =>
@@ -1386,7 +1388,7 @@ export function DoctorProfileScreen({
                   className="w-full pl-9 pr-8 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
                 />
                 {filterState.apptSearch && (
-                  <button
+                  <button aria-label="Close"
                     onClick={() =>
                       dispatch({ type: "SET_APPT_SEARCH", query: "" })
                     }
@@ -1403,7 +1405,7 @@ export function DoctorProfileScreen({
                   <span className="text-slate-500 font-medium">
                     Filter Date:
                   </span>
-                  <select
+                  <select aria-label="Select option"
                     value={filterState.apptDateFilter}
                     onChange={(e) =>
                       dispatch({
@@ -1534,7 +1536,7 @@ export function DoctorProfileScreen({
                 size={14}
                 className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
               />
-              <input
+              <input aria-label="Input field"
                 type="text"
                 value={filterState.patientSearch}
                 onChange={(e) =>
@@ -1547,7 +1549,7 @@ export function DoctorProfileScreen({
                 className="w-full pl-9 pr-8 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
               />
               {filterState.patientSearch && (
-                <button
+                <button aria-label="Close"
                   onClick={() =>
                     dispatch({ type: "SET_PATIENT_SEARCH", query: "" })
                   }
@@ -1721,7 +1723,7 @@ export function DoctorProfileScreen({
                       ? `Edit Exception #${exceptionForm.editingException.id}`
                       : "Create New Exception"}
                   </h4>
-                  <button
+                  <button aria-label="Close"
                     type="button"
                     onClick={() => {
                       exceptionFormDispatch({ type: "CLOSE" });
@@ -1734,10 +1736,10 @@ export function DoctorProfileScreen({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   <div>
-                    <label className="block font-bold text-[#111827] mb-1">
+                    <span className="block font-bold text-[#111827] mb-1">
                       Exception Type
-                    </label>
-                    <select
+                    
+                    <select aria-label="Select option"
                       value={exceptionForm.type}
                       onChange={(e) =>
                         exceptionFormDispatch({
@@ -1754,21 +1756,21 @@ export function DoctorProfileScreen({
                       <option value="SURGERY">Surgery Block</option>
                       <option value="EMERGENCY">Emergency</option>
                       <option value="OTHER">Other</option>
-                    </select>
+                    </select></span>
                   </div>
                   <div>
-                    <label className="block font-bold text-[#111827] mb-1">
+                    <span className="block font-bold text-[#111827] mb-1">
                       Slot Action
-                    </label>
+                    </span>
                     <div className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] font-semibold">
                       Block Appointments
                     </div>
                   </div>
                   <div>
-                    <label className="block font-bold text-[#111827] mb-1">
+                    <span className="block font-bold text-[#111827] mb-1">
                       Start Date
-                    </label>
-                    <input
+                    
+                    <input aria-label="Input field"
                       type="date"
                       value={exceptionForm.startDate}
                       onChange={(e) =>
@@ -1780,13 +1782,13 @@ export function DoctorProfileScreen({
                         })
                       }
                       className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                    />
+                    /></span>
                   </div>
                   <div>
-                    <label className="block font-bold text-[#111827] mb-1">
+                    <span className="block font-bold text-[#111827] mb-1">
                       End Date
-                    </label>
-                    <input
+                    
+                    <input aria-label="Input field"
                       type="date"
                       value={exceptionForm.endDate}
                       onChange={(e) =>
@@ -1798,7 +1800,7 @@ export function DoctorProfileScreen({
                         })
                       }
                       className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                    />
+                    /></span>
                   </div>
                 </div>
 
@@ -1823,9 +1825,9 @@ export function DoctorProfileScreen({
                 {!exceptionForm.fullDay && (
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <div>
-                      <label className="block font-bold text-[#111827] mb-1">
+                      <span className="block font-bold text-[#111827] mb-1">
                         Start Time
-                      </label>
+                      </span>
                       <TimeSelect
                         value={exceptionForm.startTime}
                         onChange={(val) =>
@@ -1839,9 +1841,9 @@ export function DoctorProfileScreen({
                       />
                     </div>
                     <div>
-                      <label className="block font-bold text-[#111827] mb-1">
+                      <span className="block font-bold text-[#111827] mb-1">
                         End Time
-                      </label>
+                      </span>
                       <TimeSelect
                         value={exceptionForm.endTime}
                         onChange={(val) =>
@@ -1858,10 +1860,10 @@ export function DoctorProfileScreen({
                 )}
 
                 <div>
-                  <label className="block font-bold text-[#111827] mb-1 text-xs">
+                  <span className="block font-bold text-[#111827] mb-1 text-xs">
                     Reason
-                  </label>
-                  <textarea
+                  </span>
+                  <textarea aria-label="Text area"
                     rows={2}
                     value={exceptionForm.reason}
                     onChange={(e) =>
@@ -2349,8 +2351,8 @@ export function DoctorProfileScreen({
       </div>
 
       {selectedApptDetail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-[#E5E7EB] p-6 space-y-4 animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs transition-opacity duration-200">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-[#E5E7EB] p-6 space-y-4 transition-transform duration-200">
             <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
               <div className="flex items-center gap-2">
                 <Calendar size={18} className="text-[#0D47A1]" />
@@ -2361,7 +2363,7 @@ export function DoctorProfileScreen({
                   Appointment Details
                 </h3>
               </div>
-              <button
+              <button aria-label="Close"
                 onClick={() => setSelectedApptDetail(null)}
                 className="p-1 text-slate-400 hover:text-slate-600 rounded-lg"
               >

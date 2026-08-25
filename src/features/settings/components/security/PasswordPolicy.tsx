@@ -66,7 +66,7 @@ export function PasswordPolicy() {
               textAlign: "center",
             }}
           >
-            <input
+            <input aria-label="Toggle option"
               type="checkbox"
               checked={
                 passPolicy[item.key as keyof typeof passPolicy] as boolean
@@ -105,7 +105,7 @@ export function PasswordPolicy() {
         }}
       >
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -115,8 +115,8 @@ export function PasswordPolicy() {
             }}
           >
             Minimum Password Length
-          </label>
-          <input
+          
+          <input aria-label="Input field"
             type="number"
             value={passPolicy.minLength}
             onChange={(e) =>
@@ -133,11 +133,11 @@ export function PasswordPolicy() {
               fontSize: "13px",
               boxSizing: "border-box",
             }}
-          />
+          /></span>
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -147,8 +147,8 @@ export function PasswordPolicy() {
             }}
           >
             Password Expiry Duration
-          </label>
-          <select
+          
+          <select aria-label="Select option"
             value={passPolicy.expiryDays}
             onChange={(e) =>
               setPassPolicy((prev) => ({
@@ -170,11 +170,11 @@ export function PasswordPolicy() {
             <option>90 Days</option>
             <option>180 Days</option>
             <option>Never</option>
-          </select>
+          </select></span>
         </div>
 
         <div>
-          <label
+          <span
             style={{
               display: "block",
               fontSize: "12px",
@@ -184,8 +184,8 @@ export function PasswordPolicy() {
             }}
           >
             Password History Restriction
-          </label>
-          <select
+          
+          <select aria-label="Select option"
             value={passPolicy.historyCount}
             onChange={(e) =>
               setPassPolicy((prev) => ({
@@ -205,7 +205,7 @@ export function PasswordPolicy() {
             <option>Remember Last 3 Passwords</option>
             <option>Remember Last 5 Passwords</option>
             <option>Remember Last 10 Passwords</option>
-          </select>
+          </select></span>
         </div>
       </div>
     </div>

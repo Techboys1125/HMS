@@ -47,7 +47,7 @@ export const FollowupForm: React.FC<FollowupFormProps> = ({
 
         {required && (
           <div className="w-full sm:w-auto">
-            <input
+            <input aria-label="Input field"
               type="date"
               value={nextVisitDate}
               onChange={(e) => onChange("nextVisitDate", e.target.value)}
@@ -60,13 +60,13 @@ export const FollowupForm: React.FC<FollowupFormProps> = ({
 
       {required && (
         <div>
-          <label
+          <span
             className="block text-[11px] font-semibold text-[#64748B] mb-1"
             style={{ fontFamily: PP }}
           >
             Follow-Up Notes & Instructions
-          </label>
-          <textarea
+          </span>
+          <textarea aria-label="Text area"
             value={notes}
             onChange={(e) => onChange("followupNotes", e.target.value)}
             placeholder="e.g. Review ECG & blood reports. Adjust anti-hypertensive dosage if required."

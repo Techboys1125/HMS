@@ -122,6 +122,70 @@ import {
   ResponsiveContainer,
 } from "../../../common/components/recharts-lazy";
 
+ const renderStatusBadge = (status: string) => {
+   const map: Record<string, { bg: string; text: string; dot: string }> = {
+     Paid: {
+       bg: "bg-emerald-50 border-teal-200",
+       text: "text-[#009688]",
+       dot: "bg-[#009688]",
+     },
+     Completed: {
+       bg: "bg-emerald-50 border-teal-200",
+       text: "text-[#009688]",
+       dot: "bg-[#009688]",
+     },
+     "Partially Paid": {
+       bg: "bg-blue-50 border-blue-200",
+       text: "text-[#0D47A1]",
+       dot: "bg-[#0D47A1]",
+     },
+     "Checked-In": {
+       bg: "bg-blue-50 border-blue-200",
+       text: "text-[#0D47A1]",
+       dot: "bg-[#0D47A1]",
+     },
+     "In-Progress": {
+       bg: "bg-blue-50 border-blue-200",
+       text: "text-[#0D47A1]",
+       dot: "bg-[#0D47A1]",
+     },
+     Pending: {
+       bg: "bg-amber-50 border-amber-200",
+       text: "text-[#F59E0B]",
+       dot: "bg-[#F59E0B]",
+     },
+     Scheduled: {
+       bg: "bg-amber-50 border-amber-200",
+       text: "text-[#F59E0B]",
+       dot: "bg-[#F59E0B]",
+     },
+     Cancelled: {
+       bg: "bg-red-50 border-red-200",
+       text: "text-[#EF4444]",
+       dot: "bg-[#EF4444]",
+     },
+     Overdue: {
+       bg: "bg-red-50 border-red-200",
+       text: "text-[#EF4444]",
+       dot: "bg-[#EF4444]",
+     },
+   };
+
+   const style = map[status] || {
+     bg: "bg-slate-50 border-slate-200",
+     text: "text-[#64748B]",
+     dot: "bg-[#64748B]",
+   };
+   return (
+     <span
+       className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${style.bg} ${style.text}`}
+     >
+       <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
+       {status}
+     </span>
+   );
+ };
+
 export function DashboardKpiDetailScreen({
   onBack,
   initialKpi = "Today's Revenue",
@@ -517,69 +581,6 @@ export function DashboardKpiDetailScreen({
   }, [currentDataset, isRevenueKpi, isPendingKpi]);
 
   // Render status badge helper
-  const renderStatusBadge = (status: string) => {
-    const map: Record<string, { bg: string; text: string; dot: string }> = {
-      Paid: {
-        bg: "bg-emerald-50 border-teal-200",
-        text: "text-[#009688]",
-        dot: "bg-[#009688]",
-      },
-      Completed: {
-        bg: "bg-emerald-50 border-teal-200",
-        text: "text-[#009688]",
-        dot: "bg-[#009688]",
-      },
-      "Partially Paid": {
-        bg: "bg-blue-50 border-blue-200",
-        text: "text-[#0D47A1]",
-        dot: "bg-[#0D47A1]",
-      },
-      "Checked-In": {
-        bg: "bg-blue-50 border-blue-200",
-        text: "text-[#0D47A1]",
-        dot: "bg-[#0D47A1]",
-      },
-      "In-Progress": {
-        bg: "bg-blue-50 border-blue-200",
-        text: "text-[#0D47A1]",
-        dot: "bg-[#0D47A1]",
-      },
-      Pending: {
-        bg: "bg-amber-50 border-amber-200",
-        text: "text-[#F59E0B]",
-        dot: "bg-[#F59E0B]",
-      },
-      Scheduled: {
-        bg: "bg-amber-50 border-amber-200",
-        text: "text-[#F59E0B]",
-        dot: "bg-[#F59E0B]",
-      },
-      Cancelled: {
-        bg: "bg-red-50 border-red-200",
-        text: "text-[#EF4444]",
-        dot: "bg-[#EF4444]",
-      },
-      Overdue: {
-        bg: "bg-red-50 border-red-200",
-        text: "text-[#EF4444]",
-        dot: "bg-[#EF4444]",
-      },
-    };
-
-    const style = map[status] || {
-      bg: "bg-slate-50 border-slate-200",
-      text: "text-[#64748B]",
-      dot: "bg-[#64748B]",
-    };
-    return (
-      <span
-        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${style.bg} ${style.text}`}
-      >
-        <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
-        {status}
-      </span>
-    );
-  };
 
   return (
     <div
@@ -592,19 +593,19 @@ export function DashboardKpiDetailScreen({
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
-                <span
+                <button type="button"
                   className="hover:text-[#0D47A1] cursor-pointer"
                   onClick={onBack}
                 >
                   Hospital
-                </span>
+                </button>
                 <ChevronRight className="w-3.5 h-3.5" />
-                <span
+                <button type="button"
                   className="hover:text-[#0D47A1] cursor-pointer"
                   onClick={onBack}
                 >
                   Reports
-                </span>
+                </button>
                 <ChevronRight className="w-3.5 h-3.5" />
                 <span className="text-[#0D47A1] font-semibold">
                   Dashboard KPI Detail
@@ -694,13 +695,13 @@ export function DashboardKpiDetailScreen({
             </div>
 
             <div className="flex items-center gap-2">
-              <label
+              <span
                 className="text-xs font-medium text-[#64748B]"
                 style={{ fontFamily: PP }}
               >
                 Select KPI To Inspect:
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={selectedKpi}
                 onChange={(e) => setSelectedKpi(e.target.value)}
                 className="bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs font-semibold px-3 py-2 text-[#0D47A1] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -711,7 +712,7 @@ export function DashboardKpiDetailScreen({
                 <option>OPD Consultations</option>
                 <option>Completed Consultations</option>
                 <option>Pending Payments</option>
-              </select>
+              </select></span>
             </div>
           </div>
 
@@ -1042,12 +1043,12 @@ export function DashboardKpiDetailScreen({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
             {/* Search Input */}
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Patient Search
-              </label>
+              </span>
               <div className="relative">
                 <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
-                <input
+                <input aria-label="Input field"
                   type="text"
                   value={searchQuery}
                   onChange={(e) =>
@@ -1061,10 +1062,10 @@ export function DashboardKpiDetailScreen({
 
             {/* Date Range */}
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Date Range
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={dateRange}
                 onChange={(e) =>
                   dispatch({
@@ -1079,15 +1080,15 @@ export function DashboardKpiDetailScreen({
                 <option>Yesterday</option>
                 <option>Last 7 Days</option>
                 <option>This Month</option>
-              </select>
+              </select></span>
             </div>
 
             {/* Department */}
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Department
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={deptFilter}
                 onChange={(e) =>
                   dispatch({
@@ -1104,15 +1105,15 @@ export function DashboardKpiDetailScreen({
                 <option>Orthopedics</option>
                 <option>Neurology</option>
                 <option>Pediatrics</option>
-              </select>
+              </select></span>
             </div>
 
             {/* Doctor */}
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Doctor
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 value={doctorFilter}
                 onChange={(e) =>
                   dispatch({
@@ -1129,17 +1130,17 @@ export function DashboardKpiDetailScreen({
                 <option>Dr. Priya Sharma</option>
                 <option>Dr. Arjun Mehta</option>
                 <option>Dr. Sunita Patel</option>
-              </select>
+              </select></span>
             </div>
 
             {/* Dynamic Visit Type Filter */}
             <div>
-              <label
+              <span
                 className={`block text-[11px] font-medium mb-1 ${showVisitTypeFilter ? "text-[#64748B]" : "text-slate-400"}`}
               >
                 Visit Type
-              </label>
-              <select
+              
+              <select aria-label="Select option"
                 disabled={!showVisitTypeFilter}
                 value={visitTypeFilter}
                 onChange={(e) =>
@@ -1156,16 +1157,16 @@ export function DashboardKpiDetailScreen({
                 <option>Follow-up</option>
                 <option>Walk-in</option>
                 <option>Emergency</option>
-              </select>
+              </select></span>
             </div>
 
             {/* Dynamic Payment or Appointment Status Filter */}
             {showAptStatusFilter ? (
               <div>
-                <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+                <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                   Appointment Status
-                </label>
-                <select
+                
+                <select aria-label="Select option"
                   value={aptStatusFilter}
                   onChange={(e) =>
                     dispatch({
@@ -1181,16 +1182,16 @@ export function DashboardKpiDetailScreen({
                   <option>Checked-In</option>
                   <option>Completed</option>
                   <option>Cancelled</option>
-                </select>
+                </select></span>
               </div>
             ) : (
               <div>
-                <label
+                <span
                   className={`block text-[11px] font-medium mb-1 ${showPayStatusFilter ? "text-[#64748B]" : "text-slate-400"}`}
                 >
                   Payment Status
-                </label>
-                <select
+                
+                <select aria-label="Select option"
                   disabled={!showPayStatusFilter}
                   value={payStatusFilter}
                   onChange={(e) =>
@@ -1207,7 +1208,7 @@ export function DashboardKpiDetailScreen({
                   <option>Partially Paid</option>
                   <option>Pending</option>
                   <option>Overdue</option>
-                </select>
+                </select></span>
               </div>
             )}
           </div>
@@ -2004,7 +2005,7 @@ export function DashboardKpiDetailScreen({
                 entries
               </span>
               <div className="flex items-center gap-2">
-                <button
+                <button aria-label="Previous"
                   disabled
                   className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
                 >
@@ -2013,7 +2014,7 @@ export function DashboardKpiDetailScreen({
                 <span className="font-semibold text-[#111827]">
                   Page 1 of 1
                 </span>
-                <button
+                <button aria-label="Next"
                   disabled
                   className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
                 >
@@ -2047,7 +2048,7 @@ export function DashboardKpiDetailScreen({
       {/* ENTERPRISE EXPORT REPORT MODAL WITH PRINT & CHARTS */}
       {showExportModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] max-w-md w-full p-6 shadow-2xl relative animate-in fade-in zoom-in duration-150">
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] max-w-md w-full p-6 shadow-2xl relative transition-opacity duration-150">
             <div className="flex items-center justify-between pb-3 border-b border-[#E5E7EB] mb-4">
               <h3
                 className="text-base font-bold text-[#111827]"
@@ -2055,7 +2056,7 @@ export function DashboardKpiDetailScreen({
               >
                 Export {selectedKpi} Report
               </h3>
-              <button
+              <button aria-label="Download"
                 onClick={() => setShowExportModal(false)}
                 className="p-1 rounded-lg text-[#64748B] hover:text-[#111827] hover:bg-slate-100 transition"
               >
@@ -2065,12 +2066,12 @@ export function DashboardKpiDetailScreen({
 
             <div className="space-y-4 text-xs" style={{ fontFamily: RB }}>
               <div>
-                <label
+                <span
                   className="block font-semibold text-[#111827] mb-2"
                   style={{ fontFamily: PP }}
                 >
                   Export Format
-                </label>
+                </span>
                 <div className="grid grid-cols-3 gap-2">
                   <label
                     className={`flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition ${exportFormat === "pdf" ? "bg-blue-50 border-[#0D47A1] text-[#0D47A1] font-semibold" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
@@ -2115,12 +2116,12 @@ export function DashboardKpiDetailScreen({
               </div>
 
               <div>
-                <label
+                <span
                   className="block font-semibold text-[#111827] mb-2"
                   style={{ fontFamily: PP }}
                 >
                   Export Scope
-                </label>
+                </span>
                 <div className="grid grid-cols-3 gap-2">
                   <label className="flex items-center gap-2">
                     <input
@@ -2160,12 +2161,12 @@ export function DashboardKpiDetailScreen({
 
               {exportFormat !== "csv" && (
                 <div>
-                  <label
+                  <span
                     className="block font-semibold text-[#111827] mb-2"
                     style={{ fontFamily: PP }}
                   >
                     Include Options
-                  </label>
+                  </span>
                   <div className="grid grid-cols-2 gap-2">
                     <label className="flex items-center gap-2">
                       <input
@@ -2228,12 +2229,12 @@ export function DashboardKpiDetailScreen({
               )}
 
               <div>
-                <label
+                <span
                   className="block font-semibold text-[#111827] mb-1"
                   style={{ fontFamily: PP }}
                 >
                   Generated Export File Name
-                </label>
+                </span>
                 <div className="p-2.5 bg-slate-50 border border-[#E5E7EB] rounded-xl font-mono text-xs text-[#0D47A1] font-semibold">
                   {selectedKpi.replace(/[^a-zA-Z0-9]/g, "_")}_Report_
                   {dateRange.replace(/\s+/g, "_")}.
