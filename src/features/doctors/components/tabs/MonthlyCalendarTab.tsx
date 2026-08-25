@@ -45,7 +45,9 @@ export function MonthlyCalendarTab({ doctor }: MonthlyCalendarTabProps) {
       } catch {
         // ignore
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     })();
 

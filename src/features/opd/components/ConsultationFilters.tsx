@@ -21,10 +21,7 @@ export interface ConsultationFiltersProps {
   onApply?: () => void;
   resultCount: number;
   placeholder?: string;
-  showStatusFilter?: boolean;
-  showVisitTypeFilter?: boolean;
-  showDoctorFilter?: boolean;
-  showDepartmentFilter?: boolean;
+  visibleFilters?: Array<"status" | "visitType" | "doctor" | "department">;
   doctorOptions?: Array<{ value: string; label: string }>;
   departmentOptions?: Array<{ value: string; label: string }>;
 }
@@ -46,13 +43,14 @@ export const ConsultationFilters: React.FC<ConsultationFiltersProps> = ({
   onApply,
   resultCount,
   placeholder = "Search by Patient Name, MRN, Consultation ID or Mobile Number...",
-  showStatusFilter = true,
-  showVisitTypeFilter = true,
-  showDoctorFilter = true,
-  showDepartmentFilter = true,
+  visibleFilters = ["status", "visitType", "doctor", "department"],
   doctorOptions = [{ value: "All", label: "All Doctors" }],
   departmentOptions = [{ value: "All", label: "All Departments" }],
 }) => {
+  const hasFilter = (
+    filter: "status" | "visitType" | "doctor" | "department",
+  ) => visibleFilters.includes(filter);
+
   return (
     <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-sm space-y-4">
       <div className="relative">
@@ -97,7 +95,7 @@ export const ConsultationFilters: React.FC<ConsultationFiltersProps> = ({
           </span>
         </div>
 
-        {showDoctorFilter && (
+        {hasFilter("doctor") && (
           <div>
             <span
               className="block text-[11px] font-semibold text-[#64748B] mb-1"
@@ -121,7 +119,7 @@ export const ConsultationFilters: React.FC<ConsultationFiltersProps> = ({
           </div>
         )}
 
-        {showDepartmentFilter && (
+        {hasFilter("department") && (
           <div>
             <span
               className="block text-[11px] font-semibold text-[#64748B] mb-1"
@@ -145,7 +143,7 @@ export const ConsultationFilters: React.FC<ConsultationFiltersProps> = ({
           </div>
         )}
 
-        {showStatusFilter && (
+        {hasFilter("status") && (
           <div>
             <span
               className="block text-[11px] font-semibold text-[#64748B] mb-1"
@@ -169,7 +167,7 @@ export const ConsultationFilters: React.FC<ConsultationFiltersProps> = ({
           </div>
         )}
 
-        {showVisitTypeFilter && (
+        {hasFilter("visitType") && (
           <div>
             <span
               className="block text-[11px] font-semibold text-[#64748B] mb-1"
