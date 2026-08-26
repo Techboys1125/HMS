@@ -4,7 +4,6 @@ import {
   RotateCcw,
   History,
   BarChart2,
-  Activity,
 } from "lucide-react";
 import { useAuthStore } from "../../auth/store/auth.store";
 import { checkBillingPermission } from "../permissions/billing.permissions";
@@ -142,7 +141,6 @@ export function BillingHeader({
             <span className="hidden sm:inline">Daily Billing Report</span>
           </button>
         )}
-
       </div>
     </div>
   );

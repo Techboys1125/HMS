@@ -313,7 +313,7 @@ export function AppointmentDetailPage() {
       setLoading(true);
       setError(null);
       try {
-        const data = await appointmentService.getAppointment(id);
+        const data = await appointmentService.getAppointment(String(id));
         if (cancelled) return;
         if (data) {
           setApt(data);
