@@ -208,37 +208,62 @@ export const consultationApi = {
     if (!encounterId) {
       return null;
     }
+    let raw: Record<string, unknown> | null = null;
+
+    // 1. Try GET /api/v1/encounters/{id}/vitals
     try {
       const response = await apiClient.get<
         ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
       >(`/api/v1/encounters/${encounterId}/vitals`);
-      const raw = unwrap<Record<string, unknown>>(response.data);
-      if (!raw) return null;
-
-      // Map backend field names to frontend PatientVitals format
-      const tempVal = raw.temperature ?? raw.temp;
-      const bpVal = raw.bloodPressure ?? raw.bp;
-      const pulseVal = raw.pulse ?? raw.heartRate;
-      const spo2Val = raw.spo2 ?? raw.oxygenSaturation;
-      const respVal = raw.respiratoryRate ?? raw.respRate;
-      const sugarVal = raw.bloodSugar ?? raw.sugar;
-
-      const toStr = (v: unknown): string => (v != null ? String(v) : "");
-
-      return {
-        height: toStr(raw.height),
-        weight: toStr(raw.weight),
-        bmi: toStr(raw.bmi),
-        temp: toStr(tempVal),
-        bp: toStr(bpVal),
-        pulse: toStr(pulseVal),
-        spo2: toStr(spo2Val),
-        respiratoryRate: toStr(respVal),
-        bloodSugar: toStr(sugarVal),
-      };
+      raw = unwrap<Record<string, unknown>>(response.data);
     } catch {
-      return null;
+      // 2. Try GET /api/v1/encounters/{id}/workspace
+      const ws = await consultationApi.getWorkspace(encounterId).catch(() => null);
+      if (ws?.vitals) {
+        raw = ws.vitals as Record<string, unknown>;
+      } else {
+        // 3. Fallback: target ID might be an appointment ID. Try nurse appointment vitals
+        try {
+          const nurseVitals = await apiClient.get<
+            ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
+          >(`/api/v1/nurse/appointments/${encounterId}/vitals`);
+          raw = unwrap<Record<string, unknown>>(nurseVitals.data);
+        } catch {
+          // 4. Resolve encounter ID via createEncounter(appointmentId)
+          const encRes = await consultationApi.createEncounter(encounterId).catch(() => null);
+          if (encRes?.encounterId) {
+            const ws2 = await consultationApi.getWorkspace(encRes.encounterId).catch(() => null);
+            if (ws2?.vitals) {
+              raw = ws2.vitals as Record<string, unknown>;
+            }
+          }
+        }
+      }
     }
+
+    if (!raw) return null;
+
+    // Map backend field names to frontend PatientVitals format
+    const tempVal = raw.temperature ?? raw.temp;
+    const bpVal = raw.bloodPressure ?? raw.bp;
+    const pulseVal = raw.pulse ?? raw.heartRate;
+    const spo2Val = raw.spo2 ?? raw.oxygenSaturation;
+    const respVal = raw.respiratoryRate ?? raw.respRate;
+    const sugarVal = raw.bloodSugar ?? raw.sugar;
+
+    const toStr = (v: unknown): string => (v != null ? String(v) : "");
+
+    return {
+      height: toStr(raw.height),
+      weight: toStr(raw.weight),
+      bmi: toStr(raw.bmi),
+      temp: toStr(tempVal),
+      bp: toStr(bpVal),
+      pulse: toStr(pulseVal),
+      spo2: toStr(spo2Val),
+      respiratoryRate: toStr(respVal),
+      bloodSugar: toStr(sugarVal),
+    };
   },
 
   /**
@@ -352,22 +377,12 @@ export const consultationApi = {
         const data = unwrap<Consultation>(response.data);
         if (data) return data;
       } catch {
-        // 2. Fallback: GET /api/v1/encounters/{encounterId}/workspace
-        try {
-          const response = await apiClient.get<
-            | ApiEnvelope<{ consultation?: Consultation }>
-            | { consultation?: Consultation }
-          >(`/api/v1/encounters/${consultationId}/workspace`);
-          const data = unwrap<{ consultation?: Consultation }>(response.data);
-          if (data?.consultation) return data.consultation;
-        } catch {
-          // 3. Fallback: GET /api/v1/consultations/{consultationId}
-          const response = await apiClient.get<
-            ApiEnvelope<Consultation> | Consultation
-          >(`/api/v1/consultations/${consultationId}`);
-          const data = unwrap<Consultation>(response.data);
-          if (data) return data;
-        }
+        // Fallback: GET /api/v1/consultations/{consultationId}
+        const response = await apiClient.get<
+          ApiEnvelope<Consultation> | Consultation
+        >(`/api/v1/consultations/${consultationId}`);
+        const data = unwrap<Consultation>(response.data);
+        if (data) return data;
       }
       return null;
     } catch {
@@ -481,39 +496,50 @@ export const consultationApi = {
       return handleApiError(error);
     }
   },
-
   /**
    * PUT /api/v1/consultations/{consultationId}/clinical-notes
    * Save SOAP notes for the consultation.
-   * Backend expects nested DTO format with model field names:
-   *   { subjective: { historyOfPresentIllness: "..." },
-   *     objective: { physicalExamination: "..." },
-   *     assessment: { assessmentSummary: "..." },
-   *     plan: { advice: "..." } }
+   * Backend requires exact payload shape:
+   *   { chiefComplaint, historyOfPresentIllness, generalExamination, assessmentSummary, advice }
    */
   saveClinicalNotes: async (
     consultationId: string | number,
-    clinicalNotes: {
-      subjective?: string;
-      objective?: string;
-      assessment?: string;
-      plan?: string;
-      historyOfPresentIllness?: string;
-      physicalExamination?: string;
-      assessmentSummary?: string;
-      advice?: string;
-    },
+    clinicalNotes: Record<string, unknown>,
   ): Promise<{ success: boolean; data: unknown }> => {
-    const dto: Record<string, unknown> = {};
-    const hpi =
-      clinicalNotes.subjective || clinicalNotes.historyOfPresentIllness;
-    if (hpi) dto.subjective = { historyOfPresentIllness: hpi };
-    const pe = clinicalNotes.objective || clinicalNotes.physicalExamination;
-    if (pe) dto.objective = { physicalExamination: pe };
-    const sum = clinicalNotes.assessment || clinicalNotes.assessmentSummary;
-    if (sum) dto.assessment = { assessmentSummary: sum };
-    const adv = clinicalNotes.plan || clinicalNotes.advice;
-    if (adv) dto.plan = { advice: adv };
+    const getString = (val: unknown): string => {
+      if (typeof val === "string") return val;
+      if (val && typeof val === "object") {
+        const obj = val as Record<string, unknown>;
+        return (
+          (obj.historyOfPresentIllness as string) ||
+          (obj.physicalExamination as string) ||
+          (obj.generalExamination as string) ||
+          (obj.assessmentSummary as string) ||
+          (obj.advice as string) ||
+          ""
+        );
+      }
+      return "";
+    };
+
+    const dto = {
+      chiefComplaint: getString(
+        clinicalNotes.chiefComplaint || clinicalNotes.symptoms,
+      ),
+      historyOfPresentIllness: getString(
+        clinicalNotes.historyOfPresentIllness || clinicalNotes.subjective,
+      ),
+      generalExamination: getString(
+        clinicalNotes.generalExamination ||
+          clinicalNotes.physicalExamination ||
+          clinicalNotes.clinicalExamination ||
+          clinicalNotes.objective,
+      ),
+      assessmentSummary: getString(
+        clinicalNotes.assessmentSummary || clinicalNotes.assessment,
+      ),
+      advice: getString(clinicalNotes.advice || clinicalNotes.plan),
+    };
 
     try {
       const response = await apiClient.put<
@@ -527,32 +553,58 @@ export const consultationApi = {
   },
 
   /**
+   * GET /api/v1/encounters/{encounterId}/workspace
+   * Get aggregated encounter workspace (patient, appointment, vitals, prior encounters)
+   */
+  getWorkspace: async (encounterId: string | number) => {
+    try {
+      const response = await apiClient.get<
+        ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
+      >(`/api/v1/encounters/${encounterId}/workspace`);
+      return unwrap<Record<string, unknown>>(response.data);
+    } catch {
+      return null;
+    }
+  },
+
+  /**
    * GET /api/v1/encounters/{encounterId}/finalization-check
    * Validate encounter readiness before finalization
    */
   finalizationCheck: async (
     encounterId: string | number,
   ): Promise<{
-    canFinalize: boolean;
-    missingItems: string[];
+    ready: boolean;
+    canFinalize?: boolean;
+    checks: Array<{ code: string; passed: boolean; message?: string }>;
+    missingItems?: string[];
     prescriptionOutcome?: string;
   }> => {
     try {
-      const response = await apiClient.get<{
-        data?: {
-          canFinalize: boolean;
-          missingItems: string[];
+      const response = await apiClient.get<
+        ApiEnvelope<{
+          ready?: boolean;
+          canFinalize?: boolean;
+          checks?: Array<{ code: string; passed: boolean; message?: string }>;
+          missingItems?: string[];
           prescriptionOutcome?: string;
-        };
-      }>(`/api/v1/encounters/${encounterId}/finalization-check`);
-      return (
-        response.data?.data || {
-          canFinalize: true,
-          missingItems: [],
-        }
-      );
+        }>
+      >(`/api/v1/encounters/${encounterId}/finalization-check`);
+      const res = unwrap(response.data);
+      const ready = res.ready ?? res.canFinalize ?? true;
+      const checks = Array.isArray(res.checks) ? res.checks : [];
+      const missingItems = Array.isArray(res.missingItems)
+        ? res.missingItems
+        : checks.filter((c) => !c.passed).map((c) => c.message || c.code);
+      return {
+        ready,
+        canFinalize: ready,
+        checks,
+        missingItems,
+        prescriptionOutcome: res.prescriptionOutcome,
+      };
     } catch {
-      return { canFinalize: true, missingItems: [] };
+      return { ready: true, canFinalize: true, checks: [], missingItems: [] };
     }
   },
 
@@ -610,21 +662,6 @@ export const consultationApi = {
   },
 
   /**
-   * GET /api/v1/encounters/{encounterId}/workspace
-   * Get aggregated clinical workspace data
-   */
-  getEncounterWorkspace: async (encounterId: string | number) => {
-    try {
-      const response = await apiClient.get<
-        ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
-      >(`/api/v1/encounters/${encounterId}/workspace`);
-      return unwrap<Record<string, unknown>>(response.data);
-    } catch {
-      return null;
-    }
-  },
-
-  /**
    * PUT /api/v1/encounters/{encounterId}/draft
    * Save encounter draft
    */
@@ -633,7 +670,7 @@ export const consultationApi = {
     draft: Record<string, unknown>,
   ) => {
     try {
-      const response = await apiClient.post<
+      const response = await apiClient.put<
         ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
       >(`/api/v1/encounters/${encounterId}/draft`, draft);
       return unwrap<Record<string, unknown>>(response.data);
@@ -740,6 +777,21 @@ export const consultationApi = {
       return Array.isArray(list) ? list : [];
     } catch {
       return [];
+    }
+  },
+
+  /**
+   * GET /api/v1/encounters/{encounterId}/consultation
+   * Get consultation clinical notes
+   */
+  getConsultation: async (encounterId: string | number) => {
+    try {
+      const response = await apiClient.get<
+        ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
+      >(`/api/v1/encounters/${encounterId}/consultation`);
+      return unwrap<Record<string, unknown>>(response.data);
+    } catch {
+      return null;
     }
   },
 };

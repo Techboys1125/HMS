@@ -185,21 +185,6 @@ export function StartConsultationPage({
       // ignore
     }
 
-    const matchApptId = String(
-      selectedAppointment?.id || selectedAppointment?.appointmentId || "",
-    );
-    const matchCnsId = String(
-      selectedConsultation?.id || selectedConsultation?.appointmentId || "",
-    );
-    const targetIdStr = String(activeConsultationId);
-
-    if (
-      (matchApptId && matchApptId === targetIdStr) ||
-      (matchCnsId && matchCnsId === targetIdStr)
-    ) {
-      return;
-    }
-
     let isMounted = true;
 
     const loadContext = async () => {
@@ -209,35 +194,85 @@ export function StartConsultationPage({
           .catch(() => null);
         if (!isMounted) return;
 
-        if (res && res.consultation) {
-          const c = res.consultation as Record<string, unknown>;
-          const pName = String(c.patientName || "");
-          const pMrn = String(c.mrn || "");
+        if (res) {
+          const c = ((res.consultation || res) as unknown) as Record<
+            string,
+            unknown
+          >;
+          const pSub = (c.patient || {}) as Record<string, unknown>;
+          const docSub = (c.doctor || {}) as Record<string, unknown>;
+          const pName = String(
+            c.patientName ||
+              c.patient_name ||
+              pSub.name ||
+              pSub.fullName ||
+              pSub.full_name ||
+              "",
+          );
+          const pMrn = String(
+            c.mrn || c.patientMrn || c.patient_mrn || pSub.mrn || "",
+          );
+
           if (pName || pMrn) {
             setRestoredPatientData({
               patientName: pName,
               mrn: pMrn,
-              age: Number(c.age || 0),
-              gender: String(c.gender || ""),
-              phone: String(c.phone || ""),
-              bloodGroup: String(c.bloodGroup || ""),
+              age: Number(c.age || c.patientAge || pSub.age || 0),
+              gender: String(c.gender || c.patientGender || pSub.gender || ""),
+              phone: String(
+                c.phone || c.mobile || pSub.phone || pSub.registeredMobile || "",
+              ),
+              bloodGroup: String(c.bloodGroup || pSub.bloodGroup || ""),
               allergies: Array.isArray(c.allergies)
                 ? (c.allergies as string[])
-                : [],
-              doctor: String(c.doctor || c.doctorName || ""),
-              opdRoom: String(c.opdRoom || ""),
-              visitType: String(c.visitType || "New Consultation"),
-              appointmentTime: String(c.appointmentTime || ""),
+                : Array.isArray(pSub.allergies)
+                  ? (pSub.allergies as string[])
+                  : [],
+              doctor: String(
+                c.doctor || c.doctorName || docSub.name || docSub.fullName || "",
+              ),
+              opdRoom: String(c.opdRoom || c.roomNumber || ""),
+              visitType: String(
+                c.visitType || c.appointmentType || "New Consultation",
+              ),
+              appointmentTime: String(c.appointmentTime || c.time || ""),
             });
+
+            const vObj = (c.vitals || (res as Record<string, unknown>).vitals || {}) as Record<string, unknown>;
+            const toStr = (v: unknown) => (v != null ? String(v) : "");
 
             setFormData((prev) => ({
               ...prev,
-              doctorName: String(c.doctor || c.doctorName || prev.doctorName),
-              department: String(c.department || prev.department),
+              doctorName: String(
+                c.doctor || c.doctorName || docSub.name || prev.doctorName,
+              ),
+              department: String(
+                c.department || c.departmentName || prev.department,
+              ),
               chiefComplaint: String(c.chiefComplaint || prev.chiefComplaint),
               visitType:
                 (c.visitType as "New Consultation" | "Follow-up") ||
                 prev.visitType,
+              height: vObj.height ? toStr(vObj.height).replace(" cm", "") : prev.height,
+              weight: vObj.weight ? toStr(vObj.weight).replace(" kg", "") : prev.weight,
+              temperature: (vObj.temp || vObj.temperature)
+                ? toStr(vObj.temp || vObj.temperature).replace(" °C", "").replace("°C", "")
+                : prev.temperature,
+              bp: (vObj.bp || vObj.bloodPressure)
+                ? toStr(vObj.bp || vObj.bloodPressure).replace(" mmHg", "")
+                : prev.bp,
+              pulse: (vObj.pulse || vObj.heartRate)
+                ? toStr(vObj.pulse || vObj.heartRate).replace(" bpm", "")
+                : prev.pulse,
+              respiratoryRate: (vObj.respiratoryRate || vObj.respRate)
+                ? toStr(vObj.respiratoryRate || vObj.respRate).replace(" /min", "")
+                : prev.respiratoryRate,
+              spo2: (vObj.spo2 || vObj.oxygenSaturation)
+                ? toStr(vObj.spo2 || vObj.oxygenSaturation).replace(" %", "").replace("%", "")
+                : prev.spo2,
+              bloodSugar: (vObj.bloodSugar || vObj.sugar)
+                ? toStr(vObj.bloodSugar || vObj.sugar).replace(" mg/dL", "")
+                : prev.bloodSugar,
             }));
             return;
           }
@@ -260,46 +295,83 @@ export function StartConsultationPage({
 
         if (!isMounted) return;
 
-        if (apptRes?.data) {
-          const appt = apptRes.data;
+        if (apptRes) {
+          const rawData = (apptRes as unknown as Record<string, unknown>)?.data;
+          const appt = (
+            ((rawData as Record<string, unknown>)?.data ||
+              rawData ||
+              apptRes) as Record<string, unknown>
+          );
           const patientObj = (appt.patient || {}) as Record<string, unknown>;
-          const deptName =
+          const doctorObj = (appt.doctor || {}) as Record<string, unknown>;
+          const deptObj = (appt.department || {}) as Record<string, unknown>;
+
+          const pName = String(
+            appt.patientName ||
+              appt.patient_name ||
+              patientObj.name ||
+              patientObj.fullName ||
+              patientObj.full_name ||
+              "",
+          );
+          const pMrn = String(
+            appt.mrn || appt.patientMrn || appt.patient_mrn || patientObj.mrn || "",
+          );
+          const deptName = String(
             appt.departmentName ||
-            (typeof appt.department === "string"
-              ? appt.department
-              : appt.department?.name || appt.department?.departmentName) ||
-            "";
+              appt.department_name ||
+              deptObj.departmentName ||
+              deptObj.name ||
+              (typeof appt.department === "string" ? appt.department : "") ||
+              "",
+          );
 
           setRestoredPatientData({
-            patientName: appt.patientName || (patientObj.name as string) || "",
-            mrn:
-              appt.mrn || appt.patientMrn || (patientObj.mrn as string) || "",
+            patientName: pName,
+            mrn: pMrn,
             age: Number(appt.patientAge || appt.age || patientObj.age || 0),
             gender: String(
               appt.patientGender || appt.gender || patientObj.gender || "",
             ),
             phone: String(
-              appt.patientPhone || appt.mobile || patientObj.phone || "",
+              appt.patientPhone ||
+                appt.mobile ||
+                patientObj.phone ||
+                patientObj.registeredMobile ||
+                "",
             ),
             bloodGroup: String(patientObj.bloodGroup || ""),
             allergies: Array.isArray(patientObj.allergies)
               ? (patientObj.allergies as string[])
               : [],
-            doctor: appt.doctorName || "",
-            opdRoom: String(appt.opdRoom || ""),
-            visitType: (appt.appointmentType ||
-              appt.visitType ||
-              "New Consultation") as string,
-            appointmentTime: appt.appointmentTime || "",
+            doctor: String(
+              appt.doctorName ||
+                appt.doctor_name ||
+                doctorObj.name ||
+                doctorObj.fullName ||
+                appt.doctor ||
+                "",
+            ),
+            opdRoom: String(appt.opdRoom || appt.roomNumber || ""),
+            visitType: String(
+              appt.appointmentType || appt.visitType || "New Consultation",
+            ),
+            appointmentTime: String(appt.appointmentTime || appt.time || ""),
           });
 
           setFormData((prev) => ({
             ...prev,
-            doctorName: appt.doctorName || prev.doctorName,
+            doctorName: String(
+              appt.doctorName ||
+                appt.doctor_name ||
+                doctorObj.name ||
+                prev.doctorName,
+            ),
             department: deptName || prev.department,
-            chiefComplaint: appt.chiefComplaint || prev.chiefComplaint,
+            chiefComplaint: String(appt.chiefComplaint || prev.chiefComplaint),
             visitType:
-              appt.appointmentType === "Follow-up"
+              appt.appointmentType === "Follow-up" ||
+              appt.visitType === "Follow-up"
                 ? "Follow-up"
                 : "New Consultation",
           }));
@@ -343,11 +415,18 @@ export function StartConsultationPage({
   };
 
   useEffect(() => {
-    if (!activeEncounterId) return;
+    const targetVitalsId =
+      activeEncounterId ||
+      selectedEncounter?.encounterId ||
+      selectedConsultation?.encounterId ||
+      activeConsultationId ||
+      selectedAppointment?.id;
+
+    if (!targetVitalsId) return;
 
     let active = true;
 
-    loadVitals().then((data) => {
+    consultationService.loadEncounterContext(targetVitalsId).then((data) => {
       if (active && data) {
         const toStr = (v: unknown) => (v != null ? String(v) : "");
         setFormData((prev) => ({
@@ -381,7 +460,13 @@ export function StartConsultationPage({
     return () => {
       active = false;
     };
-  }, [activeEncounterId, loadVitals]);
+  }, [
+    activeEncounterId,
+    activeConsultationId,
+    selectedEncounter,
+    selectedConsultation,
+    selectedAppointment,
+  ]);
 
   const calculatedBmi = useMemo(() => {
     const h = parseFloat(formData.height) / 100;
@@ -495,6 +580,13 @@ export function StartConsultationPage({
     setIsDraftSaved(true);
     try {
       if (activeEncounterId) {
+        await consultationApi.saveDraft(activeEncounterId, {
+          chiefComplaint: formData.chiefComplaint,
+          symptoms: formData.symptoms,
+          clinicalExamination: formData.clinicalExamination,
+          assessment: formData.assessment,
+          advice: formData.advice,
+        });
         await saveVitals({
           height: formData.height ? formData.height + " cm" : undefined,
           weight: formData.weight ? formData.weight + " kg" : undefined,
@@ -511,10 +603,11 @@ export function StartConsultationPage({
       }
       if (selectedConsultation?.id) {
         await consultationApi.saveClinicalNotes(selectedConsultation.id, {
-          subjective: formData.symptoms || formData.chiefComplaint,
-          objective: formData.clinicalExamination,
-          assessment: formData.assessment,
-          plan: formData.advice,
+          chiefComplaint: formData.chiefComplaint || formData.symptoms,
+          historyOfPresentIllness: formData.symptoms || formData.chiefComplaint,
+          generalExamination: formData.clinicalExamination,
+          assessmentSummary: formData.assessment,
+          advice: formData.advice,
         });
       }
     } catch {
@@ -569,10 +662,11 @@ export function StartConsultationPage({
       if (selectedConsultation?.id) {
         try {
           await consultationApi.saveClinicalNotes(selectedConsultation.id, {
-            subjective: formData.symptoms || formData.chiefComplaint,
-            objective: formData.clinicalExamination,
-            assessment: formData.assessment,
-            plan: formData.advice,
+            chiefComplaint: formData.chiefComplaint || formData.symptoms,
+            historyOfPresentIllness: formData.symptoms || formData.chiefComplaint,
+            generalExamination: formData.clinicalExamination,
+            assessmentSummary: formData.assessment,
+            advice: formData.advice,
           });
         } catch (notesErr) {
           console.warn("Non-blocking clinical notes warning:", notesErr);
@@ -585,6 +679,31 @@ export function StartConsultationPage({
           selectedConsultation?.id ||
           "";
         const aptId = activeAppointmentId || selectedConsultation?.id || 0;
+
+        if (encId && String(encId) !== "ENC-TEMP") {
+          const hasMeds = formData.medicines.some((m) => m.name.trim() !== "");
+          const outcome = hasMeds ? "PRESCRIPTION_CREATED" : "NO_PRESCRIPTION_REQUIRED";
+          try {
+            await consultationApi.setPrescriptionResolution(encId, { outcome });
+          } catch (resErr) {
+            console.warn("Prescription resolution pre-check warning:", resErr);
+          }
+
+          const checkRes = await encountersApi.getFinalizationCheck(encId).catch(() => null);
+          if (checkRes && checkRes.ready === false && Array.isArray(checkRes.checks)) {
+            const failedMsgs = checkRes.checks
+              .filter((c) => !c.passed)
+              .map((c) => c.code || "Finalization readiness check failed");
+            if (failedMsgs.length > 0) {
+              setValidationErrors(failedMsgs);
+              setIsFinalizing(false);
+              setShowToast(false);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+              return;
+            }
+          }
+        }
+
         await finalizeConsultation(encId, aptId, {
           generalAdvice: formData.advice,
           dietAdvice: formData.lifestyleRecommendations || "",

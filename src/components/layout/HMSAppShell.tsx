@@ -28,6 +28,9 @@ function mapUserRoleToAppRole(userRole?: string | null): Role {
 const exactPathToNavId: Record<string, NavId> = {
   [ROUTES.DASHBOARD]: "dashboard",
   [ROUTES.PATIENTS]: "patients",
+  [ROUTES.PATIENT_REGISTER]: "patients",
+  [ROUTES.BOOK_APPOINTMENT]: "appointments",
+  [ROUTES.PATIENT_PROFILE]: "patients",
   [ROUTES.DOCTORS]: "doctors",
   [ROUTES.APPOINTMENTS]: "appointments",
   [ROUTES.QUEUE]: "checkin",
@@ -35,8 +38,8 @@ const exactPathToNavId: Record<string, NavId> = {
   [ROUTES.CONSULTATION]: "consultation",
   [ROUTES.PRESCRIPTIONS]: "prescriptions",
   [ROUTES.BILLING]: "billing",
-  [ROUTES.BILLING_CREATE]: "billing-create",
-  [ROUTES.BILLING_HISTORY]: "payment-history",
+  [ROUTES.BILLING_CREATE]: "billing",
+  [ROUTES.BILLING_HISTORY]: "billing",
   [ROUTES.REPORTS]: "reports",
   [ROUTES.SETTINGS]: "settings",
   [ROUTES.PROFILE]: "profile",
@@ -259,7 +262,7 @@ export function HMSAppShell({ onLogout }: { onLogout?: () => void }) {
   const handleNavSelect = (id: NavId) => {
     const path = navIdToPath(role, id);
     if (path) {
-      navigate(path);
+      navigate(path, { state: { resetKey: Date.now() } });
     }
   };
 

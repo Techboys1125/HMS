@@ -573,20 +573,6 @@ export function AppointmentManagementCenterScreen({
               </div>
 
               <div className="flex items-center gap-3 shrink-0">
-                {userRole === "Receptionist" && (
-                  <>
-                    <button
-                      onClick={() => {
-                        navigate(ROUTES.PATIENT_REGISTER);
-                      }}
-                      className="px-3.5 py-2.5 rounded-xl border border-teal-200 bg-teal-50 text-xs font-bold text-[#009688] hover:bg-teal-100 transition-colors flex items-center gap-1.5 shadow-xs"
-                      style={{ fontFamily: PP }}
-                    >
-                      <UserPlus size={15} /> Register Walk-In
-                    </button>
-                  </>
-                )}
-
                 <button
                   onClick={() => {
                     if (onBookAppointmentClick) {
@@ -1183,11 +1169,11 @@ export function AppointmentManagementCenterScreen({
                                 (e.currentTarget as HTMLElement).click();
                               }
                             }}
-                            onClick={() => handleSort("id")}
+                            onClick={() => handleSort("patientName")}
                             className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
                           >
                             <div className="flex items-center gap-1">
-                              <span>Appointment ID</span>
+                              <span>Patient</span>
                               <ArrowUpDown
                                 size={12}
                                 className="text-slate-400"
@@ -1202,11 +1188,11 @@ export function AppointmentManagementCenterScreen({
                                 (e.currentTarget as HTMLElement).click();
                               }
                             }}
-                            onClick={() => handleSort("patientName")}
+                            onClick={() => handleSort("id")}
                             className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
                           >
                             <div className="flex items-center gap-1">
-                              <span>Patient</span>
+                              <span>Appointment ID</span>
                               <ArrowUpDown
                                 size={12}
                                 className="text-slate-400"
@@ -1238,7 +1224,6 @@ export function AppointmentManagementCenterScreen({
                             </div>
                           </th>
                           <th className="px-4 py-3.5">Status</th>
-                          <th className="px-4 py-3.5">Token Number</th>
                           <th className="px-4 py-3.5 text-right">Actions</th>
                         </tr>
                       </thead>
@@ -1249,10 +1234,6 @@ export function AppointmentManagementCenterScreen({
                             key={apt.id}
                             className="hover:bg-slate-50/80 transition-colors"
                           >
-                            <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
-                              {apt.appointmentNumber || apt.id}
-                            </td>
-
                             <td className="px-4 py-3.5">
                               <div
                                 tabIndex={0}
@@ -1281,6 +1262,10 @@ export function AppointmentManagementCenterScreen({
                               </div>
                             </td>
 
+                            <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
+                              {apt.appointmentNumber || apt.id}
+                            </td>
+
                             <td className="px-4 py-3.5 font-mono text-[#0D47A1] font-bold">
                               {apt.mrn}
                             </td>
@@ -1288,7 +1273,27 @@ export function AppointmentManagementCenterScreen({
                             {!isDoctor && (
                               <td className="px-4 py-3.5">
                                 <div className="font-semibold text-[#111827]">
-                                  {apt.doctorName}
+                                  {typeof apt.doctorName === "string"
+                                    ? apt.doctorName
+                                    : (
+                                        apt.doctorName as unknown as Record<
+                                          string,
+                                          string
+                                        >
+                                      )?.name ||
+                                      (
+                                        apt.doctorName as unknown as Record<
+                                          string,
+                                          string
+                                        >
+                                      )?.fullName ||
+                                      (
+                                        apt.doctorName as unknown as Record<
+                                          string,
+                                          string
+                                        >
+                                      )?.full_name ||
+                                      "—"}
                                 </div>
                                 <div className="text-[10px] text-slate-400">
                                   {apt.opdRoom}
@@ -1313,12 +1318,6 @@ export function AppointmentManagementCenterScreen({
 
                             <td className="px-4 py-3.5">
                               <StatusBadge status={apt.status} />
-                            </td>
-
-                            <td className="px-4 py-3.5 font-mono">
-                              <span className="bg-blue-50 text-[#0D47A1] px-2 py-0.5 rounded font-bold border border-blue-100">
-                                {apt.tokenNo}
-                              </span>
                             </td>
 
                             <td className="px-4 py-3.5 text-right">

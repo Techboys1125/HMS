@@ -201,6 +201,12 @@ function mapQueueItemToConsultation(
       (rawItem.appointmentId as number) ||
       ((rawItem.appointment as Record<string, unknown>)?.id as number) ||
       (rawItem.id as number),
+    encounterId:
+      (rawItem.encounterId as number | string) ||
+      ((rawItem.encounter as Record<string, unknown>)?.id as number | string) ||
+      ((rawItem.encounter as Record<string, unknown>)?.encounterId as number | string) ||
+      (rawItem.encounter_id as number | string) ||
+      (item as unknown as { encounterId?: number | string })?.encounterId,
     patientId:
       (item.patient as unknown as { id?: number | string })?.id ||
       (patientObj.id as number | string) ||
@@ -940,12 +946,13 @@ export function OPDConsultationPage({
                 ? "Search by Patient Name, MRN, Consultation ID or Mobile Number..."
                 : "Search by Patient Name, MRN, Consultation ID or Doctor Name..."
             }
-            showDoctorFilter={resolvedRole !== "doctor"}
-            showDepartmentFilter={resolvedRole !== "doctor"}
+            visibleFilters={
+              resolvedRole === "doctor"
+                ? ["status", "visitType"]
+                : ["status", "visitType", "doctor", "department"]
+            }
             doctorOptions={doctorOptions}
             departmentOptions={departmentOptions}
-            showStatusFilter={true}
-            showVisitTypeFilter={true}
           />
 
           {/* CONSULTATION STATUS TABS */}
@@ -1004,5 +1011,4 @@ export function OPDConsultationPage({
   );
 }
 
-export const OpdConsultationCenterScreen: React.FC<OPDConsultationPageProps> =
-  OPDConsultationPage;
+export const OpdConsultationCenterScreen: React.FC<OPDConsultationPageProps> = OPDConsultationPage;

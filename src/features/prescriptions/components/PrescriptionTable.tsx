@@ -264,7 +264,7 @@ export const PrescriptionTable: React.FC<PrescriptionTableProps> = ({
               <th className="px-4 py-3.5">Medicines</th>
               <th className="px-4 py-3.5">Follow-up</th>
               <th className="px-4 py-3.5">Status</th>
-              <th className="px-4 py-3.5 text-right">Actions</th>
+              {role !== "admin" && <th className="px-4 py-3.5 text-right">Actions</th>}
             </tr>
           </thead>
           <tbody
@@ -330,97 +330,99 @@ export const PrescriptionTable: React.FC<PrescriptionTableProps> = ({
                 <td className="px-4 py-3.5 whitespace-nowrap">
                   <PrescriptionStatusBadge status={rx.status} />
                 </td>
-                <td
-                  className="px-4 py-3.5 text-right whitespace-nowrap"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="flex items-center justify-end gap-1">
-                    <button
-                      onClick={() => onView(rx)}
-                      className="p-1.5 rounded-lg text-slate-500 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors"
-                      title="View Full Prescription"
-                    >
-                      <Eye size={14} />
-                    </button>
-                    {rx.status === "Draft" ? (
+                {role !== "admin" && (
+                  <td
+                    className="px-4 py-3.5 text-right whitespace-nowrap"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center justify-end gap-1">
                       <button
-                        onClick={() => onEdit?.(rx.id)}
-                        className="p-1.5 rounded-lg text-amber-600 hover:bg-amber-50 transition-colors"
-                        title="Edit Draft Prescription"
+                        onClick={() => onView(rx)}
+                        className="p-1.5 rounded-lg text-slate-500 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors"
+                        title="View Full Prescription"
                       >
-                        <Edit3 size={14} />
+                        <Eye size={14} />
                       </button>
-                    ) : (
+                      {rx.status === "Draft" ? (
+                        <button
+                          onClick={() => onEdit?.(rx.id)}
+                          className="p-1.5 rounded-lg text-amber-600 hover:bg-amber-50 transition-colors"
+                          title="Edit Draft Prescription"
+                        >
+                          <Edit3 size={14} />
+                        </button>
+                      ) : (
+                        <button
+                          disabled
+                          className="p-1.5 text-slate-300 cursor-not-allowed"
+                          title="Only Draft prescriptions can be edited"
+                        >
+                          <Edit3 size={14} />
+                        </button>
+                      )}
                       <button
-                        disabled
-                        className="p-1.5 text-slate-300 cursor-not-allowed"
-                        title="Only Draft prescriptions can be edited"
+                        onClick={() => onPrint(rx)}
+                        className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                        title="Print Prescription"
                       >
-                        <Edit3 size={14} />
+                        <Printer size={14} />
                       </button>
-                    )}
-                    <button
-                      onClick={() => onPrint(rx)}
-                      className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
-                      title="Print Prescription"
-                    >
-                      <Printer size={14} />
-                    </button>
-                    <button
-                      onClick={() => onDownload(rx.id)}
-                      className="p-1.5 rounded-lg text-slate-500 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors"
-                      title="Download PDF"
-                    >
-                      <Download size={14} />
-                    </button>
-                    <div className="relative">
                       <button
-                        aria-label="Action"
-                        onClick={() =>
-                          setOpenMoreMenuId(
-                            openMoreMenuId === rx.id ? null : rx.id,
-                          )
-                        }
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                        onClick={() => onDownload(rx.id)}
+                        className="p-1.5 rounded-lg text-slate-500 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors"
+                        title="Download PDF"
                       >
-                        <ChevronDown size={14} />
+                        <Download size={14} />
                       </button>
-                      {openMoreMenuId === rx.id && (
-                        <div className="absolute right-0 mt-1 w-44 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-30 text-left">
-                          <button
-                            onClick={() => {
-                              setOpenMoreMenuId(null);
-                              onDuplicate?.(rx.id);
-                            }}
-                            className="w-full px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium"
-                          >
-                            <Plus size={13} /> Duplicate Prescription
-                          </button>
-                          <button
-                            onClick={() => {
-                              setOpenMoreMenuId(null);
-                              onViewHistory?.(rx.mrn);
-                            }}
-                            className="w-full px-3 py-2 text-xs text-[#0D47A1] hover:bg-blue-50 flex items-center gap-2 font-medium"
-                          >
-                            <Clock size={13} /> Prescription History
-                          </button>
-                          {rx.consultationId && (
+                      <div className="relative">
+                        <button
+                          aria-label="Action"
+                          onClick={() =>
+                            setOpenMoreMenuId(
+                              openMoreMenuId === rx.id ? null : rx.id,
+                            )
+                          }
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                        >
+                          <ChevronDown size={14} />
+                        </button>
+                        {openMoreMenuId === rx.id && (
+                          <div className="absolute right-0 mt-1 w-44 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-30 text-left">
                             <button
                               onClick={() => {
                                 setOpenMoreMenuId(null);
-                                onViewConsultation?.(rx.consultationId);
+                                onDuplicate?.(rx.id);
                               }}
                               className="w-full px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium"
                             >
-                              <FileText size={13} /> View Consultation
+                              <Plus size={13} /> Duplicate Prescription
                             </button>
-                          )}
-                        </div>
-                      )}
+                            <button
+                              onClick={() => {
+                                setOpenMoreMenuId(null);
+                                onViewHistory?.(rx.mrn);
+                              }}
+                              className="w-full px-3 py-2 text-xs text-[#0D47A1] hover:bg-blue-50 flex items-center gap-2 font-medium"
+                            >
+                              <Clock size={13} /> Prescription History
+                            </button>
+                            {rx.consultationId && (
+                              <button
+                                onClick={() => {
+                                  setOpenMoreMenuId(null);
+                                  onViewConsultation?.(rx.consultationId);
+                                }}
+                                className="w-full px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium"
+                              >
+                                <FileText size={13} /> View Consultation
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </td>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

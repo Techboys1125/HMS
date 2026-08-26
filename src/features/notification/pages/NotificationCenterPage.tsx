@@ -30,57 +30,74 @@ export interface NotificationCenterPageProps {
   onNavigateToModule?: (module: string, targetId?: string) => void;
 }
 
-// Category tabs are filtered client-side. Load the complete inbox page so a
-// notification on a later API page is not hidden from its category tab.
 const PAGE_SIZE = 100;
 
 function resolveModuleRoute(record: NotificationRecord): string {
-  const moduleKey = String(
-    record.targetModule || record.module || "",
-  ).toUpperCase();
   const actionUrl = String(record.actionUrl || "").trim();
   if (actionUrl.startsWith("/")) return actionUrl;
 
-  switch (moduleKey) {
-    case "APPOINTMENT":
-    case "APPOINTMENTS":
-      return ROUTES.APPOINTMENTS;
-    case "PATIENT":
-    case "PATIENTS":
-      return ROUTES.PATIENTS;
-    case "DOCTOR":
-    case "DOCTORS":
-      return ROUTES.DOCTORS;
-    case "QUEUE":
-      return ROUTES.QUEUE;
-    case "VITALS":
-      return ROUTES.VITALS;
-    case "CONSULTATION":
-      return ROUTES.CONSULTATION;
-    case "PRESCRIPTION":
-    case "PRESCRIPTIONS":
-      return ROUTES.PRESCRIPTIONS;
-    case "BILLING":
-    case "INVOICE":
-    case "INVOICES":
-    case "PAYMENT":
-    case "PAYMENTS":
-      return ROUTES.BILLING;
-    case "REPORT":
-    case "REPORTS":
-      return ROUTES.REPORTS;
-    case "NOTIFICATION":
-    case "NOTIFICATIONS":
-      return ROUTES.NOTIFICATIONS;
-    case "SETTING":
-    case "SETTINGS":
-      return ROUTES.SETTINGS;
-    case "FAMILY":
-    case "FAMILY_MEMBERS":
-      return ROUTES.FAMILY_MEMBERS;
-    default:
-      return ROUTES.DASHBOARD;
+  const text =
+    `${record.targetModule || ""} ${record.module || ""} ${record.category || ""} ${record.title || ""} ${record.description || ""}`.toUpperCase();
+
+  if (
+    text.includes("APPOINTMENT") ||
+    text.includes("CHECK-IN") ||
+    text.includes("SLOT") ||
+    text.includes("BOOKING")
+  ) {
+    return ROUTES.APPOINTMENTS;
   }
+  if (
+    text.includes("PATIENT") ||
+    text.includes("MRN") ||
+    text.includes("REGISTRATION")
+  ) {
+    return ROUTES.PATIENTS;
+  }
+  if (
+    text.includes("DOCTOR") ||
+    text.includes("PHYSICIAN") ||
+    text.includes("SCHEDULE")
+  ) {
+    return ROUTES.DOCTORS;
+  }
+  if (
+    text.includes("BILL") ||
+    text.includes("INVOICE") ||
+    text.includes("PAYMENT") ||
+    text.includes("COLLECT") ||
+    text.includes("FINANCIAL")
+  ) {
+    return ROUTES.BILLING;
+  }
+  if (
+    text.includes("REPORT") ||
+    text.includes("REVENUE") ||
+    text.includes("ANALYTICS")
+  ) {
+    return ROUTES.REPORTS;
+  }
+  if (text.includes("QUEUE") || text.includes("WAITING")) {
+    return ROUTES.QUEUE;
+  }
+  if (text.includes("VITAL") || text.includes("TRIAGE")) {
+    return ROUTES.VITALS;
+  }
+  if (
+    text.includes("PRESCRIPTION") ||
+    text.includes("MEDICATION") ||
+    text.includes("DRUG")
+  ) {
+    return ROUTES.PRESCRIPTIONS;
+  }
+  if (text.includes("CONSULTATION") || text.includes("ENCOUNTER")) {
+    return ROUTES.CONSULTATION;
+  }
+  if (text.includes("SETTING")) {
+    return ROUTES.SETTINGS;
+  }
+
+  return ROUTES.DASHBOARD;
 }
 
 export function NotificationCenterPage({
@@ -103,9 +120,6 @@ export function NotificationCenterPage({
   const { settings, updateSetting, saveSettings } =
     useNotificationSettingsState();
 
-  // NotificationType is a backend enum and does not match all UI categories
-  // (for example, `Patients` is not a valid API type). Fetch the authorized
-  // page without a category query and apply the role-specific filter locally.
   const {
     data: pageData,
     isLoading,

@@ -52,62 +52,117 @@ export const vitalsApi = {
 
   /**
    * GET /api/v1/nurse/appointments/{appointmentId}/vitals
-   * Fetch recorded vitals for an appointment (with audit info)
+   * Get Patient Vitals with Audit Info (Swagger specification)
    */
   async getVitals(appointmentId: string | number): Promise<
     NurseVitalsApiResponse<{
       vitalsId?: number;
       appointmentId?: number;
+      chiefComplaint?: string;
+      symptoms?: string;
+      diagnosis?: string;
+      clinicalNotes?: string;
       temperature?: number;
       weight?: number;
       height?: number;
       bloodPressure?: string;
       bloodPressureSystolic?: number;
       bloodPressureDiastolic?: number;
-      heartRate?: number;
       pulse?: number;
+      heartRate?: number;
+      spo2?: number;
+      oxygenSaturation?: number;
       respiratoryRate?: number;
       respRate?: number;
-      oxygenSaturation?: number;
-      spo2?: number;
       bloodSugar?: number;
       sugar?: number;
-      painScore?: number;
       notes?: string;
+      status?: string;
+      message?: string;
+      version?: number;
       recordedBy?: { employeeId?: string; name?: string };
       recordedAt?: string;
       lastUpdatedBy?: { employeeId?: string; name?: string };
       lastUpdatedAt?: string;
+      lastReviewedBy?: { employeeId?: string; name?: string };
+      lastReviewedAt?: string;
     } | null>
   > {
     try {
-      const response = await apiClient.get<
-        NurseVitalsApiResponse<{
-          vitalsId?: number;
-          appointmentId?: number;
-          temperature?: number;
-          weight?: number;
-          height?: number;
-          bloodPressure?: string;
-          bloodPressureSystolic?: number;
-          bloodPressureDiastolic?: number;
-          heartRate?: number;
-          pulse?: number;
-          respiratoryRate?: number;
-          respRate?: number;
-          oxygenSaturation?: number;
-          spo2?: number;
-          bloodSugar?: number;
-          sugar?: number;
-          painScore?: number;
-          notes?: string;
-          recordedBy?: { employeeId?: string; name?: string };
-          recordedAt?: string;
-          lastUpdatedBy?: { employeeId?: string; name?: string };
-          lastUpdatedAt?: string;
-        } | null>
-      >(`/api/v1/nurse/appointments/${appointmentId}/vitals`);
-      return response.data;
+      try {
+        const primaryRes = await apiClient.get<
+          NurseVitalsApiResponse<{
+            vitalsId?: number;
+            appointmentId?: number;
+            chiefComplaint?: string;
+            symptoms?: string;
+            diagnosis?: string;
+            clinicalNotes?: string;
+            temperature?: number;
+            weight?: number;
+            height?: number;
+            bloodPressure?: string;
+            bloodPressureSystolic?: number;
+            bloodPressureDiastolic?: number;
+            pulse?: number;
+            heartRate?: number;
+            spo2?: number;
+            oxygenSaturation?: number;
+            respiratoryRate?: number;
+            respRate?: number;
+            bloodSugar?: number;
+            sugar?: number;
+            notes?: string;
+            status?: string;
+            message?: string;
+            version?: number;
+            recordedBy?: { employeeId?: string; name?: string };
+            recordedAt?: string;
+            lastUpdatedBy?: { employeeId?: string; name?: string };
+            lastUpdatedAt?: string;
+            lastReviewedBy?: { employeeId?: string; name?: string };
+            lastReviewedAt?: string;
+          } | null>
+        >(`/api/v1/nurse/appointments/${appointmentId}/vitals`);
+        return primaryRes.data;
+      } catch (err) {
+        if (axios.isAxiosError(err) && err.response?.status === 404) {
+          const fallbackRes = await apiClient.get<
+            NurseVitalsApiResponse<{
+              vitalsId?: number;
+              appointmentId?: number;
+              chiefComplaint?: string;
+              symptoms?: string;
+              diagnosis?: string;
+              clinicalNotes?: string;
+              temperature?: number;
+              weight?: number;
+              height?: number;
+              bloodPressure?: string;
+              bloodPressureSystolic?: number;
+              bloodPressureDiastolic?: number;
+              pulse?: number;
+              heartRate?: number;
+              spo2?: number;
+              respiratoryRate?: number;
+              respRate?: number;
+              bloodSugar?: number;
+              sugar?: number;
+              status?: string;
+              message?: string;
+              version?: number;
+              recordedBy?: { employeeId?: string; name?: string };
+              recordedAt?: string;
+              lastUpdatedBy?: { employeeId?: string; name?: string };
+              lastUpdatedAt?: string;
+              lastReviewedBy?: { employeeId?: string; name?: string };
+              lastReviewedAt?: string;
+            } | null>
+          >(`/api/v1/appointments/${appointmentId}/vitals`);
+          return fallbackRes.data;
+        }
+        throw err;
+      }
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const data = error.response?.data as { message?: string } | undefined;
@@ -177,19 +232,45 @@ export const vitalsApi = {
   },
 
   /**
+   * GET /api/v1/encounters/{encounterId}/vitals
+   * Fetch vitals directly for an encounter (Swagger spec B)
+   */
+  async getVitalsByEncounterId(encounterId: string | number) {
+    try {
+      const response = await apiClient.get<NurseVitalsApiResponse<unknown> | Record<string, unknown>>(
+        `/api/v1/encounters/${encounterId}/vitals`,
+      );
+      return response.data;
+    } catch {
+      return null;
+    }
+  },
+
+  /**
    * POST /api/v1/nurse/appointments/{appointmentId}/vitals
-   * Submit recorded patient vitals (legacy endpoint)
+   * Submit recorded patient vitals (Swagger specification)
    */
   async recordVitals(
     appointmentId: string | number,
     payload: NurseVitalsPayload,
   ): Promise<NurseVitalsApiResponse<unknown>> {
     try {
-      const response = await apiClient.post<NurseVitalsApiResponse<unknown>>(
-        `/api/v1/nurse/appointments/${appointmentId}/vitals`,
-        payload,
-      );
-      return response.data;
+      try {
+        const primaryRes = await apiClient.post<NurseVitalsApiResponse<unknown>>(
+          `/api/v1/nurse/appointments/${appointmentId}/vitals`,
+          payload,
+        );
+        return primaryRes.data;
+      } catch (err) {
+        if (axios.isAxiosError(err) && err.response?.status === 404) {
+          const fallbackRes = await apiClient.post<NurseVitalsApiResponse<unknown>>(
+            `/api/v1/appointments/${appointmentId}/vitals`,
+            payload,
+          );
+          return fallbackRes.data;
+        }
+        throw err;
+      }
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const data = error.response?.data as { message?: string } | undefined;

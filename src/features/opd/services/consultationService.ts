@@ -92,7 +92,7 @@ export const consultationService = {
         throw new Error("Appointment ID is missing");
       }
 
-      // Transition appointment status to IN_CONSULTATION in backend
+      // 1. Transition appointment status to IN_CONSULTATION in backend (PATCH /api/v1/doctor/appointments/{id}/start)
       try {
         await appointmentsApi.doctorStartConsultation(appointmentId);
       } catch (startErr) {
@@ -102,7 +102,7 @@ export const consultationService = {
         );
       }
 
-      // 1. Create Encounter with linked patient
+      // 2. Create / Open Encounter with linked appointment (POST /api/v1/encounters)
       const patientId =
         appointment.patientId ||
         (typeof (appointment as unknown as Record<string, unknown>).patient ===
@@ -119,7 +119,15 @@ export const consultationService = {
       );
       consultationStoreActions.setEncounter(encounter);
 
-      // 2. Load patient vitals for the encounter (may fail for new encounters — non-critical)
+      // 3. Fetch aggregated Encounter Workspace context (GET /api/v1/encounters/{id}/workspace)
+      let workspaceData: Record<string, unknown> | null = null;
+      try {
+        workspaceData = await consultationApi.getWorkspace(encounter.encounterId);
+      } catch {
+        // non-blocking fallback
+      }
+
+      // 4. Load patient vitals for the encounter
       let vitals: PatientVitals | null = null;
       try {
         vitals = await consultationApi.loadEncounterVitals(
@@ -132,20 +140,17 @@ export const consultationService = {
         // Vitals may not exist yet for new encounters — continue
       }
 
-      // 3. Initialize Consultation Draft
+      // 5. Initialize Consultation Draft (POST /api/v1/encounters/{id}/consultation)
       const consultation = await consultationApi.initializeConsultation(
         encounter.encounterId,
         chiefComplaint || appointment.chiefComplaint || "",
       );
 
-      // 4. Create Draft Prescription linked to encounter
+      // 6. Fetch existing or create draft prescription
       let prescription = null;
       try {
-        prescription = await encountersApi.createPrescription(
+        prescription = await encountersApi.getPrescriptionByEncounterId(
           encounter.encounterId,
-          {
-            outcome: "NO_MEDICATION_REQUIRED",
-          },
         );
       } catch {
         prescription = null;
@@ -387,15 +392,6 @@ export const consultationService = {
           // non-blocking
         }
 
-        // Ensure appointment status is IN_CONSULTATION in backend before finalization
-        if (appointmentId) {
-          try {
-            await appointmentsApi.doctorStartConsultation(appointmentId);
-          } catch {
-            // non-blocking
-          }
-        }
-
         let encounterFinalized = false;
         const MAX_RETRIES = 3;
         for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -423,19 +419,7 @@ export const consultationService = {
               errMsg.includes("STALE_ENCOUNTER") ||
               errMsg.includes("modified") ||
               errMsg.includes("409");
-            const isStateErr =
-              errMsg.includes("IN_CONSULTATION") ||
-              errMsg.includes("INVALID_STATE");
-
-            if (isStateErr && appointmentId && attempt < MAX_RETRIES - 1) {
-              try {
-                await appointmentsApi.doctorStartConsultation(appointmentId);
-              } catch {
-                // non-blocking
-              }
-            }
-
-            if ((isStale || isStateErr) && attempt < MAX_RETRIES - 1) {
+            if (isStale && attempt < MAX_RETRIES - 1) {
               // Brief delay to let any pending DB writes settle, then retry
               await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
               continue;
@@ -528,162 +512,74 @@ export const consultationService = {
   },
 
   /**
-   * Action: Load Full Consultation Details from APIs
+   * Action: Load Full Consultation Details from unified workspace
    */
   loadFullConsultationDetails: async (
-    consultationId: string | number,
-  ): Promise<Record<string, unknown>> => {
+    targetId: string | number,
+  ): Promise<Record<string, unknown> | null> => {
     consultationStoreActions.setLoading(true);
     try {
-      // 1. Fetch consultation details
-      const consultation =
-        await consultationApi.getConsultationDetails(consultationId);
+      let workspace: Record<string, unknown> | null = null;
+      let realEncounterId = targetId;
 
-      if (!consultation) {
-        // Fallback: Check aggregated clinical workspace endpoint GET /api/v1/encounters/{id}/workspace
-        const workspace =
-          await consultationApi.getEncounterWorkspace(consultationId);
-        if (workspace && (workspace.consultation || workspace.encounter)) {
-          return workspace;
-        }
-        throw new Error("Consultation details not found");
+      // 1. Try fetching workspace assuming targetId is encounterId
+      try {
+        workspace = await consultationApi.getWorkspace(targetId);
+      } catch {
+        workspace = null;
       }
 
-      const cnsRecord = consultation as unknown as Record<string, unknown>;
-
-      const encounterId =
-        (cnsRecord.encounterId as string | number) || `ENC-${consultationId}`;
-
-      // 2-5. Fetch encounter, vitals, diagnoses, and prescription in parallel
-      const [encounter, vitals, rawDiagnoses, prescription] = await Promise.all(
-        [
-          consultationApi.getEncounter(encounterId),
-          consultationApi.loadEncounterVitals(encounterId),
-          consultationApi.getDiagnoses(encounterId),
-          consultationApi.getPrescription(encounterId),
-        ],
-      );
-
-      const diagnoses: Diagnosis[] = Array.isArray(rawDiagnoses)
-        ? rawDiagnoses
-        : [];
-
-      const vitalsRecord = (cnsRecord.vitals || {}) as Record<string, unknown>;
-      const patientRecord = (cnsRecord.patient || {}) as Record<
-        string,
-        unknown
-      >;
-
-      const normalizedVitals = vitals
-        ? {
-            height: String(vitals.height || vitalsRecord.height || ""),
-            weight: String(vitals.weight || vitalsRecord.weight || ""),
-            bmi: String(vitals.bmi || vitalsRecord.bmi || ""),
-            temp: String(vitals.temp || vitalsRecord.temp || ""),
-            bp: String(vitals.bp || vitalsRecord.bp || ""),
-            pulse: String(vitals.pulse || vitalsRecord.pulse || ""),
-            respiratoryRate: String(
-              vitals.respiratoryRate || vitalsRecord.respiratoryRate || "",
-            ),
-            spo2: String(vitals.spo2 || vitalsRecord.spo2 || ""),
-            bloodSugar: String(
-              vitals.bloodSugar || vitalsRecord.bloodSugar || "",
-            ),
+      // 2. Fallback: if workspace is null, targetId is likely an appointmentId. Resolve encounterId first.
+      if (!workspace) {
+        try {
+          const encRes = await consultationApi.createEncounter(targetId);
+          if (encRes?.encounterId) {
+            realEncounterId = encRes.encounterId;
+            workspace = await consultationApi.getWorkspace(realEncounterId);
           }
-        : (cnsRecord.vitals as PatientVitals | undefined);
+        } catch {
+          workspace = null;
+        }
+      }
 
-      const fullRecord: ConsultationRecord = {
-        id: String(cnsRecord.id || consultationId),
-        appointmentId: Number(cnsRecord.appointmentId || consultationId),
-        tokenNo: String(cnsRecord.tokenNo || cnsRecord.token || ""),
-        patientName: String(
-          cnsRecord.patientName || patientRecord.name || "Patient",
-        ),
-        mrn: String(cnsRecord.mrn || patientRecord.mrn || ""),
-        age: Number(cnsRecord.age || patientRecord.age || 0),
-        gender: (cnsRecord.gender || patientRecord.gender || "Other") as
-          "Male" | "Female" | "Other",
-        phone: String(cnsRecord.phone || patientRecord.contact || ""),
-        doctor: String(cnsRecord.doctor || cnsRecord.doctorName || ""),
-        department: String(
-          cnsRecord.department || cnsRecord.departmentName || "",
-        ),
-        appointmentTime: String(
-          cnsRecord.appointmentTime || cnsRecord.checkInTime || "",
-        ),
-        visitType: (cnsRecord.visitType || "First Visit") as
-          "First Visit" | "Follow-up",
-        status: (cnsRecord.status || "IN_CONSULTATION") as ConsultationStatus,
-        chiefComplaint: String(cnsRecord.chiefComplaint || ""),
-        opdRoom: String(cnsRecord.opdRoom || ""),
-        date: String(cnsRecord.date || new Date().toISOString().split("T")[0]),
-        vitals: normalizedVitals as PatientVitals,
-        finalDiagnosis: String(
-          diagnoses.length > 0 && diagnoses[0].diagnosisName
-            ? diagnoses[0].diagnosisName
-            : cnsRecord.finalDiagnosis || "",
-        ),
-        icdCode: String(
-          diagnoses.length > 0 && diagnoses[0].diagnosisCode
-            ? `${diagnoses[0].diagnosisCode} — ${diagnoses[0].diagnosisName || ""}`
-            : cnsRecord.icdCode || "",
-        ),
-        medicines:
-          prescription && prescription.medications
-            ? prescription.medications.map(
-                (med: Record<string, unknown>, idx: number): MedicineItem => ({
-                  id: String(med.id || idx),
-                  name: String(med.medicineName || med.name || ""),
-                  dosage: String(med.strength || med.dosage || ""),
-                  frequency: String(
-                    med.frequencyDisplay || med.frequency || "",
-                  ),
-                  duration: `${med.durationValue || 7} Days`,
-                  instructions: String(med.instructions || ""),
-                }),
-              )
-            : Array.isArray(cnsRecord.medicines)
-              ? cnsRecord.medicines.map(
-                  (
-                    med: Record<string, unknown>,
-                    idx: number,
-                  ): MedicineItem => ({
-                    id: String(med.id || idx),
-                    name: String(med.medicineName || med.name || ""),
-                    dosage: String(med.strength || med.dosage || ""),
-                    frequency: String(
-                      med.frequencyDisplay || med.frequency || "",
-                    ),
-                    duration: String(
-                      med.duration || `${med.durationValue || 7} Days`,
-                    ),
-                    instructions: String(med.instructions || ""),
-                  }),
-                )
-              : [],
-        ...cnsRecord,
+      if (!workspace) return null;
+
+      const pSub = (workspace.patient || {}) as Record<string, unknown>;
+      const aSub = (workspace.appointment || {}) as Record<string, unknown>;
+      const eSub = (workspace.encounter || {}) as Record<string, unknown>;
+      const vSub = (workspace.vitals || {}) as Record<string, unknown>;
+
+      const toStr = (v: unknown) => (v != null ? String(v) : "");
+
+      const normalizedVitals: PatientVitals = {
+        height: toStr(vSub.height),
+        weight: toStr(vSub.weight),
+        bmi: toStr(vSub.bmi),
+        temp: toStr(vSub.temperature || vSub.temp),
+        bp: toStr(vSub.bloodPressure || vSub.bp),
+        pulse: toStr(vSub.pulse || vSub.heartRate),
+        spo2: toStr(vSub.spo2 || vSub.oxygenSaturation),
+        respiratoryRate: toStr(vSub.respiratoryRate || vSub.respRate),
+        bloodSugar: toStr(vSub.bloodSugar || vSub.sugar),
       };
 
-      consultationStoreActions.setConsultation(fullRecord);
-      consultationStoreActions.setEncounter(encounter);
-      consultationStoreActions.setPrescription(prescription);
-      consultationStoreActions.setVitals(vitals);
-      consultationStoreActions.setDiagnoses(diagnoses);
+      // Hydrate Redux store
+      if (eSub.encounterId) {
+        consultationStoreActions.setEncounter(eSub as unknown as Parameters<typeof consultationStoreActions.setEncounter>[0]);
+      }
+      consultationStoreActions.setVitals(normalizedVitals);
+      consultationStoreActions.setStatus("IN_CONSULTATION");
 
       return {
-        consultation: fullRecord,
-        encounter,
-        prescription,
-        diagnoses,
-        vitals,
+        encounter: eSub,
+        patient: pSub,
+        appointment: aSub,
+        vitals: normalizedVitals,
+        consultation: workspace,
       };
     } catch (err) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : "Failed to load consultation details";
-      consultationStoreActions.setError(errorMessage);
-      throw new Error(errorMessage, { cause: err });
+      console.warn("loadFullConsultationDetails error:", err);
+      return null;
     } finally {
       consultationStoreActions.setLoading(false);
     }

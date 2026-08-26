@@ -1113,7 +1113,7 @@ export function DoctorProfileScreen({
                     className="font-bold text-[#0D47A1] text-sm"
                     style={{ fontFamily: PP }}
                   >
-                    ${docState.consultationFee}
+                    ₹{docState.consultationFee}
                   </span>
                 </div>
               )}
@@ -1160,9 +1160,6 @@ export function DoctorProfileScreen({
                   </span>
                 </p>
               </div>
-              <span className="text-xs font-bold text-[#0D47A1] bg-blue-50 px-3 py-1 rounded-xl border border-blue-100 shrink-0">
-                Shift: {docState.shiftTimings}
-              </span>
             </div>
 
             <div className="border border-[#E5E7EB] rounded-2xl overflow-hidden">

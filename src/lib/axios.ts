@@ -276,7 +276,11 @@ async function customFetch<T = unknown>(
         : response.statusText) ||
       `Request failed with status ${response.status}`;
 
-    if (response.status !== 404 || !url.includes("/patients/me/queue")) {
+    const isIgnored404 =
+      response.status === 404 &&
+      (url.includes("/patients/me/queue") || url.includes("/prescription"));
+
+    if (!isIgnored404) {
       console.error(`[API Error ${response.status}] ${url}:`, responseData);
     }
     throw new ApiError(errorMsg, response.status, responseData);

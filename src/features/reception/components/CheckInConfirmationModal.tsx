@@ -95,7 +95,6 @@ export const CheckInConfirmationModal: React.FC<
               </strong>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-blue-300">MRN:</span>
               <span className="font-mono text-white">{patientMrn}</span>
             </div>
             <div className="flex items-center justify-between">

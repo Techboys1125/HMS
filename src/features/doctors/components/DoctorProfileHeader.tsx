@@ -5,20 +5,13 @@ import {
   Edit,
   AlertTriangle,
   CheckCircle2,
-  FileCheck,
   Award,
   Building2,
-  CalendarRange,
-  Clock,
   Calendar,
 } from "lucide-react";
 import type { DoctorRecord, DoctorAvailability } from "../types/doctors.types";
 import { PP, RB } from "../constants/doctors.constants";
 import UserAvatar from "../../../common/components/UserAvatar";
-
-function DollarSignIcon() {
-  return <span className="text-xs font-bold">$</span>;
-}
 
 export interface DoctorProfileHeaderProps {
   doctor: DoctorRecord;
@@ -184,10 +177,10 @@ export function DoctorProfileHeader({
                   {doctor.id}
                 </span>
                 <span className="text-xs font-mono font-semibold text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-md border border-slate-200">
-                  EMP: {doctor.empId || "—"}
+                  {doctor.empId || "—"}
                 </span>
                 <span className="text-xs font-mono font-medium text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-md border border-teal-100 flex items-center gap-1">
-                  <FileCheck size={13} /> {doctor.regNumber || "—"}
+                  {doctor.regNumber || "—"}
                 </span>
                 <span
                   className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
@@ -226,8 +219,7 @@ export function DoctorProfileHeader({
                     `${doctor.experienceYrs || 0} Years Experience`}
                 </span>
                 <span className="flex items-center gap-1 font-bold text-[#0D47A1]">
-                  <DollarSignIcon /> ${doctor.consultationFee || 0} Consultation
-                  Fee
+                  ₹{doctor.consultationFee || 0} Consultation Fee
                 </span>
                 <span className="flex items-center gap-1 font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
                   <Building2 size={13} /> {doctor.opdRoom || "Main OPD"}
@@ -237,24 +229,6 @@ export function DoctorProfileHeader({
           </div>
 
           <div className="flex items-center gap-2 shrink-0 self-start md:self-auto border-t md:border-t-0 pt-4 md:pt-0 border-slate-100">
-            {visibleTabs.some((t) => t.id === "availability") && (
-              <button
-                onClick={() => onSelectTab("availability")}
-                className="px-3.5 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-slate-700 hover:text-[#0D47A1] text-xs font-bold transition-colors flex items-center gap-1.5"
-                style={{ fontFamily: PP }}
-              >
-                <CalendarRange size={14} /> Availability
-              </button>
-            )}
-            {visibleTabs.some((t) => t.id === "schedule") && (
-              <button
-                onClick={() => onSelectTab("schedule")}
-                className="px-3.5 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-slate-700 hover:text-[#0D47A1] text-xs font-bold transition-colors flex items-center gap-1.5"
-                style={{ fontFamily: PP }}
-              >
-                <Clock size={14} /> Schedule
-              </button>
-            )}
             {visibleTabs.some((t) => t.id === "appointments") && (
               <button
                 onClick={() => onSelectTab("appointments")}

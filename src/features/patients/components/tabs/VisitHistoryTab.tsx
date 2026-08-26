@@ -38,20 +38,51 @@ function isCancelledStatus(status?: string): boolean {
   return s === "CANCELLED";
 }
 
-function resolveDoctorName(
-  doctor?: string | { name?: string; fullName?: string; id?: number | string },
-): string {
-  if (!doctor) return "—";
-  if (typeof doctor === "string") return doctor;
-  return doctor.fullName || doctor.name || "—";
+function extractCleanString(val: unknown, fallback: string): string {
+  if (!val) return fallback;
+  if (typeof val === "string") {
+    const trimmed = val.trim();
+    if (trimmed && trimmed !== "[object Object]") return trimmed;
+    return fallback;
+  }
+  if (typeof val === "number") return String(val);
+  if (typeof val === "object" && val !== null) {
+    const obj = val as Record<string, unknown>;
+    for (const key of [
+      "departmentName",
+      "deptName",
+      "name",
+      "fullName",
+      "doctorName",
+      "title",
+      "nameEn",
+      "label",
+      "value",
+      "department",
+    ]) {
+      const propVal = obj[key];
+      if (
+        typeof propVal === "string" &&
+        propVal.trim() &&
+        propVal.trim() !== "[object Object]"
+      ) {
+        return propVal.trim();
+      }
+      if (typeof propVal === "object" && propVal !== null) {
+        const nestedStr = extractCleanString(propVal, "");
+        if (nestedStr && nestedStr !== fallback) return nestedStr;
+      }
+    }
+  }
+  return fallback;
 }
 
-function resolveDepartmentName(
-  department?: string | { departmentName?: string; name?: string },
-): string {
-  if (!department) return "—";
-  if (typeof department === "string") return department;
-  return department.departmentName || department.name || "—";
+function resolveDoctorName(doctor?: unknown): string {
+  return extractCleanString(doctor, "Doctor");
+}
+
+function resolveDepartmentName(department?: unknown): string {
+  return extractCleanString(department, "General OPD");
 }
 
 function resolveStatus(appointment: ApiPatientAppointment): string {

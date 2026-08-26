@@ -1,7 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router";
 import {
+  ChevronLeft,
   ChevronRight,
-  UserPlus,
   Search,
   CheckCircle2,
   AlertCircle,
@@ -74,7 +75,9 @@ export function BookAppointmentScreen({
   initialMrn,
   onBookSuccess,
 }: BookAppointmentScreenProps) {
+  const navigate = useNavigate();
   void onViewPatientProfileClick;
+  void onRegisterNewPatientClick;
   // Section 01: Patient Search state
   const [patientQuery, setPatientQuery] = useState("");
   const [selectedPatient, setSelectedPatient] = useState<PatientSummary | null>(
@@ -636,40 +639,47 @@ export function BookAppointmentScreen({
         <div>
           <div className="flex items-center gap-2 text-xs text-[#64748B] mb-1">
             <button
-              onClick={onBack}
-              className="hover:text-[#0D47A1] transition-colors"
+              type="button"
+              onClick={onBack ? onBack : () => navigate(-1)}
+              className="p-1 -ml-1 text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+              title="Go Back"
             >
-              {role === "patient" ? "Patient Portal" : "Reception Management"}
+              <ChevronLeft size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={onBack ? onBack : () => navigate(-1)}
+              className="hover:text-[#0D47A1] transition-colors cursor-pointer"
+            >
+              {role === "patient" ? "Patient Portal" : "Patient Management"}
             </button>
             <ChevronRight size={12} />
             <span className="font-semibold text-[#0D47A1]">
-              {role === "patient" ? "Book Appointment" : "Appointment Booking"}
+              Book Appointment
             </span>
           </div>
-          <h1
-            className="text-2xl font-bold text-[#111827]"
-            style={{ fontFamily: PP }}
-          >
-            Book Appointment
-          </h1>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onBack ? onBack : () => navigate(-1)}
+              className="p-1.5 -ml-1 text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+              title="Go Back"
+            >
+              <ChevronLeft size={22} />
+            </button>
+            <h1
+              className="text-2xl font-bold text-[#111827]"
+              style={{ fontFamily: PP }}
+            >
+              Book Appointment
+            </h1>
+          </div>
           <p className="text-xs text-[#64748B] mt-0.5">
             {role === "patient"
               ? "Select a doctor, date & available time slot to book your appointment."
               : "Search a patient, select a doctor and confirm an appointment."}
           </p>
         </div>
-
-        {role !== "patient" && (
-          <div className="flex items-center gap-2">
-            <button
-              onClick={onRegisterNewPatientClick}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-50 border border-blue-200 text-[#0D47A1] text-xs font-semibold hover:bg-blue-100 transition-colors"
-              style={{ fontFamily: PP }}
-            >
-              <UserPlus size={14} /> Register New Patient
-            </button>
-          </div>
-        )}
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">

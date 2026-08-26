@@ -4,7 +4,6 @@ import {
   RotateCcw,
   History,
   BarChart2,
-  Activity,
 } from "lucide-react";
 import { useAuthStore } from "../../auth/store/auth.store";
 import { checkBillingPermission } from "../permissions/billing.permissions";
@@ -37,20 +36,6 @@ export function BillingHeader({
     checkBillingPermission(role, "export_reports") && !isAdminReadOnly;
   const showDailyReport = checkBillingPermission(role, "view_daily_report");
   const showPaymentsLedger = checkBillingPermission(role, "view_history");
-
-  const initials = user?.fullName
-    ? user.fullName
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-    : user?.name
-      ? user.name
-          .split(" ")
-          .map((n) => n[0])
-          .join("")
-          .toUpperCase()
-      : "";
 
   const defaultSubtitle = isAdminReadOnly
     ? "Monitor billing operations, invoice status and revenue overview across the hospital."
@@ -142,40 +127,6 @@ export function BillingHeader({
             <span className="hidden sm:inline">Daily Billing Report</span>
           </button>
         )}
-
-        <div className="h-8 w-px bg-slate-200 hidden sm:block" />
-
-        {/* Notification & User Profile Badge */}
-        <button
-          aria-label="Action"
-          className="relative w-9 h-9 rounded-xl bg-slate-50 border border-[#E5E7EB] flex items-center justify-center text-[#64748B] hover:text-[#0D47A1] hover:bg-blue-50 transition-colors cursor-pointer"
-        >
-          <Activity size={16} />
-          <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#EF4444]" />
-        </button>
-
-        <div className="flex items-center gap-2 pl-1 border-l border-slate-200 sm:border-0">
-          <div
-            className="w-9 h-9 rounded-full bg-[#0D47A1] text-white font-bold text-xs flex items-center justify-center"
-            style={{ fontFamily: PP }}
-          >
-            {initials}
-          </div>
-          <div className="hidden lg:block text-left">
-            <div
-              className="text-xs font-semibold text-[#111827]"
-              style={{ fontFamily: PP }}
-            >
-              {user?.fullName || user?.name || ""}
-            </div>
-            <div
-              className="text-[10px] text-[#64748B]"
-              style={{ fontFamily: RB }}
-            >
-              {user?.role ? String(user.role).replace("_", " ") : ""}
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { useParams } from "react-router";
+import { useParams, useNavigate } from "react-router";
 import { PatientProfilePage } from "../pages/PatientProfilePage";
 import { useAuthStore } from "../../auth/store/auth.store";
 import { useState, useEffect } from "react";
@@ -9,6 +9,7 @@ import type { Role } from "../utils/patientPermissions";
 
 export function PatientProfileRoute() {
   const { mrn } = useParams<{ mrn: string }>();
+  const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const [patient, setPatient] = useState<Patient | null>(null);
 
@@ -34,7 +35,7 @@ export function PatientProfileRoute() {
     <PatientProfilePage
       patient={patient}
       currentRole={currentRole}
-      onBack={() => {}}
+      onBack={() => navigate(-1)}
     />
   );
 }

@@ -7,6 +7,7 @@ import { DoctorPatientsScreen } from "../../features/doctors/components/DoctorPa
 import { DoctorMedicalRecordsScreen } from "../../features/doctors/components/DoctorMedicalRecordsScreen";
 import { DoctorAppointmentsScreen } from "../../features/doctors/components/DoctorAppointmentsScreen";
 import { OpdConsultationCenterScreen } from "../../features/opd/pages/OPDConsultationPage";
+import { StartConsultationPage as StartOpdConsultationWorkspaceScreen } from "../../features/opd/pages/StartConsultationPage";
 import { PrescriptionManagementPage } from "../../features/prescriptions/pages/PrescriptionManagementPage";
 import { DoctorProfileRoute } from "../../features/doctors/pages/DoctorProfileRoute";
 // DoctorsRouteDispatcher is exported from routeConfig
@@ -60,6 +61,14 @@ export function DoctorRoutes() {
         element={
           <RouteGuard requiredPermission="OPD_VIEW">
             <OpdConsultationCenterScreen />
+          </RouteGuard>
+        }
+      />
+      <Route
+        path={ROUTES.DOCTOR_CONSULTATION_ID}
+        element={
+          <RouteGuard requiredPermission="OPD_VIEW">
+            <StartOpdConsultationWorkspaceScreen />
           </RouteGuard>
         }
       />

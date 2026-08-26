@@ -261,17 +261,16 @@ export const appointmentsApi = {
     appointmentId: string | number,
   ): Promise<ApiResponse<QueueActionResponse>> => {
     try {
-      // Primary: backend queue endpoint
+      // Primary documented endpoint: PATCH /api/v1/doctor/appointments/{appointmentId}/start
       const response = await apiClient.patch<ApiResponse<QueueActionResponse>>(
-        `/api/v1/queue/${appointmentId}/start-consultation`,
+        `/api/v1/doctor/appointments/${appointmentId}/start`,
       );
       return response.data;
     } catch (error: unknown) {
-      // Fallback: doctor-specific endpoint
       try {
         const response = await apiClient.patch<
           ApiResponse<QueueActionResponse>
-        >(`/api/v1/doctor/appointments/${appointmentId}/start`);
+        >(`/api/v1/queue/${appointmentId}/start-consultation`);
         return response.data;
       } catch {
         return handleApiError(error);

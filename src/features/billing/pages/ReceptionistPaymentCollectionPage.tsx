@@ -480,21 +480,23 @@ export function ReceptionistPaymentCollectionPage() {
                 </div>
 
                 {/* Reference */}
-                <div>
-                  <span className="block text-slate-700 font-semibold mb-1">
-                    Reference Number
-                    <input
-                      aria-label="Input field"
-                      type="text"
-                      value={form.referenceNumber}
-                      onChange={(e) =>
-                        setField("referenceNumber", e.target.value)
-                      }
-                      placeholder="e.g. UPI Ref / Cash receipt no"
-                      className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 text-xs font-mono focus:bg-white focus:border-[#0D47A1] focus:outline-none"
-                    />
-                  </span>
-                </div>
+                {form.paymentMethod.toUpperCase() !== "CASH" && (
+                  <div>
+                    <span className="block text-slate-700 font-semibold mb-1">
+                      Reference Number
+                      <input
+                        aria-label="Input field"
+                        type="text"
+                        value={form.referenceNumber}
+                        onChange={(e) =>
+                          setField("referenceNumber", e.target.value)
+                        }
+                        placeholder="e.g. UPI Ref / Txn ID"
+                        className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 text-xs font-mono focus:bg-white focus:border-[#0D47A1] focus:outline-none"
+                      />
+                    </span>
+                  </div>
+                )}
 
                 {/* Remarks */}
                 <div>

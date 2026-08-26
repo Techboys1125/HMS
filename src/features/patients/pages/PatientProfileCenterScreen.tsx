@@ -413,7 +413,6 @@ export function PatientProfileCenterScreen({
             </h2>
             <div className="flex items-center gap-3 text-xs text-[#64748B] mt-0.5">
               <span>
-                MRN:{" "}
                 <strong className="text-[#111827]">
                   {profileData.patientId}
                 </strong>

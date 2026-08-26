@@ -405,16 +405,6 @@ export function EditPatientScreen({
                     Upload a high-resolution facial photo of the patient (JPG,
                     PNG, max 2MB).
                   </p>
-                  <div className="pt-1">
-                    <input
-                      aria-label="Input field"
-                      type="text"
-                      value={photoUrl}
-                      onChange={(e) => setPhotoUrl(e.target.value)}
-                      placeholder="Or paste photo URL here..."
-                      className="w-full sm:w-80 px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-lg text-slate-700 outline-none focus:border-[#0D47A1]"
-                    />
-                  </div>
                 </div>
               </section>
 
@@ -444,9 +434,9 @@ export function EditPatientScreen({
                       <input
                         type="text"
                         value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
+                        readOnly
                         placeholder="Enter patient full name"
-                        className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
+                        className="w-full px-3 py-2 text-sm bg-slate-50 border border-gray-200 rounded-lg text-slate-600 outline-none cursor-not-allowed font-medium"
                       />
                     </label>
                   </div>
@@ -761,7 +751,7 @@ export function EditPatientScreen({
                   {updateMutation.isPending && (
                     <Loader2 size={16} className="animate-spin" />
                   )}
-                  Save Changes (PUT)
+                  Save
                 </button>
               </div>
             </form>

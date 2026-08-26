@@ -284,7 +284,7 @@ export function DoctorTable({
                           </span>
                           {can("DOCTOR_CONTACT_VIEW") && (
                             <span className="text-[10px] text-[#64748B] font-mono">
-                              EMP: {doc.empId} &bull; Reg: {doc.regNumber}
+                              {doc.empId || "—"} &bull; {doc.regNumber || "—"}
                             </span>
                           )}
                         </div>

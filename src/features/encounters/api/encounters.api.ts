@@ -273,6 +273,57 @@ export const encountersApi = {
       return null;
     }
   },
+  /**
+   * GET /api/v1/encounters/{encounterId}/diagnoses
+   */
+  getDiagnoses: async (
+    encounterId: string | number,
+  ): Promise<unknown[] | null> => {
+    try {
+      const response = await apiClient.get<
+        ApiEnvelope<unknown[]> | unknown[]
+      >(`/api/v1/encounters/${encounterId}/diagnoses`);
+      return unwrap<unknown[]>(response.data);
+    } catch {
+      return null;
+    }
+  },
+
+
+
+  /**
+   * POST /api/v1/encounters/{encounterId}/prescription-resolution
+   */
+  setPrescriptionResolution: async (
+    encounterId: string | number,
+    payload: { outcome: string; reason?: string },
+  ): Promise<Record<string, unknown> | null> => {
+    try {
+      const response = await apiClient.post<
+        ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
+      >(`/api/v1/encounters/${encounterId}/prescription-resolution`, payload);
+      return unwrap<Record<string, unknown>>(response.data);
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  /**
+   * PUT /api/v1/consultations/{consultationId}/clinical-notes
+   */
+  updateClinicalNotes: async (
+    consultationId: string | number,
+    payload: Record<string, unknown>,
+  ): Promise<Record<string, unknown> | null> => {
+    try {
+      const response = await apiClient.put<
+        ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
+      >(`/api/v1/consultations/${consultationId}/clinical-notes`, payload);
+      return unwrap<Record<string, unknown>>(response.data);
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
 };
 
 export default encountersApi;

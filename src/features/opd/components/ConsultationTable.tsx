@@ -170,6 +170,8 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
     );
   }
 
+  const isRoleAdmin = String(role).toLowerCase().includes("admin");
+
   return (
     <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
       <div className="overflow-x-auto max-h-150 overflow-y-auto">
@@ -187,7 +189,9 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
               </th>
               {role === "doctor" && <th className="py-3.5 px-4">Visit Type</th>}
               <th className="py-3.5 px-4">Status</th>
-              <th className="py-3.5 px-4 text-right">Actions</th>
+              {!isRoleAdmin && (
+                <th className="py-3.5 px-4 text-right">Actions</th>
+              )}
             </tr>
           </thead>
           <tbody
@@ -197,7 +201,8 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
             {paginatedConsultations.map((item) => (
               <tr
                 key={item.id}
-                className="hover:bg-slate-50/80 transition-colors group"
+                onClick={() => onViewDetails?.(item.id)}
+                className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
               >
                 <td className="py-3.5 px-4 font-mono font-bold text-[#0D47A1]">
                   {item.tokenNo || "—"}
@@ -257,19 +262,21 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
                   <StatusChip status={item.status} />
                 </td>
 
-                <ConsultationActionMenu
-                  item={item}
-                  role={role}
-                  onStartConsultation={onStartConsultation}
-                  onOpenConsultation={onOpenConsultation}
-                  onCallPatient={onCallPatient}
-                  onViewDetails={onViewDetails}
-                  canStartConsultation={
-                    String(role).toLowerCase() === "doctor"
-                      ? true
-                      : canStartConsultation
-                  }
-                />
+                {!isRoleAdmin && (
+                  <ConsultationActionMenu
+                    item={item}
+                    role={role}
+                    onStartConsultation={onStartConsultation}
+                    onOpenConsultation={onOpenConsultation}
+                    onCallPatient={onCallPatient}
+                    onViewDetails={onViewDetails}
+                    canStartConsultation={
+                      String(role).toLowerCase() === "doctor"
+                        ? true
+                        : canStartConsultation
+                    }
+                  />
+                )}
               </tr>
             ))}
           </tbody>

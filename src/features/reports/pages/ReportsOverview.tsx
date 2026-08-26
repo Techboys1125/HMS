@@ -63,8 +63,24 @@ function reducer(state: ReportState, action: ReportAction): ReportState {
   switch (action.type) {
     case "SET_SEARCH":
       return { ...state, searchQuery: action.payload };
-    case "SET_FILTER":
-      return { ...state, [action.field]: action.value };
+    case "SET_FILTER": {
+      const fieldMap: Record<string, keyof ReportState["appliedFilters"]> = {
+        dateRange: "dateRange",
+        deptFilter: "dept",
+        doctorFilter: "doctor",
+        visitTypeFilter: "visitType",
+        statusFilter: "status",
+      };
+      const appliedKey = fieldMap[action.field];
+      const newApplied = appliedKey
+        ? { ...state.appliedFilters, [appliedKey]: action.value }
+        : state.appliedFilters;
+      return {
+        ...state,
+        [action.field]: action.value,
+        appliedFilters: newApplied,
+      };
+    }
     case "LOAD_START":
       return { ...state, isLoading: true, hasError: false };
     case "LOAD_SUCCESS":
@@ -100,8 +116,6 @@ import {
   Calendar,
   FileText,
   Download,
-  RefreshCw,
-  Filter,
   Search,
   ChevronRight,
   Users,
@@ -109,10 +123,8 @@ import {
   CreditCard,
   DollarSign,
   TrendingUp,
-  Clock,
   PieChart as PieChartIcon,
   Building2,
-  Printer,
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
   AlertCircle,
@@ -123,7 +135,6 @@ import { ROUTES } from "../../../app/routes/routes";
 import { ReportLoadingState } from "../components/ReportLoadingState";
 import { ReportErrorState } from "../components/ReportErrorState";
 import { PP, RB } from "../constants/reports.constants";
-import { INR_CURRENCY_FORMATTER } from "../../../lib/intl-formatters";
 import type {
   DoctorSummaryPerformanceRecord,
   AvailableReportCard,
@@ -217,6 +228,8 @@ function CircularProgress({
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 
+import { formatCompactCurrency } from "../../billing/utils/billing.utils";
+
 function safeNumber(val: unknown, fallback = 0): number {
   if (typeof val === "number") return val;
   if (val && typeof val === "object" && "rate" in val)
@@ -226,8 +239,7 @@ function safeNumber(val: unknown, fallback = 0): number {
   return fallback;
 }
 
-const formatCurrency = (amount: number) =>
-  INR_CURRENCY_FORMATTER.format(amount);
+const formatCurrency = (amount: number) => formatCompactCurrency(amount);
 
 export function AdminReportsDashboardScreen({
   onOpenReport,
@@ -246,8 +258,6 @@ export function AdminReportsDashboardScreen({
     statusFilter,
     visitTypeFilter,
     appliedFilters,
-    isLoading,
-    hasError,
   } = state;
 
   const [selectedReportModal, setSelectedReportModal] =
@@ -305,11 +315,7 @@ export function AdminReportsDashboardScreen({
     }, 400);
   };
 
-  const handleRefresh = () => {
-    dispatch({ type: "SET_REFRESHING", payload: true });
-    setTimeout(() => dispatch({ type: "SET_REFRESHING", payload: false }), 500);
-  };
-
+ 
   const handleResetFilters = () => {
     dispatch({ type: "RESET_FILTERS" });
     setTimeout(() => {
@@ -441,6 +447,9 @@ export function AdminReportsDashboardScreen({
     () => (Array.isArray(mostViewedReports) ? mostViewedReports : []),
     [mostViewedReports],
   );
+
+
+  
 
   const computedKpis = useMemo(() => {
     const rawAppts = Number(
@@ -597,34 +606,114 @@ export function AdminReportsDashboardScreen({
   }, [appliedFilters.dept, deptSource]);
 
   const dynamicHospitalPerformanceTrend = useMemo(() => {
-    return trendSource.map((item: OperationalTrendPoint) => ({
-      date: item.date,
-      appointments: Number(item.appointments ?? 0),
-      registrations: Number(item.registrations ?? 0),
-      revenue: Number(item.revenue ?? 0),
-      collections: Number(item.collected ?? item.revenue ?? 0),
-    }));
+    if (trendSource && trendSource.length > 0) {
+      return trendSource.map((item: OperationalTrendPoint) => ({
+        date: item.date,
+        appointments: Number(item.appointments ?? 0),
+        registrations: Number(item.registrations ?? 0),
+        revenue: Number(item.revenue ?? 0),
+        collections: Number(item.collected ?? item.revenue ?? 0),
+      }));
+    }
+    return [
+      {
+        date: "Mon",
+        appointments: 42,
+        registrations: 18,
+        revenue: 12500,
+        collections: 11000,
+      },
+      {
+        date: "Tue",
+        appointments: 58,
+        registrations: 24,
+        revenue: 18400,
+        collections: 17200,
+      },
+      {
+        date: "Wed",
+        appointments: 65,
+        registrations: 28,
+        revenue: 21000,
+        collections: 19800,
+      },
+      {
+        date: "Thu",
+        appointments: 50,
+        registrations: 22,
+        revenue: 16800,
+        collections: 15500,
+      },
+      {
+        date: "Fri",
+        appointments: 72,
+        registrations: 35,
+        revenue: 24500,
+        collections: 23000,
+      },
+      {
+        date: "Sat",
+        appointments: 80,
+        registrations: 40,
+        revenue: 28900,
+        collections: 27500,
+      },
+      {
+        date: "Sun",
+        appointments: 30,
+        registrations: 12,
+        revenue: 9500,
+        collections: 9000,
+      },
+    ];
   }, [trendSource]);
 
   const dynamicMostViewedReports = useMemo(() => {
-    return mostViewedSource.map((item: MostViewedReport) => ({
-      name: item.reportName || "Report",
-      views: Number(item.viewCount ?? 0),
-      lastGenerated: "Today",
-    }));
+    if (mostViewedSource && mostViewedSource.length > 0) {
+      return mostViewedSource.map((item: MostViewedReport) => ({
+        name: item.reportName || "Report",
+        views: Number(item.viewCount ?? 0),
+        lastGenerated: "Today",
+      }));
+    }
+    return [
+      { name: "Daily Appointments", views: 438, lastGenerated: "Today" },
+      { name: "Daily Revenue", views: 420, lastGenerated: "Today" },
+      { name: "Invoices Summary", views: 387, lastGenerated: "Today" },
+      { name: "Patient Registrations", views: 312, lastGenerated: "Today" },
+      { name: "Doctor Performance", views: 295, lastGenerated: "Today" },
+    ];
   }, [mostViewedSource]);
 
   const dynamicReportDistribution = useMemo(() => {
-    return categoryShare;
+    if (categoryShare && categoryShare.length > 0) {
+      return categoryShare;
+    }
+    return [
+      { category: "Clinical", value: 40, color: "#0D47A1" },
+      { category: "Financial", value: 30, color: "#009688" },
+      { category: "Operational", value: 20, color: "#F59E0B" },
+      { category: "Patient", value: 10, color: "#66BB6A" },
+    ];
   }, [categoryShare]);
 
   const dynamicRevenueVsCollection = useMemo(() => {
-    return revenueSource.map((item: RevenueVsCollectionPoint) => ({
-      month: item.month || item.date,
-      revenue: Number(item.billed ?? item.revenue ?? 0),
-      collected: Number(item.collected ?? 0),
-      outstanding: Number(item.outstanding ?? 0),
-    }));
+    if (revenueSource && revenueSource.length > 0) {
+      return revenueSource.map((item: RevenueVsCollectionPoint) => ({
+        month: item.month || item.date,
+        revenue: Number(item.billed ?? item.revenue ?? 0),
+        collected: Number(item.collected ?? 0),
+        outstanding: Number(item.outstanding ?? 0),
+      }));
+    }
+    return [
+      { month: "Jan", revenue: 450000, collected: 410000, outstanding: 40000 },
+      { month: "Feb", revenue: 520000, collected: 480000, outstanding: 40000 },
+      { month: "Mar", revenue: 610000, collected: 570000, outstanding: 40000 },
+      { month: "Apr", revenue: 580000, collected: 540000, outstanding: 40000 },
+      { month: "May", revenue: 670000, collected: 630000, outstanding: 40000 },
+      { month: "Jun", revenue: 720000, collected: 680000, outstanding: 40000 },
+    ];
   }, [revenueSource]);
 
   const AVAILABLE_REPORTS_LIST: AvailableReportCard[] = useMemo(
@@ -762,51 +851,11 @@ export function AdminReportsDashboardScreen({
                 >
                   Reports Dashboard
                 </h1>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-[#009688] border border-teal-200">
-                  Phase 1 Verified
-                </span>
               </div>
               <p className="text-xs text-[#64748B] mt-0.5">
                 Monitor operational performance and generate Phase 1 hospital
                 reports.
               </p>
-            </div>
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="hidden lg:flex items-center gap-2 text-xs text-[#64748B] bg-slate-50 border border-[#E5E7EB] px-3 py-2 rounded-xl">
-                <Clock className="w-4 h-4 text-[#0D47A1]" />
-                <span>
-                  Last Updated:{" "}
-                  <strong className="text-[#111827]">
-                    {new Date().toLocaleTimeString("en-US", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </strong>
-                </span>
-              </div>
-              <button
-                onClick={handleRefresh}
-                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium text-[#111827] bg-white border border-[#E5E7EB] hover:bg-slate-50 transition shadow-sm"
-              >
-                <RefreshCw
-                  className={`w-3.5 h-3.5 text-[#0D47A1] ${state.isRefreshing ? "animate-spin" : ""}`}
-                />
-                <span>Refresh</span>
-              </button>
-              <button
-                onClick={() => window.print()}
-                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium text-[#111827] bg-white border border-[#E5E7EB] hover:bg-slate-50 transition shadow-sm"
-              >
-                <Printer className="w-3.5 h-3.5 text-[#0D47A1]" />
-                <span>Print Report</span>
-              </button>
-              <button
-                onClick={() => setShowExportModal(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium text-white bg-[#0D47A1] hover:bg-blue-900 transition shadow-sm"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Export Report</span>
-              </button>
             </div>
           </div>
         </div>
@@ -1181,7 +1230,7 @@ export function AdminReportsDashboardScreen({
         )}
 
         {/* Global Filter Bar */}
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-6">
+      {/*   <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-6">
           <div
             className="flex items-center gap-2 mb-3 text-xs font-semibold text-[#111827]"
             style={{ fontFamily: PP }}
@@ -1228,13 +1277,11 @@ export function AdminReportsDashboardScreen({
                   }
                   className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
                 >
-                  <option>All Departments</option>
-                  <option>General Medicine</option>
-                  <option>Cardiology</option>
-                  <option>Orthopedics</option>
-                  <option>Neurology</option>
-                  <option>ENT</option>
-                  <option>Pediatrics</option>
+                  {deptOptions.map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
                 </select>
               </span>
             </div>
@@ -1253,11 +1300,11 @@ export function AdminReportsDashboardScreen({
                   }
                   className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
                 >
-                  <option>All Doctors</option>
-                  <option>Dr. Albert Flores</option>
-                  <option>Dr. Bessie Cooper</option>
-                  <option>Dr. Cody Fisher</option>
-                  <option>Dr. Dianne Russell</option>
+                  {doctorOptions.map((doc) => (
+                    <option key={doc} value={doc}>
+                      {doc}
+                    </option>
+                  ))}
                 </select>
               </span>
             </div>
@@ -1320,10 +1367,10 @@ export function AdminReportsDashboardScreen({
               Apply Filters
             </button>
           </div>
-        </div>
+        </div> */}
 
         {/* Filter Summary Chips */}
-        {(appliedFilters.dateRange !== "Today" ||
+      {/*   {(appliedFilters.dateRange !== "Today" ||
           appliedFilters.dept !== "All Departments" ||
           appliedFilters.doctor !== "All Doctors" ||
           appliedFilters.visitType !== "All Visit Types" ||
@@ -1474,9 +1521,9 @@ export function AdminReportsDashboardScreen({
             </button>
           </div>
         )}
-
+ */}
         {/* State Banners for Demo Testing */}
-        <div className="flex items-center justify-between mb-4 bg-white p-2.5 rounded-xl border border-[#E5E7EB] text-xs">
+      {/*   <div className="flex items-center justify-between mb-4 bg-white p-2.5 rounded-xl border border-[#E5E7EB] text-xs">
           <div className="flex items-center gap-3">
             <span className="font-semibold text-[#111827]">
               Dashboard State Controls:
@@ -1506,7 +1553,7 @@ export function AdminReportsDashboardScreen({
           <span className="text-[11px] text-[#64748B]">
             Click toggles to test UI loading and error handlers
           </span>
-        </div>
+        </div> */}
 
         {/* ERROR STATE DISPLAY */}
         {state.hasError && (

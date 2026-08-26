@@ -127,7 +127,7 @@ export function PatientProfileHeader({
             className="flex items-center gap-2 mt-0.5 text-xs text-[#64748B]"
             style={{ fontFamily: RB }}
           >
-            <span className="font-mono font-medium">MRN: {patient.mrn}</span>
+            <span className="font-mono font-medium">{patient.mrn}</span>
             <span>·</span>
             <span>{patient.gender}</span>
             <span>·</span>

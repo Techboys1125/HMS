@@ -5,6 +5,43 @@ import type {
   PaymentMethod,
 } from "../types/billing.types";
 
+function toCleanString(val: unknown): string {
+  if (!val) return "";
+  if (typeof val === "string") {
+    const trimmed = val.trim();
+    return trimmed && trimmed !== "[object Object]" ? trimmed : "";
+  }
+  if (typeof val === "object" && val !== null) {
+    const obj = val as Record<string, unknown>;
+    for (const key of [
+      "departmentName",
+      "deptName",
+      "department_name",
+      "dept_name",
+      "name",
+      "fullName",
+      "full_name",
+      "nameEn",
+      "title",
+      "doctorName",
+      "departmentCode",
+      "code",
+      "label",
+      "specialty",
+    ]) {
+      const propVal = obj[key];
+      if (
+        typeof propVal === "string" &&
+        propVal.trim() &&
+        propVal.trim() !== "[object Object]"
+      ) {
+        return propVal.trim();
+      }
+    }
+  }
+  return "";
+}
+
 export function mapApiInvoiceToInvoiceRecord(
   apiInv: ApiPatientInvoice,
   patientName: string,
@@ -28,23 +65,31 @@ export function mapApiInvoiceToInvoiceRecord(
       : null;
 
   const doctorName =
-    (invAny.doctorName as string) ||
-    (invAny.doctor_name as string) ||
-    (invAny.attendingDoctorName as string) ||
-    (invAny.attendingDoctor as string) ||
-    (typeof invAny.doctor === "string" ? invAny.doctor : "") ||
-    (docObj?.fullName as string) ||
-    (docObj?.doctorName as string) ||
-    (docObj?.name as string) ||
-    "";
+    toCleanString(invAny.doctorName) ||
+    toCleanString(invAny.doctor_name) ||
+    toCleanString(invAny.attendingDoctorName) ||
+    toCleanString(invAny.attendingDoctor) ||
+    toCleanString(invAny.doctor) ||
+    toCleanString(docObj?.fullName) ||
+    toCleanString(docObj?.doctorName) ||
+    toCleanString(docObj?.name) ||
+    "General Physician";
 
   const department =
-    (invAny.departmentName as string) ||
-    (invAny.department_name as string) ||
-    (typeof invAny.department === "string" ? invAny.department : "") ||
-    (deptObj?.departmentName as string) ||
-    (deptObj?.name as string) ||
-    "";
+    toCleanString(invAny.departmentName) ||
+    toCleanString(invAny.departmentName) ||
+    toCleanString(invAny.deptName) ||
+    toCleanString(invAny.department_name) ||
+    toCleanString(invAny.department) ||
+    toCleanString(deptObj?.departmentName) ||
+    toCleanString(deptObj?.deptName) ||
+    toCleanString(deptObj?.name) ||
+    toCleanString(docObj?.departmentName) ||
+    toCleanString(docObj?.deptName) ||
+    toCleanString(docObj?.department) ||
+    toCleanString(docObj?.specialty) ||
+    toCleanString(invAny.specialty) ||
+    "General OPD";
 
   const paidAmount =
     typeof invAny.paidAmount === "number"
@@ -105,24 +150,32 @@ export function mapApiBillToInvoiceRecord(bill: BillListItem): InvoiceRecord {
       : null;
 
   const doctorName =
-    (bill.doctorName as string) ||
-    (b.doctorName as string) ||
-    (b.doctor_name as string) ||
-    (b.attendingDoctorName as string) ||
-    (b.attendingDoctor as string) ||
-    (typeof b.doctor === "string" ? b.doctor : "") ||
-    (docObj?.fullName as string) ||
-    (docObj?.doctorName as string) ||
-    (docObj?.name as string) ||
-    "";
+    toCleanString(bill.doctorName) ||
+    toCleanString(b.doctorName) ||
+    toCleanString(b.doctor_name) ||
+    toCleanString(b.attendingDoctorName) ||
+    toCleanString(b.attendingDoctor) ||
+    toCleanString(b.doctor) ||
+    toCleanString(docObj?.fullName) ||
+    toCleanString(docObj?.doctorName) ||
+    toCleanString(docObj?.name) ||
+    "General Physician";
 
   const department =
-    (b.departmentName as string) ||
-    (b.department_name as string) ||
-    (typeof b.department === "string" ? b.department : "") ||
-    (deptObj?.departmentName as string) ||
-    (deptObj?.name as string) ||
-    "";
+    toCleanString(b.departmentName) ||
+    toCleanString(b.departmentName) ||
+    toCleanString(b.deptName) ||
+    toCleanString(b.department_name) ||
+    toCleanString(b.department) ||
+    toCleanString(deptObj?.departmentName) ||
+    toCleanString(deptObj?.deptName) ||
+    toCleanString(deptObj?.name) ||
+    toCleanString(docObj?.departmentName) ||
+    toCleanString(docObj?.deptName) ||
+    toCleanString(docObj?.department) ||
+    toCleanString(docObj?.specialty) ||
+    toCleanString(b.specialty) ||
+    "General OPD";
 
   const netAmount =
     (b.netAmount as number) ??
@@ -163,3 +216,43 @@ export function mapApiBillToInvoiceRecord(bill: BillListItem): InvoiceRecord {
     doctorId: bill.doctorId,
   };
 }
+
+/**
+ * Format amounts into compact Indian currency notation (K, Lac, Cr)
+ * e.g., 1,500 -> ₹1.5K, 5,00,000 -> ₹5 Lac, 54,34,56,542 -> ₹54.35 Cr
+ */
+export function formatCompactCurrency(
+  val: number | string | null | undefined,
+): string {
+  if (val === null || val === undefined) return "₹0";
+  const num =
+    typeof val === "number"
+      ? val
+      : parseFloat(String(val).replace(/[^0-9.-]/g, "")) || 0;
+  if (isNaN(num) || num === 0) return "₹0";
+
+  const abs = Math.abs(num);
+  const sign = num < 0 ? "-" : "";
+
+  if (abs >= 10000000) {
+    const cr = abs / 10000000;
+    const formatted =
+      cr % 1 === 0 ? cr.toString() : cr.toFixed(2).replace(/\.?0+$/, "");
+    return `${sign}₹${formatted} Cr`;
+  }
+  if (abs >= 100000) {
+    const lac = abs / 100000;
+    const formatted =
+      lac % 1 === 0 ? lac.toString() : lac.toFixed(2).replace(/\.?0+$/, "");
+    return `${sign}₹${formatted} Lac`;
+  }
+  if (abs >= 1000) {
+    const k = abs / 1000;
+    const formatted =
+      k % 1 === 0 ? k.toString() : k.toFixed(1).replace(/\.?0+$/, "");
+    return `${sign}₹${formatted}K`;
+  }
+
+  return `${sign}₹${Math.round(abs).toLocaleString()}`;
+}
+

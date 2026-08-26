@@ -80,6 +80,14 @@ export function AppointmentRoutes() {
         }
       />
       <Route
+        path={ROUTES.CONSULTATION_WORKSPACE_ID}
+        element={
+          <RouteGuard requiredPermission="OPD_VIEW">
+            <StartOpdConsultationWorkspaceScreen />
+          </RouteGuard>
+        }
+      />
+      <Route
         path={ROUTES.PRESCRIPTIONS}
         element={
           <RouteGuard requiredPermission="PRESCRIPTION_VIEW">

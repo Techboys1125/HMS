@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import { ROUTES } from "../../../app/routes/routes";
 import { ChevronRight, RefreshCw, UserPlus, Calendar } from "lucide-react";
 import type { Patient } from "../types/patient.types";
@@ -19,6 +19,7 @@ import {
   ActivatePatientDialog,
 } from "../components/PatientStatusDialogs";
 import { BookAppointmentDrawer } from "../../appointments/components/BookAppointmentDrawer";
+import { BookAppointmentScreen } from "../../appointments/pages/BookAppointmentScreen";
 
 const DEFAULT_FILTERS: PatientFilterValues = {
   searchQuery: "",
@@ -29,12 +30,14 @@ const DEFAULT_FILTERS: PatientFilterValues = {
 
 export function PatientListPage({ currentRole }: { currentRole: Role }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalPatients, setTotalPatients] = useState(0);
   const [activePatients, setActivePatients] = useState(0);
   const [viewingPatient, setViewingPatient] = useState<Patient | null>(null);
   const [registering, setRegistering] = useState(false);
+  const [bookingAppt, setBookingAppt] = useState(false);
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
   const [deactivatePatient, setDeactivatePatient] = useState<Patient | null>(
     null,
@@ -49,6 +52,13 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
   const [activeActionMenuId, setActiveActionMenuId] = useState<string | null>(
     null,
   );
+
+  useEffect(() => {
+    setViewingPatient(null);
+    setRegistering(false);
+    setBookingAppt(false);
+    setEditingPatient(null);
+  }, [location.key, location.state]);
 
   const fetchPatients = async () => {
     try {
@@ -224,6 +234,19 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
     );
   }
 
+  if (bookingAppt) {
+    return (
+      <BookAppointmentScreen
+        role={currentRole.toLowerCase() as any}
+        onBack={() => setBookingAppt(false)}
+        onBookSuccess={() => {
+          setBookingAppt(false);
+          fetchPatients();
+        }}
+      />
+    );
+  }
+
   if (editingPatient) {
     return (
       <EditPatientScreen
@@ -274,8 +297,8 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
           </button>
           {currentRole !== "DOCTOR" && (
             <button
-              onClick={() => navigate(ROUTES.BOOK_APPOINTMENT)}
-              className="px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-teal-700 transition-colors flex items-center gap-2 shadow-sm shrink-0"
+              onClick={() => setBookingAppt(true)}
+              className="px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-teal-700 transition-colors flex items-center gap-2 shadow-sm shrink-0 cursor-pointer"
               style={{ fontFamily: PP }}
             >
               <Calendar size={15} /> Book Appointment
@@ -283,8 +306,8 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
           )}
           {canRegister && (
             <button
-              onClick={() => navigate(ROUTES.PATIENT_REGISTER)}
-              className="px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center gap-2 shadow-sm shrink-0"
+              onClick={() => setRegistering(true)}
+              className="px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center gap-2 shadow-sm shrink-0 cursor-pointer"
               style={{ fontFamily: PP }}
             >
               <UserPlus size={15} /> Register Patient

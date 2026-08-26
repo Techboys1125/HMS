@@ -19,6 +19,20 @@ const APPT_STATUS_STYLE: Record<string, string> = {
   Pending: "bg-amber-50 text-[#F59E0B] border-amber-200",
 };
 
+const extractCleanString = (val: unknown, fallback: string = ""): string => {
+  if (typeof val === "string") return val || fallback;
+  if (val && typeof val === "object") {
+    const obj = val as Record<string, unknown>;
+    return (
+      (obj.fullName as string) ||
+      (obj.name as string) ||
+      (obj.departmentName as string) ||
+      fallback
+    );
+  }
+  return fallback;
+};
+
 export function PatientAppointmentsTab({
   patient,
   isOwnProfile,
@@ -84,48 +98,20 @@ export function PatientAppointmentsTab({
       ) : (
         <div className="space-y-2">
           {filtered.map((appt) => {
-            const rawDoc =
-              appt.doctor ??
-              (appt as unknown as Record<string, unknown>).doctorName;
-            const doctorName =
-              typeof rawDoc === "string"
-                ? rawDoc
-                : rawDoc && typeof rawDoc === "object"
-                  ? (
-                      rawDoc as {
-                        fullName?: string;
-                        name?: string;
-                        doctorName?: string;
-                      }
-                    ).fullName ||
-                    (
-                      rawDoc as {
-                        fullName?: string;
-                        name?: string;
-                        doctorName?: string;
-                      }
-                    ).name ||
-                    (
-                      rawDoc as {
-                        fullName?: string;
-                        name?: string;
-                        doctorName?: string;
-                      }
-                    ).doctorName ||
-                    "Doctor"
-                  : "Doctor";
+            const doctorName = extractCleanString(
+              appt.doctor || appt.doctorName,
+              "Doctor",
+            );
             const initial =
               String(doctorName)
                 .replace(/^Dr\.?\s*/i, "")
                 .trim()
                 .charAt(0) || "D";
 
-            const departmentName =
-              typeof appt.department === "string"
-                ? appt.department
-                : appt.department?.departmentName ||
-                  appt.department?.name ||
-                  "Department";
+            const departmentName = extractCleanString(
+              appt.department,
+              "General OPD",
+            );
 
             return (
               <div

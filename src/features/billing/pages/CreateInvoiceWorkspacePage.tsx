@@ -784,17 +784,72 @@ export function CreateInvoiceWorkspacePage() {
 
         // Receive payment if isCollectPayment is true and numReceived > 0 (Must be done AFTER finalizing)
         if (isCollectPayment && numReceived > 0) {
-          const payRes = await receivePayment({
-            billId,
-            payments: [
-              {
-                method: paymentMode,
-                amount: numReceived,
-                referenceNumber: referenceNo || undefined,
-              },
-            ],
-            remarks: txnNotes || undefined,
-          });
+          let payAmount = numReceived;
+
+          // Fetch latest bill balance to ensure we don't exceed backend balance
+          try {
+            const currentBill = await billingService.getBill(billId);
+            const rawBalance =
+              (currentBill as any)?.summary?.balanceAmount ??
+              (currentBill as any)?.balanceAmount ??
+              (currentBill as any)?.balance ??
+              (currentBill as any)?.netAmount;
+
+            if (typeof rawBalance === "number" && rawBalance > 0) {
+              payAmount = Math.min(numReceived, rawBalance);
+            }
+          } catch (fetchErr) {
+            console.warn("Could not fetch bill balance before payment:", fetchErr);
+          }
+
+          let payRes: any = null;
+          try {
+            payRes = await receivePayment({
+              billId,
+              payments: [
+                {
+                  method: paymentMode,
+                  amount: payAmount,
+                  referenceNumber: referenceNo || undefined,
+                },
+              ],
+              remarks: txnNotes || undefined,
+            });
+          } catch (payErr: any) {
+            const errMsg = String(
+              payErr?.message || payErr?.data?.message || payErr || "",
+            );
+            if (errMsg.toLowerCase().includes("overpayment")) {
+              // Retry with exact backend balance if overpayment detected
+              try {
+                const refreshed = await billingService.getBill(billId);
+                const exactBalance =
+                  (refreshed as any)?.summary?.balanceAmount ??
+                  (refreshed as any)?.balanceAmount ??
+                  (refreshed as any)?.balance ??
+                  (refreshed as any)?.netAmount;
+
+                if (typeof exactBalance === "number" && exactBalance > 0) {
+                  payRes = await receivePayment({
+                    billId,
+                    payments: [
+                      {
+                        method: paymentMode,
+                        amount: exactBalance,
+                        referenceNumber: referenceNo || undefined,
+                      },
+                    ],
+                    remarks: txnNotes || undefined,
+                  });
+                }
+              } catch (retryErr) {
+                console.error("Retry payment failed:", retryErr);
+                throw payErr;
+              }
+            } else {
+              throw payErr;
+            }
+          }
 
           // Map API response status to frontend titlecase status
           if (payRes && payRes.paymentStatus) {
@@ -810,7 +865,7 @@ export function CreateInvoiceWorkspacePage() {
             else if (apiStatus === "REFUNDED") setPaymentStatus("Refunded");
             else setPaymentStatus("Pending");
           } else {
-            const totalPaidSoFar = previouslyPaid + numReceived;
+            const totalPaidSoFar = previouslyPaid + payAmount;
             setPaymentStatus(
               totalPaidSoFar >= grandTotal ? "Paid" : "Partially Paid",
             );
@@ -905,46 +960,14 @@ export function CreateInvoiceWorkspacePage() {
             charges, collect payment information and prepare the final bill.
           </p>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => navigate("/billing")}
-            className="px-4 py-2.5 rounded-xl border border-[#E5E7EB] bg-white text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors shadow-sm"
+            className="px-4 py-2.5 rounded-xl bg-white border border-[#E5E7EB] text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors shadow-sm cursor-pointer"
             style={{ fontFamily: RB }}
           >
             Cancel
           </button>
-          {isAlreadyPaidOrFinalized ? (
-            <button
-              onClick={() => {
-                const targetId =
-                  billWorkspace?.bill?.id ||
-                  billWorkspace?.bill?.billId ||
-                  urlBillId;
-                if (targetId) navigate(`/billing/invoice/${targetId}`);
-              }}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-colors shadow-sm active:scale-95"
-              style={{ fontFamily: PP }}
-            >
-              <FileText size={15} />
-              View Invoice
-            </button>
-          ) : (
-            <button
-              onClick={() => handleGenerateInvoice(hasReceivedAmount)}
-              disabled={
-                isSubmitting ||
-                isBillLoading ||
-                !selectedPatient ||
-                isOverpayment ||
-                isNegativePayment
-              }
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-colors shadow-sm active:scale-95 disabled:opacity-50"
-              style={{ fontFamily: PP }}
-            >
-              <CheckCircle2 size={15} />
-              {isSubmitting ? "Generating..." : "Generate Invoice"}
-            </button>
-          )}
         </div>
       </div>
 
@@ -1966,41 +1989,10 @@ export function CreateInvoiceWorkspacePage() {
       <div className="sticky bottom-0 -mx-4 md:-mx-6 -mb-4 md:-mb-6 bg-white/95 backdrop-blur-md border-t border-[#E5E7EB] p-3.5 px-6 z-40 flex items-center justify-between shadow-lg">
         <button
           onClick={() => navigate("/billing")}
-          className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-100"
+          className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-100 cursor-pointer"
         >
           Back to Billing
         </button>
-        {isAlreadyPaidOrFinalized ? (
-          <button
-            onClick={() => {
-              const targetId =
-                billWorkspace?.bill?.id ||
-                billWorkspace?.bill?.billId ||
-                urlBillId;
-              if (targetId) navigate(`/billing/invoice/${targetId}`);
-            }}
-            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-colors shadow-sm"
-            style={{ fontFamily: PP }}
-          >
-            <FileText size={15} />
-            View Invoice
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={() => handleGenerateInvoice(true)}
-            disabled={!canCollect}
-            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-colors shadow-sm disabled:opacity-50"
-            style={{ fontFamily: PP }}
-          >
-            <CheckCircle2 size={15} />
-            {isSubmitting
-              ? "Generating & Collecting..."
-              : isPaymentValid
-                ? `Generate & Collect (₹${currentReceived.toLocaleString()})`
-                : "Generate & Collect"}
-          </button>
-        )}
       </div>
 
       {/* SUCCESS MODAL */}

@@ -81,6 +81,8 @@ function BillingKpiCard({
   );
 }
 
+import { formatCompactCurrency } from "../utils/billing.utils";
+
 export function BillingKPICards({
   dashboardData,
   invoices,
@@ -128,7 +130,7 @@ export function BillingKPICards({
     <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-7 gap-3 md:gap-4">
       <BillingKpiCard
         title="Today's Revenue"
-        value={isReady ? `₹${totalRevenue.toLocaleString()}` : "—"}
+        value={isReady ? formatCompactCurrency(totalRevenue) : "—"}
         color="#0D47A1"
         Icon={Wallet}
         bgTint="rgba(13, 71, 161, 0.08)"
@@ -170,7 +172,7 @@ export function BillingKPICards({
       />
       <BillingKpiCard
         title="Outstanding Amount"
-        value={isReady ? `₹${totalOutstanding.toLocaleString()}` : "—"}
+        value={isReady ? formatCompactCurrency(totalOutstanding) : "—"}
         color="#8B5CF6"
         Icon={AlertCircle}
         bgTint="rgba(139, 92, 246, 0.12)"

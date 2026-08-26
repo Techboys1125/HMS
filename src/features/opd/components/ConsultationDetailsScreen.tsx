@@ -11,8 +11,10 @@ import {
   Loader2,
 } from "lucide-react";
 import { encountersApi } from "../../encounters/api/encounters.api";
-import { vitalsApi } from "../../vitals/api/vitals.api";
+import { consultationApi } from "../api/consultationApi";
 import { patientsApi } from "../../patients/api/patient.api";
+import { doctorsApi } from "../../doctors/api/doctors.api";
+import { vitalsApi } from "../../vitals/api/vitals.api";
 import { downloadConsultationPdf } from "../../../utils/consultationPdf.utils";
 
 // --- Design System Tokens ---
@@ -21,6 +23,10 @@ const RB = "'Roboto', system-ui, sans-serif";
 
 export interface ConsultationRecordData {
   id: string;
+  appointmentId?: string | number;
+  createdDate?: string;
+  completedDate?: string;
+  duration?: string;
   visitDate: string;
   completionTime: string;
   patientName: string;
@@ -82,12 +88,44 @@ interface ConsultationDetailsScreenProps {
   onViewPatientProfile?: (mrn: string) => void;
 }
 
+const unwrapApiData = (response: unknown): any => {
+  if (!response) return null;
+  const obj = response as Record<string, unknown>;
+  return obj.data ?? response;
+};
+
+const asRecord = (value: unknown): Record<string, any> => {
+  return value && typeof value === "object"
+    ? (value as Record<string, any>)
+    : {};
+};
+
+const asArray = (value: unknown): any[] => {
+  return Array.isArray(value) ? value : [];
+};
+
 const formatVitalValue = (val: unknown, unit: string) => {
   if (!val || val === "—" || val === "N/A" || val === "") return "—";
   const str = String(val).trim();
   if (!str || str === "—") return "—";
   if (str.toLowerCase().includes(unit.toLowerCase())) return str;
   return `${str} ${unit}`;
+};
+
+const formatDateTime = (value?: string | null) => {
+  if (!value || value === "—") return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+  return date.toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
 };
 
 const handlePrint = () => {
@@ -106,7 +144,13 @@ export function ConsultationDetailsScreen({
   const [loading, setLoading] = useState<boolean>(!initialRecord);
   const [record, setRecord] = useState<ConsultationRecordData>(() => {
     return {
-      id: consultationId || String(encounterId || "CNS-1001"),
+      id: consultationId || String(encounterId || ""),
+      appointmentId: initialRecord?.appointmentId || "",
+      createdDate: initialRecord?.createdDate || "",
+      completedDate: initialRecord?.completedDate || "",
+      duration: initialRecord?.duration || "",
+      status: initialRecord?.status || "Completed",
+      tokenNo: initialRecord?.tokenNo || "",
       visitDate:
         initialRecord?.visitDate ||
         new Date().toLocaleDateString("en-GB", {
@@ -115,22 +159,18 @@ export function ConsultationDetailsScreen({
           year: "numeric",
         }),
       completionTime:
-        initialRecord?.completionTime ||
-        new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      patientName: initialRecord?.patientName || "Patient",
-      mrn: initialRecord?.mrn || "MRN-000000",
+        initialRecord?.completionTime || "",
+      patientName: initialRecord?.patientName || "",
+      mrn: initialRecord?.mrn || "",
       age: initialRecord?.age || "—",
       gender: initialRecord?.gender || "—",
-      bloodGroup: initialRecord?.bloodGroup || "N/A",
+      bloodGroup: initialRecord?.bloodGroup || "—",
       allergies: initialRecord?.allergies || [],
-      doctorName: initialRecord?.doctorName || "Doctor",
-      doctorSpecialty: initialRecord?.doctorSpecialty || "General OPD",
-      department: initialRecord?.department || "OPD",
+      doctorName: initialRecord?.doctorName || "",
+      doctorSpecialty: initialRecord?.doctorSpecialty || "",
+      department: initialRecord?.department || "",
       visitType: initialRecord?.visitType || "First Visit",
-      chiefComplaint: initialRecord?.chiefComplaint || "None recorded",
+      chiefComplaint: initialRecord?.chiefComplaint || "",
       durationOfSymptoms: initialRecord?.durationOfSymptoms || "—",
       vitals: {
         height: formatVitalValue(initialRecord?.vitals?.height, "cm"),
@@ -149,48 +189,21 @@ export function ConsultationDetailsScreen({
           "mg/dL",
         ),
       },
-      clinicalExamination:
-        initialRecord?.clinicalExamination &&
-        initialRecord.clinicalExamination !== "—"
-          ? initialRecord.clinicalExamination
-          : "Normal physical and systemic examination findings.",
-      provisionalDiagnosis: initialRecord?.provisionalDiagnosis || "Recorded",
-      finalDiagnosis: initialRecord?.finalDiagnosis || "Recorded",
-      icdCode: initialRecord?.icdCode || "—",
+      clinicalExamination: initialRecord?.clinicalExamination || "",
+      provisionalDiagnosis: initialRecord?.provisionalDiagnosis || "",
+      finalDiagnosis: initialRecord?.finalDiagnosis || "",
+      icdCode: initialRecord?.icdCode || "",
       medicines: initialRecord?.medicines || [],
-      investigations:
-        initialRecord?.investigations && initialRecord.investigations.length > 0
-          ? initialRecord.investigations
-          : [],
-      investigationRemarks:
-        initialRecord?.investigationRemarks &&
-        initialRecord.investigationRemarks !== "—"
-          ? initialRecord.investigationRemarks
-          : "Perform routine lab screening if symptoms persist.",
-      symptoms:
-        initialRecord?.symptoms && initialRecord.symptoms !== "—"
-          ? initialRecord.symptoms
-          : initialRecord?.chiefComplaint ||
-            "OPD Consultation & general checkup.",
-      assessment:
-        initialRecord?.assessment && initialRecord.assessment !== "—"
-          ? initialRecord.assessment
-          : "Patient evaluated and stable.",
-      advice:
-        initialRecord?.advice && initialRecord.advice !== "—"
-          ? initialRecord.advice
-          : "Follow doctor advice, complete prescribed medication course, and rest.",
-      lifestyleRecommendations:
-        initialRecord?.lifestyleRecommendations &&
-        initialRecord.lifestyleRecommendations !== "—"
-          ? initialRecord.lifestyleRecommendations
-          : "Adequate hydration, low sodium diet, and light exercise.",
-      followupRequired: initialRecord?.followupRequired || "No",
-      nextVisitDate: initialRecord?.nextVisitDate || "—",
-      followupNotes: initialRecord?.followupNotes || "—",
-      consultationFee: initialRecord?.consultationFee || "Standard",
-      status: initialRecord?.status || "Completed",
-      tokenNo: initialRecord?.tokenNo || "TK-01",
+      investigations: initialRecord?.investigations || [],
+      investigationRemarks: initialRecord?.investigationRemarks || "",
+      symptoms: initialRecord?.symptoms || "",
+      assessment: initialRecord?.assessment || "",
+      advice: initialRecord?.advice || "",
+      lifestyleRecommendations: initialRecord?.lifestyleRecommendations || "",
+      followupRequired: initialRecord?.followupRequired || "",
+      nextVisitDate: initialRecord?.nextVisitDate || "",
+      followupNotes: initialRecord?.followupNotes || "",
+      consultationFee: initialRecord?.consultationFee || "",
     };
   });
 
@@ -213,6 +226,8 @@ export function ConsultationDetailsScreen({
   };
 
   // Fetch real API data if encounterId or consultationId is provided
+  // Fetch real API data if encounterId or consultationId is provided
+  // Fetch real API data if encounterId or consultationId is provided
   useEffect(() => {
     let isMounted = true;
     const targetEncId = encounterId || consultationId;
@@ -221,42 +236,75 @@ export function ConsultationDetailsScreen({
     async function loadRealEncounterData() {
       try {
         setLoading(true);
-        // Try fetching encounter detail from API
         const encIdNum = Number(targetEncId) || 0;
+        if (encIdNum <= 0) return;
 
-        // Try fetching vitals if available
-        let vitalsData: Record<string, unknown> | null = null;
-        if (encIdNum > 0) {
+        // 1. Load workspace context (patient, appointment, vitals, consultation notes, diagnoses)
+        const workspaceResponse = await consultationApi.getWorkspace(encIdNum).catch(() => null);
+        const workspaceData = asRecord(unwrapApiData(workspaceResponse));
+        if (!workspaceData || Object.keys(workspaceData).length === 0) {
+          console.warn(`Workspace not found for encounter ${encIdNum}`);
+          return;
+        }
+
+        console.log("CONSULTATION WORKSPACE:", workspaceData);
+        console.log("WORKSPACE VITALS:", workspaceData?.vitals);
+
+        const encSub = asRecord(workspaceData.encounter);
+        const apptSub = asRecord(workspaceData.appointment);
+        const patSub = asRecord(workspaceData.patient);
+        const docSub = asRecord(workspaceData.doctor);
+
+        const realEncounterId = Number(encSub.encounterId || encSub.id || encIdNum);
+        const realAppointmentId = Number(apptSub.id || apptSub.appointmentId || encSub.appointmentId || 0);
+
+        // 2. Fetch Consultation / Clinical Notes
+        let consultationData = asRecord(workspaceData.consultation);
+        if (!consultationData.id && realEncounterId > 0) {
           try {
-            vitalsData = (await vitalsApi.getVitals(
-              encIdNum,
-            )) as unknown as Record<string, unknown>;
+            const consultationRes = await consultationApi.getConsultation(realEncounterId).catch(() => null);
+            if (consultationRes) {
+              consultationData = asRecord(unwrapApiData(consultationRes));
+            }
           } catch (e) {
-            console.warn("Could not fetch vitals for encounter:", e);
+            console.warn("Could not fetch consultation notes:", e);
           }
         }
 
-        // Try fetching prescription details
-        let prescriptionData: Record<string, unknown> | null = null;
-        if (encIdNum > 0) {
+        // 3. Fetch Diagnoses
+        let diagnosesData = asArray(workspaceData.diagnoses);
+        if (realEncounterId > 0) {
           try {
-            prescriptionData =
-              (await encountersApi.getPrescriptionByEncounterId(
-                encIdNum,
-              )) as unknown as Record<string, unknown>;
+            const diagnosisRes = await encountersApi.getDiagnoses(realEncounterId).catch(() => null);
+            const diagList = unwrapApiData(diagnosisRes);
+            if (Array.isArray(diagList) && diagList.length > 0) {
+              diagnosesData = diagList;
+            }
           } catch (e) {
-            console.warn("Could not fetch prescriptions for encounter:", e);
+            console.warn("Could not fetch diagnoses:", e);
           }
         }
 
-        // Fetch patient profile for exact blood group if MRN is present
+        // 4. Fetch Prescription Directly
+        let prescriptionData: Record<string, any> | null = null;
+        if (realEncounterId > 0) {
+          try {
+            const rxRes = await encountersApi.getPrescriptionByEncounterId(realEncounterId).catch(() => null);
+            if (rxRes) {
+              prescriptionData = asRecord(unwrapApiData(rxRes));
+            }
+          } catch (e) {
+            console.warn("Could not fetch prescription:", e);
+          }
+        }
+
+        // 5. Fetch Patient Blood Group if MRN present
         let fetchedBloodGroup: string | null = null;
-        const targetMrn = initialRecord?.mrn || record.mrn;
+        const targetMrn = (patSub.mrn as string) || initialRecord?.mrn;
         if (targetMrn && targetMrn !== "MRN-000000") {
           try {
-            const patRes = await patientsApi.getPatientByMrn(targetMrn);
-            const p = ((patRes as unknown as Record<string, unknown>)?.data ||
-              patRes) as unknown as Record<string, unknown>;
+            const patRes = await patientsApi.getPatientByMrn(targetMrn).catch(() => null);
+            const p = asRecord(unwrapApiData(patRes));
             if (p?.bloodGroup) {
               fetchedBloodGroup = String(p.bloodGroup);
             }
@@ -265,98 +313,155 @@ export function ConsultationDetailsScreen({
           }
         }
 
+        // 6. Fetch Doctor Profile if doctor details missing
+        let fetchedDoctor: Record<string, any> | null = null;
+        const targetDocId = apptSub.doctorId || encSub.doctorId || docSub.id || docSub.doctorId;
+        if (targetDocId && !docSub.name && !docSub.fullName && !encSub.doctorName && !apptSub.doctorName) {
+          try {
+            const docRes = await doctorsApi.getById(String(targetDocId)).catch(() => null);
+            if (docRes) {
+              fetchedDoctor = asRecord(unwrapApiData(docRes));
+            }
+          } catch (e) {
+            console.warn("Could not fetch doctor details for doctorId:", targetDocId, e);
+          }
+        }
+
+        // 7. Fetch Vitals Fallback if workspace vitals missing
+        let fetchedVitals = asRecord(workspaceData.vitals);
+        if (!fetchedVitals.height && !fetchedVitals.weight && !fetchedVitals.temperature) {
+          try {
+            const encVitalsRes = await vitalsApi.getVitalsByEncounterId(realEncounterId).catch(() => null);
+            const encVData = asRecord(unwrapApiData(encVitalsRes));
+            if (encVData.height || encVData.weight || encVData.temperature || encVData.pulse) {
+              fetchedVitals = encVData;
+            } else if (realAppointmentId > 0) {
+              const nurseVRes = await vitalsApi.getVitals(realAppointmentId).catch(() => null);
+              const nurseVData = asRecord(unwrapApiData(nurseVRes));
+              if (nurseVData.height || nurseVData.weight || nurseVData.temperature || nurseVData.pulse) {
+                fetchedVitals = nurseVData;
+              }
+            }
+          } catch (e) {
+            console.warn("Could not fetch vitals via fallback:", e);
+          }
+        }
+
         if (isMounted) {
-          const rawV = ((vitalsData?.data as Record<string, unknown>) ||
-            vitalsData ||
-            {}) as Record<string, unknown>;
-          const h = rawV.height ?? rawV.heightCm ?? rawV.height_cm;
-          const w = rawV.weight ?? rawV.weightKg ?? rawV.weight_kg;
-          const temp = rawV.temperature ?? rawV.temperatureC ?? rawV.temp;
-          const sys = rawV.bloodPressureSystolic ?? rawV.systolicBp;
-          const dia = rawV.bloodPressureDiastolic ?? rawV.diastolicBp;
-          const bp =
-            rawV.bloodPressure ||
-            rawV.bp ||
-            (sys && dia ? `${sys}/${dia}` : undefined);
-          const pulse = rawV.pulse ?? rawV.heartRate ?? rawV.pulseBpm;
-          const resp = rawV.respiratoryRate ?? rawV.respRate;
-          const spo2 = rawV.spo2 ?? rawV.oxygenSaturation ?? rawV.spo2Percent;
-          const sugar = rawV.bloodSugar ?? rawV.sugar ?? rawV.bloodSugarMgDl;
-          const bmiCalc =
-            rawV.bmi ||
-            (h && w
-              ? (Number(w) / Math.pow(Number(h) / 100, 2)).toFixed(1)
-              : undefined);
+          const rawV = fetchedVitals;
+          const h = rawV.height ?? rawV.heightCm ?? rawV.height_cm ?? null;
+          const w = rawV.weight ?? rawV.weightKg ?? rawV.weight_kg ?? null;
+          const temp = rawV.temperature ?? rawV.temperatureC ?? rawV.temp ?? null;
+          const temperatureUnit = String(rawV.temperatureUnit || "FAHRENHEIT");
+          const sys = rawV.bpSystolic ?? rawV.bloodPressureSystolic ?? rawV.systolicBp;
+          const dia = rawV.bpDiastolic ?? rawV.bloodPressureDiastolic ?? rawV.diastolicBp;
+          const bp = rawV.bloodPressure || rawV.bp || (sys != null && dia != null ? `${sys}/${dia}` : null);
+          const pulse = rawV.pulse ?? rawV.heartRate ?? rawV.pulseBpm ?? null;
+          const resp = rawV.respiratoryRate ?? rawV.respRate ?? null;
+          const spo2 = rawV.spo2 ?? rawV.oxygenSaturation ?? rawV.spo2Percent ?? null;
+          const sugar = rawV.bloodSugar ?? rawV.sugar ?? rawV.bloodSugarMgDl ?? null;
+          const bmiCalc = rawV.bmi ?? (h && w && Number(h) > 0 && Number(w) > 0 ? (Number(w) / Math.pow(Number(h) / 100, 2)).toFixed(1) : null);
 
-          const rxDataObj =
-            (prescriptionData?.data as Record<string, unknown>) || {};
-          const meds = Array.isArray(rxDataObj?.items)
-            ? (rxDataObj.items as Record<string, unknown>[]).map(
-                (m: Record<string, unknown>, idx: number) => ({
-                  id: String(m.prescriptionItemId || idx + 1),
-                  name: String(m.medicationName || m.drugName || "Medication"),
-                  dosage: String(m.dosage || "1 tab"),
-                  frequency: String(m.frequency || "Once daily"),
-                  duration: String(m.duration || "5 days"),
-                  instructions: String(
-                    m.instructions ||
-                      m.specialInstructions ||
-                      "Take after meals",
-                  ),
-                }),
-              )
-            : [];
+          // Diagnosis Extraction
+          const primaryDiag =
+            diagnosesData.find((d) => (d.diagnosisType === "PRIMARY" || d.type === "PRIMARY") && d.active !== false) ||
+            diagnosesData.find((d) => d.active !== false) ||
+            diagnosesData[0] ||
+            null;
 
-          const rxPatient =
-            (rxDataObj?.patient as Record<string, unknown>) || {};
-
-          setRecord((prev) => ({
-            ...prev,
-            id: `ENC-${targetEncId}`,
-            bloodGroup:
-              fetchedBloodGroup ||
-              (rxPatient?.bloodGroup as string) ||
-              prev.bloodGroup,
-            medicines: meds.length > 0 ? meds : prev.medicines,
-            vitals: {
-              height:
-                formatVitalValue(h, "cm") !== "—"
-                  ? formatVitalValue(h, "cm")
-                  : prev.vitals.height,
-              weight:
-                formatVitalValue(w, "kg") !== "—"
-                  ? formatVitalValue(w, "kg")
-                  : prev.vitals.weight,
-              bmi:
-                formatVitalValue(bmiCalc, "kg/m²") !== "—"
-                  ? formatVitalValue(bmiCalc, "kg/m²")
-                  : prev.vitals.bmi,
-              temperature:
-                formatVitalValue(temp, "°C") !== "—"
-                  ? formatVitalValue(temp, "°C")
-                  : prev.vitals.temperature,
-              bp:
-                formatVitalValue(bp, "mmHg") !== "—"
-                  ? formatVitalValue(bp, "mmHg")
-                  : prev.vitals.bp,
-              pulse:
-                formatVitalValue(pulse, "bpm") !== "—"
-                  ? formatVitalValue(pulse, "bpm")
-                  : prev.vitals.pulse,
-              respiratoryRate:
-                formatVitalValue(resp, "/min") !== "—"
-                  ? formatVitalValue(resp, "/min")
-                  : prev.vitals.respiratoryRate,
-              spo2:
-                formatVitalValue(spo2, "%") !== "—"
-                  ? formatVitalValue(spo2, "%")
-                  : prev.vitals.spo2,
-              bloodSugar:
-                formatVitalValue(sugar, "mg/dL") !== "—"
-                  ? formatVitalValue(sugar, "mg/dL")
-                  : prev.vitals.bloodSugar,
-            },
+          // Prescription Extraction
+          const rxRoot = asRecord(prescriptionData?.data || prescriptionData);
+          const rxAdvice = asRecord(rxRoot.advice);
+          const medicationList = asArray(rxRoot.medications || rxRoot.items);
+          const meds = medicationList.map((m: Record<string, any>, idx: number) => ({
+            id: String(m.medicationId || m.prescriptionItemId || m.id || idx + 1),
+            name: String(m.medicineName || m.medicationName || m.drugName || "Medication"),
+            dosage: String(m.dose?.value ? `${m.dose.value} ${m.dose.unit || ""}`.trim() : m.dosage || m.strength || "—"),
+            frequency: String(m.frequency?.display || m.frequencyCode || m.frequency || "—"),
+            duration: String(m.duration?.value ? `${m.duration.value} ${m.duration.unit || ""}`.trim() : m.duration || "—"),
+            instructions: String(m.instructions || m.specialInstructions || "—"),
           }));
+
+          // Investigations Extraction
+          const rawInvestigations = workspaceData.investigations || workspaceData.orders || workspaceData.labOrders || workspaceData.radiologyOrders || [];
+          const investigations = asArray(rawInvestigations).map((item: any) => {
+            if (typeof item === "string") return item;
+            return item.testName || item.investigationName || item.name || item.displayName || item.testCode || "";
+          }).filter(Boolean);
+
+          const clinicalExamText = [consultationData.generalExamination, consultationData.physicalExamination].filter(Boolean).join("\n") || String(consultationData.examinationNotes || "");
+
+          setRecord((prev) => {
+            const realDoctorName = String(
+              encSub.doctorName || encSub.doctor || apptSub.doctorName || apptSub.doctor || docSub.name || docSub.fullName || fetchedDoctor?.name || fetchedDoctor?.fullName || prev.doctorName || ""
+            );
+            const realDepartment = String(
+              encSub.department || apptSub.department || docSub.department || docSub.departmentName || fetchedDoctor?.department || fetchedDoctor?.departmentName || prev.department || ""
+            );
+            const realDoctorSpecialty = String(
+              encSub.doctorSpecialty || docSub.specialty || fetchedDoctor?.specialty || fetchedDoctor?.specialization || prev.doctorSpecialty || ""
+            );
+
+            const followUpReq = rxAdvice.followUpRequired ?? consultationData.followUpRequired ?? consultationData.followupRequired;
+            const followUpDt = rxAdvice.followUpDate ?? consultationData.followUpDate ?? consultationData.nextVisitDate;
+            const followUpNt = rxAdvice.followUpNotes ?? consultationData.followUpNotes ?? consultationData.followUpInstructions;
+
+            return {
+              ...prev,
+              id: String(realEncounterId).startsWith("ENC-") ? String(realEncounterId) : `ENC-${realEncounterId}`,
+              appointmentId: realAppointmentId || prev.appointmentId,
+              doctorName: realDoctorName || prev.doctorName,
+              doctorSpecialty: realDoctorSpecialty || prev.doctorSpecialty,
+              department: realDepartment || prev.department,
+              visitType: String(encSub.visitType || apptSub.visitType || apptSub.appointmentType || prev.visitType || ""),
+              patientName: String(patSub.fullName || patSub.name || prev.patientName || ""),
+              mrn: String(patSub.mrn || prev.mrn || ""),
+              age: patSub.age != null ? Number(patSub.age) : prev.age,
+              gender: String(patSub.gender || prev.gender || ""),
+              status: String(apptSub.status || encSub.status || prev.status || "Completed"),
+              tokenNo: String(apptSub.queueNumber || apptSub.tokenNo || apptSub.tokenNumber || prev.tokenNo || ""),
+              visitDate: String(apptSub.appointmentDate || encSub.visitDate || prev.visitDate || ""),
+              createdDate: String(encSub.createdAt || encSub.createdDate || prev.createdDate || ""),
+              completedDate: String(encSub.completedAt || encSub.completedDate || prev.completedDate || ""),
+              completionTime: String(encSub.completedAt || prev.completionTime || ""),
+
+              chiefComplaint: String(consultationData.chiefComplaint || encSub.chiefComplaint || apptSub.chiefComplaint || prev.chiefComplaint || ""),
+              durationOfSymptoms: String(consultationData.durationOfSymptoms || prev.durationOfSymptoms || ""),
+
+              bloodGroup: fetchedBloodGroup || String(patSub.bloodGroup || prev.bloodGroup || "—"),
+              allergies: Array.isArray(patSub.allergies) ? (patSub.allergies as string[]) : prev.allergies,
+
+              medicines: meds,
+              vitals: {
+                height: formatVitalValue(h, "cm"),
+                weight: formatVitalValue(w, "kg"),
+                bmi: formatVitalValue(bmiCalc, "kg/m²"),
+                temperature: temp != null ? formatVitalValue(temp, temperatureUnit === "CELSIUS" ? "°C" : "°F") : "—",
+                bp: formatVitalValue(bp, "mmHg"),
+                pulse: formatVitalValue(pulse, "bpm"),
+                respiratoryRate: formatVitalValue(resp, "/min"),
+                spo2: formatVitalValue(spo2, "%"),
+                bloodSugar: formatVitalValue(sugar, "mg/dL"),
+              },
+
+              clinicalExamination: clinicalExamText || prev.clinicalExamination || "",
+              provisionalDiagnosis: String(consultationData.provisionalDiagnosis || primaryDiag?.diagnosisName || prev.provisionalDiagnosis || ""),
+              finalDiagnosis: String(consultationData.finalDiagnosis || primaryDiag?.diagnosisName || consultationData.assessmentSummary || prev.finalDiagnosis || ""),
+              icdCode: String(primaryDiag?.diagnosisCode || consultationData.icdCode || prev.icdCode || ""),
+
+              investigations,
+              investigationRemarks: String(workspaceData.investigationRemarks || consultationData.investigationRemarks || prev.investigationRemarks || ""),
+
+              symptoms: String(consultationData.historyOfPresentIllness || consultationData.subjective || prev.symptoms || ""),
+              assessment: String(consultationData.assessmentSummary || consultationData.assessment || prev.assessment || ""),
+              advice: String(consultationData.advice || prev.advice || ""),
+              lifestyleRecommendations: String(rxAdvice.diet || consultationData.lifestyleRecommendations || prev.lifestyleRecommendations || ""),
+
+              followupRequired: followUpReq === true ? "Yes" : followUpReq === false ? "No" : String(followUpReq || ""),
+              nextVisitDate: String(followUpDt || ""),
+              followupNotes: String(followUpNt || ""),
+            };
+          });
         }
       } catch (err) {
         console.error("Error loading consultation details:", err);
@@ -369,7 +474,7 @@ export function ConsultationDetailsScreen({
     return () => {
       isMounted = false;
     };
-  }, [encounterId, consultationId, initialRecord?.mrn, record.mrn]);
+  }, [encounterId, consultationId, initialRecord?.mrn]);
 
   const patientInitials = (record.patientName || "PT")
     .split(" ")
@@ -411,18 +516,6 @@ export function ConsultationDetailsScreen({
       <div className="bg-white border-b border-[#E5E7EB] px-6 py-4 no-print">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <div
-              className="flex items-center gap-2 text-xs text-[#64748B] mb-1"
-              style={{ fontFamily: RB }}
-            >
-              <span>Doctor</span>
-              <ChevronRight size={12} className="text-slate-400" />
-              <span>OPD Consultation</span>
-              <ChevronRight size={12} className="text-slate-400" />
-              <span className="font-semibold text-[#0D47A1]">
-                Consultation Details
-              </span>
-            </div>
             <div className="flex items-center gap-3">
               <h1
                 className="text-2xl font-bold text-[#111827]"
@@ -494,6 +587,18 @@ export function ConsultationDetailsScreen({
                 </span>
                 <span>•</span>
                 <span>
+                  Doctor: <strong className="text-[#111827]">{record.doctorName || "—"}</strong>
+                </span>
+                {record.department && (
+                  <>
+                    <span>•</span>
+                    <span>
+                      Department: <strong className="text-[#0D47A1]">{record.department}</strong>
+                    </span>
+                  </>
+                )}
+                <span>•</span>
+                <span>
                   Date:{" "}
                   <strong className="text-[#111827]">{record.visitDate}</strong>
                 </span>
@@ -535,6 +640,144 @@ export function ConsultationDetailsScreen({
       {/* ── MAIN WORKSPACE CONTENT CONTAINER ── */}
       <div className="p-6 space-y-6">
         <div className="w-full space-y-5">
+          {/* ── ADMINISTRATIVE & OPERATIONAL RECORD METADATA HEADER ── */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-5 space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-blue-600" />
+                <h3
+                  className="text-sm font-bold text-slate-800"
+                  style={{ fontFamily: PP }}
+                >
+                  Administrative & Operational Record Metadata
+                </h3>
+              </div>
+              <span
+                className="px-2.5 py-0.5 rounded text-[10px] font-bold tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase"
+                style={{ fontFamily: PP }}
+              >
+                READ-ONLY AUDIT MODE
+              </span>
+            </div>
+
+            <div
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-9 gap-4 text-xs pt-1"
+              style={{ fontFamily: RB }}
+            >
+              <div>
+                <span
+                  className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1"
+                  style={{ fontFamily: PP }}
+                >
+                  Consultation ID
+                </span>
+                <p className="font-mono font-bold text-[#0D47A1] text-xs">
+                  {record.id.startsWith("ENC-") || record.id.startsWith("CNS-")
+                    ? record.id
+                    : `CNS-${record.id}`}
+                </p>
+              </div>
+
+              <div>
+                <span
+                  className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1"
+                  style={{ fontFamily: PP }}
+                >
+                  Appointment ID
+                </span>
+                <p className="font-mono font-bold text-slate-700 text-xs">
+                  {String(record.appointmentId || record.id).startsWith("APT-")
+                    ? record.appointmentId || record.id
+                    : `APT-${record.appointmentId || record.id}`}
+                </p>
+              </div>
+
+              <div>
+                <span
+                  className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1"
+                  style={{ fontFamily: PP }}
+                >
+                  Doctor
+                </span>
+                <p className="font-semibold text-slate-800 text-xs">
+                  {record.doctorName || "—"}
+                </p>
+              </div>
+
+              <div>
+                <span
+                  className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1"
+                  style={{ fontFamily: PP }}
+                >
+                  Department
+                </span>
+                <p className="font-semibold text-slate-700 text-xs">
+                  {record.department || "—"}
+                </p>
+              </div>
+
+              <div>
+                <span
+                  className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1"
+                  style={{ fontFamily: PP }}
+                >
+                  Visit Type
+                </span>
+                <p className="font-semibold text-blue-600 text-xs">
+                  {record.visitType || "—"}
+                </p>
+              </div>
+
+              <div>
+                <span
+                  className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1"
+                  style={{ fontFamily: PP }}
+                >
+                  Status
+                </span>
+                <p className="font-bold text-emerald-600 text-xs">
+                  {record.status || "—"}
+                </p>
+              </div>
+
+              <div>
+                <span
+                  className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1"
+                  style={{ fontFamily: PP }}
+                >
+                  Created Date
+                </span>
+                <p className="font-semibold text-slate-700 text-xs">
+                  {formatDateTime(record.createdDate || record.visitDate)}
+                </p>
+              </div>
+
+              <div>
+                <span
+                  className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1"
+                  style={{ fontFamily: PP }}
+                >
+                  Completed Date
+                </span>
+                <p className="font-semibold text-slate-700 text-xs">
+                  {formatDateTime(record.completedDate || record.completionTime)}
+                </p>
+              </div>
+
+              <div>
+                <span
+                  className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1"
+                  style={{ fontFamily: PP }}
+                >
+                  Duration
+                </span>
+                <p className="font-bold text-blue-900 text-xs">
+                  {record.duration || "—"}
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* ── SECTION 01: VISIT INFORMATION ── */}
           <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
             <button
@@ -770,10 +1013,10 @@ export function ConsultationDetailsScreen({
                     className="text-[10px] text-slate-400 font-bold uppercase"
                     style={{ fontFamily: PP }}
                   >
-                    Blood Sugar
+                    Respiratory Rate
                   </div>
                   <div className="font-bold text-slate-800 text-sm mt-1">
-                    {record.vitals.bloodSugar}
+                    {record.vitals.respiratoryRate || "—"}
                   </div>
                 </div>
               </div>
@@ -1133,17 +1376,22 @@ export function ConsultationDetailsScreen({
                     {record.followupRequired}
                   </p>
                 </div>
-                <div>
-                  <span
-                    className="text-[10px] font-bold text-slate-400 uppercase"
-                    style={{ fontFamily: PP }}
-                  >
-                    Next Visit Date
-                  </span>
-                  <p className="font-bold text-[#0D47A1] text-sm mt-1">
-                    {record.nextVisitDate}
-                  </p>
-                </div>
+                {record.nextVisitDate &&
+                  record.nextVisitDate !== "—" &&
+                  record.nextVisitDate !== "None" &&
+                  record.nextVisitDate !== "" && (
+                    <div>
+                      <span
+                        className="text-[10px] font-bold text-slate-400 uppercase"
+                        style={{ fontFamily: PP }}
+                      >
+                        Next Visit Date
+                      </span>
+                      <p className="font-bold text-[#0D47A1] text-sm mt-1">
+                        {formatDateTime(record.nextVisitDate)}
+                      </p>
+                    </div>
+                  )}
                 <div className="sm:col-span-3 border-t border-gray-100 pt-2">
                   <span
                     className="text-[10px] font-bold text-slate-400 uppercase"
@@ -1152,7 +1400,7 @@ export function ConsultationDetailsScreen({
                     Follow-up Notes
                   </span>
                   <p className="font-medium text-slate-700 mt-1 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                    {record.followupNotes}
+                    {record.followupNotes || "None recorded"}
                   </p>
                 </div>
               </div>
@@ -1180,7 +1428,7 @@ export function ConsultationDetailsScreen({
                 >
                   Patient
                 </span>
-                <p className="font-bold text-[#111827]">{record.patientName}</p>
+                <p className="font-bold text-[#111827]">{record.patientName || "—"}</p>
                 <p className="text-[11px] text-slate-500">{record.mrn}</p>
               </div>
               <div>
@@ -1190,10 +1438,12 @@ export function ConsultationDetailsScreen({
                 >
                   Doctor
                 </span>
-                <p className="font-bold text-[#111827]">{record.doctorName}</p>
-                <p className="text-[11px] text-slate-500">
-                  {record.department}
-                </p>
+                <p className="font-bold text-[#111827]">{record.doctorName || "—"}</p>
+                {record.department && (
+                  <p className="text-[11px] text-slate-500">
+                    {record.department}
+                  </p>
+                )}
               </div>
               <div>
                 <span
@@ -1203,7 +1453,7 @@ export function ConsultationDetailsScreen({
                   Final Diagnosis
                 </span>
                 <p className="font-bold text-[#0D47A1]">
-                  {record.finalDiagnosis}
+                  {record.finalDiagnosis || "—"}
                 </p>
               </div>
               <div>
@@ -1224,16 +1474,21 @@ export function ConsultationDetailsScreen({
 
             <div className="pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between text-xs gap-3">
               <div className="flex items-center gap-4">
-                <span>
-                  Follow-up Date:{" "}
-                  <strong className="text-[#111827]">
-                    {record.nextVisitDate}
-                  </strong>
-                </span>
+                {record.nextVisitDate &&
+                  record.nextVisitDate !== "—" &&
+                  record.nextVisitDate !== "None" &&
+                  record.nextVisitDate !== "" && (
+                    <span>
+                      Follow-up Date:{" "}
+                      <strong className="text-[#111827]">
+                        {record.nextVisitDate}
+                      </strong>
+                    </span>
+                  )}
                 <span>
                   Completed Time:{" "}
                   <strong className="text-slate-700">
-                    {record.completionTime}
+                    {record.completionTime || "—"}
                   </strong>
                 </span>
               </div>
@@ -1251,21 +1506,17 @@ export function ConsultationDetailsScreen({
       {/* ── STICKY FOOTER ACTION BAR ── */}
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E5E7EB] px-6 py-3 shadow-lg flex items-center justify-between no-print">
         <div className="text-xs text-[#64748B]" style={{ fontFamily: RB }}>
-          Consultation Record{" "}
-          <strong className="text-[#0D47A1]">{record.id}</strong> ·{" "}
-          {record.patientName}
+          Consultation Record <strong className="text-[#0D47A1]">{record.id}</strong> · {record.patientName}
         </div>
 
         <div className="flex items-center gap-3">
-          {onBack && (
-            <button
-              onClick={onBack}
-              className="px-4 py-2 border border-[#E5E7EB] text-slate-700 hover:bg-slate-50 text-xs font-semibold rounded-xl transition-colors"
-              style={{ fontFamily: PP }}
-            >
-              Back
-            </button>
-          )}
+          <button
+            onClick={() => (onBack ? onBack() : navigate(-1))}
+            className="px-4 py-2 border border-[#E5E7EB] bg-white text-slate-700 hover:bg-slate-50 text-xs font-semibold rounded-xl transition-colors shadow-sm"
+            style={{ fontFamily: PP }}
+          >
+            Back
+          </button>
           <button
             onClick={handlePrint}
             className="px-4 py-2 border border-[#E5E7EB] bg-slate-50 text-slate-700 hover:bg-slate-100 text-xs font-semibold rounded-xl transition-colors flex items-center gap-1.5"

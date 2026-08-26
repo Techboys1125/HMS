@@ -9,6 +9,9 @@ import {
   ChevronRight,
   Printer,
   Clock,
+  QrCode,
+  Banknote,
+  Landmark,
 } from "lucide-react";
 import { PP, RB } from "../constants/billing.constants";
 import { useInvoice, usePayment } from "../hooks/useBilling";
@@ -19,13 +22,49 @@ import type {
   BillPaymentRecord,
 } from "../types/billing.types";
 
-const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: string }[] =
-  [
-    { value: "UPI", label: "UPI / GPay / PhonePe", icon: "📱" },
-    { value: "Cash", label: "Cash", icon: "💵" },
-    { value: "Card", label: "Credit / Debit Card", icon: "💳" },
-    { value: "Bank Transfer", label: "Bank Transfer (NEFT/IMPS)", icon: "🏦" },
-  ];
+interface PaymentMethodOption {
+  value: PaymentMethod;
+  label: string;
+  sublabel: string;
+  Icon: React.ElementType;
+  color: string;
+  bgColor: string;
+}
+
+const PAYMENT_METHODS: PaymentMethodOption[] = [
+  {
+    value: "Cash",
+    label: "Cash",
+    sublabel: "Physical Currency",
+    Icon: Banknote,
+    color: "#059669",
+    bgColor: "#ECFDF5",
+  },
+  {
+    value: "UPI",
+    label: "UPI / QR Code",
+    sublabel: "GPay, PhonePe, Paytm",
+    Icon: QrCode,
+    color: "#0D47A1",
+    bgColor: "#EFF6FF",
+  },
+  {
+    value: "Card",
+    label: "Credit / Debit Card",
+    sublabel: "Visa, Mastercard, RuPay",
+    Icon: CreditCard,
+    color: "#7C3AED",
+    bgColor: "#F5F3FF",
+  },
+  {
+    value: "Bank Transfer",
+    label: "Bank Transfer",
+    sublabel: "NEFT / RTGS / IMPS",
+    Icon: Landmark,
+    color: "#D97706",
+    bgColor: "#FFFBEB",
+  },
+];
 
 const handlePrint = () => {
   window.print();
@@ -346,25 +385,37 @@ export function CollectPaymentWorkspacePage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {bill.items.map((item) => (
-                    <tr key={item.id}>
-                      <td className="py-3 px-3 font-medium text-[#111827]">
-                        {item.serviceName}
-                      </td>
-                      <td className="py-3 px-3 text-right">{item.quantity}</td>
-                      <td className="py-3 px-3 text-right">
-                        ₹{item.unitPrice.toLocaleString()}
-                      </td>
-                      <td className="py-3 px-3 text-right font-bold text-[#0D47A1]">
-                        ₹
-                        {(
-                          item.totalAmount ||
-                          item.totalPrice ||
-                          0
-                        ).toLocaleString()}
-                      </td>
-                    </tr>
-                  ))}
+                  {bill.items.map((item) => {
+                    const name =
+                      item.serviceName ||
+                      (item as any).itemName ||
+                      (item as any).name ||
+                      (item as any).description ||
+                      (item as any).service_name ||
+                      (item as any).item_name ||
+                      (item as any).service?.name ||
+                      "OPD Consultation Service";
+
+                    return (
+                      <tr key={item.id}>
+                        <td className="py-3 px-3 font-medium text-[#111827]">
+                          {name}
+                        </td>
+                        <td className="py-3 px-3 text-right">{item.quantity}</td>
+                        <td className="py-3 px-3 text-right">
+                          ₹{item.unitPrice.toLocaleString()}
+                        </td>
+                        <td className="py-3 px-3 text-right font-bold text-[#0D47A1]">
+                          ₹
+                          {(
+                            item.totalAmount ||
+                            item.totalPrice ||
+                            0
+                          ).toLocaleString()}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -400,20 +451,46 @@ export function CollectPaymentWorkspacePage() {
                   <span className="block text-slate-700 font-semibold mb-2">
                     Payment Method *
                   </span>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    {PAYMENT_METHODS.map((pm) => (
-                      <button
-                        key={pm.value}
-                        type="button"
-                        onClick={() => setPaymentMethod(pm.value)}
-                        className={`p-3 rounded-xl border text-left transition-colors ${paymentMethod === pm.value ? "border-[#0D47A1] bg-blue-50 shadow-sm" : "border-[#E5E7EB] bg-white hover:bg-slate-50"}`}
-                      >
-                        <div className="text-lg mb-1">{pm.icon}</div>
-                        <div className="text-[11px] font-bold text-[#111827]">
-                          {pm.label}
-                        </div>
-                      </button>
-                    ))}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {PAYMENT_METHODS.map((pm) => {
+                      const isSelected = paymentMethod === pm.value;
+                      const { Icon, color, bgColor } = pm;
+                      return (
+                        <button
+                          key={pm.value}
+                          type="button"
+                          onClick={() => setPaymentMethod(pm.value)}
+                          className={`p-3.5 rounded-xl border text-left transition-all duration-200 cursor-pointer flex flex-col justify-between ${
+                            isSelected
+                              ? "border-[#0D47A1] bg-blue-50/70 shadow-sm ring-2 ring-[#0D47A1]/20"
+                              : "border-[#E5E7EB] bg-white hover:bg-slate-50/80 hover:border-slate-300"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <div
+                              className="w-9 h-9 rounded-lg flex items-center justify-center"
+                              style={{ background: bgColor }}
+                            >
+                              <Icon size={18} style={{ color }} />
+                            </div>
+                            {isSelected && (
+                              <CheckCircle2
+                                size={16}
+                                className="text-[#0D47A1]"
+                              />
+                            )}
+                          </div>
+                          <div>
+                            <div className="text-xs font-bold text-[#111827]">
+                              {pm.label}
+                            </div>
+                            <div className="text-[10px] text-[#64748B] mt-0.5">
+                              {pm.sublabel}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
                 <div>
@@ -449,19 +526,21 @@ export function CollectPaymentWorkspacePage() {
                     </button>
                   </div>
                 </div>
-                <div>
-                  <span className="block text-slate-700 font-semibold mb-1">
-                    Reference / Transaction ID
-                    <input
-                      aria-label="Input field"
-                      type="text"
-                      value={referenceNumber}
-                      onChange={(e) => setReferenceNumber(e.target.value)}
-                      placeholder="e.g. UPI/890123/OKAX"
-                      className="w-full px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 text-xs font-mono focus:bg-white focus:border-[#0D47A1] focus:outline-none"
-                    />
-                  </span>
-                </div>
+                {paymentMethod !== "Cash" && (
+                  <div>
+                    <span className="block text-slate-700 font-semibold mb-1">
+                      Reference / Transaction ID
+                      <input
+                        aria-label="Input field"
+                        type="text"
+                        value={referenceNumber}
+                        onChange={(e) => setReferenceNumber(e.target.value)}
+                        placeholder="e.g. UPI/890123/OKAX"
+                        className="w-full px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 text-xs font-mono focus:bg-white focus:border-[#0D47A1] focus:outline-none"
+                      />
+                    </span>
+                  </div>
+                )}
                 <div className="md:col-span-2">
                   <span className="block text-slate-700 font-semibold mb-1">
                     Remarks / Notes

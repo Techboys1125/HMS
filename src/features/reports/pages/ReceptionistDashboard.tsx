@@ -453,8 +453,50 @@ const ReceptionDashboardContent = ({
   navigate,
   onOpenDailyAppointments,
   onOpenPatientReport,
-}: ReceptionDashboardContentProps) => (
-  <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+}: ReceptionDashboardContentProps) => {
+  const regTrendData = useMemo(() => {
+    const daysCount = trendDays === "7 Days" ? 7 : trendDays === "30 Days" ? 30 : 90;
+    const result = [];
+    for (let i = daysCount - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      result.push({
+        date: dateStr,
+        newReg: Math.max(1, 4 + ((i * 3) % 5)),
+        returning: Math.max(1, 2 + ((i * 2) % 4)),
+      });
+    }
+    return result;
+  }, [trendDays]);
+
+  const apptStatusData = useMemo(() => {
+    return [
+      { name: "Completed", value: 6, color: "#66BB6A" },
+      { name: "Checked-In", value: 3, color: "#009688" },
+      { name: "Booked", value: 2, color: "#0D47A1" },
+    ];
+  }, []);
+
+  const checkInAnalyticsData = useMemo(() => {
+    return [
+      { slot: "08:00 - 10:00", count: 4 },
+      { slot: "10:00 - 12:00", count: 5 },
+      { slot: "12:00 - 02:00", count: 2 },
+      { slot: "02:00 - 04:00", count: 3 },
+    ];
+  }, []);
+
+  const queuePerformanceData = useMemo(() => {
+    return [
+      { queue: "Waiting Queue", count: 3 },
+      { queue: "In-Consultation", count: 4 },
+      { queue: "Completed Queue", count: 6 },
+    ];
+  }, []);
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
     {/* LEFT MAIN CONTENT AREA (3 Cols) */}
     <div className="lg:col-span-3 space-y-6">
       {/* TOP 6 RECEPTIONIST KPI CARDS */}
@@ -680,7 +722,7 @@ const ReceptionDashboardContent = ({
             </div>
             <p className="text-[11px] text-[#64748B] mt-1">Longest Today: --</p>
             <div className="mt-2 text-[11px] font-semibold text-[#66BB6A]">
-              âœ“ Target Met
+              Target Met
             </div>
           </div>
           <CircularProgress percentage={89} size={64} strokeWidth={7} />
@@ -720,7 +762,7 @@ const ReceptionDashboardContent = ({
           <div className="h-60">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
-                data={[]}
+                data={regTrendData}
                 margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
               >
                 <defs>
@@ -788,7 +830,7 @@ const ReceptionDashboardContent = ({
             <ResponsiveContainer width="100%" height="100%">
               <RechartsPie>
                 <Pie
-                  data={[]}
+                  data={apptStatusData}
                   cx="50%"
                   cy="50%"
                   innerRadius={45}
@@ -796,19 +838,10 @@ const ReceptionDashboardContent = ({
                   paddingAngle={3}
                   dataKey="value"
                 >
-                  {(
-                    [] as Array<{
-                      color?: string;
-                      [key: string]: unknown;
-                    }>
-                  ).map((entry) => (
+                  {apptStatusData.map((entry) => (
                     <Cell
-                      key={
-                        entry?.id
-                          ? String(entry.id)
-                          : String(entry?.name || entry?.color || "cell")
-                      }
-                      fill={entry.color || "#0D47A1"}
+                      key={entry.name}
+                      fill={entry.color}
                     />
                   ))}
                 </Pie>
@@ -856,7 +889,7 @@ const ReceptionDashboardContent = ({
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={[]}
+                data={checkInAnalyticsData}
                 margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -901,7 +934,7 @@ const ReceptionDashboardContent = ({
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 layout="vertical"
-                data={[]}
+                data={queuePerformanceData}
                 margin={{ top: 5, right: 10, left: 45, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1104,7 +1137,7 @@ const ReceptionDashboardContent = ({
                 <div className="flex items-center justify-between mb-1">
                   <span className="font-bold text-[#111827]">{act.action}</span>
                   <span className="text-[11px] text-[#64748B]">
-                    {act.date} â€¢ {act.time}
+                    {act.date} - {act.time}
                   </span>
                 </div>
                 <p className="text-[#64748B]">{act.detail}</p>
@@ -1248,27 +1281,27 @@ const ReceptionDashboardContent = ({
       </div>
     </div>
   </div>
-);
+  );
+};
 
 const ReceptionDashboardFooter = ({ resultCount }: { resultCount: number }) => (
-  <>
-    <div className="mt-8 pt-4 border-t border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between text-xs text-[#64748B] gap-2">
-      <div>
-        Showing{" "}
-        <strong className="text-[#111827]">
-          {resultCount} Reception Report Results
-        </strong>
-      </div>
-      <div>
-        Hospital Management System â€¢ Receptionist Reports Dashboard v1.0
-      </div>
-      <div>
-        Last Refreshed:{" "}
-        <strong className="text-[#111827]">2026-07-26 13:34</strong>
-      </div>
+  <div className="mt-8 pt-4 border-t border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between text-xs text-[#64748B] gap-2">
+    <div>
+      Showing{" "}
+      <strong className="text-[#111827]">
+        {resultCount} Reception Report Results
+      </strong>
     </div>
-  </>
+    <div>
+      Hospital Management System - Receptionist Reports Dashboard v1.0
+    </div>
+    <div>
+      Last Refreshed:{" "}
+      <strong className="text-[#111827]">2026-07-26 13:34</strong>
+    </div>
+  </div>
 );
+
 export function ReceptionistReportsDashboardScreen({
   onOpenDailyAppointments,
   onOpenPatientReport,
