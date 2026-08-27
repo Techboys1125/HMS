@@ -101,8 +101,8 @@ export function AccountantBillingReportScreen({
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [dateRange, setDateRange] = useState("Today");
-  const [deptFilter, setDeptFilter] = useState("All Departments");
-  const [doctorFilter, setDoctorFilter] = useState("All Doctors");
+  const [, setDeptFilter] = useState("All Departments");
+  const [, setDoctorFilter] = useState("All Doctors");
   const [invoiceStatusFilter, setInvoiceStatusFilter] = useState(
     "All Invoice Statuses",
   );

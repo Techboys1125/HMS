@@ -52,12 +52,18 @@ export interface PatientPrescriptionItem {
 
 export interface UnifiedPrescription {
   id: string;
+  prescriptionId?: string;
+  encounterNumber?: string;
+  encounterId?: string | number;
   patientName: string;
   mrn: string;
   consultationId: string;
   department: string;
   consultationDate: string;
+  date?: string;
   medicineCount: number;
+  totalMedicines?: number;
+  sampleMedicines?: string[];
   followup: boolean;
   followupDate?: string;
   status: RxStatus;
@@ -70,6 +76,7 @@ export interface UnifiedPrescription {
     dosage?: string;
     frequency?: string;
     duration?: string;
+    quantity?: string;
     instructions?: string;
   }>;
 }

@@ -84,6 +84,7 @@ export interface ConsultationTableProps {
   onStartConsultation?: (id: string) => void;
   onOpenConsultation?: (id: string) => void;
   onCallPatient?: (item: ConsultationRecord) => void;
+  onCancelConsultation?: (item: ConsultationRecord) => void;
   onViewDetails?: (id: string) => void;
   onViewHistory?: (mrn: string) => void;
   onPatientSelect?: (mrn: string) => void;
@@ -108,6 +109,7 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
   onStartConsultation,
   onOpenConsultation,
   onCallPatient,
+  onCancelConsultation,
   onViewDetails,
   onResetFilters,
   canStartConsultation = false,
@@ -269,6 +271,7 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
                     onStartConsultation={onStartConsultation}
                     onOpenConsultation={onOpenConsultation}
                     onCallPatient={onCallPatient}
+                    onCancelConsultation={onCancelConsultation}
                     onViewDetails={onViewDetails}
                     canStartConsultation={
                       String(role).toLowerCase() === "doctor"

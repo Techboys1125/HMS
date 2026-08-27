@@ -248,7 +248,7 @@ export function PatientReportScreen({
   };
   const reportFilters = getDateRange(dateRange);
   const { data: ageDemographics } = usePatientAgeDemographics(reportFilters);
-  const { data: deptVisits = [] } = useDepartmentPatientVisits(reportFilters);
+  useDepartmentPatientVisits(reportFilters);
   const { data: genderData } = useGenderBreakdown(reportFilters);
   const { data: regSummary } = usePatientRegistrationSummary(reportFilters);
   const { data: patientMasterData } = usePatientMasterRegister(reportFilters);

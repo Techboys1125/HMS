@@ -6,11 +6,9 @@ import type {
   ConsultationRecord,
   VisitType,
   ConsultationStatus,
-  MedicineItem,
 } from "../types/consultation";
 import { encountersApi } from "../../encounters/api/encounters.api";
 import { appointmentsApi } from "../../appointments/api/appointments.api";
-import type { Diagnosis } from "../../encounters";
 
 export const consultationService = {
   /**
@@ -120,11 +118,11 @@ export const consultationService = {
       consultationStoreActions.setEncounter(encounter);
 
       // 3. Fetch aggregated Encounter Workspace context (GET /api/v1/encounters/{id}/workspace)
-      let workspaceData: Record<string, unknown> | null = null;
       try {
-        workspaceData = await consultationApi.getWorkspace(encounter.encounterId);
-      } catch {
-        // non-blocking fallback
+        await consultationApi.getWorkspace(encounter.encounterId);
+      } catch (err) {
+        // non-blocking fallback - log error but continue
+        console.warn("Failed to fetch encounter workspace:", err);
       }
 
       // 4. Load patient vitals for the encounter

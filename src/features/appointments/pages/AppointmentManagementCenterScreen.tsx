@@ -592,158 +592,160 @@ export function AppointmentManagementCenterScreen({
 
           {/* ── 3. SEARCH & FILTERS TOOLBAR + STATUS TABS ── */}
           <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-              <div className="relative flex-1 max-w-md">
-                <Search
-                  size={15}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-                />
-                <input
-                  aria-label="Input field"
-                  type="text"
-                  value={filters.searchQuery}
-                  onChange={(e) => setFilter("searchQuery", e.target.value)}
-                  placeholder="Search by Patient Name, MRN, Appointment ID..."
-                  className="w-full pl-9 pr-3.5 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-                />
-                {filters.searchQuery && (
-                  <button
-                    aria-label="Close"
-                    onClick={() => setFilter("searchQuery", "")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  >
-                    <X size={13} />
-                  </button>
-                )}
+            {/* Search Input (Full Width Row 1) */}
+            <div className="relative w-full">
+              <Search
+                size={15}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+              />
+              <input
+                aria-label="Input field"
+                type="text"
+                value={filters.searchQuery}
+                onChange={(e) => setFilter("searchQuery", e.target.value)}
+                placeholder="Search by Patient Name, MRN, Appointment ID..."
+                className="w-full pl-9 pr-3.5 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
+              />
+              {filters.searchQuery && (
+                <button
+                  aria-label="Close"
+                  onClick={() => setFilter("searchQuery", "")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+
+            {/* Filter Controls (Next Row 2) */}
+            <div className="flex items-center gap-2 flex-wrap text-xs pt-1 border-t border-slate-100">
+              <AppointmentDatePickerFilter
+                selectedDate={dateFilter}
+                onChange={setDateFilter}
+              />
+
+              <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
+                <Filter size={13} className="text-slate-400" />
+                <span className="text-slate-500 font-medium">Status:</span>
+                <select
+                  aria-label="Select option"
+                  value={filters.statusFilter}
+                  onChange={(e) => setFilter("statusFilter", e.target.value)}
+                  className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
+                >
+                  <option value="All">All Statuses</option>
+                  <option value="Booked">Booked</option>
+                  <option value="Checked-In">Checked-In</option>
+                  <option value="Waiting for Vitals">
+                    Waiting for Vitals
+                  </option>
+                  <option value="Waiting for Doctor">
+                    Waiting for Doctor
+                  </option>
+                  <option value="Called">Called</option>
+                  <option value="In Consultation">In Consultation</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Cancelled">Cancelled</option>
+                  <option value="No Show">No Show</option>
+                </select>
               </div>
 
-              <div className="flex items-center gap-2 flex-wrap text-xs">
-                <AppointmentDatePickerFilter
-                  selectedDate={dateFilter}
-                  onChange={setDateFilter}
-                />
-
-                <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl self-end">
-                  <Filter size={13} className="text-slate-400" />
-                  <span className="text-slate-500 font-medium">Status:</span>
-                  <select
-                    aria-label="Select option"
-                    value={filters.statusFilter}
-                    onChange={(e) => setFilter("statusFilter", e.target.value)}
-                    className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
-                  >
-                    <option value="All">All Statuses</option>
-                    <option value="Booked">Booked</option>
-                    <option value="Checked-In">Checked-In</option>
-                    <option value="Waiting for Vitals">
-                      Waiting for Vitals
-                    </option>
-                    <option value="Waiting for Doctor">
-                      Waiting for Doctor
-                    </option>
-                    <option value="Called">Called</option>
-                    <option value="In Consultation">In Consultation</option>
-                    <option value="Completed">Completed</option>
-                    <option value="Cancelled">Cancelled</option>
-                    <option value="No Show">No Show</option>
-                  </select>
-                </div>
-
-                {userRole !== "Doctor" && (
-                  <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
-                    <Stethoscope size={13} className="text-slate-400" />
-                    <span className="text-slate-500 font-medium">Doctor:</span>
-                    <select
-                      aria-label="Select option"
-                      value={filters.doctorFilter}
-                      onChange={(e) =>
-                        setFilter("doctorFilter", e.target.value)
-                      }
-                      className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
-                    >
-                      <option value="All">All Doctors</option>
-                      {doctorsList.map((d) => (
-                        <option key={d} value={d}>
-                          {d}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
+              {userRole !== "Doctor" && (
                 <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
-                  <Building2 size={13} className="text-slate-400" />
-                  <span className="text-slate-500 font-medium">Dept:</span>
+                  <Stethoscope size={13} className="text-slate-400" />
+                  <span className="text-slate-500 font-medium">Doctor:</span>
                   <select
                     aria-label="Select option"
-                    value={filters.deptFilter}
-                    onChange={(e) => {
-                      const selectedDeptVal = e.target.value;
-                      setFilter("deptFilter", selectedDeptVal);
-                      if (
-                        selectedDeptVal !== "All" &&
-                        filters.doctorFilter !== "All"
-                      ) {
-                        const doctorInDept = appointments.some(
-                          (a) =>
-                            a.department === selectedDeptVal &&
-                            a.doctorName === filters.doctorFilter,
-                        );
-                        if (!doctorInDept) {
-                          setFilter("doctorFilter", "All");
-                        }
-                      }
-                    }}
+                    value={filters.doctorFilter}
+                    onChange={(e) =>
+                      setFilter("doctorFilter", e.target.value)
+                    }
                     className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
                   >
-                    <option value="All">All Departments</option>
-                    {deptOptions.map((d) => (
+                    <option value="All">All Doctors</option>
+                    {doctorsList.map((d) => (
                       <option key={d} value={d}>
                         {d}
                       </option>
                     ))}
                   </select>
                 </div>
+              )}
 
-                <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
-                  <Building2 size={13} className="text-slate-400" />
-                  <span className="text-slate-500 font-medium">
-                    Visit Type:
-                  </span>
-                  <select
-                    aria-label="Select option"
-                    value={filters.visitTypeFilter}
-                    onChange={(e) =>
-                      setFilter("visitTypeFilter", e.target.value)
+              <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
+                <Building2 size={13} className="text-slate-400" />
+                <span className="text-slate-500 font-medium">Dept:</span>
+                <select
+                  aria-label="Select option"
+                  value={filters.deptFilter}
+                  onChange={(e) => {
+                    const selectedDeptVal = e.target.value;
+                    setFilter("deptFilter", selectedDeptVal);
+                    if (
+                      selectedDeptVal !== "All" &&
+                      filters.doctorFilter !== "All"
+                    ) {
+                      const doctorInDept = appointments.some(
+                        (a) =>
+                          a.department === selectedDeptVal &&
+                          a.doctorName === filters.doctorFilter,
+                      );
+                      if (!doctorInDept) {
+                        setFilter("doctorFilter", "All");
+                      }
                     }
-                    className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
-                  >
-                    <option value="All">All Visit Types</option>
-                    <option value="First Visit">First Visit</option>
-                    <option value="Follow-up">Follow-up</option>
-                    <option value="Walk-In">Walk-In</option>
-                  </select>
-                </div>
-
-                <button
-                  onClick={() => {
-                    setFilter("searchQuery", "");
-                    setFilter("statusFilter", "All");
-                    setFilter("doctorFilter", "All");
-                    setFilter("deptFilter", "All");
-                    setDateFilter(todayDateStr);
-                    setFilter("visitTypeFilter", "All");
-                    triggerToast("Filters reset.");
                   }}
-                  className="p-2 rounded-xl border border-[#E5E7EB] bg-white text-slate-500 hover:text-[#0D47A1] hover:bg-slate-50 transition-colors"
-                  title="Reset Filters"
+                  className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
                 >
-                  <RotateCcw size={14} />
-                </button>
+                  <option value="All">All Departments</option>
+                  {deptOptions.map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
               </div>
+
+              <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
+                <Building2 size={13} className="text-slate-400" />
+                <span className="text-slate-500 font-medium">
+                  Visit Type:
+                </span>
+                <select
+                  aria-label="Select option"
+                  value={filters.visitTypeFilter}
+                  onChange={(e) =>
+                    setFilter("visitTypeFilter", e.target.value)
+                  }
+                  className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
+                >
+                  <option value="All">All Visit Types</option>
+                  <option value="First Visit">First Visit</option>
+                  <option value="Follow-up">Follow-up</option>
+                  <option value="Walk-In">Walk-In</option>
+                </select>
+              </div>
+
+              <button
+                onClick={() => {
+                  setFilter("searchQuery", "");
+                  setFilter("statusFilter", "All");
+                  setFilter("doctorFilter", "All");
+                  setFilter("deptFilter", "All");
+                  setDateFilter(todayDateStr);
+                  setFilter("visitTypeFilter", "All");
+                  triggerToast("Filters reset.");
+                }}
+                className="p-2 rounded-xl border border-[#E5E7EB] bg-white text-slate-500 hover:text-[#0D47A1] hover:bg-slate-50 transition-colors"
+                title="Reset Filters"
+              >
+                <RotateCcw size={14} />
+              </button>
             </div>
 
-            {/* STATUS TABS STRIP */}
+           
+          </div>
+ {/* STATUS TABS STRIP (Row 3) */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-2 border-t border-gray-100">
               {[
                 { id: "All", label: "All", count: roleAppointments.length },
@@ -818,8 +820,6 @@ export function AppointmentManagementCenterScreen({
                 </button>
               ))}
             </div>
-          </div>
-
           {/* ── 2. SUMMARY KPI CARDS (5 CARDS) ── */}
           {userRole === "Nurse" ? (
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5">

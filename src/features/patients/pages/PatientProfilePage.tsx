@@ -40,7 +40,6 @@ import { EditPatientScreen } from "./EditPatientScreen";
 export type PatientTabId =
   | "overview"
   | "appointments"
-  | "medicalHistory"
   | "visitHistory"
   | "prescriptions"
   | "billing"
@@ -52,16 +51,16 @@ interface PatientProfilePageProps {
   onBack?: () => void;
   onBookAppointment?: (mrn?: string) => void;
   onEdit?: (patient?: Patient) => void;
+  onNextPatient?: () => void;
+  onPrevPatient?: () => void;
 }
 
 const TAB_CONFIG: Array<{ id: PatientTabId; label: string }> = [
   { id: "overview", label: "Overview" },
   { id: "appointments", label: "Appointments" },
-  { id: "medicalHistory", label: "Medical History" },
-  { id: "visitHistory", label: "Visit History" },
   { id: "prescriptions", label: "Prescriptions" },
-  { id: "billing", label: "Billing & Payments" },
-  { id: "documents", label: "Documents" },
+  { id: "billing", label: "Billing & Payments" },/* 
+  { id: "documents", label: "Documents" }, */
 ];
 
 function formatDate(dateStr?: string | null): string {
@@ -174,24 +173,33 @@ export function PatientProfilePage({
   patient,
   currentRole = "ADMIN",
   onBack,
+  onBookAppointment,
   onEdit,
+  onNextPatient,
+  onPrevPatient,
 }: PatientProfilePageProps) {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<PatientTabId>("overview");
   const [patientData, setPatientData] = useState<Patient>(patient);
+  const [prevPatient, setPrevPatient] = useState<Patient>(patient);
   const [isEditing, setIsEditing] = useState(false);
 
   const [appointments, setAppointments] = useState<ApiPatientAppointment[]>([]);
   const [prescriptions, setPrescriptions] = useState<ApiPatientPrescription[]>([]);
   const [billing, setBilling] = useState<ApiPatientInvoice[]>([]);
+  const [rxSummary, setRxSummary] = useState<{
+    active: number;
+    completed: number;
+    expired: number;
+    total: number;
+  } | null>(null);
+
+  if (patient !== prevPatient) {
+    setPrevPatient(patient);
+    setPatientData(patient);
+  }
 
   const mrn = patientData?.mrn || patient?.mrn || String(patient?.id || "");
-
-  useEffect(() => {
-    if (patient) {
-      setPatientData(patient);
-    }
-  }, [patient]);
 
   // Fetch data specifically for THIS particular patient MRN
   useEffect(() => {
@@ -200,11 +208,12 @@ export function PatientProfilePage({
 
     async function loadData() {
       try {
-        const [pRes, apptRes, rxRes, billRes] = await Promise.allSettled([
+        const [pRes, apptRes, rxRes, billRes, rxSumRes] = await Promise.allSettled([
           patientsApi.getPatientByMrn(mrn),
           patientsApi.getAppointments(mrn),
           patientsApi.getPrescriptions(mrn),
           patientsApi.getBilling(mrn),
+          patientsApi.getPrescriptionSummary(mrn),
         ]);
 
         if (cancelled) return;
@@ -223,6 +232,10 @@ export function PatientProfilePage({
 
         if (billRes.status === "fulfilled" && Array.isArray(billRes.value)) {
           setBilling(billRes.value);
+        }
+
+        if (rxSumRes.status === "fulfilled" && rxSumRes.value) {
+          setRxSummary(rxSumRes.value);
         }
       } catch {
         // Handle silently
@@ -420,11 +433,17 @@ export function PatientProfilePage({
       ? formatDate(upcomingAppts[0].date || upcomingAppts[0].appointmentDate)
       : "—";
 
-  const activeScriptsCount = prescriptions.filter(
-    (p) =>
-      (p.status || "").toLowerCase() === "active" ||
-      (p.status || "").toLowerCase() === "issued",
-  ).length;
+  const activeScriptsCount = rxSummary
+    ? rxSummary.active
+    : prescriptions.filter((p) => {
+        const s = (p.status || "").toLowerCase();
+        return (
+          s === "active" ||
+          s === "issued" ||
+          s === "finalized" ||
+          s === "completed"
+        );
+      }).length;
 
   const outstandingCalc = billing.reduce((sum, inv) => {
     const s = (inv.status || "").toLowerCase();
@@ -502,6 +521,34 @@ export function PatientProfilePage({
             <span className="font-semibold text-[#111827]">{displayName}</span>
           </div>
         </div>
+
+        {/* ── Patient Navigation Controls ── */}
+        {(onPrevPatient || onNextPatient) && (
+          <div className="flex items-center gap-2">
+            {onPrevPatient && (
+              <button
+                type="button"
+                onClick={onPrevPatient}
+                className="px-3 py-2 rounded-xl bg-white border border-[#E5E7EB] text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1 shadow-sm transition-colors cursor-pointer"
+                title="Previous Patient"
+                style={{ fontFamily: PP }}
+              >
+                <ChevronLeft size={14} /> Previous Patient
+              </button>
+            )}
+            {onNextPatient && (
+              <button
+                type="button"
+                onClick={onNextPatient}
+                className="px-3.5 py-2 rounded-xl bg-[#0D47A1] text-white hover:bg-[#0a3880] text-xs font-semibold flex items-center gap-1 shadow-sm transition-colors cursor-pointer"
+                title="Next Patient"
+                style={{ fontFamily: PP }}
+              >
+                Next Patient <ChevronRight size={14} />
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ── 2. PATIENT HERO BANNER CARD ── */}
@@ -910,19 +957,20 @@ export function PatientProfilePage({
       {activeTab === "appointments" && (
         <PatientAppointmentsTab
           patient={currentPatient}
-          canEdit={can(currentRole, "manageAppointments")}
+          canEdit={can(currentRole, "manageAppointments", currentRole === "PATIENT")}
           isOwnProfile={currentRole === "PATIENT"}
+          onBookAppointment={onBookAppointment}
         />
       )}
 
       {/* TAB 3: MEDICAL HISTORY */}
-      {activeTab === "medicalHistory" && (
+     {/*  {activeTab === "medicalHistory" && (
         <PatientMedicalRecordsTab
           patient={currentPatient}
-          canEdit={can(currentRole, "editMedicalRecords")}
+          canEdit={can(currentRole, "editMedicalRecords", currentRole === "PATIENT")}
           isOwnProfile={currentRole === "PATIENT"}
         />
-      )}
+      )} */}
 
       {/* TAB 4: VISIT HISTORY */}
       {activeTab === "visitHistory" && (
@@ -936,7 +984,7 @@ export function PatientProfilePage({
       {activeTab === "prescriptions" && (
         <PatientPrescriptionsTab
           patient={currentPatient}
-          canEdit={can(currentRole, "editPrescriptions")}
+          canEdit={can(currentRole, "editPrescriptions", currentRole === "PATIENT")}
           isOwnProfile={currentRole === "PATIENT"}
         />
       )}
@@ -945,7 +993,7 @@ export function PatientProfilePage({
       {activeTab === "billing" && (
         <PatientBillingTab
           patient={currentPatient}
-          canEdit={can(currentRole, "manageBilling")}
+          canEdit={can(currentRole, "manageBilling", currentRole === "PATIENT")}
           isOwnProfile={currentRole === "PATIENT"}
         />
       )}
@@ -954,7 +1002,7 @@ export function PatientProfilePage({
       {activeTab === "documents" && (
         <PatientDocumentsTab
           patient={currentPatient}
-          canEdit={can(currentRole, "editProfile")}
+          canEdit={can(currentRole, "editProfile", currentRole === "PATIENT")}
           isOwnProfile={currentRole === "PATIENT"}
         />
       )}

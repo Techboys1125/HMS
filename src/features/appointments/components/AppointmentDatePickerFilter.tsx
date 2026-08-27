@@ -192,21 +192,17 @@ export function AppointmentDatePickerFilter({
       className="relative inline-block text-xs"
       style={{ fontFamily: RB }}
     >
-      {/* Label above */}
-      <span className="block text-[11px] font-bold text-[#64748B] mb-1">
-        Date
-      </span>
-
       {/* Input Box Trigger */}
       <button
         type="button"
         onClick={handleToggleOpen}
-        className="flex items-center justify-between gap-3 px-3.5 py-2 bg-white border border-[#E5E7EB] rounded-xl cursor-pointer hover:border-[#0D47A1] shadow-xs transition-colors w-44"
+        className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-xl cursor-pointer hover:border-[#0D47A1] transition-colors"
       >
+        <CalendarIcon size={13} className="text-slate-400 shrink-0" />
+        <span className="text-slate-500 font-medium">Date:</span>
         <span className="font-semibold text-[#111827]">
           {formatDisplayDate(selectedDate)}
         </span>
-        <CalendarIcon size={15} className="text-slate-400 shrink-0" />
       </button>
 
       {/* Popover Calendar Picker */}

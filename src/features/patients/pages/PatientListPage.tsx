@@ -53,12 +53,14 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
     null,
   );
 
-  useEffect(() => {
+  const [prevLocationKey, setPrevLocationKey] = useState(location.key);
+  if (prevLocationKey !== location.key) {
+    setPrevLocationKey(location.key);
     setViewingPatient(null);
     setRegistering(false);
     setBookingAppt(false);
     setEditingPatient(null);
-  }, [location.key, location.state]);
+  }
 
   const fetchPatients = async () => {
     try {
@@ -207,11 +209,27 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
   };
 
   if (viewingPatient) {
+    const currentIndex = filteredPatients.findIndex(
+      (p) => (p.mrn || String(p.id)) === (viewingPatient.mrn || String(viewingPatient.id)),
+    );
+    const hasNext = currentIndex >= 0 && currentIndex < filteredPatients.length - 1;
+    const hasPrev = currentIndex > 0;
+
     return (
       <PatientProfilePage
         patient={viewingPatient}
         currentRole={currentRole}
         onBack={() => setViewingPatient(null)}
+        onNextPatient={
+          hasNext
+            ? () => setViewingPatient(filteredPatients[currentIndex + 1])
+            : undefined
+        }
+        onPrevPatient={
+          hasPrev
+            ? () => setViewingPatient(filteredPatients[currentIndex - 1])
+            : undefined
+        }
       />
     );
   }
@@ -237,7 +255,7 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
   if (bookingAppt) {
     return (
       <BookAppointmentScreen
-        role={currentRole.toLowerCase() as any}
+        role={currentRole.toLowerCase() as "super-admin" | "admin" | "doctor" | "nurse" | "receptionist" | "accountant" | "patient"}
         onBack={() => setBookingAppt(false)}
         onBookSuccess={() => {
           setBookingAppt(false);

@@ -754,6 +754,8 @@ export const appointmentService = {
     date: string,
   ): Promise<unknown[]> {
     type AppointmentSlot = {
+      id?: number;
+      slotId?: number;
       time: string;
       startTime?: string;
       endTime?: string;
@@ -762,28 +764,67 @@ export const appointmentService = {
       [key: string]: unknown;
     };
 
-    const res = await appointmentsApi.getAvailableSlots(doctorId, date);
-    const rawData = (res as { data?: unknown })?.data ?? res;
-    const availabilitySlots = Array.isArray(rawData)
-      ? rawData
-      : Array.isArray((rawData as { slots?: unknown[] })?.slots)
-        ? (rawData as { slots: unknown[] }).slots
-        : Array.isArray((rawData as { content?: unknown[] })?.content)
-          ? (rawData as { content: unknown[] }).content
-          : [];
+    let availabilitySlots: unknown[] = [];
+    try {
+      const res = await appointmentsApi.getAvailableSlots(doctorId, date);
+      const rawData = (res as { data?: unknown })?.data ?? res;
+      availabilitySlots = Array.isArray(rawData)
+        ? rawData
+        : Array.isArray((rawData as { slots?: unknown[] })?.slots)
+          ? (rawData as { slots: unknown[] }).slots
+          : Array.isArray((rawData as { content?: unknown[] })?.content)
+            ? (rawData as { content: unknown[] }).content
+            : [];
+    } catch (e) {
+      console.warn("Failed to load doctor availability slots from API:", e);
+    }
 
-    let slots: AppointmentSlot[] = availabilitySlots.map(
-      (rawItem: unknown): AppointmentSlot => {
-        const s = (rawItem as Record<string, unknown>) || {};
-        const statusUpper = String(s.status || "").toUpperCase();
-        const available = ["AVAILABLE", "OPEN", "FREE"].includes(statusUpper);
-        return {
-          ...s,
-          time: String(s.startTime || s.endTime || s.time || s.slot || ""),
-          available,
-        };
-      },
-    );
+    const defaultTimeSlots = [
+      "09:00 AM",
+      "09:30 AM",
+      "10:00 AM",
+      "10:30 AM",
+      "11:00 AM",
+      "11:30 AM",
+      "12:00 PM",
+      "02:00 PM",
+      "02:30 PM",
+      "03:00 PM",
+      "03:30 PM",
+      "04:00 PM",
+      "04:30 PM",
+      "05:00 PM",
+    ];
+
+    let slots: AppointmentSlot[] = [];
+
+    if (availabilitySlots.length === 0) {
+      slots = defaultTimeSlots.map((timeStr, idx) => ({
+        id: idx + 1,
+        slotId: idx + 1,
+        time: timeStr,
+        startTime: timeStr,
+        available: true,
+      }));
+    } else {
+      slots = availabilitySlots.map(
+        (rawItem: unknown, idx: number): AppointmentSlot => {
+          const s = (rawItem as Record<string, unknown>) || {};
+          const statusUpper = String(s.status || "").toUpperCase();
+          const available =
+            statusUpper === "" ||
+            ["AVAILABLE", "OPEN", "FREE", "TRUE"].includes(statusUpper) ||
+            s.available === true;
+          return {
+            ...s,
+            id: (s.id || s.slotId || idx + 1) as number,
+            slotId: (s.slotId || s.id || idx + 1) as number,
+            time: String(s.startTime || s.endTime || s.time || s.slot || ""),
+            available,
+          };
+        },
+      );
+    }
 
     try {
       const apptRes = await appointmentsApi.getAppointments({ doctorId, date });

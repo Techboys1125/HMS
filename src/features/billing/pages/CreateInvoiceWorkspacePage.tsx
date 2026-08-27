@@ -789,11 +789,13 @@ export function CreateInvoiceWorkspacePage() {
           // Fetch latest bill balance to ensure we don't exceed backend balance
           try {
             const currentBill = await billingService.getBill(billId);
+            const billObj = currentBill as unknown as Record<string, unknown>;
+            const summaryObj = billObj?.summary as Record<string, unknown> | undefined;
             const rawBalance =
-              (currentBill as any)?.summary?.balanceAmount ??
-              (currentBill as any)?.balanceAmount ??
-              (currentBill as any)?.balance ??
-              (currentBill as any)?.netAmount;
+              summaryObj?.balanceAmount ??
+              billObj?.balanceAmount ??
+              billObj?.balance ??
+              billObj?.netAmount;
 
             if (typeof rawBalance === "number" && rawBalance > 0) {
               payAmount = Math.min(numReceived, rawBalance);
@@ -802,7 +804,7 @@ export function CreateInvoiceWorkspacePage() {
             console.warn("Could not fetch bill balance before payment:", fetchErr);
           }
 
-          let payRes: any = null;
+          let payRes: { paymentStatus?: string } | null = null;
           try {
             payRes = await receivePayment({
               billId,
@@ -815,19 +817,22 @@ export function CreateInvoiceWorkspacePage() {
               ],
               remarks: txnNotes || undefined,
             });
-          } catch (payErr: any) {
+          } catch (payErr) {
+            const errObj = payErr as { message?: string; data?: { message?: string } } | null | undefined;
             const errMsg = String(
-              payErr?.message || payErr?.data?.message || payErr || "",
+              errObj?.message || errObj?.data?.message || payErr || "",
             );
             if (errMsg.toLowerCase().includes("overpayment")) {
               // Retry with exact backend balance if overpayment detected
               try {
                 const refreshed = await billingService.getBill(billId);
+                const refreshedObj = refreshed as unknown as Record<string, unknown>;
+                const refreshedSummary = refreshedObj?.summary as Record<string, unknown> | undefined;
                 const exactBalance =
-                  (refreshed as any)?.summary?.balanceAmount ??
-                  (refreshed as any)?.balanceAmount ??
-                  (refreshed as any)?.balance ??
-                  (refreshed as any)?.netAmount;
+                  refreshedSummary?.balanceAmount ??
+                  refreshedObj?.balanceAmount ??
+                  refreshedObj?.balance ??
+                  refreshedObj?.netAmount;
 
                 if (typeof exactBalance === "number" && exactBalance > 0) {
                   payRes = await receivePayment({

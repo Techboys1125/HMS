@@ -256,6 +256,13 @@ export type VisitRecord = {
 };
 export type PatientAppointment = {
   id: string;
+  rawId?: number | string;
+  appointmentNumber?: string;
+  tokenNo?: string;
+  queueToken?: string;
+  patientId?: number | string;
+  patientPhone?: string;
+  mrn?: string;
   patientName?: string;
   date: string;
   time: string;
@@ -507,11 +514,31 @@ export interface ApiPatientFamilyMember {
 }
 
 /**
+ * Document record returned from /api/v1/patients/{mrn}/documents
+ */
+export interface ApiPatientDocument {
+  id: string;
+  title: string;
+  category: string;
+  uploadDate: string;
+  fileSize: string;
+  fileType: string;
+  url?: string;
+}
+
+/**
  * Appointment record returned from /api/v1/appointments?mrn=
  */
 export interface ApiPatientAppointment {
   id: string | number;
   appointmentId?: string | number;
+  appointmentNumber?: string;
+  patientId?: number | string;
+  patientPhone?: string;
+  phone?: string;
+  tokenNumber?: string;
+  queueToken?: string;
+  tokenNo?: string;
   date?: string;
   time?: string;
   doctorId?: number | string;
@@ -566,17 +593,19 @@ export interface ApiPatientAppointment {
  */
 export interface ApiPatientPrescription {
   id: string | number;
+  prescriptionId?: string;
   date?: string;
   doctorName?: string;
   department?: string;
   diagnosis?: string;
   followUpDate?: string;
   medicines?: Array<{
+    id?: string;
     dose?: string | number;
     route?: string;
-    strength: string;
-    medicineName: string;
-    name: string;
+    strength?: string;
+    medicineName?: string;
+    name?: string;
     dosage?: string;
     frequency?: string;
     duration?: string;
@@ -595,6 +624,10 @@ export interface ApiPatientInvoice {
   date?: string;
   status?: string;
   amount?: string | number;
+  paidAmount?: number;
+  balance?: number;
+  doctorName?: string;
+  departmentName?: string;
 }
 
 /**

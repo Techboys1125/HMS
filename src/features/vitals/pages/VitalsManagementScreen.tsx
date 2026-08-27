@@ -15,7 +15,6 @@ import {
   ShieldAlert,
   Printer,
   Calendar,
-  AlertTriangle,
   RefreshCw,
   Users,
   CheckSquare,
@@ -25,6 +24,7 @@ import { Pagination } from "../../../common/components/Pagination";
 import type { AppointmentRecord } from "../../appointments";
 import { toDisplayStatus } from "../../appointments/services/appointment.service";
 import { vitalsService } from "../services/vitals.service";
+import { appointmentsApi } from "../../appointments/api/appointments.api";
 import { QUEUE_QUERY_KEY } from "../../opd/hooks/useQueue";
 import type {
   RecordedVitalsData,
@@ -77,6 +77,7 @@ function VitalsDetailsScreen({
 }) {
   const patientInfo = useMemo(() => {
     if (!activeApt) return null;
+    const activeObj = activeApt as unknown as Record<string, unknown>;
     return (
       activeApt.patient || {
         id: activeApt.patientId,
@@ -84,9 +85,9 @@ function VitalsDetailsScreen({
         name: activeApt.patientName,
         age: activeApt.patientAge,
         gender: activeApt.patientGender,
-        bloodGroup: "O+",
-        phone: activeApt.patientPhone,
-        emergencyContact: "+1 (555) 987-6543 (Spouse)",
+        bloodGroup: (activeObj.bloodGroup as string) || "—",
+        phone: activeApt.patientPhone || "—",
+        emergencyContact: (activeObj.emergencyContact as string) || "—",
       }
     );
   }, [activeApt]);
@@ -250,25 +251,26 @@ function VitalsDetailsScreen({
                 <div className="flex justify-between">
                   <span className="text-slate-400">Blood Group</span>
                   <strong className="text-slate-700">
-                    {patientInfo?.bloodGroup || "O+"}
+                    {patientInfo?.bloodGroup || "—"}
                   </strong>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400">Mobile Number</span>
                   <strong className="text-slate-700 font-mono">
-                    {activeApt.patientPhone}
+                    {activeApt.patientPhone || "—"}
                   </strong>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400">Emergency Contact</span>
                   <strong className="text-slate-700">
-                    {patientInfo?.emergencyContact || "Spouse"}
+                    {patientInfo?.emergencyContact || "—"}
                   </strong>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400">Known Allergies</span>
-                  <strong className="text-[#EF4444] font-bold">
-                    Penicillin, NSAIDs
+                  <strong className="text-slate-700">
+                    {((activeApt as unknown as Record<string, unknown>)
+                      .allergies as string) || "None reported"}
                   </strong>
                 </div>
               </div>
@@ -563,32 +565,21 @@ function VitalsDetailsScreen({
               className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-1.5"
               style={{ fontFamily: PP }}
             >
-              <ShieldAlert size={14} className="text-[#EF4444]" /> Patient
+              <ShieldAlert size={14} className="text-[#0D47A1]" /> Patient
               Alerts & Clinical Risk Indicators
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="bg-red-50/80 border border-red-100 p-3.5 rounded-xl space-y-1">
+              <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-xl space-y-1">
                 <strong
-                  className="text-red-900 block font-bold items-center gap-1.5"
+                  className="text-slate-800 block font-bold"
                   style={{ fontFamily: PP }}
                 >
-                  <AlertTriangle size={14} className="text-[#EF4444]" /> Known
-                  Allergies
+                  Known Allergies
                 </strong>
-                <p className="text-red-950/80 font-medium">
-                  Drug Allergy: Penicillin & NSAIDs. Severe reaction history.
-                </p>
-              </div>
-              <div className="bg-amber-50/80 border border-amber-100 p-3.5 rounded-xl space-y-1">
-                <strong
-                  className="text-amber-900 block font-bold items-center gap-1.5"
-                  style={{ fontFamily: PP }}
-                >
-                  <ShieldAlert size={14} className="text-[#F59E0B]" /> High Risk
-                  Indicators
-                </strong>
-                <p className="text-amber-950/80 font-medium">
-                  Hypertensive crisis history. Borderline diabetic precaution.
+                <p className="text-slate-600 font-medium">
+                  {((activeApt as unknown as Record<string, unknown>)
+                    .allergies as string) ||
+                    "No known drug allergies reported."}
                 </p>
               </div>
               <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-xl space-y-1">
@@ -596,22 +587,13 @@ function VitalsDetailsScreen({
                   className="text-slate-800 block font-bold"
                   style={{ fontFamily: PP }}
                 >
-                  Chronic Conditions
+                  Chronic Conditions / Notes
                 </strong>
                 <p className="text-slate-600 font-medium">
-                  Type 2 Diabetes Mellitus, Essential Hypertension.
-                </p>
-              </div>
-              <div className="bg-blue-50/80 border border-blue-100 p-3.5 rounded-xl space-y-1">
-                <strong
-                  className="text-blue-900 block font-bold"
-                  style={{ fontFamily: PP }}
-                >
-                  Special Precautions
-                </strong>
-                <p className="text-blue-950/80 font-medium">
-                  Requires arm cuff on left side due to right arm vascular
-                  access.
+                  {activeApt.notes ||
+                    ((activeApt as unknown as Record<string, unknown>)
+                      .medicalConditions as string) ||
+                    "No active chronic conditions noted."}
                 </p>
               </div>
             </div>
@@ -736,19 +718,22 @@ export function RecordPatientVitalsForm({
 }) {
   const { can } = usePermissions();
   const [chiefComplaint, setChiefComplaint] = useState(
-    activeApt.chiefComplaint || activeApt.reason || "",
+    activeApt.chiefComplaint &&
+      activeApt.chiefComplaint !== "Pre-consultation Vitals Check"
+      ? activeApt.chiefComplaint
+      : "",
   );
   const [symptoms, setSymptoms] = useState("");
   const [diagnosis, setDiagnosis] = useState("");
   const [clinicalNotes, setClinicalNotes] = useState("");
 
-  const [height, setHeight] = useState("170");
-  const [weight, setWeight] = useState("70");
-  const [temperature, setTemperature] = useState("98.6");
-  const [bloodPressure, setBloodPressure] = useState("120/80");
-  const [pulse, setPulse] = useState("72");
-  const [spo2, setSpo2] = useState("98");
-  const [bloodSugar, setBloodSugar] = useState("110");
+  const [height, setHeight] = useState("");
+  const [weight, setWeight] = useState("");
+  const [temperature, setTemperature] = useState("");
+  const [bloodPressure, setBloodPressure] = useState("");
+  const [pulse, setPulse] = useState("");
+  const [spo2, setSpo2] = useState("");
+  const [bloodSugar, setBloodSugar] = useState("");
 
   const [toast, setToast] = useState<{
     message: string;
@@ -823,12 +808,13 @@ export function RecordPatientVitalsForm({
       {/* HEADER & BREADCRUMB */}
       <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm flex items-center justify-between">
         <div>
-          <div
-            className="text-[10px] font-semibold text-[#64748B] uppercase tracking-wider mb-0.5"
+          <button
+            onClick={onBack}
+            className="text-[11px] font-semibold text-[#0D47A1] hover:text-[#0c3d8a] uppercase tracking-wider mb-1 flex items-center gap-1 cursor-pointer transition-colors"
             style={{ fontFamily: PP }}
           >
-            Nurse / Vitals Management / Record Patient Vitals
-          </div>
+            <ArrowLeft size={13} /> Back to Vitals Management Queue
+          </button>
           <h1
             className="text-xl font-bold text-[#111827]"
             style={{ fontFamily: PP }}
@@ -840,6 +826,13 @@ export function RecordPatientVitalsForm({
             consultation.
           </p>
         </div>
+        <button
+          onClick={onBack}
+          className="px-4 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 text-slate-700 hover:bg-slate-100 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
+          style={{ fontFamily: PP }}
+        >
+          <ArrowLeft size={14} /> Back
+        </button>
       </div>
 
       {/* STICKY PATIENT SUMMARY STRIP */}
@@ -1158,8 +1151,15 @@ export function RecordPatientVitalsForm({
    MAIN SCREEN: VITALS MANAGEMENT CENTER (LANDING PAGE)
    ───────────────────────────────────────────────────────────────────────────── */
 const getVitalsStatus = (apt: AppointmentRecord) => {
-  if (apt.status === "Checked-In" || apt.status === "Waiting for Vitals")
-    return "Waiting for Vitals";
+  if (
+    apt.hasVitals ||
+    apt.vitalsId ||
+    apt.vitalsRecorded ||
+    apt.status === "Completed" ||
+    apt.status === "Vitals Recorded"
+  ) {
+    return "Vitals Recorded";
+  }
   if (apt.notes?.includes("vitals in progress")) return "Recording In Progress";
   if (
     apt.status === "In Consultation" ||
@@ -1170,7 +1170,6 @@ const getVitalsStatus = (apt: AppointmentRecord) => {
     apt.queueStatus === "WAITING_FOR_DOCTOR_CALL"
   )
     return "Ready For Consultation";
-  if (apt.status === "Completed") return "Vitals Recorded";
   return "Waiting for Vitals";
 };
 
@@ -1191,97 +1190,162 @@ export function RecordPatientVitalsScreen({
     try {
       const list = await vitalsService.getWaitingPatients();
       if (Array.isArray(list)) {
-        const mapped: AppointmentRecord[] = list.map(
-          (item: NurseWaitingPatient, idx: number) => ({
-            id: item.appointmentId || item.id || `apt-${idx + 1}`,
-            appointmentNumber:
-              item.appointmentNumber || item.tokenNumber || `TK-${100 + idx}`,
-            tokenNo: item.tokenNumber || item.token || `TK-${100 + idx}`,
-            patientId: item.patientId || item.patient?.id || `P-${idx + 1}`,
-            patientName:
-              item.patientName ||
-              item.patient?.name ||
-              item.patient?.fullName ||
-              "Patient",
-            patientAge: Number(item.age || item.patient?.age || 30),
-            patientGender: (item.gender ||
-              item.patient?.gender ||
-              "Male") as AppointmentRecord["patientGender"],
-            patientPhone:
-              item.contact || item.patient?.contact || item.phone || "N/A",
-            mrn: item.mrn || item.patient?.mrn || `MRN-${1000 + idx}`,
-            doctorId: item.doctorId || item.doctor?.doctorId || 1,
-            doctorName: item.doctorName || item.doctor?.name || "Duty Doctor",
-            department:
-              item.departmentName ||
-              (typeof item.department === "object"
-                ? item.department?.departmentName ||
-                  item.department?.name ||
-                  item.department?.departmentCode
-                : undefined) ||
-              (typeof item.department === "string"
-                ? item.department
-                : undefined) ||
-              item.doctor?.departmentName ||
-              item.doctor?.department ||
-              "Cardiology",
-            departmentName:
-              item.departmentName ||
-              (typeof item.department === "object"
-                ? item.department?.departmentName ||
-                  item.department?.name ||
-                  item.department?.departmentCode
-                : undefined) ||
-              (typeof item.department === "string"
-                ? item.department
-                : undefined) ||
-              item.doctor?.departmentName ||
-              item.doctor?.department ||
-              "Cardiology",
-            specialty:
-              item.specialty ||
-              item.doctor?.specialty ||
-              (typeof item.department === "object"
-                ? item.department?.departmentName ||
-                  item.department?.name ||
-                  item.department?.departmentCode
-                : undefined) ||
-              (typeof item.department === "string"
-                ? item.department
-                : undefined) ||
-              item.doctor?.department ||
-              "General Medicine",
+        const mapped: AppointmentRecord[] = await Promise.all(
+          list.map(async (item: NurseWaitingPatient, idx: number) => {
+            const appointmentId =
+              item.appointmentId || item.id || `apt-${idx + 1}`;
+            const itemObj = item as unknown as Record<string, unknown>;
+            const hasVitalsByQueue = Boolean(
+              itemObj.vitalsId ||
+              itemObj.hasVitals ||
+              itemObj.vitalsRecorded ||
+              item.status === "COMPLETED" ||
+              item.status === "Vitals Recorded",
+            );
 
-            appointmentDate: new Date().toISOString().split("T")[0],
-            appointmentTime:
-              item.checkInTime ||
-              item.appointmentTime ||
-              item.time ||
-              item.timeSlot ||
-              "Now",
-            time:
-              item.checkInTime ||
-              item.appointmentTime ||
-              item.time ||
-              item.timeSlot ||
-              "Now",
-            timeSlot:
-              item.checkInTime ||
-              item.appointmentTime ||
-              item.time ||
-              item.timeSlot ||
-              "Now",
-            status: toDisplayStatus(item.status),
-            queueStatus: item.status || "WAITING_FOR_VITALS",
-            visitType:
-              item.visitType === "First Visit"
-                ? "First Visit"
-                : item.visitType === "Follow-up"
-                  ? "Follow-up"
-                  : "Regular",
-            reason: "Pre-consultation Vitals Check",
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            let vitals = null;
+            if (
+              !hasVitalsByQueue &&
+              appointmentId &&
+              !String(appointmentId).startsWith("apt-")
+            ) {
+              try {
+                vitals = await vitalsService.getVitals(appointmentId);
+              } catch {
+                vitals = null;
+              }
+            }
+
+            const hasVitals = Boolean(
+              hasVitalsByQueue ||
+              vitals?.vitalsId ||
+              (vitals &&
+                (vitals.height ||
+                  vitals.weight ||
+                  vitals.temp ||
+                  vitals.systolic ||
+                  vitals.pulse)),
+            );
+
+            const apptIdStr = String(item.appointmentId || item.id || "");
+            return {
+              id: apptIdStr,
+              appointmentNumber: String(
+                item.appointmentNumber ||
+                  item.tokenNumber ||
+                  item.token ||
+                  apptIdStr,
+              ),
+              tokenNo: String(
+                item.tokenNumber || item.token || item.appointmentNumber || "—",
+              ),
+              patientId: item.patientId || item.patient?.id || "—",
+              patientName:
+                item.patientName ||
+                item.patient?.name ||
+                item.patient?.fullName ||
+                "—",
+              patientAge: Number(item.age || item.patient?.age || 0),
+              patientGender: (item.gender ||
+                item.patient?.gender ||
+                "—") as AppointmentRecord["patientGender"],
+              patientPhone:
+                item.contact || item.patient?.contact || item.phone || "—",
+              mrn: item.mrn || item.patient?.mrn || "—",
+              doctorId: item.doctorId || item.doctor?.doctorId || "—",
+              doctorName:
+                item.doctorName ||
+                item.doctor?.name ||
+                ((item.doctor as Record<string, unknown> | undefined)
+                  ?.fullName as string) ||
+                "—",
+              department:
+                item.departmentName ||
+                (typeof item.department === "object"
+                  ? item.department?.departmentName ||
+                    item.department?.name ||
+                    item.department?.departmentCode
+                  : undefined) ||
+                (typeof item.department === "string"
+                  ? item.department
+                  : undefined) ||
+                item.doctor?.departmentName ||
+                item.doctor?.department ||
+                "—",
+              departmentName:
+                item.departmentName ||
+                (typeof item.department === "object"
+                  ? item.department?.departmentName ||
+                    item.department?.name ||
+                    item.department?.departmentCode
+                  : undefined) ||
+                (typeof item.department === "string"
+                  ? item.department
+                  : undefined) ||
+                item.doctor?.departmentName ||
+                item.doctor?.department ||
+                "—",
+              specialty:
+                item.specialty ||
+                item.doctor?.specialty ||
+                (typeof item.department === "object"
+                  ? item.department?.departmentName ||
+                    item.department?.name ||
+                    item.department?.departmentCode
+                  : undefined) ||
+                (typeof item.department === "string"
+                  ? item.department
+                  : undefined) ||
+                item.doctor?.department ||
+                "—",
+
+              appointmentDate:
+                (itemObj.appointmentDate as string) ||
+                (itemObj.date as string) ||
+                new Date().toISOString().split("T")[0],
+              appointmentTime:
+                item.checkInTime ||
+                item.appointmentTime ||
+                (itemObj.startTime as string) ||
+                item.time ||
+                item.timeSlot ||
+                "—",
+              time:
+                item.checkInTime ||
+                item.appointmentTime ||
+                (itemObj.startTime as string) ||
+                item.time ||
+                item.timeSlot ||
+                "—",
+              timeSlot:
+                item.checkInTime ||
+                item.appointmentTime ||
+                (itemObj.startTime as string) ||
+                item.time ||
+                item.timeSlot ||
+                "—",
+              status: hasVitals ? "Completed" : toDisplayStatus(item.status),
+              queueStatus: hasVitals
+                ? "COMPLETED"
+                : item.status || "WAITING_FOR_VITALS",
+              hasVitals,
+              vitalsRecorded: hasVitals,
+              vitalsId: vitals?.vitalsId
+                ? Number(vitals.vitalsId)
+                : (itemObj.vitalsId as number | undefined),
+              visitType:
+                item.visitType ||
+                (itemObj.appointmentType as string) ||
+                "Consultation",
+              reason:
+                (itemObj.reason as string) ||
+                (itemObj.chiefComplaint as string) ||
+                "",
+              createdAt:
+                (itemObj.createdAt as string) || new Date().toISOString(),
+              updatedAt:
+                (itemObj.updatedAt as string) || new Date().toISOString(),
+            };
           }),
         );
         setAppointments(mapped);
@@ -1329,7 +1393,21 @@ export function RecordPatientVitalsScreen({
   const dynamicDoctors = useMemo(() => {
     const list = appointments
       .map((a) => a.doctorName)
-      .filter((name): name is string => Boolean(name && name.trim()));
+      .filter((name): name is string =>
+        Boolean(name && name.trim() && name !== "—"),
+      );
+    return Array.from(new Set(list));
+  }, [appointments]);
+
+  // Dynamic Department list from appointments
+  const dynamicDepartments = useMemo(() => {
+    const list = appointments
+      .map((a) =>
+        typeof a.department === "string" ? a.department : a.departmentName,
+      )
+      .filter((dept): dept is string =>
+        Boolean(dept && dept.trim() && dept !== "—"),
+      );
     return Array.from(new Set(list));
   }, [appointments]);
 
@@ -1385,7 +1463,7 @@ export function RecordPatientVitalsScreen({
       inProgress,
       recorded,
       ready,
-      avgTime: "4.2 mins",
+      avgTime: recorded > 0 ? "Real-time" : "—",
     };
   }, [todayQueue]);
 
@@ -1441,31 +1519,140 @@ export function RecordPatientVitalsScreen({
   // Pagination for queue table
   const [queuePage, setQueuePage] = useState(1);
   const queuePageSize = 10;
-  const queueTotalPages = Math.ceil(
-    filteredAppointments.length / queuePageSize,
+  const queueTotalPages = Math.max(
+    1,
+    Math.ceil(filteredAppointments.length / queuePageSize),
   );
+  const safeQueuePage = Math.min(queuePage, queueTotalPages);
   const paginatedAppointments = filteredAppointments.slice(
-    (queuePage - 1) * queuePageSize,
-    queuePage * queuePageSize,
+    (safeQueuePage - 1) * queuePageSize,
+    safeQueuePage * queuePageSize,
   );
 
-  const handleSelectPatient = (
+  const handleSelectPatient = async (
     apt: AppointmentRecord,
     mode: "record" | "details" = "record",
   ) => {
-    setSelectedAptId(String(apt.id));
+    const aptIdStr = String(apt.id);
+    setSelectedAptId(aptIdStr);
     setViewMode(mode);
     if (mode === "details") {
       fetchVitalsForDetails(apt.id);
     }
+
+    try {
+      const res = await appointmentsApi.getAppointmentById(apt.id);
+      const data = (res?.data || res) as unknown as
+        Record<string, unknown> | undefined;
+      if (data && typeof data === "object") {
+        const patObj = (data.patient || {}) as Record<string, unknown>;
+        const docObj = (data.doctor || {}) as Record<string, unknown>;
+        const deptObj = (data.department || {}) as Record<string, unknown>;
+
+        const primaryId = (data.id || data.appointmentId || apt.id) as
+          string | number;
+        const formattedApptNum = String(
+          data.appointmentNumber || data.tokenNumber || data.token || primaryId,
+        );
+
+        const updatedApt: AppointmentRecord = {
+          ...apt,
+          id: primaryId,
+          appointmentNumber: formattedApptNum,
+          tokenNo: String(
+            data.queueToken ||
+              data.tokenNumber ||
+              data.token ||
+              apt.tokenNo ||
+              "—",
+          ),
+          mrn: String(
+            data.mrn || data.patientMrn || patObj.mrn || apt.mrn || "—",
+          ),
+          patientName: String(
+            data.patientName ||
+              patObj.name ||
+              patObj.fullName ||
+              apt.patientName ||
+              "—",
+          ),
+          patientAge: Number(data.age || patObj.age || apt.patientAge || 0),
+          patientGender: String(
+            data.gender || patObj.gender || apt.patientGender || "—",
+          ),
+          doctorName: String(
+            data.doctorName ||
+              docObj.name ||
+              docObj.fullName ||
+              apt.doctorName ||
+              "—",
+          ),
+          department: String(
+            data.departmentName ||
+              deptObj.departmentName ||
+              deptObj.name ||
+              (typeof data.department === "string" ? data.department : "") ||
+              apt.department ||
+              "—",
+          ),
+          departmentName: String(
+            data.departmentName ||
+              deptObj.departmentName ||
+              deptObj.name ||
+              (typeof data.department === "string" ? data.department : "") ||
+              apt.departmentName ||
+              "—",
+          ),
+          timeSlot: String(
+            data.startTime ||
+              data.appointmentTime ||
+              data.timeSlot ||
+              apt.timeSlot ||
+              "—",
+          ),
+          chiefComplaint: String(
+            data.symptoms ||
+              data.reason ||
+              (apt.chiefComplaint !== "Pre-consultation Vitals Check"
+                ? apt.chiefComplaint
+                : "") ||
+              "",
+          ),
+        };
+
+        setAppointments((prev) =>
+          prev.map((a) => (String(a.id) === aptIdStr ? updatedApt : a)),
+        );
+      }
+    } catch (e) {
+      console.warn("Failed to fetch full appointment details by ID:", e);
+    }
+
     triggerToast(`Loaded ${apt.patientName}`, "info");
   };
 
   const handleMarkPatientReady = async () => {
+    if (selectedAptId) {
+      setAppointments((prev) =>
+        prev.map((item) =>
+          String(item.id) === String(selectedAptId)
+            ? {
+                ...item,
+                hasVitals: true,
+                vitalsRecorded: true,
+                status: "Completed",
+                queueStatus: "WAITING_FOR_DOCTOR_CALL",
+              }
+            : item,
+        ),
+      );
+    }
+    queryClient.invalidateQueries({ queryKey: QUEUE_QUERY_KEY });
+    queryClient.invalidateQueries({ queryKey: ["vitals"] });
+    queryClient.invalidateQueries({ queryKey: ["appointments"] });
     await loadWaitingAppointments();
     setSelectedAptId(null);
     setViewMode("center");
-    queryClient.invalidateQueries({ queryKey: QUEUE_QUERY_KEY });
   };
 
   const handleResetFilters = () => {
@@ -1479,7 +1666,8 @@ export function RecordPatientVitalsScreen({
     triggerToast("Filters reset", "info");
   };
 
-  const handleRefreshQueue = () => {
+  const handleRefreshQueue = async () => {
+    await loadWaitingAppointments();
     triggerToast("Patient queue refreshed", "success");
   };
 
@@ -1624,10 +1812,11 @@ export function RecordPatientVitalsScreen({
                 className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
               >
                 <option value="All">All Depts</option>
-                <option value="Cardiology">Cardiology</option>
-                <option value="General Medicine">General Medicine</option>
-                <option value="Neurology">Neurology</option>
-                <option value="Gynecology">Gynecology</option>
+                {dynamicDepartments.map((dept) => (
+                  <option key={dept} value={dept}>
+                    {dept}
+                  </option>
+                ))}
               </select>
             </span>
           </div>
@@ -1860,9 +2049,7 @@ export function RecordPatientVitalsScreen({
           >
             {kpiStats.avgTime}
           </div>
-          <div className="text-[10px] text-slate-400">
-            Target: &lt; 5.0 mins
-          </div>
+          <div className="text-[10px] text-slate-400">Active queue metrics</div>
         </div>
       </div>
 
@@ -1911,9 +2098,14 @@ export function RecordPatientVitalsScreen({
                 <tbody className="divide-y divide-gray-100 text-[#111827]">
                   {paginatedAppointments.map((apt) => {
                     const vStatus = getVitalsStatus(apt);
-                    const isPending =
-                      vStatus === "Waiting for Vitals" ||
-                      vStatus === "Recording In Progress";
+                    const hasVitals = Boolean(
+                      apt.hasVitals ||
+                      apt.vitalsId ||
+                      apt.vitalsRecorded ||
+                      vStatus === "Vitals Recorded" ||
+                      vStatus === "Ready For Consultation" ||
+                      apt.status === "Completed",
+                    );
 
                     return (
                       <tr
@@ -1958,7 +2150,7 @@ export function RecordPatientVitalsScreen({
                           </span>
                         </td>
                         <td className="px-4 py-3.5">
-                          {isPending ? (
+                          {!hasVitals ? (
                             <span className="bg-amber-50 text-[#F59E0B] px-2 py-0.5 rounded-full text-[10px] font-bold border border-amber-200">
                               {vStatus}
                             </span>
@@ -1975,23 +2167,23 @@ export function RecordPatientVitalsScreen({
                         </td>
                         <td className="px-4 py-3.5 text-right">
                           <div className="flex items-center justify-end gap-1.5">
-                            {isPending && can("VITALS_CREATE") && (
+                            {!hasVitals && can("VITALS_CREATE") && (
                               <button
                                 onClick={() =>
                                   handleSelectPatient(apt, "record")
                                 }
-                                className="px-3 py-1.5 rounded-lg bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-[11px] font-bold transition-colors shadow-xs"
+                                className="px-3 py-1.5 rounded-lg bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-[11px] font-bold transition-colors shadow-xs cursor-pointer"
                                 style={{ fontFamily: PP }}
                               >
                                 Record Vitals
                               </button>
                             )}
-                            {!isPending && can("VITALS_VIEW") && (
+                            {hasVitals && can("VITALS_VIEW") && (
                               <button
                                 onClick={() =>
                                   handleSelectPatient(apt, "details")
                                 }
-                                className="px-3 py-1.5 rounded-lg bg-[#009688] hover:bg-[#00796b] text-white text-[11px] font-bold transition-colors shadow-xs"
+                                className="px-3 py-1.5 rounded-lg bg-[#009688] hover:bg-[#00796b] text-white text-[11px] font-bold transition-colors shadow-xs cursor-pointer"
                                 style={{ fontFamily: PP }}
                               >
                                 View Vitals
@@ -2056,7 +2248,7 @@ export function RecordPatientVitalsScreen({
             </div>
             {filteredAppointments.length > 0 && (
               <Pagination
-                currentPage={queuePage}
+                currentPage={safeQueuePage}
                 totalPages={queueTotalPages}
                 onPageChange={setQueuePage}
                 pageSize={queuePageSize}

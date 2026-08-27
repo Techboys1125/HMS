@@ -21,6 +21,7 @@ import { patientsApi } from "../../patients/api/patient.api";
 import { departmentsApi } from "../../users/api/departments.api";
 import { doctorsApi } from "../../doctors/api/doctors.api";
 import type { DoctorDailySlot } from "../../doctors/types/doctors.types";
+import { AppointmentDetailsDrawer } from "../components/AppointmentDetailsDrawer";
 
 const formatSlotTime = (timeStr: string) => {
   const parts = timeStr.split(":");
@@ -36,7 +37,8 @@ const formatSlotTime = (timeStr: string) => {
 
 const isTimeSlotPassed = (slotTimeStr: string, targetDateStr: string) => {
   const todayStr = new Date().toISOString().split("T")[0];
-  if (targetDateStr !== todayStr) return false;
+  if (targetDateStr < todayStr) return true;
+  if (targetDateStr > todayStr) return false;
 
   let hour: number;
   let minute: number;
@@ -443,12 +445,37 @@ export function BookAppointmentScreen({
   useEffect(() => {
     if (!currentDoctor || !currentDoctor.doctorId || !selectedDate) return;
     let cancelled = false;
-    doctorsApi
-      .getDailyAvailability(currentDoctor.doctorId, selectedDate)
-      .then((res) => {
+    appointmentService
+      .listAvailableSlots(currentDoctor.doctorId, selectedDate)
+      .then((data) => {
         if (cancelled) return;
-        if (res && res.slots) {
-          setApiSlots(res.slots);
+        if (Array.isArray(data) && data.length > 0) {
+          interface RawSlotItem {
+            id?: number;
+            slotId?: number;
+            time?: string;
+            startTime?: string;
+            status?: string;
+            available?: boolean;
+          }
+          const mappedSlots: DoctorDailySlot[] = (data as RawSlotItem[]).map(
+            (s, idx) => {
+              const startT = s.time || s.startTime || "09:00 AM";
+              const statusUpper = (s.status || "").toUpperCase();
+              const isAvail =
+                s.available !== false &&
+                (statusUpper === "" ||
+                  ["AVAILABLE", "OPEN", "FREE", "TRUE"].includes(statusUpper));
+              return {
+                id: String(s.id || s.slotId || idx + 1),
+                slotId: s.id || s.slotId || idx + 1,
+                startTime: startT,
+                endTime: startT,
+                status: isAvail ? "AVAILABLE" : "BOOKED",
+              };
+            },
+          );
+          setApiSlots(mappedSlots);
         } else {
           setApiSlots([]);
         }
@@ -576,6 +603,9 @@ export function BookAppointmentScreen({
 
   const [isBooking, setIsBooking] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
+  const [selectedDetailsAppt, setSelectedDetailsAppt] =
+    useState<AppointmentRecord | null>(null);
+  const [showDetailsDrawer, setShowDetailsDrawer] = useState(false);
 
   const handleConfirm = async () => {
     if (!selectedPatient || !currentDoctor) return;
@@ -1328,6 +1358,30 @@ export function BookAppointmentScreen({
                 </span>
               </div>
 
+              {/* Patient Info Row */}
+              <div className="bg-white border border-slate-200/80 rounded-xl p-3 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 text-[#0D47A1] flex items-center justify-center font-bold text-xs">
+                    {(selectedPatient?.name || "Patient")
+                      .slice(0, 2)
+                      .toUpperCase()}
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-medium block">
+                      Patient Name
+                    </span>
+                    <span className="text-xs font-bold text-[#111827]">
+                      {selectedPatient?.name || "Unknown Patient"}
+                    </span>
+                  </div>
+                </div>
+                {selectedPatient?.mrn && (
+                  <span className="px-2 py-0.5 rounded-md bg-blue-50 text-[#0D47A1] border border-blue-100 text-[10px] font-mono font-bold">
+                    MRN: {selectedPatient.mrn}
+                  </span>
+                )}
+              </div>
+
               {/* 2-Column Field Grid */}
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div>
@@ -1369,7 +1423,7 @@ export function BookAppointmentScreen({
                   <span className="font-bold text-[#009688]">
                     {currentDoctor?.fee
                       ? `₹${currentDoctor.fee} (OPD Counter)`
-                      : "$65.00 (OPD Counter)"}
+                      : "₹65 (OPD Counter)"}
                   </span>
                 </div>
                 <div>
@@ -1391,22 +1445,43 @@ export function BookAppointmentScreen({
                   const apptData = {
                     id: confirmedAptId,
                     appointmentNumber: confirmedAptId,
-                    patientName: selectedPatient?.name,
-                    mrn: selectedPatient?.mrn,
-                    doctorName: currentDoctor?.name,
-                    departmentName: currentDoctor?.dept,
+                    patientName: selectedPatient?.name || "Patient",
+                    mrn: selectedPatient?.mrn || "",
+                    patientId: selectedPatient?.id,
+                    doctorName: currentDoctor?.name || "Doctor",
+                    departmentName: currentDoctor?.dept || "OPD",
+                    department: currentDoctor?.dept || "OPD",
                     appointmentDate: selectedDate,
                     startTime: selectedTimeSlot,
-                    visitType: visitType,
-                    reason: chiefComplaint,
+                    timeSlot: selectedTimeSlot,
+                    visitType:
+                      visitType === "New Consultation"
+                        ? "CONSULTATION"
+                        : "FOLLOW_UP",
+                    reason: chiefComplaint || "General Consultation",
+                    chiefComplaint: chiefComplaint || "General Consultation",
                     symptoms: remarks,
+                    status: "Scheduled",
+                    tokenNo: confirmedAptId,
+                    opdRoom: "Wing A, OPD Room 102",
+                    doctor: {
+                      id: currentDoctor?.doctorId || "",
+                      name: currentDoctor?.name || "",
+                      department: currentDoctor?.dept || "",
+                      specialty: currentDoctor?.spec || "",
+                      consultationFee: currentDoctor?.fee || 0,
+                      opdRoom: "Wing A, OPD Room 102",
+                    },
                   } as unknown as AppointmentRecord;
+
                   setShowSuccessModal(false);
-                  if (onBookSuccess) onBookSuccess(apptData, true);
-                  else if (onConfirmSuccess) onConfirmSuccess(confirmedAptId);
-                  else if (onBack) onBack();
+                  if (onBookSuccess) {
+                    onBookSuccess(apptData, true);
+                  }
+                  setSelectedDetailsAppt(apptData);
+                  setShowDetailsDrawer(true);
                 }}
-                className="w-full sm:flex-1 py-3 px-5 rounded-xl bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-xs font-bold transition-colors shadow-sm flex items-center justify-center"
+                className="w-full sm:flex-1 py-3 px-5 rounded-xl bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-xs font-bold transition-colors shadow-sm flex items-center justify-center cursor-pointer"
                 style={{ fontFamily: PP }}
               >
                 View Appointment Details
@@ -1428,11 +1503,21 @@ export function BookAppointmentScreen({
                     symptoms: remarks,
                   } as unknown as AppointmentRecord;
                   setShowSuccessModal(false);
-                  if (onBookSuccess) onBookSuccess(apptData, false);
-                  else if (onConfirmSuccess) onConfirmSuccess(confirmedAptId);
-                  else if (onBack) onBack();
+                  if (onBookSuccess) {
+                    onBookSuccess(apptData, false);
+                  } else if (onConfirmSuccess) {
+                    onConfirmSuccess(confirmedAptId);
+                  } else if (onBack) {
+                    onBack();
+                  } else {
+                    if (role === "patient") {
+                      navigate("/patients/appointments");
+                    } else {
+                      navigate("/appointments");
+                    }
+                  }
                 }}
-                className="w-full sm:flex-1 py-3 px-5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-colors"
+                className="w-full sm:flex-1 py-3 px-5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
                 style={{ fontFamily: PP }}
               >
                 Return to My Appointments
@@ -1440,6 +1525,33 @@ export function BookAppointmentScreen({
             </div>
           </div>
         </div>
+      )}
+
+      {showDetailsDrawer && selectedDetailsAppt && (
+        <AppointmentDetailsDrawer
+          apt={selectedDetailsAppt}
+          isOpen={showDetailsDrawer}
+          onClose={() => {
+            setShowDetailsDrawer(false);
+            if (onConfirmSuccess) onConfirmSuccess(confirmedAptId);
+            else if (onBack) onBack();
+            else {
+              if (role === "patient") {
+                navigate("/patients/appointments");
+              } else {
+                navigate("/appointments");
+              }
+            }
+          }}
+          onEditClick={() => {}}
+          onPrintClick={() => window.print()}
+          onPatientSelect={
+            onPatientSelect
+              ? (id: number | string) => onPatientSelect(String(id))
+              : undefined
+          }
+          userRole={role === "patient" ? "Patient" : "Receptionist"}
+        />
       )}
     </div>
   );

@@ -254,8 +254,8 @@ export function OverviewTab({ patient, onNavigateToTab }: OverviewTabProps) {
     );
   });
 
-  const recentAppointments = safeAppointments
-    .toSorted((a, b) => {
+  const recentAppointments = [...safeAppointments]
+    .sort((a, b) => {
       const da = a.date ?? a.appointmentDate ?? "";
       const db = b.date ?? b.appointmentDate ?? "";
       return da > db ? -1 : da < db ? 1 : 0;
@@ -263,7 +263,20 @@ export function OverviewTab({ patient, onNavigateToTab }: OverviewTabProps) {
     .slice(0, 3);
 
   const safePrescriptions = Array.isArray(prescriptions) ? prescriptions : [];
-  const activePrescriptions = safePrescriptions.slice(0, 3);
+  const activePrescriptions = safePrescriptions
+    .filter((rx) => {
+      const s = (rx.status || "").toLowerCase();
+      return (
+        s === "active" ||
+        s === "issued" ||
+        s === "finalized" ||
+        s === "completed"
+      );
+    })
+    .slice(0, 3);
+  if (activePrescriptions.length === 0 && safePrescriptions.length > 0) {
+    activePrescriptions.push(...safePrescriptions.slice(0, 3));
+  }
 
   if (loading) {
     return (
@@ -392,6 +405,30 @@ export function OverviewTab({ patient, onNavigateToTab }: OverviewTabProps) {
               </span>
             </div>
             <div className="flex items-start">
+              <span className="w-36 shrink-0 text-[#64748B]">Gender</span>
+              <span className="text-[#111827] font-medium">
+                {currentPatient.gender || "N/A"}
+              </span>
+            </div>
+            <div className="flex items-start">
+              <span className="w-36 shrink-0 text-[#64748B]">Blood Group</span>
+              <span className="text-[#111827] font-medium">
+                {currentPatient.bloodGroup || currentPatient.blood_type || "N/A"}
+              </span>
+            </div>
+            <div className="flex items-start">
+              <span className="w-36 shrink-0 text-[#64748B]">Phone / Mobile</span>
+              <span className="text-[#111827] font-medium">
+                {currentPatient.phone || currentPatient.mobileNumber || currentPatient.mobile || "N/A"}
+              </span>
+            </div>
+            <div className="flex items-start">
+              <span className="w-36 shrink-0 text-[#64748B]">Registration Date</span>
+              <span className="text-[#111827] font-medium">
+                {formatDate(currentPatient.registrationDate || currentPatient.createdAt)}
+              </span>
+            </div>
+            <div className="flex items-start">
               <span className="w-36 shrink-0 text-[#64748B]">Full Address</span>
               <span className="text-[#111827] font-medium">{address}</span>
             </div>
@@ -500,15 +537,22 @@ export function OverviewTab({ patient, onNavigateToTab }: OverviewTabProps) {
                 >
                   <div className="flex items-center gap-2.5">
                     <div className="w-7 h-7 rounded-full bg-blue-50 text-[#0D47A1] flex items-center justify-center text-[10px] font-bold">
-                      {typeof appt.doctor === "string"
-                        ? appt.doctor?.charAt(0) || "D"
-                        : "D"}
+                      {(() => {
+                        const dName = typeof appt.doctor === "string" ? appt.doctor : (appt.doctorName || (appt.doctor && typeof appt.doctor === "object" ? (appt.doctor as Record<string, unknown>).name || (appt.doctor as Record<string, unknown>).fullName : "")) || "D";
+                        return String(dName).replace(/^Dr\.?\s*/i, "").charAt(0).toUpperCase() || "D";
+                      })()}
                     </div>
                     <div>
                       <div className="text-[11px] font-bold text-[#111827]">
-                        {typeof appt.doctor === "string"
-                          ? appt.doctor || "—"
-                          : appt.doctorName || "—"}
+                        {(() => {
+                          const raw = appt.doctor || appt.doctorName;
+                          if (typeof raw === "string") return raw;
+                          if (raw && typeof raw === "object") {
+                            const o = raw as Record<string, unknown>;
+                            return (o.fullName as string) || (o.name as string) || (o.doctorName as string) || "Doctor";
+                          }
+                          return "Doctor";
+                        })()}
                       </div>
                       <div className="text-[10px] text-[#64748B]">
                         {formatDate(appt.date ?? appt.appointmentDate)} ·{" "}

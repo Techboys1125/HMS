@@ -386,14 +386,15 @@ export function CollectPaymentWorkspacePage() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {bill.items.map((item) => {
+                    const itemObj = item as unknown as Record<string, unknown>;
                     const name =
                       item.serviceName ||
-                      (item as any).itemName ||
-                      (item as any).name ||
-                      (item as any).description ||
-                      (item as any).service_name ||
-                      (item as any).item_name ||
-                      (item as any).service?.name ||
+                      (itemObj.itemName as string) ||
+                      (itemObj.name as string) ||
+                      (itemObj.description as string) ||
+                      (itemObj.service_name as string) ||
+                      (itemObj.item_name as string) ||
+                      (itemObj.service && typeof itemObj.service === "object" ? ((itemObj.service as Record<string, unknown>).name as string) : undefined) ||
                       "OPD Consultation Service";
 
                     return (

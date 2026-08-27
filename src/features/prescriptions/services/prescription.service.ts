@@ -83,21 +83,34 @@ export const prescriptionService = {
         : [];
 
     const medicines = (rawMeds as Array<Record<string, unknown>>).map((m) => {
-      const doseVal = m.dose || m.dosage;
-      const freqVal = m.frequency;
-      const durVal = m.duration;
-      const qtyVal = m.quantity;
+      const doseVal =
+        m.doseValue != null
+          ? `${m.doseValue} ${m.doseUnit || ""}`.trim()
+          : m.dose || m.dosage || m.strength;
+
+      const freqVal =
+        m.frequencyDisplay || m.frequencyCode || m.frequencyLabel || m.frequency;
+
+      const durVal =
+        m.durationValue != null
+          ? `${m.durationValue} ${m.durationUnit || "DAYS"}`.trim()
+          : m.duration;
+
+      const qtyVal =
+        m.quantityValue != null
+          ? `${m.quantityValue} ${m.quantityUnit || ""}`.trim()
+          : m.quantity;
 
       const formatComplex = (v: unknown): string => {
         if (v == null) return "";
         if (typeof v === "string" || typeof v === "number") return String(v);
         if (typeof v === "object") {
           const o = v as Record<string, unknown>;
-          if (o.label) return String(o.label);
           if (o.display) return String(o.display);
+          if (o.label) return String(o.label);
           if (o.value != null) {
             const unitStr = o.unit ? ` ${o.unit}` : "";
-            return `${o.value}${unitStr}`;
+            return `${o.value}${unitStr}`.trim();
           }
           if (o.code) return String(o.code);
         }
@@ -106,13 +119,13 @@ export const prescriptionService = {
 
       return {
         name: String(m.medicineName || m.name || m.medicine || ""),
-        strength: String(m.strength || ""),
-        route: String(m.route || "ORAL"),
+        strength: String(m.strength || formatComplex(doseVal) || ""),
+        route: String(m.route || m.form || "ORAL"),
         dosage: formatComplex(doseVal),
         frequency: formatComplex(freqVal),
         duration: formatComplex(durVal),
         quantity: formatComplex(qtyVal),
-        instructions: String(m.instructions || m.specialInstructions || ""),
+        instructions: String(m.instructions || m.specialInstructions || m.notes || ""),
       };
     });
 
@@ -280,16 +293,37 @@ export const prescriptionService = {
     prescriptionStoreActions.setLoading(true);
     try {
       const result = await prescriptionApi.getPatientPrescriptions(mrn, params);
-      const mapped = (result.content || []).map((rx) =>
+      let mapped = (result.content || []).map((rx) =>
         prescriptionService.mapPatientSummaryToUnified(rx),
       );
+
+      if (mapped.length === 0) {
+        const records = await prescriptionApi.getPrescriptions(mrn);
+        mapped = records.map((rx) =>
+          prescriptionService.mapApiToUnified(
+            rx,
+            mrn ? undefined : "General Patient",
+          ),
+        );
+      }
+
       prescriptionStoreActions.setPrescriptions(mapped);
       return mapped;
-    } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : "Failed to load prescriptions";
-      prescriptionStoreActions.setError(msg);
-      return [];
+    } catch {
+      try {
+        const records = await prescriptionApi.getPrescriptions(mrn);
+        const mapped = records.map((rx) =>
+          prescriptionService.mapApiToUnified(
+            rx,
+            mrn ? undefined : "General Patient",
+          ),
+        );
+        prescriptionStoreActions.setPrescriptions(mapped);
+        return mapped;
+      } catch {
+        prescriptionStoreActions.setPrescriptions([]);
+        return [];
+      }
     } finally {
       prescriptionStoreActions.setLoading(false);
     }

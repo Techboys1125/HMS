@@ -39,22 +39,45 @@ function formatField(val: unknown, fallback: string = "—"): string {
     typeof val === "boolean"
   ) {
     const s = String(val).trim();
-    return s || fallback;
+    if (!s || s === "[object Object]") return fallback;
+    return s;
   }
   if (typeof val === "object") {
     const obj = val as Record<string, unknown>;
-    if ("display" in obj && obj.display != null)
-      return String(obj.display).trim();
-    if ("value" in obj && obj.value != null) {
+    if ("display" in obj && obj.display != null && String(obj.display).trim()) {
+      const res = String(obj.display).trim();
+      if (res !== "[object Object]") return res;
+    }
+    if ("value" in obj && obj.value != null && String(obj.value).trim()) {
       const v = String(obj.value).trim();
       const u = obj.unit ? ` ${String(obj.unit).trim()}` : "";
-      return `${v}${u}`.trim() || fallback;
+      const res = `${v}${u}`.trim();
+      if (res && res !== "[object Object]") return res;
     }
-    if ("name" in obj && obj.name != null) return String(obj.name).trim();
-    if ("text" in obj && obj.text != null) return String(obj.text).trim();
-    if ("code" in obj && obj.code != null) return String(obj.code).trim();
-    if ("followUpDate" in obj && obj.followUpDate != null)
+    if ("fullName" in obj && obj.fullName != null && String(obj.fullName).trim())
+      return String(obj.fullName).trim();
+    if ("doctorName" in obj && obj.doctorName != null && String(obj.doctorName).trim())
+      return String(obj.doctorName).trim();
+    if ("departmentName" in obj && obj.departmentName != null && String(obj.departmentName).trim())
+      return String(obj.departmentName).trim();
+    if ("name" in obj && obj.name != null && String(obj.name).trim()) {
+      const res = String(obj.name).trim();
+      if (res !== "[object Object]") return res;
+    }
+    if ("title" in obj && obj.title != null && String(obj.title).trim())
+      return String(obj.title).trim();
+    if ("text" in obj && obj.text != null && String(obj.text).trim())
+      return String(obj.text).trim();
+    if ("code" in obj && obj.code != null && String(obj.code).trim())
+      return String(obj.code).trim();
+    if ("followUpDate" in obj && obj.followUpDate != null && String(obj.followUpDate).trim())
       return String(obj.followUpDate).trim();
+    if ("department" in obj && obj.department != null) {
+      return formatField(obj.department, fallback);
+    }
+    if ("doctor" in obj && obj.doctor != null) {
+      return formatField(obj.doctor, fallback);
+    }
     if (Array.isArray(val)) {
       return (
         val
@@ -128,14 +151,25 @@ export function PrescriptionDetailsModal({
       prescriptionId,
     "Prescription",
   );
-  const doctorName = formatField(
-    details?.doctorName || initialData?.doctorName,
-    "Attending Physician",
-  );
-  const department = formatField(
-    details?.department || initialData?.department,
-    "General Medicine",
-  );
+  const rawDoctor =
+    details?.doctorName ||
+    (detObj?.doctorName as string) ||
+    detObj?.doctor ||
+    initialData?.doctorName ||
+    (initObj?.doctorName as string) ||
+    initObj?.doctor;
+
+  const doctorName = formatField(rawDoctor, "Doctor");
+
+  const rawDepartment =
+    details?.department ||
+    (detObj?.department as unknown) ||
+    (detObj?.departmentName as string) ||
+    initialData?.department ||
+    (initObj?.department as unknown) ||
+    (initObj?.departmentName as string);
+
+  const department = formatField(rawDepartment, "General Medicine");
   const issueDateRaw =
     details?.finalizedAt ||
     details?.createdAt ||

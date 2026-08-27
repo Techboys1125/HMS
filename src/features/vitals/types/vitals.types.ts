@@ -1,4 +1,5 @@
 export interface RecordedVitalsData {
+  vitalsId?: number | string;
   bpSystolic?: string;
   bpDiastolic?: string;
   pulseRate?: string;

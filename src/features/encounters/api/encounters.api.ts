@@ -131,7 +131,9 @@ export const encountersApi = {
       const response = await apiClient.post<
         ApiEnvelope<Prescription> | Prescription
       >(`/api/v1/encounters/${encounterId}/prescription`, payload);
-      return unwrap<Prescription>(response.data);
+      const resData = unwrap<Prescription>(response.data);
+      console.log("CREATE PRESCRIPTION RESPONSE:", resData);
+      return resData;
     } catch (error: unknown) {
       return handleApiError(error);
     }
@@ -148,8 +150,77 @@ export const encountersApi = {
       const response = await apiClient.post<
         ApiEnvelope<Prescription> | Prescription
       >(`/api/v1/prescriptions/${prescriptionId}/medications`, payload);
+      const res = unwrap<Prescription>(response.data);
+      console.log("ADD MEDICATION PRIMARY RESPONSE:", res);
+      return res;
+    } catch (primaryErr) {
+      console.warn("Primary addMedication endpoint failed, attempting fallbacks:", primaryErr);
+      try {
+        const fallback1 = await apiClient.post<
+          ApiEnvelope<Prescription> | Prescription
+        >(`/api/v1/encounters/${prescriptionId}/medications`, payload);
+        const res1 = unwrap<Prescription>(fallback1.data);
+        console.log("ADD MEDICATION FALLBACK 1 RESPONSE:", res1);
+        return res1;
+      } catch {
+        try {
+          const fallback2 = await apiClient.post<
+            ApiEnvelope<Prescription> | Prescription
+          >(`/api/v1/encounters/${prescriptionId}/prescription/medications`, payload);
+          const res2 = unwrap<Prescription>(fallback2.data);
+          console.log("ADD MEDICATION FALLBACK 2 RESPONSE:", res2);
+          return res2;
+        } catch (finalErr) {
+          console.error("All addMedication fallback endpoints failed:", finalErr);
+          return null;
+        }
+      }
+    }
+  },
+
+  /**
+   * PUT /api/v1/prescriptions/{prescriptionId}/medications/{medicationId}
+   * Modifies dosage, frequency, or instructions of an existing medication item.
+   */
+  updateMedication: async (
+    prescriptionId: string | number,
+    medicationId: string | number,
+    payload: {
+      doseValue?: number;
+      doseUnit?: string;
+      frequencyCode?: string;
+      frequencyDisplay?: string;
+      durationValue?: number;
+      durationUnit?: string;
+      instructions?: string;
+    },
+  ): Promise<Prescription | null> => {
+    try {
+      const response = await apiClient.put<
+        ApiEnvelope<Prescription> | Prescription
+      >(`/api/v1/prescriptions/${prescriptionId}/medications/${medicationId}`, payload);
       return unwrap<Prescription>(response.data);
-    } catch {
+    } catch (error) {
+      console.error("updateMedication failed:", error);
+      return null;
+    }
+  },
+
+  /**
+   * DELETE /api/v1/prescriptions/{prescriptionId}/medications/{medicationId}
+   * Removes a medication item from a draft prescription.
+   */
+  deleteMedication: async (
+    prescriptionId: string | number,
+    medicationId: string | number,
+  ): Promise<Prescription | null> => {
+    try {
+      const response = await apiClient.delete<
+        ApiEnvelope<Prescription> | Prescription
+      >(`/api/v1/prescriptions/${prescriptionId}/medications/${medicationId}`);
+      return unwrap<Prescription>(response.data);
+    } catch (error) {
+      console.error("deleteMedication failed:", error);
       return null;
     }
   },
@@ -231,6 +302,35 @@ export const encountersApi = {
         ApiEnvelope<{ valid: boolean; errors: string[]; warnings: string[] }>
       >(`/api/v1/prescriptions/${prescriptionId}/validate`);
       return unwrap(response.data);
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * GET /api/v1/prescriptions/{prescriptionId}/print-output (Use Case 3)
+   */
+  getPrintablePrescription: async (
+    prescriptionId: string | number,
+  ): Promise<{
+    headerTitle?: string;
+    prescriptionId?: string;
+    patient?: { fullName?: string; mrn?: string };
+    doctor?: { fullName?: string };
+    medications?: Array<{
+      medicineName: string;
+      dosage?: string;
+      frequency?: string;
+      duration?: string;
+      quantity?: string;
+      instructions?: string;
+    }>;
+  } | null> => {
+    try {
+      const response = await apiClient.get<unknown>(
+        `/api/v1/prescriptions/${prescriptionId}/print-output`,
+      );
+      return unwrap(response.data) as any;
     } catch {
       return null;
     }

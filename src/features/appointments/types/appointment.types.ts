@@ -134,6 +134,8 @@ export interface AppointmentRecord {
   cancellationReason?: string;
   rescheduleReason?: string;
   vitalsRecorded?: boolean;
+  hasVitals?: boolean;
+  vitalsId?: number | string;
   paymentStatus?: "PAID" | "UNPAID" | "PARTIAL" | "PENDING";
   priority?: string;
   arrivalStatus?: string;

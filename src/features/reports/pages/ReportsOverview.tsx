@@ -249,16 +249,7 @@ export function AdminReportsDashboardScreen({
 }) {
   const navigate = useNavigate();
   const [state, dispatch] = useReducer(reducer, initialState);
-  const {
-    searchQuery,
-    deptFilter,
-    doctorFilter,
-    dateRangeFilter,
-    typeFilter,
-    statusFilter,
-    visitTypeFilter,
-    appliedFilters,
-  } = state;
+  const { searchQuery, appliedFilters } = state;
 
   const [selectedReportModal, setSelectedReportModal] =
     useState<AvailableReportCard | null>(null);
@@ -298,22 +289,7 @@ export function AdminReportsDashboardScreen({
     useState<keyof DoctorSummaryPerformanceRecord>("revenue");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
-  const handleApplyFilters = () => {
-    dispatch({ type: "LOAD_START" });
-    setTimeout(() => {
-      dispatch({
-        type: "LOAD_SUCCESS",
-        payload: {
-          dept: deptFilter,
-          doctor: doctorFilter,
-          dateRange: dateRangeFilter,
-          type: typeFilter,
-          status: statusFilter,
-          visitType: visitTypeFilter,
-        },
-      });
-    }, 400);
-  };
+
 
  
   const handleResetFilters = () => {

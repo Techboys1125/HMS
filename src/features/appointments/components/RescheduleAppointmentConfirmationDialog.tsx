@@ -153,7 +153,7 @@ const CurrentBookingDetails = ({ apt }: CurrentBookingDetailsProps) => (
       <div>
         <span className="text-[10px] text-slate-400 block">Appointment ID</span>
         <strong className="text-[#0D47A1] font-mono">
-          {apt.id} ({apt.tokenNo})
+          {apt.appointmentNumber || apt.id} ({apt.tokenNo || apt.queueToken || "Pending"})
         </strong>
       </div>
       <div>
@@ -281,7 +281,7 @@ const RescheduleCalendarPicker = ({
                 isSelected
                   ? "bg-[#009688] text-white font-bold shadow-xs"
                   : isCurrentAptDate
-                    ? "bg-amber-100 text-amber-800 font-bold border border-amber-300"
+                    ? "border border-teal-300 text-teal-700 font-bold bg-teal-50/50"
                     : isDisabled
                       ? "text-slate-300 cursor-not-allowed line-through opacity-50"
                       : "text-slate-700 bg-white hover:bg-teal-50 hover:text-[#009688] border border-slate-100"
@@ -298,6 +298,29 @@ const RescheduleCalendarPicker = ({
     )}
   </div>
 );
+
+function isPastTimeSlot(slotTime: string, selectedDate: string): boolean {
+  if (!selectedDate) return false;
+  const todayStr = new Date().toISOString().split("T")[0];
+  if (selectedDate > todayStr) return false;
+  if (selectedDate < todayStr) return true;
+
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  const match = slotTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+  if (!match) return false;
+
+  let hour = parseInt(match[1], 10);
+  const minute = parseInt(match[2], 10);
+  const period = match[3]?.toUpperCase();
+
+  if (period === "PM" && hour < 12) hour += 12;
+  if (period === "AM" && hour === 12) hour = 0;
+
+  const slotMinutes = hour * 60 + minute;
+  return slotMinutes <= currentMinutes;
+}
 
 const RescheduleTimeSlotPicker = ({
   docAvail,
@@ -335,7 +358,8 @@ const RescheduleTimeSlotPicker = ({
       <div className="grid grid-cols-4 gap-2">
         {docAvail.slots.map((s) => {
           const isSelected = form.selectedTimeSlot === s.time;
-          const isAvailable = s.available;
+          const isPast = isPastTimeSlot(s.time, form.selectedDate);
+          const isAvailable = s.available && !isPast;
 
           return (
             <button
@@ -501,13 +525,27 @@ export function RescheduleAppointmentConfirmationDialog({
 
   useEffect(() => {
     if (isOpen && apt) {
-      const today = new Date();
-      const tomorrow = new Date(today);
-      tomorrow.setDate(today.getDate() + 1);
-      const defaultDateStr = tomorrow.toISOString().split("T")[0];
+      const todayStr = new Date().toISOString().split("T")[0];
+      const aptDate =
+        apt.appointmentDate ||
+        ((apt as unknown as Record<string, unknown>).date as string);
+      const defaultDateStr =
+        aptDate && aptDate >= todayStr ? aptDate : todayStr;
 
       const timer = setTimeout(() => {
         dispatch({ type: "RESET", defaultDate: defaultDateStr });
+        if (defaultDateStr) {
+          const parts = defaultDateStr.split("-");
+          if (parts.length === 3) {
+            setCurrentMonthDate(
+              new Date(
+                parseInt(parts[0], 10),
+                parseInt(parts[1], 10) - 1,
+                1,
+              ),
+            );
+          }
+        }
         setErrors({});
       }, 0);
       return () => clearTimeout(timer);

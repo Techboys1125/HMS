@@ -23,6 +23,7 @@ import {
   appointmentToPatientSummary,
 } from "../constants/appointment.constants";
 import { appointmentService } from "../services/appointment.service";
+import { downloadAppointmentSlipPdf } from "../../../utils/appointmentPdf.utils";
 
 type DrawerHeaderProps = {
   isNurse: boolean;
@@ -197,8 +198,8 @@ const DrawerPatientSection = ({
           {patientInfo.name}
         </h4>
         <div className="text-xs text-slate-500 font-mono mt-0.5">
-          <span className="text-[#0D47A1] font-bold">{patientInfo.mrn}</span> ·
-          MRN: {patientInfo.id}
+          <span className="text-[#0D47A1] font-bold">{patientInfo.mrn}</span>
+         
         </div>
       </div>
     </div>
@@ -350,10 +351,18 @@ const DrawerDoctorSection = ({
       </div>
       <div>
         <span className="text-slate-400 text-[10px] block font-medium">
+          Doctor ID
+        </span>
+        <strong className="text-[#0D47A1] font-mono">
+          {doctorInfo.id || "—"}
+        </strong>
+      </div>
+      <div>
+        <span className="text-slate-400 text-[10px] block font-medium">
           Department
         </span>
         <strong className="text-[#0D47A1]">
-          {doctorInfo.department || "General Medicine"}
+          {doctorInfo.department || "General OPD"}
         </strong>
       </div>
       <div>
@@ -361,22 +370,30 @@ const DrawerDoctorSection = ({
           Specialization
         </span>
         <span className="text-slate-700 font-semibold">
-          {doctorInfo.specialty || "Specialist"}
+          {doctorInfo.specialty || "General Physician"}
         </span>
+      </div>
+      <div>
+        <span className="text-slate-400 text-[10px] block font-medium">
+          Qualification
+        </span>
+        <span className="text-slate-700 font-semibold">
+          {doctorInfo.qualification || "MBBS"}
+        </span>
+      </div>
+      <div>
+        <span className="text-slate-400 text-[10px] block font-medium">
+          Consultation Fee
+        </span>
+        <strong className="text-[#009688]">
+          {doctorInfo.consultationFee}
+        </strong>
       </div>
       <div>
         <span className="text-slate-400 text-[10px] block font-medium">
           Consultation Duration
         </span>
         <span className="text-slate-700 font-semibold font-mono">15 Mins</span>
-      </div>
-      <div>
-        <span className="text-slate-400 text-[10px] block font-medium">
-          Room Number
-        </span>
-        <strong className="text-[#009688]">
-          {doctorInfo.opdRoom || "OPD Counter"}
-        </strong>
       </div>
     </div>
   </div>
@@ -523,8 +540,10 @@ const DrawerFooter = ({
     <div className="flex items-center gap-2 flex-1 justify-end">
       <button
         type="button"
-        onClick={() => onPrintClick(apt)}
-        className="px-3.5 py-2.5 rounded-xl border border-[#E5E7EB] bg-white text-slate-700 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-1.5"
+        onClick={() => {
+          onPrintClick?.(apt);
+        }}
+        className="px-3.5 py-2.5 rounded-xl border border-[#E5E7EB] bg-white text-slate-700 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-1.5 cursor-pointer"
         style={{ fontFamily: PP }}
       >
         <Printer size={14} /> Print Summary
@@ -565,19 +584,7 @@ const DrawerFooter = ({
           <CheckCircle2 size={14} />
           {isCheckingIn ? "Checking In..." : "Check-In Patient"}
         </button>
-      ) : (
-        <button
-          type="button"
-          onClick={() => {
-            onEditClick(apt);
-            onClose();
-          }}
-          className="py-2.5 px-4 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors shadow-sm flex items-center justify-center gap-2"
-          style={{ fontFamily: PP }}
-        >
-          <Edit size={14} /> Edit Appointment
-        </button>
-      )}
+      ) : null}
     </div>
   </div>
 );
@@ -815,34 +822,127 @@ export function AppointmentDetailsDrawer({
     }
   };
 
-  const patientInfo = appointmentToPatientSummary(apt);
   const rawApt = apt as unknown as Record<string, unknown>;
+  const patientObj = ((apt.patient as unknown as Record<string, unknown>) ||
+    {}) as Record<string, unknown>;
+
+  const patientInfo = {
+    id:
+      apt.patientId ||
+      (patientObj.id as string | number) ||
+      (rawApt.patientId as string | number) ||
+      "—",
+    mrn:
+      apt.patientMrn ||
+      apt.mrn ||
+      (patientObj.mrn as string) ||
+      (rawApt.mrn as string) ||
+      "—",
+    name:
+      apt.patientName ||
+      (patientObj.fullName as string) ||
+      (patientObj.name as string) ||
+      (rawApt.patientName as string) ||
+      "Patient",
+    age:
+      apt.patientAge ||
+      (patientObj.age as number) ||
+      (rawApt.age as number) ||
+      0,
+    gender:
+      (apt.patientGender as "Male" | "Female" | "Other") ||
+      (patientObj.gender as "Male" | "Female" | "Other") ||
+      (rawApt.gender as "Male" | "Female" | "Other") ||
+      "Other",
+    bloodGroup:
+      (patientObj.bloodGroup as string) ||
+      (patientObj.blood_group as string) ||
+      (rawApt.bloodGroup as string) ||
+      (rawApt.patientBloodGroup as string) ||
+      (rawApt.blood_group as string) ||
+      "Not Specified",
+    phone:
+      apt.patientPhone ||
+      (patientObj.phone as string) ||
+      (patientObj.mobile as string) ||
+      (patientObj.contact as string) ||
+      (rawApt.patientPhone as string) ||
+      (rawApt.phone as string) ||
+      (rawApt.mobile as string) ||
+      "Not Provided",
+    emergencyContact:
+      (patientObj.emergencyContact as string) ||
+      (patientObj.emergencyPhone as string) ||
+      (patientObj.emergencyMobile as string) ||
+      (rawApt.emergencyContact as string) ||
+      (rawApt.emergencyPhone as string) ||
+      "Not Provided",
+    allergies:
+      (patientObj.allergies as string) ||
+      (rawApt.allergies as string) ||
+      "None reported",
+    assignedDoctor: apt.doctorName || (rawApt.doctorName as string) || "",
+  };
+
   const rawPatientInfo = patientInfo as unknown as Record<string, unknown>;
 
+  const doctorObj = ((apt.doctor as unknown as Record<string, unknown>) ||
+    {}) as Record<string, unknown>;
+
+  const rawFee =
+    (doctorObj.consultationFee as string | number) ||
+    (doctorObj.fee as string | number) ||
+    (rawApt.consultationFee as string | number) ||
+    (rawApt.billingAmount as string | number) ||
+    (rawApt.fee as string | number);
+
+  const formattedFee = rawFee
+    ? typeof rawFee === "number"
+      ? `₹${rawFee}`
+      : String(rawFee).startsWith("₹")
+        ? String(rawFee)
+        : `₹${rawFee}`
+    : "Standard Fee";
+
   const doctorInfo = {
-    id: apt.doctor?.id || apt.doctorId || "",
+    id:
+      apt.doctorId ||
+      (doctorObj.id as string | number) ||
+      (doctorObj.doctorId as string | number) ||
+      (rawApt.doctorId as string | number) ||
+      "—",
     name:
       apt.doctorName ||
-      apt.doctor?.name ||
-      apt.doctor?.fullName ||
+      (doctorObj.name as string) ||
+      (doctorObj.fullName as string) ||
+      (rawApt.doctorName as string) ||
       "Consultant",
     department:
-      typeof apt.department === "string"
+      apt.departmentName ||
+      (typeof apt.department === "string"
         ? apt.department
         : apt.department?.departmentName ||
           apt.department?.name ||
-          apt.department?.departmentCode ||
-          apt.departmentName ||
-          "General Medicine",
+          apt.department?.departmentCode) ||
+      (doctorObj.department as string) ||
+      (rawApt.departmentName as string) ||
+      (rawApt.department as string) ||
+      "General OPD",
     specialty:
       apt.doctorSpecialty ||
+      apt.specialty ||
+      (doctorObj.specialty as string) ||
+      (doctorObj.primarySpecialty as unknown as { specialtyName?: string })?.specialtyName ||
+      (doctorObj.specialization as string) ||
       (rawApt.specialty as string) ||
-      apt.doctor?.specialty ||
-      "Specialist",
-    qualification: apt.doctor?.qualification || "MBBS",
-    consultationFee:
-      apt.doctor?.consultationFee || (rawApt.billingAmount as string) || "N/A",
-    opdRoom: apt.opdRoom || apt.doctor?.opdRoom || "OPD Counter",
+      (rawApt.doctorSpecialty as string) ||
+      "General Physician",
+    qualification:
+      (doctorObj.qualification as string) ||
+      (rawApt.qualification as string) ||
+      "MBBS",
+    consultationFee: formattedFee,
+    opdRoom: "",
   };
 
   const timelineSteps =

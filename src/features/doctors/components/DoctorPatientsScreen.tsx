@@ -139,11 +139,46 @@ export function DoctorPatientsScreen() {
   );
 
   if (selectedPatient) {
+    const currentIndex = filteredPatients.findIndex(
+      (p) => p.mrn === selectedPatient.mrn || p.id === String(selectedPatient.id),
+    );
+    const hasNext = currentIndex >= 0 && currentIndex < filteredPatients.length - 1;
+    const hasPrev = currentIndex > 0;
+
+    const handleSelectRow = (patientRow: PatientRow) => {
+      setIsLoading(true);
+      patientsApi
+        .getPatientByMrn(patientRow.mrn)
+        .then((data) => {
+          setSelectedPatient(mapApiPatientToPatientRecord(data));
+        })
+        .catch(() => {
+          setSelectedPatient({
+            id: patientRow.id,
+            mrn: patientRow.mrn,
+            fullName: patientRow.name,
+            gender: patientRow.gender,
+            age: patientRow.age,
+            mobileNumber: patientRow.mobile,
+            status: "ACTIVE",
+          } as unknown as Patient);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    };
+
     return (
       <PatientProfilePage
         patient={selectedPatient}
         currentRole="DOCTOR"
         onBack={() => setSelectedPatient(null)}
+        onNextPatient={
+          hasNext ? () => handleSelectRow(filteredPatients[currentIndex + 1]) : undefined
+        }
+        onPrevPatient={
+          hasPrev ? () => handleSelectRow(filteredPatients[currentIndex - 1]) : undefined
+        }
       />
     );
   }

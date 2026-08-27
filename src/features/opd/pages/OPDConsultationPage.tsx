@@ -26,6 +26,7 @@ import { EncounterPrescriptionViewModal } from "../../prescriptions/components/E
 import { ConsultationDetailsScreen } from "../components/ConsultationDetailsScreen";
 import { ConsultationHistoryScreen } from "../components/ConsultationHistoryScreen";
 
+import { appointmentsApi } from "../../appointments/api/appointments.api";
 import { ConsultationHeader } from "../components/ConsultationHeader";
 import { ConsultationKPICards } from "../components/ConsultationKPICards";
 import { ConsultationFilters } from "../components/ConsultationFilters";
@@ -353,16 +354,13 @@ export function OPDConsultationPage({
     );
   }, [queueItems, currentDoctorName, currentDepartment]);
 
-  // Both Admin and Doctor roles on the Consultation page show queue items across the hospital / doctor
-  // that have reached the doctor consultation stage (or completed history), excluding pre-vitals statuses.
+  // On the OPD Consultation page, show only queue items that have completed
+  // the nurse vitals checking stage (or completed history), excluding pre-vitals statuses.
   const consultations = useMemo(() => {
-    if (resolvedRole === "admin") {
-      return mappedConsultations;
-    }
     return mappedConsultations.filter((item) =>
       isDoctorConsultationStatus(item.status),
     );
-  }, [mappedConsultations, resolvedRole]);
+  }, [mappedConsultations]);
 
   const [filters, dispatch] = useReducer(filterReducer, {
     filterDate: getTodayDateString(),
@@ -633,7 +631,6 @@ export function OPDConsultationPage({
       if (calledPatient) await handleStartConsultation(calledPatient);
       return;
     }
-    if (record.status !== "CALLED") return;
     try {
       setIsLoading(true);
       await apiStartConsultation(
@@ -651,17 +648,17 @@ export function OPDConsultationPage({
           tokenNumber: record.tokenNo,
           roomNumber: record.opdRoom,
           appointmentType: record.visitType,
-          status: record.status as AppointmentStatus,
+          status: (record.status as AppointmentStatus) || "IN_CONSULTATION",
           chiefComplaint: record.chiefComplaint,
         },
         record.chiefComplaint,
-      );
+      ).catch(() => null);
+
       await refetch();
       if (onStartConsultation) {
         onStartConsultation(record.id);
-      } else {
-        navigate(`/doctor/consultation/${record.id}`);
       }
+      navigate(`/doctor/consultation/${record.id}`);
     } catch (err) {
       const msg =
         err instanceof Error ? err.message : "Failed to start consultation";
@@ -819,6 +816,27 @@ export function OPDConsultationPage({
       />
     );
   }
+
+  const handleCancelConsultation = async (item: ConsultationRecord) => {
+    if (
+      !window.confirm(
+        `Are you sure you want to cancel the consultation for ${item.patientName || "this patient"}?`,
+      )
+    ) {
+      return;
+    }
+    try {
+      if (item.appointmentId) {
+        await appointmentsApi.cancelAppointment(item.appointmentId, {
+          reason: "Cancelled by Doctor",
+        });
+      }
+      setToastMsg(`Consultation for ${item.patientName || item.id} cancelled.`);
+      handleRefresh();
+    } catch {
+      setToastMsg(`Failed to cancel consultation for ${item.patientName || item.id}.`);
+    }
+  };
 
   return (
     <div className="flex-1 bg-[#F1F5F9] overflow-y-auto flex flex-col font-sans">
@@ -980,6 +998,9 @@ export function OPDConsultationPage({
             }
             onCallPatient={
               resolvedRole === "doctor" ? handleCallPatient : undefined
+            }
+            onCancelConsultation={
+              resolvedRole === "doctor" ? handleCancelConsultation : undefined
             }
             onViewDetails={handleViewPrescriptionDetails}
             onViewHistory={onViewHistory}

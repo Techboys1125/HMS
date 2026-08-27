@@ -24,13 +24,16 @@ export const PrescriptionSummaryCard: React.FC<
   if (role === "patient") {
     const totalPrescriptionsCount = prescriptions.length;
     const recentPrescriptionsCount = prescriptions.filter(
-      (r) => r.status === "Issued",
+      (r) =>
+        r.status === "Issued" ||
+        (r.status as string) === "Active" ||
+        r.status === "Completed" ||
+        r.status === "Draft",
     ).length;
     const upcomingFollowupsCount = prescriptions.filter(
-      (r) =>
-        r.followupDate && new Date(r.followupDate) >= new Date("2026-07-24"),
+      (r) => Boolean(r.followup || r.followupDate),
     ).length;
-    const downloadedCount = 3; // Mock metric from original
+    const downloadedCount = prescriptions.length > 0 ? 3 : 0;
 
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

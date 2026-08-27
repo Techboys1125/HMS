@@ -129,7 +129,7 @@ export function PatientMedicalRecordsScreen({
                   ? "Expired"
                   : "Active",
               medicines: (record.medicines || []).map((medicine) => ({
-                name: medicine.name,
+                name: medicine.name || "Medicine",
                 dosage: medicine.dosage || "—",
                 frequency: medicine.frequency || "",
                 duration: medicine.duration || "",

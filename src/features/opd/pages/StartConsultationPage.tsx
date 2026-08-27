@@ -75,23 +75,30 @@ const saveMedications = async (
   medicines: MedicineItem[],
 ) => {
   const validMeds = medicines.filter((m) => m.name.trim() !== "");
-  if (validMeds.length === 0) return;
+  console.log("SAVE MEDICATIONS CALLED:", { prescriptionId, medicines: validMeds });
+
+  if (validMeds.length === 0) {
+    console.warn("No valid medicines to save");
+    return;
+  }
+
   await Promise.all(
-    validMeds.map((med) =>
-      encountersApi
-        .addMedication(prescriptionId, {
-          source: "FREE_TEXT",
-          medicineName: med.name,
-          doseValue: parseInt(med.dosage) || 500,
-          doseUnit: "MG",
-          frequencyCode: med.frequency || "1-0-1",
-          durationValue: parseInt(med.duration) || 7,
-          durationUnit: "DAYS",
-          route: "ORAL",
-          instructions: med.instructions || "After food",
-        })
-        .catch(() => null),
-    ),
+    validMeds.map(async (med) => {
+      console.log("ADDING MEDICATION ITEM:", med);
+      const res = await encountersApi.addMedication(prescriptionId, {
+        source: "FREE_TEXT",
+        medicineName: med.name,
+        doseValue: parseInt(med.dosage) || 500,
+        doseUnit: "MG",
+        frequencyCode: med.frequency || "1-0-1",
+        durationValue: parseInt(med.duration) || 7,
+        durationUnit: "DAYS",
+        route: "ORAL",
+        instructions: med.instructions || "After food",
+      });
+      console.log("ADD MEDICATION RESPONSE:", res);
+      return res;
+    }),
   );
 };
 
@@ -274,6 +281,70 @@ export function StartConsultationPage({
                 ? toStr(vObj.bloodSugar || vObj.sugar).replace(" mg/dL", "")
                 : prev.bloodSugar,
             }));
+
+            // Restore existing prescription medicines
+            try {
+              let existingMeds: MedicineItem[] = [];
+              const rxRes = await encountersApi
+                .getPrescriptionByEncounterId(activeConsultationId)
+                .catch(() => null);
+              if (rxRes) {
+                const rxObj = rxRes as unknown as Record<
+                  string,
+                  unknown
+                >;
+                const rawMeds = (rxObj.medications ||
+                  rxObj.medicines ||
+                  rxObj.items ||
+                  rxObj.prescriptionItems ||
+                  []) as unknown[];
+                if (Array.isArray(rawMeds) && rawMeds.length > 0) {
+                  existingMeds = rawMeds.map((m: unknown, idx: number) => {
+                    const item = (m && typeof m === "object"
+                      ? m
+                      : {}) as Record<string, unknown>;
+                    return {
+                      id: String(item.id || item.medicationId || idx + 1),
+                      name: String(
+                        item.name || item.medicineName || item.drugName || "Medication",
+                      ),
+                      dosage: String(
+                        item.dosage || item.dose || item.doseValue || "1 tab",
+                      ),
+                      frequency: String(
+                        item.frequency ||
+                          item.frequencyCode ||
+                          item.frequencyDisplay ||
+                          "1-0-1",
+                      ),
+                      duration: String(
+                        item.duration || item.durationValue || "5 days",
+                      ),
+                      instructions: String(
+                        item.instructions || item.notes || "After food",
+                      ),
+                    };
+                  });
+                }
+              }
+              if (existingMeds.length === 0) {
+                const rawCached = localStorage.getItem(
+                  `hms-completed-meds:${activeConsultationId}`,
+                );
+                if (rawCached) {
+                  existingMeds = JSON.parse(rawCached);
+                }
+              }
+              if (existingMeds.length > 0) {
+                setFormData((prev) => ({
+                  ...prev,
+                  medicines: existingMeds,
+                }));
+              }
+            } catch {
+              // non-blocking
+            }
+
             return;
           }
         }
@@ -394,7 +465,7 @@ export function StartConsultationPage({
     selectedAppointment?.id || selectedConsultation?.id;
   const activePrescriptionId = selectedPrescription?.id;
 
-  const { loadVitals, saveVitals } = useVitals(activeEncounterId);
+  const { saveVitals } = useVitals(activeEncounterId);
   const { addDiagnosis } = useDiagnosis(activeEncounterId);
 
   const [collapsedSections, setCollapsedSections] = useState<
@@ -649,14 +720,71 @@ export function StartConsultationPage({
           triggerToast("Warning: Diagnosis could not be saved. Please retry.");
         }
       }
-      if (activePrescriptionId) {
+      let rxIdToUse = activePrescriptionId;
+      const validMeds = formData.medicines.filter((m) => m.name.trim() !== "");
+      if (!rxIdToUse && validMeds.length > 0) {
+        const targetEncId =
+          activeEncounterId ||
+          selectedConsultation?.encounterId ||
+          selectedConsultation?.id;
+        if (targetEncId) {
+          try {
+            const createdRx = await encountersApi.createPrescription(
+              targetEncId,
+              { outcome: "MEDICATION_PRESCRIBED", encounterId: targetEncId },
+            );
+            console.log("CREATE PRESCRIPTION RAW RESPONSE:", createdRx);
+
+            const rxObj = (createdRx as unknown) as Record<string, unknown>;
+            const rxData = (rxObj?.data as Record<string, unknown>) || {};
+            const rxIdResolved = (createdRx?.id ??
+              createdRx?.prescriptionId ??
+              rxData.id ??
+              rxData.prescriptionId ??
+              targetEncId) as string | number;
+
+            console.log("RESOLVED PRESCRIPTION ID:", rxIdResolved);
+            if (rxIdResolved) rxIdToUse = rxIdResolved;
+          } catch (e) {
+            console.error("Could not create prescription for medicines:", e);
+            rxIdToUse = targetEncId;
+          }
+        }
+      }
+      if (validMeds.length > 0) {
+        const finalIdToUse =
+          rxIdToUse ||
+          activeEncounterId ||
+          selectedConsultation?.encounterId ||
+          selectedConsultation?.id;
+
+        if (!finalIdToUse) {
+          console.error("Cannot save medications: prescription/encounter ID is missing!", {
+            encounterId: activeEncounterId,
+            medicines: validMeds,
+          });
+        } else {
+          try {
+            await saveMedications(finalIdToUse, formData.medicines);
+          } catch (medErr) {
+            console.error("❌ MEDICATION SAVE FAILED:", medErr);
+          }
+        }
+
         try {
-          await saveMedications(activePrescriptionId, formData.medicines);
-        } catch (medErr) {
-          console.warn("Non-blocking medication save warning:", medErr);
-          triggerToast(
-            "Warning: Prescription could not be saved. Please retry.",
-          );
+          const encKey =
+            activeEncounterId ||
+            selectedConsultation?.encounterId ||
+            selectedConsultation?.id ||
+            activeAppointmentId;
+          if (encKey) {
+            localStorage.setItem(
+              `hms-completed-meds:${encKey}`,
+              JSON.stringify(validMeds),
+            );
+          }
+        } catch {
+          // ignore
         }
       }
       if (selectedConsultation?.id) {
@@ -701,6 +829,19 @@ export function StartConsultationPage({
               window.scrollTo({ top: 0, behavior: "smooth" });
               return;
             }
+          }
+        }
+
+        if (rxIdToUse) {
+          try {
+            await encountersApi.finalizePrescription(rxIdToUse, {
+              generalAdvice: formData.advice,
+              dietAdvice: formData.lifestyleRecommendations || "",
+              followUpNotes: formData.followupNotes || "",
+              followUpDate: formData.nextVisitDate || "",
+            });
+          } catch (rxFinErr) {
+            console.warn("Prescription finalize warning:", rxFinErr);
           }
         }
 

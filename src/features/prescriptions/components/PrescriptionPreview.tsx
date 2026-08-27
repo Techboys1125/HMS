@@ -83,20 +83,26 @@ export const PrescriptionDetailsModal: React.FC<DetailsModalProps> = ({
 
   useEffect(() => {
     let mounted = true;
-    if (initialPrescription?.id) {
+    if (
+      initialPrescription?.medicines &&
+      initialPrescription.medicines.length > 0
+    ) {
+      return;
+    }
+
+    const rawEncId =
+      initialPrescription?.encounterId || initialPrescription?.consultationId;
+    const num = Number(rawEncId);
+
+    if (num > 0 && num < 10000000000) {
       prescriptionService
-        .getPrescriptionDetails(initialPrescription.id)
+        .getPrescriptionDetails(num)
         .then((res) => {
           if (mounted && res) {
             setPrescriptionData(res);
           }
         })
-        .catch((err) => {
-          console.warn(
-            "Failed to load prescription details from backend API:",
-            err,
-          );
-        });
+        .catch(() => null);
     }
     return () => {
       mounted = false;
@@ -320,14 +326,6 @@ export const PrescriptionDetailsModal: React.FC<DetailsModalProps> = ({
             <Printer size={14} />
             Print
           </button>
-          <button
-            onClick={onDownload}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-xs font-semibold transition-colors shadow-xs cursor-pointer"
-            style={{ fontFamily: PP }}
-          >
-            <Download size={14} />
-            Download PDF
-          </button>
         </div>
       </div>
 
@@ -523,58 +521,62 @@ export const PrescriptionDetailsModal: React.FC<DetailsModalProps> = ({
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {prescription.medicines.map((m, idx) => {
-                    const mObj = m as Record<string, unknown>;
+                    const mObj = (m && typeof m === "object" ? m : {}) as Record<string, unknown>;
+
                     const nameStr = safeStr(
                       m.name ||
                         mObj.medicineName ||
                         mObj.medicine ||
                         mObj.item ||
                         mObj.drugName,
-                      `Medicine #${idx + 1}`,
+                      "—",
                     );
 
-                    const doseDisplay =
-                      mObj.doseValue != null
-                        ? `${mObj.doseValue} ${mObj.doseUnit || ""}`
-                        : mObj.dosage != null
-                          ? safeStr(mObj.dosage)
-                          : "";
+                    const doseObj = mObj.dose as { value?: unknown; unit?: unknown } | undefined;
+                    const doseVal =
+                      typeof mObj.dose === "object" && mObj.dose !== null
+                        ? `${doseObj?.value ?? ""} ${doseObj?.unit ?? ""}`.trim()
+                        : mObj.doseValue != null
+                          ? `${mObj.doseValue} ${mObj.doseUnit || ""}`.trim()
+                          : m.dosage || mObj.dosage || mObj.dose || mObj.strength;
 
                     const strengthStr = safeStr(
-                      m.strength || mObj.strength || doseDisplay,
+                      m.strength || mObj.strength || doseVal,
                       "—",
                     );
 
-                    const routeStr = safeStr(m.route || mObj.route, "ORAL");
+                    const routeStr = safeStr(m.route || mObj.route || mObj.form, "ORAL");
 
-                    const dosageStr = safeStr(m.dosage || doseDisplay, "—");
+                    const dosageStr = safeStr(m.dosage || doseVal, "—");
 
-                    const freqDisplay =
-                      mObj.frequencyCode ||
-                      mObj.frequencyDisplay ||
-                      mObj.frequencyLabel;
-                    const frequencyStr = safeStr(
-                      m.frequency || freqDisplay,
-                      "—",
-                    );
+                    const freqObj = mObj.frequency as { code?: unknown; display?: unknown } | undefined;
+                    const freqVal =
+                      typeof mObj.frequency === "object" && mObj.frequency !== null
+                        ? String(freqObj?.display || freqObj?.code || "")
+                        : mObj.frequencyDisplay ||
+                          mObj.frequencyCode ||
+                          mObj.frequencyLabel ||
+                          m.frequency ||
+                          mObj.frequency;
+                    const frequencyStr = safeStr(freqVal, "—");
 
-                    const durDisplay =
-                      mObj.durationValue != null
-                        ? `${mObj.durationValue} ${mObj.durationUnit || "Days"}`
-                        : mObj.duration != null
-                          ? safeStr(mObj.duration)
-                          : "";
+                    const durObj = mObj.duration as { value?: unknown; unit?: unknown } | undefined;
+                    const durVal =
+                      typeof mObj.duration === "object" && mObj.duration !== null
+                        ? `${durObj?.value ?? ""} ${durObj?.unit ?? ""}`.trim()
+                        : mObj.durationValue != null
+                          ? `${mObj.durationValue} ${mObj.durationUnit || "DAYS"}`.trim()
+                          : m.duration || mObj.duration;
+                    const durationStr = safeStr(durVal, "—");
 
-                    const durationStr = safeStr(m.duration || durDisplay, "—");
-
-                    const qtyDisplay =
-                      mObj.quantityValue != null
-                        ? `${mObj.quantityValue} ${mObj.quantityUnit || ""}`
-                        : mObj.quantity != null
-                          ? safeStr(mObj.quantity)
-                          : "";
-
-                    const qtyStr = safeStr(qtyDisplay || mObj.quantity, "—");
+                    const qtyObj = mObj.quantity as { value?: unknown; unit?: unknown } | undefined;
+                    const qtyVal =
+                      typeof mObj.quantity === "object" && mObj.quantity !== null
+                        ? `${qtyObj?.value ?? ""} ${qtyObj?.unit ?? ""}`.trim()
+                        : mObj.quantityValue != null
+                          ? `${mObj.quantityValue} ${mObj.quantityUnit || ""}`.trim()
+                          : m.quantity || mObj.quantity;
+                    const qtyStr = safeStr(qtyVal, "—");
 
                     const instructionsStr = safeStr(
                       m.instructions ||

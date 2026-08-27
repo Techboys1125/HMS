@@ -26,9 +26,10 @@ import { usePatientPortal } from "../context/usePatientPortal";
 import type { FamilyMember } from "./FamilyMembersManagement";
 import {
   PatientCancelAppointmentDialog,
-  PatientRescheduleAppointmentDialog,
 } from "../components/PatientDialogs";
+import { RescheduleAppointmentConfirmationDialog } from "../../appointments/components/RescheduleAppointmentConfirmationDialog";
 import { BookAppointmentScreen } from "../../appointments/pages/BookAppointmentScreen";
+import { appointmentService } from "../../appointments/services/appointment.service";
 import { appointmentsApi } from "../../appointments/api/appointments.api";
 import { Pagination } from "../../../common/components/Pagination";
 import type { ApiResponse } from "../../auth/types/auth.types";
@@ -565,15 +566,38 @@ export function PatientAppointmentsScreen({
                   storedNotes ||
                   "No additional remarks";
 
+                const docObj =
+                  doctorRaw && typeof doctorRaw === "object" && doctorRaw !== null
+                    ? (doctorRaw as unknown as Record<string, unknown>)
+                    : {};
+                const rawDocId: string | number =
+                  a.doctorId ||
+                  (docObj.id as string | number) ||
+                  (docObj.doctorId as string | number) ||
+                  ((a as unknown as Record<string, unknown>).doctor_id as string | number) ||
+                  1;
+
                 return {
                   id: apptIdStr,
+                  rawId: a.id || a.appointmentId || apptIdStr,
+                  appointmentNumber: a.appointmentNumber || apptIdStr,
+                  mrn: a.mrn || a.patientMrn || patient?.mrn || activePatient?.mrn || "",
+                  patientPhone: a.patientPhone || a.phone || patient?.phone || activePatient?.phone || "",
+                  tokenNo: String(a.tokenNumber || a.queueToken || a.tokenNo || ""),
+                  queueToken: String(a.queueToken || a.tokenNumber || a.tokenNo || ""),
+                  patientId: a.patientId || patient?.id || activePatient?.id || apptIdStr,
                   patientName:
                     pName || patient?.name || activePatient?.name || "Patient",
                   date: datePart,
                   time: timePart,
-                  doctorId: a.doctorId,
+                  doctorId: rawDocId,
                   doctor: doctorName,
-                  specialty: a.specialty || deptName,
+                  specialty:
+                    a.specialty ||
+                    ((a as unknown as Record<string, unknown>).doctorSpecialty as string) ||
+                    (docObj.specialty as string) ||
+                    (docObj.primarySpecialty as Record<string, string>)?.specialtyName ||
+                    deptName,
                   department: deptName,
                   visitType: (a.visitType === "Follow-up OPD" ||
                   a.visitType === "FOLLOW_UP"
@@ -1128,8 +1152,8 @@ export function PatientAppointmentsScreen({
         <div className="lg:col-span-8 space-y-4">
           {/* Search & Filter Bar */}
           <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
-            {/* Search Input */}
-            <div className="relative">
+            {/* Search Input (Full Width Row) */}
+            <div className="relative w-full">
               <Search
                 size={15}
                 className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
@@ -1326,11 +1350,8 @@ export function PatientAppointmentsScreen({
                         const isUpcoming = [
                           "Confirmed",
                           "Scheduled",
-                          "In Progress",
-                          "Checked-In",
+                          "Booked",
                           "Pending",
-                          "Waiting for Vitals",
-                          "Waiting for Doctor",
                         ].includes(appt.status);
                         return (
                           <tr
@@ -1444,8 +1465,7 @@ export function PatientAppointmentsScreen({
                   const isUpcoming = [
                     "Confirmed",
                     "Scheduled",
-                    "In Progress",
-                    "Checked-In",
+                    "Booked",
                     "Pending",
                   ].includes(appt.status);
                   return (
@@ -2034,52 +2054,72 @@ export function PatientAppointmentsScreen({
               </div>
 
               {/* Drawer Footer Actions */}
-              <div className="p-4 bg-white border-t border-[#E5E7EB] flex items-center gap-2">
+              <div className="p-4 bg-white border-t border-[#E5E7EB] flex items-center justify-between gap-2">
                 <button
                   onClick={() => {
                     if (booking.selectedDetailsAppt) {
                       downloadAppointmentSlipPdf(booking.selectedDetailsAppt);
                       triggerToast(
-                        `Downloading slip for ${booking.selectedDetailsAppt.id}...`,
+                        `Downloading appointment slip for ${booking.selectedDetailsAppt.id}...`,
                       );
                     }
                   }}
-                  className="flex-1 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center justify-center gap-2 shadow-sm"
+                  className="py-2.5 px-4 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
                   style={{ fontFamily: PP }}
                 >
-                  <Download size={15} /> Download Appointment Slip
+                  <Download size={15} /> Download Slip
                 </button>
-                <button
-                  onClick={() => {
-                    const apptToReschedule = booking.selectedDetailsAppt;
-                    setSelectedDetails(null);
-                    filterDispatch({
-                      type: "SET_RESCHEDULING",
-                      appointment: apptToReschedule,
-                    });
-                  }}
-                  className="px-4 py-2.5 rounded-xl border border-blue-200 text-xs font-bold text-[#0D47A1] bg-blue-50 hover:bg-blue-100 transition-colors flex items-center gap-1.5"
-                  style={{ fontFamily: PP }}
-                >
-                  <Calendar size={15} /> Reschedule
-                </button>
-                <button
-                  onClick={() => {
-                    const apptToCancel = booking.selectedDetailsAppt;
-                    setSelectedDetails(null);
-                    setCancellingAppt(apptToCancel);
-                  }}
-                  className="px-4 py-2.5 rounded-xl border border-red-200 text-xs font-bold text-[#EF4444] bg-red-50 hover:bg-red-100 transition-colors flex items-center gap-1.5"
-                  style={{ fontFamily: PP }}
-                >
-                  <XCircle size={15} /> Cancel
-                </button>
-                <button
-                  onClick={() => setSelectedDetails(null)}
-                  className="px-4 py-2.5 rounded-xl border border-[#E5E7EB] text-xs font-medium text-[#64748B] hover:bg-slate-50"
-                >
-                  Close
-                </button>
+
+                <div className="flex items-center gap-2">
+                  {(() => {
+                    const st = (
+                      booking.selectedDetailsAppt?.status || ""
+                    ).toUpperCase();
+                    const isPreCheckIn = [
+                      "CONFIRMED",
+                      "SCHEDULED",
+                      "BOOKED",
+                      "PENDING",
+                    ].includes(st);
+                    if (!isPreCheckIn) return null;
+                    return (
+                      <>
+                        <button
+                          onClick={() => {
+                            const apptToReschedule =
+                              booking.selectedDetailsAppt;
+                            setSelectedDetails(null);
+                            filterDispatch({
+                              type: "SET_RESCHEDULING",
+                              appointment: apptToReschedule,
+                            });
+                          }}
+                          className="px-4 py-2.5 rounded-xl border border-blue-200 text-xs font-bold text-[#0D47A1] bg-blue-50 hover:bg-blue-100 transition-colors flex items-center gap-1.5 cursor-pointer"
+                          style={{ fontFamily: PP }}
+                        >
+                          <Calendar size={15} /> Reschedule
+                        </button>
+                        <button
+                          onClick={() => {
+                            const apptToCancel = booking.selectedDetailsAppt;
+                            setSelectedDetails(null);
+                            setCancellingAppt(apptToCancel);
+                          }}
+                          className="px-4 py-2.5 rounded-xl border border-red-200 text-xs font-bold text-[#EF4444] bg-red-50 hover:bg-red-100 transition-colors flex items-center gap-1.5 cursor-pointer"
+                          style={{ fontFamily: PP }}
+                        >
+                          <XCircle size={15} /> Cancel
+                        </button>
+                      </>
+                    );
+                  })()}
+                  <button
+                    onClick={() => setSelectedDetails(null)}
+                    className="px-4 py-2.5 rounded-xl border border-[#E5E7EB] text-xs font-medium text-[#64748B] hover:bg-slate-50 cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -2100,23 +2140,77 @@ export function PatientAppointmentsScreen({
         }}
       />
 
-      {/* ── RESCHEDULE APPOINTMENT DIALOG ── */}
-      <PatientRescheduleAppointmentDialog
-        appointment={filterState.reschedulingAppt}
+      {/* ── RESCHEDULE APPOINTMENT DIALOG (SAME MODAL AS RECEPTIONIST) ── */}
+      <RescheduleAppointmentConfirmationDialog
+        apt={
+          filterState.reschedulingAppt
+            ? {
+                id:
+                  filterState.reschedulingAppt.rawId ||
+                  filterState.reschedulingAppt.id,
+                appointmentNumber:
+                  filterState.reschedulingAppt.appointmentNumber ||
+                  filterState.reschedulingAppt.id,
+                tokenNo:
+                  filterState.reschedulingAppt.tokenNo ||
+                  filterState.reschedulingAppt.queueToken ||
+                  "",
+                queueToken:
+                  filterState.reschedulingAppt.queueToken ||
+                  filterState.reschedulingAppt.tokenNo ||
+                  "",
+                mrn:
+                  filterState.reschedulingAppt.mrn ||
+                  activePatient?.mrn ||
+                  "",
+                patientId:
+                  filterState.reschedulingAppt.patientId ||
+                  activePatient?.id ||
+                  filterState.reschedulingAppt.id,
+                patientName:
+                  filterState.reschedulingAppt.patientName ||
+                  activePatient?.name ||
+                  "Patient",
+                patientPhone:
+                  filterState.reschedulingAppt.patientPhone ||
+                  activePatient?.phone ||
+                  "",
+                patientAge: activePatient?.age || 30,
+                patientGender: activePatient?.gender || "Male",
+                doctorId: filterState.reschedulingAppt.doctorId || 1,
+                doctorName: filterState.reschedulingAppt.doctor || "Doctor",
+                appointmentDate: filterState.reschedulingAppt.date,
+                timeSlot: filterState.reschedulingAppt.time,
+                startTime: filterState.reschedulingAppt.time,
+                time: filterState.reschedulingAppt.time,
+                status: filterState.reschedulingAppt.status,
+                department: filterState.reschedulingAppt.department,
+                specialty: filterState.reschedulingAppt.specialty,
+                chiefComplaint: filterState.reschedulingAppt.reason,
+                notes: filterState.reschedulingAppt.notes,
+              }
+            : null
+        }
         isOpen={!!filterState.reschedulingAppt}
         onClose={() =>
           filterDispatch({ type: "SET_RESCHEDULING", appointment: null })
         }
-        onConfirmReschedule={async (id, newDate, newTime, reason) => {
+        onConfirmReschedule={async (
+          id,
+          newDate,
+          newTimeSlot,
+          reason,
+          remarks,
+        ) => {
           try {
-            await appointmentsApi.rescheduleAppointment(id, {
+            await appointmentService.rescheduleAppointment(id, {
               appointmentDate: newDate,
-              startTime: to24Hour(newTime),
-              reason: reason || "Patient request",
+              startTime: to24Hour(newTimeSlot),
+              reason: reason || remarks || "Patient request",
             });
             loadAppointments(activePatient);
             triggerToast(
-              `Appointment ${id} rescheduled to ${newDate} at ${newTime}!`,
+              `Appointment ${id} rescheduled to ${newDate} at ${newTimeSlot}!`,
             );
           } catch (err: unknown) {
             const errorMsg =
@@ -2128,9 +2222,6 @@ export function PatientAppointmentsScreen({
             triggerToast(`Error: ${errorMsg}`);
             throw new Error(errorMsg, { cause: err });
           }
-        }}
-        onViewDetails={(appt) => {
-          setSelectedDetails(appt);
         }}
       />
     </div>

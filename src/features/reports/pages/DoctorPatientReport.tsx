@@ -145,8 +145,8 @@ export function DoctorPatientReportScreen({
   };
 
   const today = new Date().toISOString().slice(0, 10);
-  const rawList = registerData?.content || [];
   const doctorPatientSource = useMemo(() => {
+    const rawList = registerData?.content || [];
     const list = rawList.map((item) => ({
       mrn: item.mrn ? (String(item.mrn).startsWith("MRN-") ? String(item.mrn) : `MRN-${item.mrn}`) : "MRN-1001",
       patientName: item.patientName || "N/A",
@@ -188,7 +188,7 @@ export function DoctorPatientReportScreen({
       ];
     }
     return list;
-  }, [rawList, today]);
+  }, [registerData?.content, today]);
 
   const filteredPatients = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();

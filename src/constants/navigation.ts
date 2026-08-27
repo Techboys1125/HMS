@@ -114,11 +114,11 @@ export const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
         { id: "patients", Icon: Users, label: "Patients" },
         { id: "appointments", Icon: Calendar, label: "Appointments" },
         { id: "consultation", Icon: MessageSquare, label: "Consultation" },
-        {
+        /* {
           id: "medical-history",
           Icon: ClipboardList,
           label: "Medical Records",
-        },
+        }, */
       ],
     },
     {
@@ -138,7 +138,6 @@ export const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
       label: "Patient Care",
       items: [
         { id: "dashboard", Icon: LayoutDashboard, label: "Dashboard" },
-        { id: "appointments", Icon: Calendar, label: "Appointments" },
         { id: "consultation", Icon: Stethoscope, label: "OPD Consultation" },
         { id: "vitals", Icon: Activity, label: "Vitals" },
       ],

@@ -117,7 +117,8 @@ export interface FinalizeEncounterRequest {
  * POST /api/v1/encounters/{encounterId}/prescription (Request Body)
  */
 export interface CreatePrescriptionRequest {
-  outcome: PrescriptionOutcome;
+  outcome?: PrescriptionOutcome;
+  encounterId?: string | number;
 }
 
 /**
@@ -218,7 +219,11 @@ export interface Prescription {
  * POST /api/v1/prescriptions/{prescriptionId}/finalize (Request Body)
  */
 export interface FinalizePrescriptionRequest {
-  confirmation: boolean;
+  confirmation?: boolean;
+  generalAdvice?: string;
+  dietAdvice?: string;
+  followUpNotes?: string;
+  followUpDate?: string;
 }
 
 /**

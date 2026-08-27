@@ -67,7 +67,7 @@ export interface TimelineConsultationItem {
 }
 
 export function ConsultationHistoryScreen({
-  patientId = "PAT-2001",
+  patientId = "",
   role = "doctor",
   onBack,
   onStartNewConsultation,
@@ -98,9 +98,9 @@ export function ConsultationHistoryScreen({
     mrn: patientId,
     age: "—",
     gender: "—",
-    bloodGroup: "O+",
+    bloodGroup: "—",
     allergies: [],
-    primaryDoctor: "Attending Doctor",
+    primaryDoctor: "—",
   });
 
   const [consultations, setConsultations] = useState<
@@ -140,17 +140,17 @@ export function ConsultationHistoryScreen({
                 ? String(p.age)
                 : p.dob
                   ? calculateAge(String(p.dob))
-                  : "34",
-              gender: String(p.gender || "Female"),
+                  : "—",
+              gender: String(p.gender || "—"),
               bloodGroup:
                 p.bloodGroup && p.bloodGroup !== "N/A"
                   ? String(p.bloodGroup)
-                  : "O+",
+                  : "—",
               allergies: Array.isArray(p.allergies)
                 ? (p.allergies as string[])
                 : [],
               primaryDoctor: String(
-                p.primaryDoctorName || p.assignedDoctor || "OPD Doctor",
+                p.primaryDoctorName || p.assignedDoctor || "—",
               ),
             });
           }
@@ -177,9 +177,9 @@ export function ConsultationHistoryScreen({
                 ? (rawMeds as Record<string, unknown>[]).map(
                     (m: Record<string, unknown>) => ({
                       name: String(m.name || m.medicineName || "Medication"),
-                      dosage: String(m.dosage || m.dose || "1 tab"),
-                      freq: String(m.frequency || m.freq || "Once daily"),
-                      duration: String(m.duration || "5 days"),
+                      dosage: String(m.dosage || m.dose || "—"),
+                      freq: String(m.frequency || m.freq || "—"),
+                      duration: String(m.duration || "—"),
                     }),
                   )
                 : [];
@@ -210,13 +210,13 @@ export function ConsultationHistoryScreen({
                       hour: "2-digit",
                       minute: "2-digit",
                     })
-                  : String(enc.time || "09:00 AM"),
+                  : String(enc.time || "—"),
                 doctor: String(
                   doc.name ||
                     doc.fullName ||
                     enc.doctorName ||
                     enc.doctor ||
-                    "Dr. Attending",
+                    "—",
                 ),
                 department: String(doc.department || enc.department || "OPD"),
                 visitType:
@@ -228,13 +228,13 @@ export function ConsultationHistoryScreen({
                 chiefComplaint: String(
                   enc.chiefComplaint ||
                     enc.symptoms ||
-                    "OPD Consultation & general checkup",
+                    "—",
                 ),
                 diagnosis: String(
                   enc.finalDiagnosis ||
                     enc.diagnosis ||
                     enc.provisionalDiagnosis ||
-                    "OPD Evaluation",
+                    "—",
                 ),
                 icdCode: String(enc.icdCode || enc.icd10Code || "—"),
                 medicinesCount: medsList.length,
@@ -250,24 +250,24 @@ export function ConsultationHistoryScreen({
                     vit.bp ||
                       (vit.systolicBp && vit.diastolicBp
                         ? `${vit.systolicBp}/${vit.diastolicBp}`
-                        : "120/80"),
+                        : "—"),
                   ),
-                  pulse: vit.pulse ? `${vit.pulse} bpm` : "72 bpm",
-                  temp: vit.temperature ? `${vit.temperature}°C` : "36.8°C",
-                  spo2: vit.spo2 ? `${vit.spo2}%` : "98%",
-                  bmi: vit.bmi ? `${vit.bmi} kg/m²` : "24.2 kg/m²",
+                  pulse: vit.pulse ? `${vit.pulse} bpm` : "—",
+                  temp: vit.temperature ? `${vit.temperature}°C` : "—",
+                  spo2: vit.spo2 ? `${vit.spo2}%` : "—",
+                  bmi: vit.bmi ? `${vit.bmi} kg/m²` : "—",
                 },
                 medicines: medsList,
                 investigations: tests,
                 examinationFindings: String(
                   enc.clinicalExamination ||
                     enc.examinationNotes ||
-                    "Normal physical examination findings.",
+                    "—",
                 ),
                 clinicalNotes: String(
                   enc.advice ||
                     enc.plan ||
-                    "Follow doctor advice and take medications as prescribed.",
+                    "—",
                 ),
               };
             });

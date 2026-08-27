@@ -178,14 +178,48 @@ export const appointmentsApi = {
     appointmentId: string | number,
     data: RescheduleAppointmentRequest,
   ): Promise<ApiResponse<AppointmentRecord>> => {
+    let numericId = appointmentId;
+    if (typeof appointmentId === "string" && appointmentId.includes("-")) {
+      const parsed = parseInt(appointmentId.split("-").pop() || "", 10);
+      if (!isNaN(parsed) && parsed > 0) {
+        numericId = parsed;
+      }
+    }
+
+    const payload = {
+      appointmentDate: data.appointmentDate,
+      startTime: data.startTime,
+      slotId: data.slotId,
+      reason: data.reason,
+    };
+
     try {
+      // 1. POST /api/v1/appointments/{appointmentId}/reschedule
       const response = await apiClient.post<ApiResponse<AppointmentRecord>>(
-        `/api/v1/appointments/${appointmentId}/reschedule`,
-        data,
+        `/api/v1/appointments/${numericId}/reschedule`,
+        payload,
       );
       return response.data;
     } catch (error: unknown) {
-      return handleApiError(error);
+      try {
+        // 2. PATCH /api/v1/appointments/{appointmentId}/reschedule
+        const response = await apiClient.patch<ApiResponse<AppointmentRecord>>(
+          `/api/v1/appointments/${numericId}/reschedule`,
+          payload,
+        );
+        return response.data;
+      } catch {
+        try {
+          // 3. PATCH /api/v1/reception/appointments/{appointmentId}/reschedule
+          const response = await apiClient.patch<ApiResponse<AppointmentRecord>>(
+            `/api/v1/reception/appointments/${numericId}/reschedule`,
+            payload,
+          );
+          return response.data;
+        } catch {
+          return handleApiError(error);
+        }
+      }
     }
   },
 
@@ -193,14 +227,42 @@ export const appointmentsApi = {
     appointmentId: string | number,
     data: CancelAppointmentRequest,
   ): Promise<ApiResponse<AppointmentRecord>> => {
+    let numericId = appointmentId;
+    if (typeof appointmentId === "string" && appointmentId.includes("-")) {
+      const parsed = parseInt(appointmentId.split("-").pop() || "", 10);
+      if (!isNaN(parsed) && parsed > 0) {
+        numericId = parsed;
+      }
+    }
+
     try {
+      // 1. PATCH /api/v1/appointments/{appointmentId}/cancel
       const response = await apiClient.patch<ApiResponse<AppointmentRecord>>(
-        `/api/v1/appointments/${appointmentId}/cancel`,
+        `/api/v1/appointments/${numericId}/cancel`,
         data,
       );
       return response.data;
     } catch (error: unknown) {
-      return handleApiError(error);
+      try {
+        // 2. Fallback status update: PATCH /api/v1/appointments/{appointmentId}/status
+        const response = await apiClient.patch<ApiResponse<AppointmentRecord>>(
+          `/api/v1/appointments/${numericId}/status`,
+          { status: "CANCELLED", reason: data.reason },
+        );
+        return response.data;
+      } catch {
+        if (numericId !== appointmentId) {
+          try {
+            const response = await apiClient.patch<
+              ApiResponse<AppointmentRecord>
+            >(`/api/v1/appointments/${appointmentId}/cancel`, data);
+            return response.data;
+          } catch {
+            // Handled below
+          }
+        }
+        return handleApiError(error);
+      }
     }
   },
 

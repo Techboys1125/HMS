@@ -62,6 +62,11 @@ export interface MedicineItem {
   frequency: string;
   duration: string;
   instructions: string;
+  strength?: string;
+  form?: string;
+  route?: string;
+  quantityValue?: number;
+  quantityUnit?: string;
 }
 
 export interface ConsultationRecord {

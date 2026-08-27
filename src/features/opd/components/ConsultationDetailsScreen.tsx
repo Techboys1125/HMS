@@ -3,7 +3,6 @@ import { useNavigate } from "react-router";
 import {
   CheckCircle2,
   AlertCircle,
-  ChevronRight,
   ChevronDown,
   Printer,
   Download,
@@ -88,19 +87,19 @@ interface ConsultationDetailsScreenProps {
   onViewPatientProfile?: (mrn: string) => void;
 }
 
-const unwrapApiData = (response: unknown): any => {
+const unwrapApiData = (response: unknown): unknown => {
   if (!response) return null;
   const obj = response as Record<string, unknown>;
   return obj.data ?? response;
 };
 
-const asRecord = (value: unknown): Record<string, any> => {
+const asRecord = (value: unknown): Record<string, unknown> => {
   return value && typeof value === "object"
-    ? (value as Record<string, any>)
+    ? (value as Record<string, unknown>)
     : {};
 };
 
-const asArray = (value: unknown): any[] => {
+const asArray = (value: unknown): unknown[] => {
   return Array.isArray(value) ? value : [];
 };
 
@@ -158,8 +157,7 @@ export function ConsultationDetailsScreen({
           month: "short",
           year: "numeric",
         }),
-      completionTime:
-        initialRecord?.completionTime || "",
+      completionTime: initialRecord?.completionTime || "",
       patientName: initialRecord?.patientName || "",
       mrn: initialRecord?.mrn || "",
       age: initialRecord?.age || "—",
@@ -240,7 +238,9 @@ export function ConsultationDetailsScreen({
         if (encIdNum <= 0) return;
 
         // 1. Load workspace context (patient, appointment, vitals, consultation notes, diagnoses)
-        const workspaceResponse = await consultationApi.getWorkspace(encIdNum).catch(() => null);
+        const workspaceResponse = await consultationApi
+          .getWorkspace(encIdNum)
+          .catch(() => null);
         const workspaceData = asRecord(unwrapApiData(workspaceResponse));
         if (!workspaceData || Object.keys(workspaceData).length === 0) {
           console.warn(`Workspace not found for encounter ${encIdNum}`);
@@ -255,14 +255,20 @@ export function ConsultationDetailsScreen({
         const patSub = asRecord(workspaceData.patient);
         const docSub = asRecord(workspaceData.doctor);
 
-        const realEncounterId = Number(encSub.encounterId || encSub.id || encIdNum);
-        const realAppointmentId = Number(apptSub.id || apptSub.appointmentId || encSub.appointmentId || 0);
+        const realEncounterId = Number(
+          encSub.encounterId || encSub.id || encIdNum,
+        );
+        const realAppointmentId = Number(
+          apptSub.id || apptSub.appointmentId || encSub.appointmentId || 0,
+        );
 
         // 2. Fetch Consultation / Clinical Notes
         let consultationData = asRecord(workspaceData.consultation);
         if (!consultationData.id && realEncounterId > 0) {
           try {
-            const consultationRes = await consultationApi.getConsultation(realEncounterId).catch(() => null);
+            const consultationRes = await consultationApi
+              .getConsultation(realEncounterId)
+              .catch(() => null);
             if (consultationRes) {
               consultationData = asRecord(unwrapApiData(consultationRes));
             }
@@ -272,29 +278,49 @@ export function ConsultationDetailsScreen({
         }
 
         // 3. Fetch Diagnoses
-        let diagnosesData = asArray(workspaceData.diagnoses);
+        interface DiagnosisItem {
+          diagnosisType?: string;
+          type?: string;
+          active?: boolean;
+          diagnosisName?: string;
+          diagnosisCode?: string;
+        }
+        let diagnosesData: DiagnosisItem[] = asArray(
+          workspaceData.diagnoses,
+        ) as DiagnosisItem[];
         if (realEncounterId > 0) {
           try {
-            const diagnosisRes = await encountersApi.getDiagnoses(realEncounterId).catch(() => null);
+            const diagnosisRes = await encountersApi
+              .getDiagnoses(realEncounterId)
+              .catch(() => null);
             const diagList = unwrapApiData(diagnosisRes);
             if (Array.isArray(diagList) && diagList.length > 0) {
-              diagnosesData = diagList;
+              diagnosesData = diagList as DiagnosisItem[];
             }
           } catch (e) {
             console.warn("Could not fetch diagnoses:", e);
           }
         }
 
-        // 4. Fetch Prescription Directly
-        let prescriptionData: Record<string, any> | null = null;
+        // 4. Fetch Prescription Directly (Unconditional)
+        let prescriptionData: Record<string, unknown> | null = null;
         if (realEncounterId > 0) {
           try {
-            const rxRes = await encountersApi.getPrescriptionByEncounterId(realEncounterId).catch(() => null);
+            const rxRes =
+              await encountersApi.getPrescriptionByEncounterId(realEncounterId);
+            console.log("========== PRESCRIPTION DEBUG ==========");
+            console.log("Encounter ID:", realEncounterId);
+            console.log("Prescription response:", rxRes);
+            console.log("Prescription JSON:", JSON.stringify(rxRes, null, 2));
+
             if (rxRes) {
               prescriptionData = asRecord(unwrapApiData(rxRes));
             }
           } catch (e) {
-            console.warn("Could not fetch prescription:", e);
+            console.error("PRESCRIPTION API FAILED", {
+              encounterId: realEncounterId,
+              error: e,
+            });
           }
         }
 
@@ -303,7 +329,9 @@ export function ConsultationDetailsScreen({
         const targetMrn = (patSub.mrn as string) || initialRecord?.mrn;
         if (targetMrn && targetMrn !== "MRN-000000") {
           try {
-            const patRes = await patientsApi.getPatientByMrn(targetMrn).catch(() => null);
+            const patRes = await patientsApi
+              .getPatientByMrn(targetMrn)
+              .catch(() => null);
             const p = asRecord(unwrapApiData(patRes));
             if (p?.bloodGroup) {
               fetchedBloodGroup = String(p.bloodGroup);
@@ -314,31 +342,62 @@ export function ConsultationDetailsScreen({
         }
 
         // 6. Fetch Doctor Profile if doctor details missing
-        let fetchedDoctor: Record<string, any> | null = null;
-        const targetDocId = apptSub.doctorId || encSub.doctorId || docSub.id || docSub.doctorId;
-        if (targetDocId && !docSub.name && !docSub.fullName && !encSub.doctorName && !apptSub.doctorName) {
+        let fetchedDoctor: Record<string, unknown> | null = null;
+        const targetDocId =
+          apptSub.doctorId || encSub.doctorId || docSub.id || docSub.doctorId;
+        if (
+          targetDocId &&
+          !docSub.name &&
+          !docSub.fullName &&
+          !encSub.doctorName &&
+          !apptSub.doctorName
+        ) {
           try {
-            const docRes = await doctorsApi.getById(String(targetDocId)).catch(() => null);
+            const docRes = await doctorsApi
+              .getById(String(targetDocId))
+              .catch(() => null);
             if (docRes) {
               fetchedDoctor = asRecord(unwrapApiData(docRes));
             }
           } catch (e) {
-            console.warn("Could not fetch doctor details for doctorId:", targetDocId, e);
+            console.warn(
+              "Could not fetch doctor details for doctorId:",
+              targetDocId,
+              e,
+            );
           }
         }
 
         // 7. Fetch Vitals Fallback if workspace vitals missing
         let fetchedVitals = asRecord(workspaceData.vitals);
-        if (!fetchedVitals.height && !fetchedVitals.weight && !fetchedVitals.temperature) {
+        if (
+          !fetchedVitals.height &&
+          !fetchedVitals.weight &&
+          !fetchedVitals.temperature
+        ) {
           try {
-            const encVitalsRes = await vitalsApi.getVitalsByEncounterId(realEncounterId).catch(() => null);
+            const encVitalsRes = await vitalsApi
+              .getVitalsByEncounterId(realEncounterId)
+              .catch(() => null);
             const encVData = asRecord(unwrapApiData(encVitalsRes));
-            if (encVData.height || encVData.weight || encVData.temperature || encVData.pulse) {
+            if (
+              encVData.height ||
+              encVData.weight ||
+              encVData.temperature ||
+              encVData.pulse
+            ) {
               fetchedVitals = encVData;
             } else if (realAppointmentId > 0) {
-              const nurseVRes = await vitalsApi.getVitals(realAppointmentId).catch(() => null);
+              const nurseVRes = await vitalsApi
+                .getVitals(realAppointmentId)
+                .catch(() => null);
               const nurseVData = asRecord(unwrapApiData(nurseVRes));
-              if (nurseVData.height || nurseVData.weight || nurseVData.temperature || nurseVData.pulse) {
+              if (
+                nurseVData.height ||
+                nurseVData.weight ||
+                nurseVData.temperature ||
+                nurseVData.pulse
+              ) {
                 fetchedVitals = nurseVData;
               }
             }
@@ -351,92 +410,303 @@ export function ConsultationDetailsScreen({
           const rawV = fetchedVitals;
           const h = rawV.height ?? rawV.heightCm ?? rawV.height_cm ?? null;
           const w = rawV.weight ?? rawV.weightKg ?? rawV.weight_kg ?? null;
-          const temp = rawV.temperature ?? rawV.temperatureC ?? rawV.temp ?? null;
+          const temp =
+            rawV.temperature ?? rawV.temperatureC ?? rawV.temp ?? null;
           const temperatureUnit = String(rawV.temperatureUnit || "FAHRENHEIT");
-          const sys = rawV.bpSystolic ?? rawV.bloodPressureSystolic ?? rawV.systolicBp;
-          const dia = rawV.bpDiastolic ?? rawV.bloodPressureDiastolic ?? rawV.diastolicBp;
-          const bp = rawV.bloodPressure || rawV.bp || (sys != null && dia != null ? `${sys}/${dia}` : null);
+          const sys =
+            rawV.bpSystolic ?? rawV.bloodPressureSystolic ?? rawV.systolicBp;
+          const dia =
+            rawV.bpDiastolic ?? rawV.bloodPressureDiastolic ?? rawV.diastolicBp;
+          const bp =
+            rawV.bloodPressure ||
+            rawV.bp ||
+            (sys != null && dia != null ? `${sys}/${dia}` : null);
           const pulse = rawV.pulse ?? rawV.heartRate ?? rawV.pulseBpm ?? null;
           const resp = rawV.respiratoryRate ?? rawV.respRate ?? null;
-          const spo2 = rawV.spo2 ?? rawV.oxygenSaturation ?? rawV.spo2Percent ?? null;
-          const sugar = rawV.bloodSugar ?? rawV.sugar ?? rawV.bloodSugarMgDl ?? null;
-          const bmiCalc = rawV.bmi ?? (h && w && Number(h) > 0 && Number(w) > 0 ? (Number(w) / Math.pow(Number(h) / 100, 2)).toFixed(1) : null);
+          const spo2 =
+            rawV.spo2 ?? rawV.oxygenSaturation ?? rawV.spo2Percent ?? null;
+          const sugar =
+            rawV.bloodSugar ?? rawV.sugar ?? rawV.bloodSugarMgDl ?? null;
+          const bmiCalc =
+            rawV.bmi ??
+            (h && w && Number(h) > 0 && Number(w) > 0
+              ? (Number(w) / Math.pow(Number(h) / 100, 2)).toFixed(1)
+              : null);
 
           // Diagnosis Extraction
           const primaryDiag =
-            diagnosesData.find((d) => (d.diagnosisType === "PRIMARY" || d.type === "PRIMARY") && d.active !== false) ||
+            diagnosesData.find(
+              (d) =>
+                (d.diagnosisType === "PRIMARY" || d.type === "PRIMARY") &&
+                d.active !== false,
+            ) ||
             diagnosesData.find((d) => d.active !== false) ||
             diagnosesData[0] ||
             null;
 
-          // Prescription Extraction
-          const rxRoot = asRecord(prescriptionData?.data || prescriptionData);
-          const rxAdvice = asRecord(rxRoot.advice);
-          const medicationList = asArray(rxRoot.medications || rxRoot.items);
-          const meds = medicationList.map((m: Record<string, any>, idx: number) => ({
-            id: String(m.medicationId || m.prescriptionItemId || m.id || idx + 1),
-            name: String(m.medicineName || m.medicationName || m.drugName || "Medication"),
-            dosage: String(m.dose?.value ? `${m.dose.value} ${m.dose.unit || ""}`.trim() : m.dosage || m.strength || "—"),
-            frequency: String(m.frequency?.display || m.frequencyCode || m.frequency || "—"),
-            duration: String(m.duration?.value ? `${m.duration.value} ${m.duration.unit || ""}`.trim() : m.duration || "—"),
-            instructions: String(m.instructions || m.specialInstructions || "—"),
-          }));
+          // Prescription Extraction per Swagger specification
+          const rxRoot = asRecord(
+            prescriptionData?.data ||
+              prescriptionData ||
+              workspaceData.prescription ||
+              workspaceData.prescriptions,
+          );
+          const rxAdvice = asRecord(rxRoot.advice || rxRoot.adviceDto);
+          const rawMedsFromWorkspace = workspaceData.prescription
+            ? asRecord(workspaceData.prescription).medications ||
+              asRecord(workspaceData.prescription).medicines ||
+              asRecord(workspaceData.prescription).items
+            : null;
+          let cachedMeds: unknown[] = [];
+          try {
+            const rawCached =
+              localStorage.getItem(`hms-completed-meds:${realEncounterId}`) ||
+              localStorage.getItem(`hms-completed-meds:${realAppointmentId}`) ||
+              localStorage.getItem(`hms-completed-meds:${targetEncId}`);
+            if (rawCached) {
+              cachedMeds = JSON.parse(rawCached);
+            }
+          } catch {
+            cachedMeds = [];
+          }
+
+          const medicationList = asArray(
+            rxRoot.medications ||
+              rxRoot.medicines ||
+              rxRoot.items ||
+              rxRoot.prescriptionItems ||
+              rawMedsFromWorkspace ||
+              workspaceData.medications ||
+              workspaceData.medicines ||
+              workspaceData.prescriptionItems ||
+              (cachedMeds.length > 0 ? cachedMeds : null) ||
+              initialRecord?.medicines,
+          );
+
+          console.log("MEDICATION LIST:", medicationList);
+
+          const meds = medicationList.map((item: unknown, idx: number) => {
+            const m = asRecord(item);
+            const doseObj = m.dose as
+              { value?: unknown; unit?: unknown } | undefined;
+            const doseVal =
+              m.dose && typeof m.dose === "object"
+                ? `${doseObj?.value ?? ""} ${doseObj?.unit ?? ""}`.trim()
+                : m.doseValue
+                  ? `${m.doseValue} ${m.doseUnit || ""}`.trim()
+                  : null;
+
+            const freqObj = m.frequency as
+              { display?: unknown; code?: unknown } | undefined;
+            const freqVal =
+              m.frequency && typeof m.frequency === "object"
+                ? (freqObj?.display as string) ||
+                  (freqObj?.code as string) ||
+                  ""
+                : m.frequencyDisplay ||
+                  m.frequencyCode ||
+                  m.frequency ||
+                  m.freq ||
+                  "";
+
+            const durObj = m.duration as
+              { value?: unknown; unit?: unknown } | undefined;
+            const durVal =
+              m.duration && typeof m.duration === "object"
+                ? `${durObj?.value ?? ""} ${durObj?.unit ?? ""}`.trim()
+                : m.durationValue
+                  ? `${m.durationValue} ${m.durationUnit || ""}`.trim()
+                  : null;
+
+            return {
+              id: String(
+                m.medicationId ||
+                  m.prescriptionItemId ||
+                  m.medicineId ||
+                  m.id ||
+                  idx + 1,
+              ),
+              name: String(
+                m.medicineName ||
+                  m.medicationName ||
+                  m.drugName ||
+                  m.name ||
+                  m.medicine ||
+                  "Medication",
+              ),
+              dosage: String(
+                doseVal || m.dosage || m.dose || m.strength || "—",
+              ),
+              frequency: String(freqVal || "—"),
+              duration: String(durVal || m.duration || "—"),
+              instructions: String(
+                m.instructions || m.specialInstructions || m.notes || "—",
+              ),
+            };
+          });
 
           // Investigations Extraction
-          const rawInvestigations = workspaceData.investigations || workspaceData.orders || workspaceData.labOrders || workspaceData.radiologyOrders || [];
-          const investigations = asArray(rawInvestigations).map((item: any) => {
-            if (typeof item === "string") return item;
-            return item.testName || item.investigationName || item.name || item.displayName || item.testCode || "";
-          }).filter(Boolean);
+          const rawInvestigations =
+            workspaceData.investigations ||
+            workspaceData.orders ||
+            workspaceData.labOrders ||
+            workspaceData.radiologyOrders ||
+            [];
+          const investigations: string[] = asArray(rawInvestigations)
+            .map((item: unknown): string => {
+              if (typeof item === "string") return item;
+              const itemObj = item as
+                Record<string, unknown> | null | undefined;
+              return String(
+                itemObj?.testName ||
+                  itemObj?.investigationName ||
+                  itemObj?.name ||
+                  itemObj?.displayName ||
+                  itemObj?.testCode ||
+                  "",
+              );
+            })
+            .filter(Boolean);
 
-          const clinicalExamText = [consultationData.generalExamination, consultationData.physicalExamination].filter(Boolean).join("\n") || String(consultationData.examinationNotes || "");
+          const clinicalExamText =
+            [
+              consultationData.generalExamination,
+              consultationData.physicalExamination,
+            ]
+              .filter(Boolean)
+              .join("\n") || String(consultationData.examinationNotes || "");
 
           setRecord((prev) => {
             const realDoctorName = String(
-              encSub.doctorName || encSub.doctor || apptSub.doctorName || apptSub.doctor || docSub.name || docSub.fullName || fetchedDoctor?.name || fetchedDoctor?.fullName || prev.doctorName || ""
+              encSub.doctorName ||
+                encSub.doctor ||
+                apptSub.doctorName ||
+                apptSub.doctor ||
+                docSub.name ||
+                docSub.fullName ||
+                fetchedDoctor?.name ||
+                fetchedDoctor?.fullName ||
+                prev.doctorName ||
+                "",
             );
             const realDepartment = String(
-              encSub.department || apptSub.department || docSub.department || docSub.departmentName || fetchedDoctor?.department || fetchedDoctor?.departmentName || prev.department || ""
+              encSub.department ||
+                apptSub.department ||
+                docSub.department ||
+                docSub.departmentName ||
+                fetchedDoctor?.department ||
+                fetchedDoctor?.departmentName ||
+                prev.department ||
+                "",
             );
             const realDoctorSpecialty = String(
-              encSub.doctorSpecialty || docSub.specialty || fetchedDoctor?.specialty || fetchedDoctor?.specialization || prev.doctorSpecialty || ""
+              encSub.doctorSpecialty ||
+                docSub.specialty ||
+                fetchedDoctor?.specialty ||
+                fetchedDoctor?.specialization ||
+                prev.doctorSpecialty ||
+                "",
             );
 
-            const followUpReq = rxAdvice.followUpRequired ?? consultationData.followUpRequired ?? consultationData.followupRequired;
-            const followUpDt = rxAdvice.followUpDate ?? consultationData.followUpDate ?? consultationData.nextVisitDate;
-            const followUpNt = rxAdvice.followUpNotes ?? consultationData.followUpNotes ?? consultationData.followUpInstructions;
+            const followUpReq =
+              rxAdvice.followUpRequired ??
+              consultationData.followUpRequired ??
+              consultationData.followupRequired;
+            const followUpDt =
+              rxAdvice.followUpDate ??
+              consultationData.followUpDate ??
+              consultationData.nextVisitDate;
+            const followUpNt =
+              rxAdvice.followUpNotes ??
+              consultationData.followUpNotes ??
+              consultationData.followUpInstructions;
 
             return {
               ...prev,
-              id: String(realEncounterId).startsWith("ENC-") ? String(realEncounterId) : `ENC-${realEncounterId}`,
+              id: String(realEncounterId).startsWith("ENC-")
+                ? String(realEncounterId)
+                : `ENC-${realEncounterId}`,
               appointmentId: realAppointmentId || prev.appointmentId,
               doctorName: realDoctorName || prev.doctorName,
               doctorSpecialty: realDoctorSpecialty || prev.doctorSpecialty,
               department: realDepartment || prev.department,
-              visitType: String(encSub.visitType || apptSub.visitType || apptSub.appointmentType || prev.visitType || ""),
-              patientName: String(patSub.fullName || patSub.name || prev.patientName || ""),
+              visitType: String(
+                encSub.visitType ||
+                  apptSub.visitType ||
+                  apptSub.appointmentType ||
+                  prev.visitType ||
+                  "",
+              ),
+              patientName: String(
+                patSub.fullName || patSub.name || prev.patientName || "",
+              ),
               mrn: String(patSub.mrn || prev.mrn || ""),
               age: patSub.age != null ? Number(patSub.age) : prev.age,
               gender: String(patSub.gender || prev.gender || ""),
-              status: String(apptSub.status || encSub.status || prev.status || "Completed"),
-              tokenNo: String(apptSub.queueNumber || apptSub.tokenNo || apptSub.tokenNumber || prev.tokenNo || ""),
-              visitDate: String(apptSub.appointmentDate || encSub.visitDate || prev.visitDate || ""),
-              createdDate: String(encSub.createdAt || encSub.createdDate || prev.createdDate || ""),
-              completedDate: String(encSub.completedAt || encSub.completedDate || prev.completedDate || ""),
-              completionTime: String(encSub.completedAt || prev.completionTime || ""),
+              status: String(
+                apptSub.status || encSub.status || prev.status || "Completed",
+              ),
+              tokenNo: String(
+                apptSub.queueNumber ||
+                  apptSub.tokenNo ||
+                  apptSub.tokenNumber ||
+                  prev.tokenNo ||
+                  "",
+              ),
+              visitDate: String(
+                apptSub.appointmentDate ||
+                  encSub.visitDate ||
+                  prev.visitDate ||
+                  "",
+              ),
+              createdDate: String(
+                encSub.createdAt ||
+                  encSub.createdDate ||
+                  prev.createdDate ||
+                  "",
+              ),
+              completedDate: String(
+                encSub.completedAt ||
+                  encSub.completedDate ||
+                  prev.completedDate ||
+                  "",
+              ),
+              completionTime: String(
+                encSub.completedAt || prev.completionTime || "",
+              ),
 
-              chiefComplaint: String(consultationData.chiefComplaint || encSub.chiefComplaint || apptSub.chiefComplaint || prev.chiefComplaint || ""),
-              durationOfSymptoms: String(consultationData.durationOfSymptoms || prev.durationOfSymptoms || ""),
+              chiefComplaint: String(
+                consultationData.chiefComplaint ||
+                  encSub.chiefComplaint ||
+                  apptSub.chiefComplaint ||
+                  prev.chiefComplaint ||
+                  "",
+              ),
+              durationOfSymptoms: String(
+                consultationData.durationOfSymptoms ||
+                  prev.durationOfSymptoms ||
+                  "",
+              ),
 
-              bloodGroup: fetchedBloodGroup || String(patSub.bloodGroup || prev.bloodGroup || "—"),
-              allergies: Array.isArray(patSub.allergies) ? (patSub.allergies as string[]) : prev.allergies,
+              bloodGroup:
+                fetchedBloodGroup ||
+                String(patSub.bloodGroup || prev.bloodGroup || "—"),
+              allergies: Array.isArray(patSub.allergies)
+                ? (patSub.allergies as string[])
+                : prev.allergies,
 
               medicines: meds,
               vitals: {
                 height: formatVitalValue(h, "cm"),
                 weight: formatVitalValue(w, "kg"),
                 bmi: formatVitalValue(bmiCalc, "kg/m²"),
-                temperature: temp != null ? formatVitalValue(temp, temperatureUnit === "CELSIUS" ? "°C" : "°F") : "—",
+                temperature:
+                  temp != null
+                    ? formatVitalValue(
+                        temp,
+                        temperatureUnit === "CELSIUS" ? "°C" : "°F",
+                      )
+                    : "—",
                 bp: formatVitalValue(bp, "mmHg"),
                 pulse: formatVitalValue(pulse, "bpm"),
                 respiratoryRate: formatVitalValue(resp, "/min"),
@@ -444,20 +714,62 @@ export function ConsultationDetailsScreen({
                 bloodSugar: formatVitalValue(sugar, "mg/dL"),
               },
 
-              clinicalExamination: clinicalExamText || prev.clinicalExamination || "",
-              provisionalDiagnosis: String(consultationData.provisionalDiagnosis || primaryDiag?.diagnosisName || prev.provisionalDiagnosis || ""),
-              finalDiagnosis: String(consultationData.finalDiagnosis || primaryDiag?.diagnosisName || consultationData.assessmentSummary || prev.finalDiagnosis || ""),
-              icdCode: String(primaryDiag?.diagnosisCode || consultationData.icdCode || prev.icdCode || ""),
+              clinicalExamination:
+                clinicalExamText || prev.clinicalExamination || "",
+              provisionalDiagnosis: String(
+                consultationData.provisionalDiagnosis ||
+                  primaryDiag?.diagnosisName ||
+                  prev.provisionalDiagnosis ||
+                  "",
+              ),
+              finalDiagnosis: String(
+                consultationData.finalDiagnosis ||
+                  primaryDiag?.diagnosisName ||
+                  consultationData.assessmentSummary ||
+                  prev.finalDiagnosis ||
+                  "",
+              ),
+              icdCode: String(
+                primaryDiag?.diagnosisCode ||
+                  consultationData.icdCode ||
+                  prev.icdCode ||
+                  "",
+              ),
 
               investigations,
-              investigationRemarks: String(workspaceData.investigationRemarks || consultationData.investigationRemarks || prev.investigationRemarks || ""),
+              investigationRemarks: String(
+                workspaceData.investigationRemarks ||
+                  consultationData.investigationRemarks ||
+                  prev.investigationRemarks ||
+                  "",
+              ),
 
-              symptoms: String(consultationData.historyOfPresentIllness || consultationData.subjective || prev.symptoms || ""),
-              assessment: String(consultationData.assessmentSummary || consultationData.assessment || prev.assessment || ""),
+              symptoms: String(
+                consultationData.historyOfPresentIllness ||
+                  consultationData.subjective ||
+                  prev.symptoms ||
+                  "",
+              ),
+              assessment: String(
+                consultationData.assessmentSummary ||
+                  consultationData.assessment ||
+                  prev.assessment ||
+                  "",
+              ),
               advice: String(consultationData.advice || prev.advice || ""),
-              lifestyleRecommendations: String(rxAdvice.diet || consultationData.lifestyleRecommendations || prev.lifestyleRecommendations || ""),
+              lifestyleRecommendations: String(
+                rxAdvice.diet ||
+                  consultationData.lifestyleRecommendations ||
+                  prev.lifestyleRecommendations ||
+                  "",
+              ),
 
-              followupRequired: followUpReq === true ? "Yes" : followUpReq === false ? "No" : String(followUpReq || ""),
+              followupRequired:
+                followUpReq === true
+                  ? "Yes"
+                  : followUpReq === false
+                    ? "No"
+                    : String(followUpReq || ""),
               nextVisitDate: String(followUpDt || ""),
               followupNotes: String(followUpNt || ""),
             };
@@ -587,13 +899,19 @@ export function ConsultationDetailsScreen({
                 </span>
                 <span>•</span>
                 <span>
-                  Doctor: <strong className="text-[#111827]">{record.doctorName || "—"}</strong>
+                  Doctor:{" "}
+                  <strong className="text-[#111827]">
+                    {record.doctorName || "—"}
+                  </strong>
                 </span>
                 {record.department && (
                   <>
                     <span>•</span>
                     <span>
-                      Department: <strong className="text-[#0D47A1]">{record.department}</strong>
+                      Department:{" "}
+                      <strong className="text-[#0D47A1]">
+                        {record.department}
+                      </strong>
                     </span>
                   </>
                 )}
@@ -760,7 +1078,9 @@ export function ConsultationDetailsScreen({
                   Completed Date
                 </span>
                 <p className="font-semibold text-slate-700 text-xs">
-                  {formatDateTime(record.completedDate || record.completionTime)}
+                  {formatDateTime(
+                    record.completedDate || record.completionTime,
+                  )}
                 </p>
               </div>
 
@@ -795,10 +1115,10 @@ export function ConsultationDetailsScreen({
                   Visit Information
                 </h3>
               </div>
-              <ChevronDown
-                size={18}
-                className={`text-slate-400 transition-transform ${collapsedSections.visitInfo ? "-rotate-90" : ""}`}
-              />
+                <ChevronDown
+                  size={18}
+                  className={`text-slate-400 transition-transform ${collapsedSections.visitInfo ? "-rotate-90" : ""}`}
+                />
             </button>
 
             {!collapsedSections.visitInfo && (
@@ -909,10 +1229,10 @@ export function ConsultationDetailsScreen({
                   Patient Vitals
                 </h3>
               </div>
-              <ChevronDown
-                size={18}
-                className={`text-slate-400 transition-transform ${collapsedSections.vitals ? "-rotate-90" : ""}`}
-              />
+                <ChevronDown
+                  size={18}
+                  className={`text-slate-400 transition-transform ${collapsedSections.vitals ? "-rotate-90" : ""}`}
+                />
             </button>
 
             {!collapsedSections.vitals && (
@@ -1008,17 +1328,6 @@ export function ConsultationDetailsScreen({
                     {record.vitals.spo2}
                   </div>
                 </div>
-                <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl">
-                  <div
-                    className="text-[10px] text-slate-400 font-bold uppercase"
-                    style={{ fontFamily: PP }}
-                  >
-                    Respiratory Rate
-                  </div>
-                  <div className="font-bold text-slate-800 text-sm mt-1">
-                    {record.vitals.respiratoryRate || "—"}
-                  </div>
-                </div>
               </div>
             )}
           </div>
@@ -1040,10 +1349,10 @@ export function ConsultationDetailsScreen({
                   Clinical Examination & Diagnosis
                 </h3>
               </div>
-              <ChevronDown
-                size={18}
-                className={`text-slate-400 transition-transform ${collapsedSections.examination ? "-rotate-90" : ""}`}
-              />
+                <ChevronDown
+                  size={18}
+                  className={`text-slate-400 transition-transform ${collapsedSections.examination ? "-rotate-90" : ""}`}
+                />
             </button>
 
             {!collapsedSections.examination && (
@@ -1084,22 +1393,6 @@ export function ConsultationDetailsScreen({
                     </p>
                   </div>
                 </div>
-
-                {record.icdCode && record.icdCode !== "—" && (
-                  <div className="pt-2 border-t border-gray-100">
-                    <span
-                      className="text-[10px] font-bold text-slate-400 uppercase"
-                      style={{ fontFamily: PP }}
-                    >
-                      ICD Code
-                    </span>
-                    <div className="mt-1 inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-100 rounded-xl">
-                      <span className="font-mono font-bold text-[#0D47A1]">
-                        {record.icdCode}
-                      </span>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
           </div>
@@ -1209,10 +1502,10 @@ export function ConsultationDetailsScreen({
                   Investigation Recommendation
                 </h3>
               </div>
-              <ChevronDown
-                size={18}
-                className={`text-slate-400 transition-transform ${collapsedSections.investigation ? "-rotate-90" : ""}`}
-              />
+                <ChevronDown
+                  size={18}
+                  className={`text-slate-400 transition-transform ${collapsedSections.investigation ? "-rotate-90" : ""}`}
+                />
             </button>
 
             {!collapsedSections.investigation && (
@@ -1278,10 +1571,10 @@ export function ConsultationDetailsScreen({
                   Clinical Notes
                 </h3>
               </div>
-              <ChevronDown
-                size={18}
-                className={`text-slate-400 transition-transform ${collapsedSections.clinicalNotes ? "-rotate-90" : ""}`}
-              />
+                <ChevronDown
+                  size={18}
+                  className={`text-slate-400 transition-transform ${collapsedSections.clinicalNotes ? "-rotate-90" : ""}`}
+                />
             </button>
 
             {!collapsedSections.clinicalNotes && (
@@ -1354,10 +1647,10 @@ export function ConsultationDetailsScreen({
                   Follow-up
                 </h3>
               </div>
-              <ChevronDown
-                size={18}
-                className={`text-slate-400 transition-transform ${collapsedSections.followup ? "-rotate-90" : ""}`}
-              />
+                <ChevronDown
+                  size={18}
+                  className={`text-slate-400 transition-transform ${collapsedSections.followup ? "-rotate-90" : ""}`}
+                />
             </button>
 
             {!collapsedSections.followup && (
@@ -1428,7 +1721,9 @@ export function ConsultationDetailsScreen({
                 >
                   Patient
                 </span>
-                <p className="font-bold text-[#111827]">{record.patientName || "—"}</p>
+                <p className="font-bold text-[#111827]">
+                  {record.patientName || "—"}
+                </p>
                 <p className="text-[11px] text-slate-500">{record.mrn}</p>
               </div>
               <div>
@@ -1438,7 +1733,9 @@ export function ConsultationDetailsScreen({
                 >
                   Doctor
                 </span>
-                <p className="font-bold text-[#111827]">{record.doctorName || "—"}</p>
+                <p className="font-bold text-[#111827]">
+                  {record.doctorName || "—"}
+                </p>
                 {record.department && (
                   <p className="text-[11px] text-slate-500">
                     {record.department}
@@ -1506,40 +1803,26 @@ export function ConsultationDetailsScreen({
       {/* ── STICKY FOOTER ACTION BAR ── */}
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E5E7EB] px-6 py-3 shadow-lg flex items-center justify-between no-print">
         <div className="text-xs text-[#64748B]" style={{ fontFamily: RB }}>
-          Consultation Record <strong className="text-[#0D47A1]">{record.id}</strong> · {record.patientName}
+          Consultation Record{" "}
+          <strong className="text-[#0D47A1]">{record.id}</strong> ·{" "}
+          {record.patientName}
         </div>
 
         <div className="flex items-center gap-3">
           <button
             onClick={() => (onBack ? onBack() : navigate(-1))}
-            className="px-4 py-2 border border-[#E5E7EB] bg-white text-slate-700 hover:bg-slate-50 text-xs font-semibold rounded-xl transition-colors shadow-sm"
+            className="px-4 py-2 border border-[#E5E7EB] bg-white text-slate-700 hover:bg-slate-50 text-xs font-semibold rounded-xl transition-colors shadow-sm cursor-pointer"
             style={{ fontFamily: PP }}
           >
-            Back
+            Cancel
           </button>
           <button
             onClick={handlePrint}
-            className="px-4 py-2 border border-[#E5E7EB] bg-slate-50 text-slate-700 hover:bg-slate-100 text-xs font-semibold rounded-xl transition-colors flex items-center gap-1.5"
+            className="px-4 py-2 border border-[#E5E7EB] bg-slate-50 text-slate-700 hover:bg-slate-100 text-xs font-semibold rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
             style={{ fontFamily: PP }}
           >
             <Printer size={15} className="text-[#009688]" />
             Print Prescription
-          </button>
-          <button
-            onClick={handleDownloadPdf}
-            className="px-4 py-2 border border-[#E5E7EB] bg-blue-50 text-[#0D47A1] hover:bg-blue-100 text-xs font-semibold rounded-xl transition-colors flex items-center gap-1.5"
-            style={{ fontFamily: PP }}
-          >
-            <Download size={15} />
-            Download PDF
-          </button>
-          <button
-            onClick={() => onEditConsultation?.(record.id)}
-            className="px-5 py-2 bg-[#0D47A1] hover:bg-[#0a3880] text-white text-xs font-semibold rounded-xl shadow-sm transition-colors flex items-center gap-2"
-            style={{ fontFamily: PP }}
-          >
-            <Edit3 size={15} />
-            Edit Consultation
           </button>
         </div>
       </div>

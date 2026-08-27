@@ -187,11 +187,17 @@ export const prescriptionApi = {
   getPrescriptionById: async (
     id: string | number,
   ): Promise<ApiPatientPrescription | PrescriptionDetailResponse | null> => {
-    const endpoints = [
+    const num = Number(id);
+    const isNumericDbId = /^\d+$/.test(String(id)) && num > 0 && num < 10000000000;
+    const endpoints: string[] = [];
+    if (isNumericDbId) {
+      endpoints.push(`/api/v1/encounters/${id}/prescription`);
+    }
+    endpoints.push(
+      `/api/v1/prescriptions/${id}`,
       `/api/v1/patient/prescriptions/${id}`,
       `/api/v1/patients/me/prescriptions/${id}`,
-      `/api/v1/prescriptions/${id}`,
-    ];
+    );
 
     for (const url of endpoints) {
       try {
@@ -214,11 +220,18 @@ export const prescriptionApi = {
   getPrescriptionDetails: async (
     prescriptionId: string | number,
   ): Promise<PrescriptionDetailResponse | Record<string, unknown> | null> => {
-    const endpoints = [
+    const num = Number(prescriptionId);
+    const isNumericDbId =
+      /^\d+$/.test(String(prescriptionId)) && num > 0 && num < 10000000000;
+    const endpoints: string[] = [];
+    if (isNumericDbId) {
+      endpoints.push(`/api/v1/encounters/${prescriptionId}/prescription`);
+    }
+    endpoints.push(
+      `/api/v1/prescriptions/${prescriptionId}`,
       `/api/v1/patient/prescriptions/${prescriptionId}`,
       `/api/v1/patients/me/prescriptions/${prescriptionId}`,
-      `/api/v1/prescriptions/${prescriptionId}`,
-    ];
+    );
 
     for (const url of endpoints) {
       try {

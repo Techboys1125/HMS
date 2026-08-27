@@ -23,7 +23,8 @@ export type UserRole =
   | "Hospital Admin"
   | "Super Admin"
   | "Doctor"
-  | "Nurse";
+  | "Nurse"
+  | "Patient";
 
 export interface TimelineActivity {
   id: string;

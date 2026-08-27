@@ -65,6 +65,21 @@ export const PrescriptionTable: React.FC<PrescriptionTableProps> = ({
     currentPage * pageSize,
   );
 
+const formatDateTimeDisplay = (rawStr?: string) => {
+  if (!rawStr || rawStr === "—") return "—";
+  try {
+    const d = new Date(rawStr);
+    if (isNaN(d.getTime())) return rawStr;
+    return d.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  } catch {
+    return rawStr;
+  }
+};
+
   if (role === "patient") {
     return (
       <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
@@ -89,132 +104,138 @@ export const PrescriptionTable: React.FC<PrescriptionTableProps> = ({
                 style={{ fontFamily: PP }}
               >
                 <th className="p-3">Prescription ID</th>
-                <th className="p-3">Consultation Date</th>
-                <th className="p-3">Prescribing Doctor</th>
-                <th className="p-3">Department</th>
-                <th className="p-3">Medicines</th>
-                <th className="p-3">Follow-up Date</th>
+                <th className="p-3">Encounter ID</th>
+                <th className="p-3">Issue Date</th>
+                <th className="p-3">Doctor Name</th>
+                <th className="p-3">Total Medicines</th>
                 <th className="p-3">Status</th>
                 <th className="p-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-[#111827]">
-              {paginatedPrescriptions.map((rx) => (
-                <tr
-                  key={rx.id}
-                  className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
-                >
-                  <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
-                    <button
-                      onClick={() => onView(rx)}
-                      className="hover:underline text-left"
-                    >
-                      {rx.id}
-                    </button>
-                  </td>
-                  <td className="px-4 py-3.5 text-slate-700 font-medium">
-                    {rx.consultationDate}
-                  </td>
-                  <td
-                    className="px-4 py-3.5 font-bold text-[#111827]"
-                    style={{ fontFamily: PP }}
+              {paginatedPrescriptions.map((rx) => {
+                const displayRxId = rx.prescriptionId || rx.id;
+                const displayEncId = rx.encounterId
+                  ? `ENC-${rx.encounterId}`
+                  : rx.encounterNumber || (rx.id ? `ENC-${rx.id}` : "—");
+                const medCount =
+                  rx.medicines && rx.medicines.length > 0
+                    ? rx.medicines.length
+                    : rx.totalMedicines || rx.medicineCount || 0;
+                const formattedDate = formatDateTimeDisplay(rx.consultationDate || rx.date);
+
+                return (
+                  <tr
+                    key={rx.id}
+                    className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
                   >
-                    {rx.doctorName}
-                  </td>
-                  <td className="px-4 py-3.5 text-slate-600">
-                    {rx.department}
-                  </td>
-                  <td className="px-4 py-3.5 font-semibold text-[#009688]">
-                    {rx.medicines.length} Medication
-                    {rx.medicines.length > 1 ? "s" : ""}
-                  </td>
-                  <td className="px-4 py-3.5 text-slate-700 font-medium">
-                    {rx.followupDate || "—"}
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <PrescriptionStatusBadge status={rx.status} />
-                  </td>
-                  <td className="px-4 py-3.5 text-right">
-                    <div className="flex items-center justify-end gap-1.5">
+                    <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
                       <button
                         onClick={() => onView(rx)}
-                        className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-[#0D47A1] text-xs font-semibold rounded-lg transition-colors flex items-center gap-1"
-                        style={{ fontFamily: PP }}
+                        className="hover:underline text-left cursor-pointer"
                       >
-                        <Eye size={13} /> View
+                        {displayRxId}
                       </button>
-                      <button
-                        aria-label="Action"
-                        onClick={() => onPrint(rx)}
-                        className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
-                      >
-                        <Printer size={14} />
-                      </button>
-                      <button
-                        aria-label="Download"
-                        onClick={() => onDownload(rx.id)}
-                        className="p-1.5 rounded-lg text-slate-500 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors"
-                      >
-                        <Download size={14} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="px-4 py-3.5 font-mono font-medium text-slate-700">
+                      {displayEncId}
+                    </td>
+                    <td className="px-4 py-3.5 text-slate-700 font-medium">
+                      {formattedDate}
+                    </td>
+                    <td
+                      className="px-4 py-3.5 font-bold text-[#111827]"
+                      style={{ fontFamily: PP }}
+                    >
+                      {rx.doctorName || "Attending Doctor"}
+                    </td>
+                    <td className="px-4 py-3.5 font-semibold text-[#009688]">
+                      {medCount} Medicine{medCount !== 1 ? "s" : ""}
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <PrescriptionStatusBadge status={rx.status} />
+                    </td>
+                    <td className="px-4 py-3.5 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => onView(rx)}
+                          className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-[#0D47A1] text-xs font-semibold rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+                          style={{ fontFamily: PP }}
+                        >
+                          <Eye size={13} /> View
+                        </button>
+                        <button
+                          aria-label="Print Prescription"
+                          onClick={() => onPrint(rx)}
+                          className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer"
+                        >
+                          <Printer size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
 
         {/* Mobile View */}
         <div className="block md:hidden divide-y divide-gray-100">
-          {prescriptions.map((rx) => (
-            <div key={rx.id} className="p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="font-mono font-bold text-[#0D47A1] text-sm">
-                  {rx.id}
-                </span>
-                <PrescriptionStatusBadge status={rx.status} />
-              </div>
-              <div className="space-y-1 text-xs" style={{ fontFamily: RB }}>
-                <div
-                  className="font-bold text-[#111827]"
-                  style={{ fontFamily: PP }}
-                >
-                  {rx.doctorName} ({rx.department})
+          {paginatedPrescriptions.map((rx) => {
+            const displayRxId = rx.prescriptionId || rx.id;
+            const displayEncId = rx.encounterId
+              ? `ENC-${rx.encounterId}`
+              : rx.encounterNumber || (rx.id ? `ENC-${rx.id}` : "—");
+            const medCount = rx.totalMedicines ?? rx.medicineCount ?? rx.medicines.length;
+            const formattedDate = formatDateTimeDisplay(rx.consultationDate || rx.date);
+
+            return (
+              <div key={rx.id} className="p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="font-mono font-bold text-[#0D47A1] text-sm block">
+                      {displayRxId}
+                    </span>
+                    <span className="font-mono text-[10px] text-slate-500 block">
+                      {displayEncId}
+                    </span>
+                  </div>
+                  <PrescriptionStatusBadge status={rx.status} />
                 </div>
-                <div className="text-slate-500">
-                  Date: {rx.consultationDate} • Follow-up:{" "}
-                  {rx.followupDate || "—"}
+                <div className="space-y-1 text-xs" style={{ fontFamily: RB }}>
+                  <div
+                    className="font-bold text-[#111827]"
+                    style={{ fontFamily: PP }}
+                  >
+                    {rx.doctorName || "Attending Doctor"} ({rx.department || "General OPD"})
+                  </div>
+                  <div className="text-slate-500">
+                    Date: {formattedDate}
+                  </div>
+                  <div className="text-[#009688] font-semibold">
+                    {medCount} Prescribed Medication{medCount !== 1 ? "s" : ""}
+                  </div>
                 </div>
-                <div className="text-[#009688] font-semibold">
-                  {rx.medicines.length} Prescribed Medications
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
+                  <button
+                    onClick={() => onView(rx)}
+                    className="px-3 py-1.5 bg-blue-50 text-[#0D47A1] text-xs font-semibold rounded-lg flex items-center gap-1 cursor-pointer"
+                    style={{ fontFamily: PP }}
+                  >
+                    <Eye size={13} /> View
+                  </button>
+                  <button
+                    onClick={() => onPrint(rx)}
+                    className="px-3 py-1.5 bg-teal-50 text-[#009688] text-xs font-semibold rounded-lg flex items-center gap-1 cursor-pointer"
+                    style={{ fontFamily: PP }}
+                  >
+                    <Printer size={13} /> Print
+                  </button>
                 </div>
               </div>
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
-                <button
-                  onClick={() => onView(rx)}
-                  className="px-3 py-1.5 bg-blue-50 text-[#0D47A1] text-xs font-semibold rounded-lg flex items-center gap-1"
-                  style={{ fontFamily: PP }}
-                >
-                  <Eye size={13} /> View
-                </button>
-                <button
-                  onClick={() => onPrint(rx)}
-                  className="px-3 py-1.5 bg-teal-50 text-[#009688] text-xs font-semibold rounded-lg flex items-center gap-1"
-                  style={{ fontFamily: PP }}
-                >
-                  <Printer size={13} /> Print
-                </button>
-                <button
-                  onClick={() => onDownload(rx.id)}
-                  className="px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg flex items-center gap-1"
-                  style={{ fontFamily: PP }}
-                >
-                  <Download size={13} /> PDF
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <Pagination
