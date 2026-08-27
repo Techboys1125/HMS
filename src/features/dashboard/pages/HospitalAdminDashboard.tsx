@@ -387,17 +387,11 @@ export function HospitalAdminDashboard({
           </button>
         ))}
         <div className="ml-auto flex items-center gap-2">
-          <button
-            aria-label="Action"
-            className="relative w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-[#E5E7EB] text-[#64748B] hover:bg-slate-50 transition-colors shadow-sm"
-          >
-            <Bell size={14} />
-            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#EF4444]" />
-          </button>
+
         </div>
       </div>
 
-      {/* ── KPI Row — 5 Phase 1 Operational Cards ── */}
+      {/* ── KPI Row — 5 Operational Cards ── */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
         <DKpi
           title="Today's OPD Patients"

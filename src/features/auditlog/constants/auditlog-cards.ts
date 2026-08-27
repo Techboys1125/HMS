@@ -24,7 +24,7 @@ export const QUICK_ACTION_CARDS: QuickActionCard[] = [
   {
     id: "All Logs",
     title: "All Logs",
-    description: "Comprehensive audit log view across all Phase 1 modules.",
+    description: "Comprehensive audit log view across all modules.",
     icon: Layers,
     color: "text-blue-700",
     bg: "bg-blue-50",

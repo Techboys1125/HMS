@@ -33,7 +33,7 @@ export function MonthlyCalendarTab({ doctor }: MonthlyCalendarTabProps) {
   useEffect(() => {
     let cancelled = false;
 
-    (async () => {
+    async function loadCalendar() {
       setLoading(true);
       try {
         const targetId = resolveDoctorId(doctor);
@@ -41,15 +41,16 @@ export function MonthlyCalendarTab({ doctor }: MonthlyCalendarTabProps) {
           targetId,
           month,
         );
-        if (!cancelled && data) setDays(data.days || []);
+        if (cancelled) return;
+        if (data) setDays(data.days || []);
       } catch {
         // ignore
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
-    })();
+    }
+
+    void loadCalendar();
 
     return () => {
       cancelled = true;

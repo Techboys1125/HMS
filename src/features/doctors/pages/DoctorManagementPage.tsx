@@ -103,25 +103,24 @@ export function DoctorManagementPage() {
   useEffect(() => {
     let cancelled = false;
 
-    const loadData = async () => {
+    async function loadData() {
       setLoading(true);
       try {
         const [doctorsData, deptList] = await Promise.all([
           fetchDoctors(),
           departmentsApi.getDepartmentLookup(true),
         ]);
-        if (!cancelled) {
-          setDoctors(doctorsData);
-          setDepartments(deptList.map((d) => d.departmentName));
-        }
+        if (cancelled) return;
+        setDoctors(doctorsData);
+        setDepartments(deptList.map((d) => d.departmentName));
       } catch (err) {
-        console.error("Failed to load doctor management data:", err);
-      } finally {
         if (!cancelled) {
-          setLoading(false);
+          console.error("Failed to load doctor management data:", err);
         }
+      } finally {
+        setLoading(false);
       }
-    };
+    }
 
     void loadData();
 

@@ -34,7 +34,7 @@ export type AppPermission =
   | "PATIENT_VIEW_MINIMAL"
   | "PATIENT_CREATE"
   | "PATIENT_EDIT"
-  | "PATIENT_UPDATE" // Phase 1 standard
+  | "PATIENT_UPDATE" // standard
   | "PATIENT_VIEW_HISTORY"
   | "PATIENT_STATUS_UPDATE"
   | "PATIENT_DUPLICATE_OVERRIDE"
@@ -70,7 +70,7 @@ export type AppPermission =
   | "APPOINTMENT_VIEW"
   | "APPOINTMENT_CREATE"
   | "APPOINTMENT_EDIT"
-  | "APPOINTMENT_UPDATE" // Phase 1 standard
+  | "APPOINTMENT_UPDATE" // standard
   | "APPOINTMENT_RESCHEDULE"
   | "APPOINTMENT_CANCEL"
   | "APPOINTMENT_CHECK_IN"
@@ -91,7 +91,7 @@ export type AppPermission =
   | "VITALS_VIEW"
   | "VITALS_CREATE"
   | "VITALS_EDIT"
-  | "VITALS_UPDATE" // Phase 1 standard
+  | "VITALS_UPDATE" // standard
 
   // Billing
   | "BILLING_VIEW"
@@ -129,7 +129,7 @@ export type AppPermission =
   // Authentication & Profile
   | "PROFILE_VIEW"
   | "PROFILE_EDIT"
-  | "PROFILE_UPDATE" // Phase 1 standard
+  | "PROFILE_UPDATE" // standard
   | "CHANGE_PASSWORD"
   | "MY_APPOINTMENTS_VIEW"
   | "MY_PRESCRIPTIONS_VIEW"

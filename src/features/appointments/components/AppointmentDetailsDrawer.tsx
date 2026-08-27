@@ -721,56 +721,53 @@ export function AppointmentDetailsDrawer({
       setIsLoadingTimeline(true);
       try {
         const res = await appointmentService.getQueueTimeline(aptId);
-        if (!cancelled) {
-          const resData = (res as { data?: unknown })?.data ?? res;
-          const events = Array.isArray(resData)
-            ? resData
-            : Array.isArray((resData as { events?: unknown[] })?.events)
-              ? (resData as { events: unknown[] }).events
-              : [];
+        if (cancelled) return;
+        const resData = (res as { data?: unknown })?.data ?? res;
+        const events = Array.isArray(resData)
+          ? resData
+          : Array.isArray((resData as { events?: unknown[] })?.events)
+            ? (resData as { events: unknown[] }).events
+            : [];
 
-          if (events.length > 0) {
-            const mapped = events.map((evtItem: unknown) => {
-              const e = (evtItem as Record<string, unknown>) || {};
-              const title = String(
-                e.remarks ||
-                  e.eventType ||
-                  e.newStatus ||
-                  "Queue Event Updated",
-              );
-              const roleStr = e.role ? ` (${e.role})` : "";
-              const by = `${e.performedBy || "System"}${roleStr}`;
-              const timeRaw = String(e.timestamp || e.createdDate || "");
-              const formattedTime = timeRaw
-                ? timeRaw.includes("T")
-                  ? timeRaw.replace("T", " ").slice(0, 19)
-                  : timeRaw
-                : aptApptDate;
+        if (events.length > 0) {
+          const mapped = events.map((evtItem: unknown) => {
+            const e = (evtItem as Record<string, unknown>) || {};
+            const title = String(
+              e.remarks ||
+                e.eventType ||
+                e.newStatus ||
+                "Queue Event Updated",
+            );
+            const roleStr = e.role ? ` (${e.role})` : "";
+            const by = `${e.performedBy || "System"}${roleStr}`;
+            const timeRaw = String(e.timestamp || e.createdDate || "");
+            const formattedTime = timeRaw
+              ? timeRaw.includes("T")
+                ? timeRaw.replace("T", " ").slice(0, 19)
+                : timeRaw
+              : aptApptDate;
 
-              return {
-                title,
-                timestamp: formattedTime,
-                by,
-                status: "completed",
-              };
-            });
-            setApiTimelineEvents(mapped);
-          } else {
-            setApiTimelineEvents([]);
-          }
+            return {
+              title,
+              timestamp: formattedTime,
+              by,
+              status: "completed",
+            };
+          });
+          setApiTimelineEvents(mapped);
+        } else {
+          setApiTimelineEvents([]);
         }
       } catch {
         if (!cancelled) {
           setApiTimelineEvents([]);
         }
       } finally {
-        if (!cancelled) {
-          setIsLoadingTimeline(false);
-        }
+        setIsLoadingTimeline(false);
       }
     }
 
-    loadTimeline();
+    void loadTimeline();
 
     return () => {
       cancelled = true;

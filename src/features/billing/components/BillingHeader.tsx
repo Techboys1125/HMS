@@ -86,7 +86,7 @@ export function BillingHeader({
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-transform shadow-sm active:scale-95 cursor-pointer"
             style={{ fontFamily: PP }}
           >
-            <Plus size={15} />+ Generate Invoice
+            <Plus size={15} /> Generate Invoice
           </button>
         )}
 

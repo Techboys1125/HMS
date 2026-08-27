@@ -32,13 +32,13 @@ export function usePatientQueue() {
         return;
       }
 
+      setLoading(true);
+      setError(null);
+
       try {
-        setLoading(true);
-        setError(null);
         const data = await patientQueueService.getPatientQueue(mrn);
-        if (!cancelled) {
-          setQueue(data);
-        }
+        if (cancelled) return;
+        setQueue(data);
       } catch (err: unknown) {
         if (!cancelled) {
           if (
@@ -62,7 +62,7 @@ export function usePatientQueue() {
       }
     }
 
-    loadQueue();
+    void loadQueue();
 
     return () => {
       cancelled = true;

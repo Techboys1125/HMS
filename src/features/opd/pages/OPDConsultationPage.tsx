@@ -965,9 +965,9 @@ export function OPDConsultationPage({
                 : "Search by Patient Name, MRN, Consultation ID or Doctor Name..."
             }
             visibleFilters={
-              resolvedRole === "doctor"
-                ? ["status", "visitType"]
-                : ["status", "visitType", "doctor", "department"]
+              resolvedRole !== "doctor"
+                ? ["status", "visitType", "doctor", "department"]
+                : ["status", "visitType"]
             }
             doctorOptions={doctorOptions}
             departmentOptions={departmentOptions}
