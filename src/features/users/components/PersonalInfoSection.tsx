@@ -15,7 +15,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import type { FormValues, FormErrors } from "../hooks/useCreateStaffForm";
-import UserAvatar from "../../../common/components/UserAvatar";
+import { UserAvatar } from "../../../common/components/UserAvatar";
 
 interface PersonalInfoSectionProps {
   form: FormValues;

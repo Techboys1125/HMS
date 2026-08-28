@@ -3,7 +3,7 @@ import type { FormEvent } from "react";
 import { X, Check, Lock, Loader2, Camera, Trash2 } from "lucide-react";
 import type { DoctorRecord } from "../types/doctors.types";
 import { PP } from "../constants/doctors.constants";
-import UserAvatar from "../../../common/components/UserAvatar";
+import { UserAvatar } from "../../../common/components/UserAvatar";
 import { usersApi } from "../../users/api/users.api";
 
 export interface EditDoctorProfileModalProps {

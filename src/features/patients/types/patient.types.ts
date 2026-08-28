@@ -1,48 +1,4 @@
-export type PatientStatus =
-  "ACTIVE" | "INACTIVE" | "DECEASED" | "DUPLICATE_CANDIDATE";
-
-export type AgeBasis = "EXACT" | "APPROXIMATE";
-
-export type BloodGroup =
-  | "A_POSITIVE"
-  | "A_NEGATIVE"
-  | "B_POSITIVE"
-  | "B_NEGATIVE"
-  | "AB_POSITIVE"
-  | "AB_NEGATIVE"
-  | "O_POSITIVE"
-  | "O_NEGATIVE"
-  | "UNKNOWN";
-
-export type MaritalStatus =
-  "SINGLE" | "MARRIED" | "DIVORCED" | "WIDOWED" | "SEPARATED";
-
-export type PatientCategory =
-  | "GENERAL"
-  | "VIP"
-  | "EMPLOYEE"
-  | "FAMILY"
-  | "INSURANCE"
-  | "CORPORATE"
-  | "RESEARCH"
-  | "CHARITY";
-
 export type RegistrationType = "ONLINE" | "WALK_IN";
-
-export interface EmergencyContact {
-  name: string;
-  relationship: string;
-  mobile: string;
-}
-
-export interface Address {
-  addressLine1?: string;
-  addressLine2?: string;
-  city?: string;
-  state?: string;
-  pincode?: string;
-  country?: string;
-}
 
 /**
  * Patient record returned from GET /api/v1/patients
@@ -207,53 +163,6 @@ export interface CreatePatientRequest {
   specialNotes?: string;
 }
 
-export interface UpdatePatientRequest extends Partial<CreatePatientRequest> {
-  reason?: string;
-}
-
-export interface PatientSearchResult extends Patient {
-  fullName: string;
-}
-
-export type PatientFormInput = CreatePatientRequest;
-export type ScreenPatient = {
-  id: string;
-  name: string;
-  age: number;
-  gender: "M" | "F" | "Other";
-  mobile: string;
-  doctor: string;
-  department: string;
-  visitType: string;
-  regDate: string;
-  status: "Active" | "Inactive" | "Discharged" | "Admitted";
-  photo?: string;
-  emergencyContact?: {
-    name: string;
-    relationship: string;
-    phone: string;
-  };
-  lastVisit?: {
-    date: string;
-    doctor: string;
-    reason: string;
-  };
-};
-export type VisitRecord = {
-  id: string;
-  visitDate: string;
-  visitTime: string;
-  department: string;
-  doctor: string;
-  chiefComplaint: string;
-  diagnosis: string;
-  prescriptionIssued: boolean;
-  prescriptionCount: number;
-  prescriptions: string[];
-  status: "Completed" | "Follow-up Required" | "In Progress" | "Cancelled";
-  vitals: { bp: string; hr: string; temp: string; spo2: string };
-  clinicalNotes: string;
-};
 export type PatientAppointment = {
   id: string;
   rawId?: number | string;
@@ -290,20 +199,6 @@ export type PatientAppointment = {
   billingStatus: string;
   billingAmount: string;
 };
-export interface BookingDoctor {
-  id: string;
-  name: string;
-  qualification: string;
-  specialization: string;
-  department: string;
-  experience: string;
-  consultationFee: string;
-  availability: string;
-  rating: string;
-  reviewCount: number;
-  avatar: string;
-  availableToday: boolean;
-}
 
 export interface PatientCancelAppointmentDialogProps {
   appointment: PatientAppointment | null;
@@ -311,20 +206,6 @@ export interface PatientCancelAppointmentDialogProps {
   onClose: () => void;
   onConfirmCancel: (id: string, reason: string, comments: string) => void;
   onBookNewAppointment?: () => void;
-}
-
-export interface PatientRescheduleAppointmentDialogProps {
-  appointment: PatientAppointment | null;
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirmReschedule: (
-    id: string,
-    newDate: string,
-    newTime: string,
-    reason: string,
-    notes: string,
-  ) => Promise<{ success?: boolean; message?: string } | void> | void;
-  onViewDetails?: (appt: PatientAppointment) => void;
 }
 
 export type MedicalVisitRecord = {
@@ -355,67 +236,7 @@ export type PrescriptionRecord = {
   diagnosis: string;
   followUpDate: string;
 };
-export type PatientInvoice = {
-  id: string;
-  date: string;
-  dueDate: string;
-  doctor: string;
-  department: string;
-  amount: string;
-  numericAmount: number;
-  status: "Paid" | "Pending" | "Overdue" | "Partial";
-  patientPayable: string;
-  items: {
-    description: string;
-    category: string;
-    cost: string;
-  }[];
-  paymentRef?: string;
-  paymentDate?: string;
-  paymentMethod?: string;
-};
-export type PaymentHistoryRecord = {
-  id: string;
-  date: string;
-  time: string;
-  amount: string;
-  method: string;
-  referenceNumber: string;
-  invoiceId: string;
-  status: "Completed" | "Processing";
-};
-export type ScreenPatientSearchResult = {
-  mrn: string;
-  name: string;
-  age: number;
-  gender: "Male" | "Female" | "Other";
-  mobile: string;
-  bloodGroup: string;
-  regDate: string;
-  status:
-    | "Active"
-    | "Inactive"
-    | "Registered"
-    | "Scheduled"
-    | "Checked-In"
-    | "Completed";
-  regType: "New Patient" | "Existing Patient Update";
-  lastVisit?: {
-    date: string;
-    doctor: string;
-    department: string;
-    status: string;
-  };
-  upcomingAppointment?: {
-    date: string;
-    time: string;
-    doctor: string;
-    department: string;
-    status: string;
-  };
-};
-export type ChipVariant =
-  "success" | "warning" | "error" | "info" | "teal" | "default";
+
 export interface PatientProfileScreenProps {
   onBack?: () => void;
   onEditPatient?: () => void;
@@ -429,27 +250,6 @@ export interface PatientProfileScreenProps {
   patientMrn?: string;
   userRole?: string;
   role?: string;
-}
-
-export interface PatientPrescriptionItem {
-  id: string;
-  consultationId: string;
-  consultationDate: string;
-  doctorName: string;
-  department: string;
-  diagnosisSummary: string;
-  medicines: Array<{
-    name: string;
-    strength: string;
-    route: string;
-    dosage: string;
-    frequency: string;
-    duration: string;
-    instructions: string;
-  }>;
-  followupDate: string;
-  status: "Issued" | "Completed" | "Archived";
-  downloadCount?: number;
 }
 
 export interface PatientQueueData {
@@ -468,15 +268,6 @@ export interface PatientQueueData {
   appointmentTime?: string;
   doctorName: string;
   departmentName: string;
-}
-
-export interface PatientQueueApiResponse {
-  success: boolean;
-  code?: string;
-  message?: string;
-  timestamp?: string;
-  data: PatientQueueData;
-  errors?: Record<string, unknown>;
 }
 
 /**
@@ -630,18 +421,6 @@ export interface ApiPatientInvoice {
   departmentName?: string;
 }
 
-/**
- * Form mode determines which fields are visible and editable
- * - register: Admin/Receptionist registering a new patient
- * - edit: Editing an existing patient profile
- * - family: Adding a family member (reuses registration form)
- * - self: Patient completing their own registration after auth
- */
-export type PatientFormMode = "register" | "edit" | "family" | "self";
-
-/**
- * Maps which fields each role can edit in the PatientRegistrationForm
- */
 export interface RoleFieldPermissions {
   /** Fields that are always read-only regardless of role */
   alwaysReadOnly: string[];
@@ -853,17 +632,3 @@ export const ROLE_FIELD_PERMISSIONS: Record<string, RoleFieldPermissions> = {
     ],
   },
 };
-
-/**
- * Context for switching between patient and family member accounts
- */
-export interface SwitchAccountContext {
-  /** Currently active patient MRN */
-  activeMrn: string;
-  /** Primary patient MRN (the logged-in user's own MRN) */
-  primaryMrn: string;
-  /** Name of the currently active patient */
-  activePatientName: string;
-  /** Whether currently viewing a family member's data */
-  isFamilyMember: boolean;
-}

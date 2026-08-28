@@ -24,7 +24,7 @@ import {
   Check,
 } from "lucide-react";
 import type { FormValues } from "../hooks/useCreateStaffForm";
-import UserAvatar from "../../../common/components/UserAvatar";
+import { UserAvatar } from "../../../common/components/UserAvatar";
 
 interface ReviewInfoSectionProps {
   form: FormValues;

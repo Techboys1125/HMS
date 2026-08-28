@@ -189,8 +189,8 @@ export function DoctorProfilePage() {
             if (cancelled) return;
 
             const data =
-              (response.data as DoctorApiResponse<ApiUserDoctorRecord>)
-                ?.data || (response.data as ApiUserDoctorRecord);
+              (response.data as DoctorApiResponse<ApiUserDoctorRecord>)?.data ||
+              (response.data as ApiUserDoctorRecord);
 
             if (data && (data.fullName || data.name || data.doctorProfile)) {
               const doctorRecord = mapApiUserToDoctorRecord(data);

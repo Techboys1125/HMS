@@ -1,7 +1,7 @@
-export type EncounterStatus =
+type EncounterStatus =
   "CREATED" | "IN_PROGRESS" | "COMPLETED" | "FINALIZED" | string;
 
-export type PrescriptionOutcome =
+type PrescriptionOutcome =
   | "MEDICATION_PRESCRIBED"
   | "NO_MEDICATION"
   | "REFERRED"
@@ -142,7 +142,7 @@ export interface AddMedicationRequest {
   instructions?: string;
 }
 
-export interface PrescriptionMedication {
+interface PrescriptionMedication {
   medicationId?: string | number;
   displayOrder?: number;
   source?: string;
@@ -239,20 +239,4 @@ export interface FinalizePrescriptionResponse {
     fullName?: string;
     registrationNumber?: string;
   };
-}
-
-/**
- * UI model produced by the encounter service layer
- */
-export interface EncounterSummary {
-  encounterId: string | number;
-  encounterNumber?: string;
-  appointmentId?: string | number;
-  patientId?: string | number;
-  doctorId?: string | number;
-  status: EncounterStatus;
-  version?: number;
-  startedAt?: string;
-  completedAt?: string;
-  finalizedAt?: string;
 }

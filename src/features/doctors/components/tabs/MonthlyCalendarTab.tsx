@@ -43,10 +43,12 @@ export function MonthlyCalendarTab({ doctor }: MonthlyCalendarTabProps) {
         );
         if (cancelled) return;
         if (data) setDays(data.days || []);
-      } catch {
-        // ignore
+      } catch (err) {
+        console.log(err);
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 

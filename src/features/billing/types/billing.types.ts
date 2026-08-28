@@ -3,7 +3,7 @@ export type PaymentStatus =
 
 export type PaymentMethod = "Cash" | "Card" | "UPI" | "Bank Transfer";
 
-export type BillingStatus =
+type BillingStatus =
   | "PENDING_BILLING"
   | "PENDING_PAYMENT"
   | "PAID"
@@ -37,31 +37,12 @@ export interface InvoiceRecord {
   doctorId?: number;
 }
 
-export interface ActivityRecord {
-  id: string;
-  time: string;
-  cashier: string;
-  invoiceNo: string;
-  patientName: string;
-  amount: number;
-  paymentMode: PaymentMethod | "Refund";
-  status: PaymentStatus;
-  type: "collection" | "pending" | "refund";
-}
-
 export interface ApiPatientInvoice {
   id: string | number;
   invoiceNumber?: string;
   date?: string;
   status?: string;
   amount?: string | number;
-}
-
-export interface BillingSummary {
-  totalBilled: number;
-  totalPaid: number;
-  totalPending: number;
-  invoiceCount: number;
 }
 
 export interface InvoiceConfiguration {
@@ -126,18 +107,6 @@ export interface BillingConfiguration {
   discount: DiscountConfiguration;
   receipt: ReceiptConfiguration;
   rules: BillingRuleConfiguration;
-}
-
-export interface BillingReport {
-  period: string;
-  startDate: string;
-  endDate: string;
-  totalInvoices: number;
-  totalPaid: number;
-  totalRefunded: number;
-  totalPending: number;
-  byDepartment: { [key: string]: number };
-  byPaymentMethod: { [key: string]: number };
 }
 
 // ─── Backend Response Types ─────────────────────────────────────────────────
@@ -220,7 +189,7 @@ export interface BillCreateResponse {
   balanceAmount: number;
 }
 
-export interface BillItem {
+interface BillItem {
   id: number;
   serviceId?: string;
   serviceCode?: string;
@@ -236,7 +205,7 @@ export interface BillItem {
   totalAmount: number;
 }
 
-export interface BillDetailPatient {
+interface BillDetailPatient {
   id: number;
   mrn: string;
   name: string;
@@ -246,26 +215,26 @@ export interface BillDetailPatient {
   registeredMobile?: string;
 }
 
-export interface BillDetailDoctor {
+interface BillDetailDoctor {
   id: number;
   name: string;
   doctorCode?: string;
   department?: string;
 }
 
-export interface BillDetailAppointment {
+interface BillDetailAppointment {
   id: number;
   appointmentNumber: string;
   date: string;
 }
 
-export interface BillDetailEncounter {
+interface BillDetailEncounter {
   id: number;
   encounterNumber: string;
   status: string;
 }
 
-export interface BillCapabilities {
+interface BillCapabilities {
   canAddItems?: boolean;
   canEditItems?: boolean;
   canApplyDiscount?: boolean;
@@ -276,7 +245,7 @@ export interface BillCapabilities {
   canCancel?: boolean;
 }
 
-export interface BillDetailBill {
+interface BillDetailBill {
   billId: number;
   bill: Record<string, unknown>;
   summary: BillSummaryAmount;
@@ -399,7 +368,7 @@ export interface PaymentReceivePayload {
   remarks?: string;
 }
 
-export interface PaymentEntry {
+interface PaymentEntry {
   method: string;
   amount: number;
   referenceNumber?: string;
@@ -454,23 +423,6 @@ export interface OutstandingBill {
   balanceAmount: number;
 }
 
-export interface PatientBillingHistory {
-  mrn: string;
-  patientName: string;
-  summary: {
-    totalBills: number;
-    totalPaid: number;
-    totalOutstanding: number;
-  };
-  bills: Array<{
-    billId: number;
-    billNumber: string;
-    billStatus: string;
-    paymentStatus: string;
-    amount: number;
-  }>;
-}
-
 export interface DailyReport {
   date: string;
   billSummary: {
@@ -499,7 +451,7 @@ export interface PaymentModeReport {
   totalCollection: number;
 }
 
-export interface BillAuditLog {
+interface BillAuditLog {
   id?: number;
   action: string;
   oldValue?: string;

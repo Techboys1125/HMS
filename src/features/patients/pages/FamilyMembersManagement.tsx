@@ -28,14 +28,6 @@ const RB = "'Roboto', system-ui, sans-serif";
 
 export type { FamilyMember } from "../types/family.types";
 
-export type LinkActivity = {
-  id: string;
-  date: string;
-  time: string;
-  activity: string;
-  status: "Completed" | "Pending" | "Updated";
-};
-
 function calculateAge(dob?: string, ageVal?: number): number {
   if (typeof ageVal === "number" && ageVal > 0) return ageVal;
   if (!dob) return 0;

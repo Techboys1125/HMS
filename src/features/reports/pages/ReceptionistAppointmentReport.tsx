@@ -88,17 +88,6 @@ function CircularProgress({
     </div>
   );
 }
-export interface ReceptionistDailyAppointmentRecord {
-  appointmentId: string;
-  patientName: string;
-  mrn: string;
-  mobileNumber: string;
-  appointmentTime: string;
-  visitType: string;
-  checkInTime?: string;
-  queueStatus?: string;
-  appointmentStatus: string;
-}
 
 function ReceptionistAppointmentReportScreen({
   onBack,

@@ -96,18 +96,6 @@ function CircularProgress({
     </div>
   );
 }
-export interface AccountantFinancialTransactionRecord {
-  invoiceId: string;
-  patientName: string;
-  mrn: string;
-  invoiceDate: string;
-  grandTotal: number;
-  amountPaid: number;
-  balance: number;
-  paymentMethod: string;
-  paymentStatus: string;
-  collectedBy: string;
-}
 
 export function AccountantReportsDashboardScreen({
   onOpenDailyRevenue,
@@ -197,7 +185,10 @@ export function AccountantReportsDashboardScreen({
 
   const filteredTransactions = useMemo(() => {
     const list = (dailyRevenue ?? []).map((item: DailyRevenuePoint) => ({
-      invoiceId: item.invoiceId || (item as unknown as Record<string, unknown>).id ? `INV-${(item as unknown as Record<string, unknown>).id}` : "INV-N/A",
+      invoiceId:
+        item.invoiceId || (item as unknown as Record<string, unknown>).id
+          ? `INV-${(item as unknown as Record<string, unknown>).id}`
+          : "INV-N/A",
       patientName: item.patientName || "N/A",
       mrn: item.mrn || "N/A",
       invoiceDate: item.invoiceDate || new Date().toISOString().slice(0, 10),
@@ -257,12 +248,22 @@ export function AccountantReportsDashboardScreen({
   }, [dailyRevenue, searchQuery, paymentStatusFilter, paymentMethodFilter]);
 
   const trendData = useMemo(() => {
-    const daysCount = trendRange === "Today" ? 1 : trendRange === "7 Days" ? 7 : trendRange === "30 Days" ? 30 : 90;
+    const daysCount =
+      trendRange === "Today"
+        ? 1
+        : trendRange === "7 Days"
+          ? 7
+          : trendRange === "30 Days"
+            ? 30
+            : 90;
     const result = [];
     for (let i = daysCount - 1; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      const dateStr = d.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
       const rev = Math.max(45000, 125000 + ((i * 14500) % 60000));
       result.push({
         date: dateStr,
@@ -304,7 +305,10 @@ export function AccountantReportsDashboardScreen({
     const totalBilledAmount = invoiceSummary?.totalBilledAmount || 185000;
     const totalPaidAmount = invoiceSummary?.totalPaidAmount || 185000;
     const totalOutstandingAmount = invoiceSummary?.totalOutstandingAmount || 0;
-    const collectionRate = totalInvoices > 0 ? Math.round((paidInvoices / totalInvoices) * 100) : 100;
+    const collectionRate =
+      totalInvoices > 0
+        ? Math.round((paidInvoices / totalInvoices) * 100)
+        : 100;
 
     return {
       totalInvoices,
@@ -632,13 +636,15 @@ export function AccountantReportsDashboardScreen({
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
                       <div className="text-[#0D47A1] font-bold">
-                        ${computedInvoiceSummary.totalPaidAmount.toLocaleString()}
+                        $
+                        {computedInvoiceSummary.totalPaidAmount.toLocaleString()}
                       </div>
                       <div className="text-[#64748B]">Collected</div>
                     </div>
                     <div>
                       <div className="text-[#009688] font-bold">
-                        ${computedInvoiceSummary.totalOutstandingAmount.toLocaleString()}
+                        $
+                        {computedInvoiceSummary.totalOutstandingAmount.toLocaleString()}
                       </div>
                       <div className="text-[#64748B]">Pending</div>
                     </div>
@@ -761,7 +767,8 @@ export function AccountantReportsDashboardScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    ${computedInvoiceSummary.totalOutstandingAmount.toLocaleString()}
+                    $
+                    {computedInvoiceSummary.totalOutstandingAmount.toLocaleString()}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
                     <span className="text-[#F59E0B] font-semibold">
@@ -771,7 +778,8 @@ export function AccountantReportsDashboardScreen({
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
                       <div className="text-[#F59E0B] font-bold">
-                        ${computedInvoiceSummary.totalOutstandingAmount.toLocaleString()}
+                        $
+                        {computedInvoiceSummary.totalOutstandingAmount.toLocaleString()}
                       </div>
                       <div className="text-[#64748B]">Outstanding</div>
                     </div>
@@ -981,11 +989,9 @@ export function AccountantReportsDashboardScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {paymentStatusData.map(
-                            (entry) => (
-                              <Cell key={entry.name} fill={entry.color} />
-                            ),
-                          )}
+                          {paymentStatusData.map((entry) => (
+                            <Cell key={entry.name} fill={entry.color} />
+                          ))}
                         </Pie>
                         <Tooltip
                           contentStyle={{
@@ -1356,7 +1362,8 @@ export function AccountantReportsDashboardScreen({
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Today's Revenue:</span>
                     <span className="font-bold text-[#0D47A1]">
-                      ${computedInvoiceSummary.totalBilledAmount.toLocaleString()}
+                      $
+                      {computedInvoiceSummary.totalBilledAmount.toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -1374,7 +1381,8 @@ export function AccountantReportsDashboardScreen({
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Pending Payments:</span>
                     <span className="font-bold text-[#F59E0B]">
-                      ${computedInvoiceSummary.totalOutstandingAmount.toLocaleString()}
+                      $
+                      {computedInvoiceSummary.totalOutstandingAmount.toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -1495,19 +1503,4 @@ export function AccountantReportsDashboardScreen({
       </div>
     </div>
   );
-}
-
-// â”€â”€â”€ ACCOUNTANT DAILY REVENUE REPORT SCREEN (ACCOUNTANT RBAC VERSION) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-export interface AccountantDailyRevenueRecord {
-  invoiceId: string;
-  patientName: string;
-  mrn: string;
-  invoiceDate: string;
-  paymentTime: string;
-  invoiceAmount: number;
-  amountPaid: number;
-  outstandingAmount: number;
-  paymentMethod: string;
-  paymentStatus: string;
-  collectedBy: string;
 }

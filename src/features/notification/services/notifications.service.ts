@@ -1,20 +1,3 @@
-import type {
-  NotificationRule,
-  NotificationRulePayload,
-  NotificationTemplate,
-  NotificationTemplatePayload,
-  NotificationPreferences,
-  NotificationPreferencesPayload,
-  NotificationPageResponse,
-  UnreadCountResponse,
-  NotificationDetailResponse,
-  TestNotificationResponse,
-  NotificationFailureRecord,
-  MarkReadResponse,
-  TestNotificationPayload,
-  InternalNotificationPayload,
-} from "../types/notifications.types";
-
 export {
   fetchNotificationRules,
   updateNotificationRule,
@@ -31,20 +14,3 @@ export {
   markAllNotificationsAsRead,
   deleteNotification,
 } from "../api/notification.api";
-
-export type {
-  NotificationRule,
-  NotificationRulePayload,
-  NotificationTemplate,
-  NotificationTemplatePayload,
-  NotificationPreferences,
-  NotificationPreferencesPayload,
-  NotificationPageResponse,
-  UnreadCountResponse,
-  NotificationDetailResponse,
-  TestNotificationResponse,
-  NotificationFailureRecord,
-  MarkReadResponse,
-  TestNotificationPayload,
-  InternalNotificationPayload,
-};

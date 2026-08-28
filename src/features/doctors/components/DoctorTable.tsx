@@ -16,7 +16,7 @@ import type {
 } from "../types/doctors.types";
 import { usePermissions } from "../../../permissions/usePermissions";
 import { PP, DOCTOR_TABLE_COLUMNS } from "../constants/doctors.constants";
-import UserAvatar from "../../../common/components/UserAvatar";
+import { UserAvatar } from "../../../common/components/UserAvatar";
 
 function getAvailabilityBadgeStyle(avail: DoctorAvailability) {
   switch (avail) {

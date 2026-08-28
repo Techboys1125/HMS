@@ -1319,18 +1319,5 @@ function AccountantRevenueReportScreen({
 }
 
 // â”€â”€â”€ ACCOUNTANT BILLING REPORT SCREEN (ACCOUNTANT RBAC VERSION) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-export interface AccountantBillingRecord {
-  invoiceId: string;
-  patientName: string;
-  mrn: string;
-  invoiceDate: string;
-  invoiceAmount: number;
-  amountPaid: number;
-  outstandingBalance: number;
-  paymentMethod: string;
-  paymentStatus: string;
-  invoiceStatus: string;
-  collectedBy: string;
-}
 
 export { AccountantRevenueReportScreen as AccountantDailyRevenueReportScreen };

@@ -1,12 +1,7 @@
-import type { ReactNode } from "react";
-
 export type DoctorAvailability =
   "Available Today" | "On Duty" | "On Call" | "On Leave" | "Out of Office";
 
 export type DoctorStatus = "Active" | "Inactive" | "On Leave" | "Suspended";
-
-export type RxStatus =
-  "Draft" | "Issued" | "Completed" | "Cancelled" | "Archived";
 
 export interface DoctorRecord {
   fullName?: string;
@@ -73,85 +68,7 @@ export interface DoctorPatient {
   complaint: string;
 }
 
-export interface WeeklySchedule {
-  day: string;
-  available: boolean;
-  startTime: string;
-  endTime: string;
-  slotDuration: string;
-}
-
-export interface DoctorTimeline {
-  by: ReactNode;
-  event: ReactNode;
-  time: string;
-  title: string;
-  desc: string;
-  icon: React.ElementType;
-  type: string;
-}
-
-export interface PrescriptionRecord {
-  id: string;
-  patientName: string;
-  mrn: string;
-  consultationId: string;
-  department: string;
-  consultationDate: string;
-  medicineCount: number;
-  followup: boolean;
-  followupDate?: string;
-  status: RxStatus;
-  doctorName: string;
-  diagnosis: string;
-  medicinesList: Array<{ name: string; dose: string; freq: string }>;
-}
-
-export interface EditableMedicine {
-  id: string;
-  name: string;
-  strength: string;
-  route: string;
-  dosage: string;
-  frequency: string;
-  duration: string;
-  quantity: string;
-  instructions: string;
-}
-
-export interface VitalSign {
-  label: string;
-  value: string;
-  unit: string;
-  Icon: React.ElementType;
-  status: string;
-  color: string;
-  normal: string;
-}
-
-export interface Medication {
-  id: number;
-  name: string;
-  dose: string;
-  freq: string;
-  route: string;
-  status: string;
-  refill: string;
-}
-
-export interface MedicineDetail {
-  id: string;
-  name: string;
-  strength: string;
-  route: string;
-  dosage: string;
-  frequency: string;
-  duration: string;
-  quantity: string;
-  instructions: string;
-}
-
-export interface ApiDepartmentRef {
+interface ApiDepartmentRef {
   departmentId: number;
   departmentName: string;
 }
@@ -187,7 +104,7 @@ export interface ApiScheduleExceptionItem {
   createdAt?: string;
 }
 
-export interface ApiScheduleExceptionCreator {
+interface ApiScheduleExceptionCreator {
   id: number;
   name: string;
 }
@@ -208,13 +125,8 @@ export type ExceptionType =
 
 export type ExceptionAction = "BLOCK_APPOINTMENTS";
 
-export type ExceptionStatus = "ACTIVE" | "CANCELLED" | "EXPIRED";
-
-export type SlotStatus =
-  "AVAILABLE" | "BOOKED" | "BREAK" | "BLOCKED" | "ON_LEAVE" | "OFF_DAY";
-
-export type ScheduleDayStatus =
-  "AVAILABLE" | "PARTIALLY_AVAILABLE" | "BLOCKED" | "OFF_DAY" | "ON_LEAVE";
+type ExceptionStatus =
+  "ACTIVE" | "INACTIVE" | "CANCELLED" | "PENDING" | "COMPLETED";
 
 export interface ApiScheduleBreak {
   id?: number;
@@ -243,7 +155,7 @@ export interface ApiWeeklyScheduleData {
   weeklySchedule: ApiWeeklyScheduleDay[];
 }
 
-export interface UpdateScheduleDayBreakPayload {
+interface UpdateScheduleDayBreakPayload {
   startTime: string;
   endTime: string;
   breakType: BreakType;
@@ -473,19 +385,6 @@ export interface DoctorQueueItem {
   patientsAhead?: number;
 }
 
-export interface DoctorQueueResponse {
-  success: boolean;
-  code: string;
-  message: string;
-  timestamp: string;
-  data: {
-    summary?: DoctorQueueSummary;
-    content?: DoctorQueueItem[];
-    page?: Record<string, unknown>;
-  };
-  errors: Record<string, unknown>;
-}
-
 export interface DoctorCallNextResponse {
   action: string;
   appointmentId: number;
@@ -512,9 +411,6 @@ export interface DoctorCallNextResponse {
   consultationEndTime?: string;
   version?: number;
 }
-
-export type CurrentPatient = DoctorQueueItem | null;
-export type NextPatient = DoctorQueueItem | null;
 
 export interface FinalizePrescriptionRequest {
   confirmation: boolean;

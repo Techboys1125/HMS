@@ -9,15 +9,3 @@ export interface PatientVitals {
   respiratoryRate?: string;
   bloodSugar?: string;
 }
-export interface EncounterVitalsPayload {
-  height?: number;
-  weight?: number;
-  temperature?: number;
-  systolicBp?: number;
-  diastolicBp?: number;
-  heartRate?: number;
-  respiratoryRate?: number;
-  spo2?: number;
-  bloodSugar?: number;
-  clinicalNotes?: string;
-}

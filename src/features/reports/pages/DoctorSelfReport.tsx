@@ -88,7 +88,7 @@ function CircularProgress({
     </div>
   );
 }
-export interface DoctorConsultationPerformanceRecord {
+interface DoctorConsultationPerformanceRecord {
   consultationId: string;
   patientName: string;
   mrn: string;

@@ -93,17 +93,6 @@ function CircularProgress({
   );
 }
 
-export interface DoctorDailyAppointmentRecord {
-  id: string;
-  patientName: string;
-  mrn: string;
-  appointmentDate: string;
-  appointmentTime: string;
-  visitType: string;
-  status: string;
-  consultationStatus: string;
-}
-
 export function DoctorDailyAppointmentReportScreen({
   onBack,
   onOpenPatientReport,

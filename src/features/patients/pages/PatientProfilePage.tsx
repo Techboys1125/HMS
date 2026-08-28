@@ -811,9 +811,9 @@ export function PatientProfilePage({
                   </span>
                   <div className="flex items-center gap-2 flex-wrap">
                     {allergiesList.length > 0 ? (
-                      allergiesList.map((a, idx) => (
+                      allergiesList.map((a) => (
                         <span
-                          key={idx}
+                          key={a}
                           className="px-3 py-1 rounded-full text-xs font-medium border flex items-center gap-1 bg-red-50 text-[#EF4444] border-red-100"
                         >
                           <AlertTriangle size={12} /> {a}
@@ -833,9 +833,9 @@ export function PatientProfilePage({
                   </span>
                   <div className="flex items-center gap-2 flex-wrap">
                     {conditionsList.length > 0 ? (
-                      conditionsList.map((c, idx) => (
+                      conditionsList.map((c) => (
                         <span
-                          key={idx}
+                          key={c}
                           className="px-3 py-1 rounded-full text-xs font-medium border bg-blue-50 text-[#0D47A1] border-blue-100"
                         >
                           {c}

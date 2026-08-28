@@ -1,5 +1,5 @@
 // ===== NURSE DASHBOARD TYPES =====
-export interface NurseDashboardSummary {
+interface NurseDashboardSummary {
   patientsAssignedToday: number;
   vitalsRecorded: number;
   waitingForVitals: number;
@@ -7,7 +7,7 @@ export interface NurseDashboardSummary {
   completedTasks: number;
 }
 
-export interface NurseDashboardProgress {
+interface NurseDashboardProgress {
   patientsGrowth: number;
   vitalsCompletion: number;
   doctorSupportRate: number;
@@ -20,7 +20,7 @@ export interface NurseDashboardData {
   generatedAt: string;
 }
 
-export interface NurseVitalsTrendHour {
+interface NurseVitalsTrendHour {
   hour: string;
   count: number;
 }
@@ -38,7 +38,7 @@ export interface NursePreparationStatus {
   totalPatients: number;
 }
 
-export interface NurseQueuePatient {
+interface NurseQueuePatient {
   queueStatus: string;
   status: string;
   vitalsRecorded: boolean;
@@ -73,7 +73,7 @@ export interface NurseDoctorAssistance {
   activeConsultations: number;
 }
 
-export interface NurseDepartmentBreakdown {
+interface NurseDepartmentBreakdown {
   department: string;
   patients: number;
 }
@@ -91,7 +91,7 @@ export interface NurseVitalsStatus {
   total: number;
 }
 
-export interface NursePerformanceDay {
+interface NursePerformanceDay {
   patientsAssisted: number;
   vitalsRecorded: number;
   patientsPrepared: number;
@@ -100,7 +100,7 @@ export interface NursePerformanceDay {
   completedTasks: number;
 }
 
-export interface NursePerformanceStatus {
+interface NursePerformanceStatus {
   patientsAssisted: string;
   vitalsRecorded: string;
   patientsPrepared: string;
@@ -116,31 +116,31 @@ export interface NursePerformance {
 }
 
 // ===== RECEPTION DASHBOARD TYPES =====
-export interface ReceptionRegistrations {
+interface ReceptionRegistrations {
   today: number;
   yesterday: number;
   change: number;
   changePercentage: number;
 }
 
-export interface ReceptionAppointments {
+interface ReceptionAppointments {
   today: number;
   completed: number;
   completionPercentage: number;
 }
 
-export interface ReceptionWaitingPatients {
+interface ReceptionWaitingPatients {
   count: number;
   averageWaitMinutes: number;
 }
 
-export interface ReceptionBillingPending {
+interface ReceptionBillingPending {
   count: number;
   yesterday: number;
   difference: number;
 }
 
-export interface ReceptionCheckedIn {
+interface ReceptionCheckedIn {
   count: number;
 }
 
@@ -153,7 +153,7 @@ export interface ReceptionSummaryData {
   checkedIn: ReceptionCheckedIn;
 }
 
-export interface ReceptionRegistrationTrendHour {
+interface ReceptionRegistrationTrendHour {
   hour: string;
   count: number;
 }
@@ -176,7 +176,7 @@ export interface ReceptionAppointmentStatus {
   noShow: number;
 }
 
-export interface ReceptionDepartmentPatient {
+interface ReceptionDepartmentPatient {
   departmentId: number;
   departmentName: string;
   patientCount: number;
@@ -195,7 +195,7 @@ export interface ReceptionRegistrationCategories {
   followUp: number;
 }
 
-export interface ReceptionPerformanceMetric {
+interface ReceptionPerformanceMetric {
   today: number;
   yesterday: number;
   status: string;
@@ -222,16 +222,6 @@ export interface AccountantTransaction {
   paymentMethod: string;
   status: string;
   generatedAt: string;
-}
-
-export interface AccountantPaymentMethodDist {
-  paymentMethod: string;
-  amount: number;
-}
-
-export interface AccountantHourlyRevenue {
-  hour: string;
-  amount: number;
 }
 
 export interface AccountantDashboardData {
@@ -301,10 +291,6 @@ export interface AdminAppointmentFlowPoint {
   completed: number;
 }
 
-export interface AdminAppointmentFlow {
-  flow: AdminAppointmentFlowPoint[];
-}
-
 export interface AdminDepartmentSummaryItem {
   departmentId: number;
   departmentName: string;
@@ -319,7 +305,7 @@ export interface AdminDepartments {
   departments: AdminDepartmentSummaryItem[];
 }
 
-export interface AdminDeptWorkloadItem {
+interface AdminDeptWorkloadItem {
   departmentName: string;
   avgWaitTimeMinutes: number;
   patientLoad: string;
@@ -441,7 +427,7 @@ export interface DoctorDashboardStatistics {
   averageConsultationTimeMinutes?: number;
 }
 
-export interface DoctorVitals {
+interface DoctorVitals {
   bp: string;
   pulse: string;
   temperature: string;
@@ -467,7 +453,7 @@ export interface DoctorNextPatient {
   appointmentTime: string;
 }
 
-export interface DoctorTimelineItem {
+interface DoctorTimelineItem {
   appointmentId: string;
   token: string;
   patientName: string;
@@ -495,7 +481,7 @@ export interface DoctorTodayAppointments {
   timeline: DoctorTimelineItem[];
 }
 
-export interface DoctorMeAppointment {
+interface DoctorMeAppointment {
   appointmentId: string;
   patientName: string;
   department: string;
@@ -508,7 +494,7 @@ export interface DoctorMeAppointments {
   list: DoctorMeAppointment[];
 }
 
-export interface DoctorQueueSummary {
+interface DoctorQueueSummary {
   waiting: number;
   consulting: number;
   completed: number;
@@ -516,14 +502,14 @@ export interface DoctorQueueSummary {
   nextToken: string | null;
 }
 
-export interface DoctorQueuePagination {
+interface DoctorQueuePagination {
   page: number;
   size: number;
   totalElements: number;
   totalPages: number;
 }
 
-export interface DoctorQueueItem {
+interface DoctorQueueItem {
   token: string;
   patientId: string;
   patientName: string;
@@ -595,7 +581,7 @@ export interface PatientDashboardData {
   recentBills: unknown[];
 }
 
-export interface PatientAppointmentItem {
+interface PatientAppointmentItem {
   appointmentId: string;
   appointmentNumber: string;
   date: string;
@@ -610,7 +596,7 @@ export interface PatientDashboardAppointments {
   nextVisit: unknown;
 }
 
-export interface PatientTimelineItem {
+interface PatientTimelineItem {
   time: string;
   appointmentId: string;
   doctorName: string;
@@ -621,7 +607,7 @@ export interface PatientTimelineItem {
   displayStatus: string;
 }
 
-export interface PatientTimelineNextVisit {
+interface PatientTimelineNextVisit {
   appointmentId: string;
   doctorName: string;
   appointmentDate: string;
@@ -719,7 +705,7 @@ export interface PatientBillWorkspace {
   }[];
 }
 
-export interface PatientNotificationItem {
+interface PatientNotificationItem {
   id: string;
   eventType: string;
   module: string;

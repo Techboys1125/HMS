@@ -7,7 +7,7 @@ export type QueueStatus =
   | "IN_CONSULTATION"
   | "COMPLETED";
 
-export interface QueuePatient {
+interface QueuePatient {
   name: string;
   mrn: string;
   age: number;
@@ -16,7 +16,7 @@ export interface QueuePatient {
   dateOfBirth?: string;
 }
 
-export interface QueueDoctor {
+interface QueueDoctor {
   doctorId: number;
   name: string;
   doctorCode: string;
@@ -52,18 +52,6 @@ export interface QueuePage {
   size: number;
   totalElements: number;
   page: number;
-}
-
-export interface QueueApiResponse {
-  success: boolean;
-  message: string;
-  timestamp: string;
-  data: {
-    summary: QueueSummary;
-    content: QueueItem[];
-    page: QueuePage;
-  };
-  errors: Record<string, unknown>;
 }
 
 export interface QueueListParams {

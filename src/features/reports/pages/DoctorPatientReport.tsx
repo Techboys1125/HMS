@@ -86,18 +86,6 @@ function CircularProgress({
     </div>
   );
 }
-export interface DoctorPatientRecord {
-  mrn: string;
-  patientName: string;
-  age: number;
-  gender: string;
-  mobileNumber: string;
-  lastConsultationDate: string;
-  visitType: string;
-  diagnosis: string;
-  followUpDate: string;
-  status: string;
-}
 
 export function DoctorPatientReportScreen({
   onBack,
@@ -148,7 +136,11 @@ export function DoctorPatientReportScreen({
   const doctorPatientSource = useMemo(() => {
     const rawList = registerData?.content || [];
     const list = rawList.map((item) => ({
-      mrn: item.mrn ? (String(item.mrn).startsWith("MRN-") ? String(item.mrn) : `MRN-${item.mrn}`) : "MRN-1001",
+      mrn: item.mrn
+        ? String(item.mrn).startsWith("MRN-")
+          ? String(item.mrn)
+          : `MRN-${item.mrn}`
+        : "MRN-1001",
       patientName: item.patientName || "N/A",
       age: 30,
       gender: "Male",
@@ -206,12 +198,16 @@ export function DoctorPatientReportScreen({
   }, [doctorPatientSource, searchQuery, visitTypeFilter]);
 
   const trendData = useMemo(() => {
-    const daysCount = trendDays === "7 Days" ? 7 : trendDays === "30 Days" ? 30 : 90;
+    const daysCount =
+      trendDays === "7 Days" ? 7 : trendDays === "30 Days" ? 30 : 90;
     const result = [];
     for (let i = daysCount - 1; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      const dateStr = d.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
       result.push({
         date: dateStr,
         newReg: Math.max(1, 4 + ((i * 2) % 5)),
@@ -222,7 +218,9 @@ export function DoctorPatientReportScreen({
   }, [trendDays]);
 
   const genderData = useMemo(() => {
-    let male = 0, female = 0, other = 0;
+    let male = 0,
+      female = 0,
+      other = 0;
     filteredPatients.forEach((p) => {
       const g = (p.gender || "").toLowerCase();
       if (g === "male") male++;
@@ -868,11 +866,9 @@ export function DoctorPatientReportScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {genderData.map(
-                            (entry) => (
-                              <Cell key={entry.name} fill={entry.color} />
-                            ),
-                          )}
+                          {genderData.map((entry) => (
+                            <Cell key={entry.name} fill={entry.color} />
+                          ))}
                         </Pie>
                         <Tooltip
                           contentStyle={{

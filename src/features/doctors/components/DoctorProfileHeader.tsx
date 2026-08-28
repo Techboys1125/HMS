@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import type { DoctorRecord, DoctorAvailability } from "../types/doctors.types";
 import { PP, RB } from "../constants/doctors.constants";
-import UserAvatar from "../../../common/components/UserAvatar";
+import { UserAvatar } from "../../../common/components/UserAvatar";
 
 export interface DoctorProfileHeaderProps {
   doctor: DoctorRecord;

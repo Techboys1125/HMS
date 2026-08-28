@@ -1,6 +1,6 @@
 import { ALL_ROLES } from "../constants/notifications.constants";
 
-export type NotificationRoleKey = (typeof ALL_ROLES)[number];
+type NotificationRoleKey = (typeof ALL_ROLES)[number];
 
 export interface NotificationPermission {
   canView: boolean;

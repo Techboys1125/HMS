@@ -4,11 +4,6 @@ import type { AppPermission } from "../../../permissions/types";
 export const PP = "Poppins, sans-serif";
 export const RB = "Roboto, sans-serif";
 
-export interface WeeklyConsultation {
-  day: string;
-  count: number;
-}
-
 export interface DoctorTableColumn {
   key?: keyof DoctorRecord;
   label: string;

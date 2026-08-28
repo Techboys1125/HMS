@@ -39,7 +39,7 @@ import {
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
 
-export interface AccountantKpiMeta {
+interface AccountantKpiMeta {
   title?: string;
   description?: string;
   currentValue?: string;

@@ -754,7 +754,9 @@ export function AppointmentDetailsDrawer({
           setApiTimelineEvents([]);
         }
       } finally {
-        setIsLoadingTimeline(false);
+        if (!cancelled) {
+          setIsLoadingTimeline(false);
+        }
       }
     }
 

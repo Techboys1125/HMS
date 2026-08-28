@@ -583,20 +583,6 @@ export interface AccountantMainReportData {
   }>;
 }
 
-export interface AccountantBillingAnalysisData {
-  fromDate: string;
-  toDate: string;
-  totalBilledAmount: number;
-  totalBills: number;
-  breakdown: Array<{
-    billingType: string;
-    grossAmount: number;
-    discountAmount: number;
-    netAmount: number;
-    count: number;
-  }>;
-}
-
 interface AccountantPaymentMethodItem {
   paymentMethod: string;
   totalAmount: number;
@@ -627,20 +613,6 @@ export interface AccountantRefundLogData {
   totalRefundedAmount: number;
   totalRefundedBills: number;
   refunds: AccountantRefundItem[];
-}
-
-interface AccountantRevenueDataPoint {
-  label: string;
-  amount: number;
-  invoiceCount: number;
-}
-
-export interface AccountantRevenueReportData {
-  fromDate: string;
-  toDate: string;
-  groupBy: string;
-  totalRevenue: number;
-  dataPoints: AccountantRevenueDataPoint[];
 }
 
 interface AccountantTransactionItem {

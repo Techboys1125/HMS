@@ -365,7 +365,7 @@ export function StartConsultationPage({
                   existingMeds = JSON.parse(rawCached);
                 }
               }
-              if (existingMeds.length > 0) {
+              if (existingMeds.length > 0 && isMounted) {
                 setFormData((prev) => ({
                   ...prev,
                   medicines: existingMeds,
