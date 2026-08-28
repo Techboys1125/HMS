@@ -693,5 +693,3 @@ export function BillingConfigurationForm({
     </div>
   );
 }
-
-export default BillingConfigurationForm;

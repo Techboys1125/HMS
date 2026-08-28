@@ -47,9 +47,8 @@ type CallNextResult = Partial<DoctorCallNextResponse> & {
 };
 
 import { mapApiUserToDoctorRecord } from "./mapApiUserToDoctorRecord";
-export { mapApiUserToDoctorRecord };
 
-export const mapDoctorSummaryToDoctorRecord = (u: unknown): DoctorRecord => {
+const mapDoctorSummaryToDoctorRecord = (u: unknown): DoctorRecord => {
   const userObj = (u && typeof u === "object" ? u : {}) as Record<
     string,
     unknown

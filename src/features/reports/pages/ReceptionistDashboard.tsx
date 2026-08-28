@@ -96,7 +96,7 @@ function CircularProgress({
     </div>
   );
 }
-export interface ReceptionistActivityRecord {
+interface ReceptionistActivityRecord {
   mrn: string;
   patientName: string;
   appointmentId: string;
@@ -455,12 +455,16 @@ const ReceptionDashboardContent = ({
   onOpenPatientReport,
 }: ReceptionDashboardContentProps) => {
   const regTrendData = useMemo(() => {
-    const daysCount = trendDays === "7 Days" ? 7 : trendDays === "30 Days" ? 30 : 90;
+    const daysCount =
+      trendDays === "7 Days" ? 7 : trendDays === "30 Days" ? 30 : 90;
     const result = [];
     for (let i = daysCount - 1; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      const dateStr = d.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
       result.push({
         date: dateStr,
         newReg: Math.max(1, 4 + ((i * 3) % 5)),
@@ -497,790 +501,800 @@ const ReceptionDashboardContent = ({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-    {/* LEFT MAIN CONTENT AREA (3 Cols) */}
-    <div className="lg:col-span-3 space-y-6">
-      {/* TOP 6 RECEPTIONIST KPI CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Card 1: Today's Registrations */}
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={() => navigate(ROUTES.PATIENTS)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              navigate(ROUTES.PATIENTS);
-            }
-          }}
-          className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#0D47A1] transition">
-              Today's Registrations
-            </span>
-            <div className="p-2 rounded-xl bg-blue-50 text-[#0D47A1]">
-              <Users className="w-4 h-4" />
-            </div>
-          </div>
+      {/* LEFT MAIN CONTENT AREA (3 Cols) */}
+      <div className="lg:col-span-3 space-y-6">
+        {/* TOP 6 RECEPTIONIST KPI CARDS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Card 1: Today's Registrations */}
           <div
-            className="text-2xl font-bold text-[#111827] mb-1"
-            style={{ fontFamily: PP }}
+            role="button"
+            tabIndex={0}
+            onClick={() => navigate(ROUTES.PATIENTS)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                navigate(ROUTES.PATIENTS);
+              }
+            }}
+            className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
           >
-            {kpi.todayRegistrations}
-          </div>
-          <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
-            <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5">
-              <TrendingUp className="w-3 h-3" /> --
-            </span>
-            <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
-              View Detail <ChevronRight className="w-3 h-3" />
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-            <div>
-              <div className="text-[#0D47A1] font-bold">0</div>
-              <div className="text-[#64748B]">New Reg</div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#0D47A1] transition">
+                Today's Registrations
+              </span>
+              <div className="p-2 rounded-xl bg-blue-50 text-[#0D47A1]">
+                <Users className="w-4 h-4" />
+              </div>
             </div>
-            <div>
-              <div className="text-[#009688] font-bold">0</div>
-              <div className="text-[#64748B]">Returning</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 2: Today's Appointments */}
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={() => navigate(ROUTES.APPOINTMENTS)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              navigate(ROUTES.APPOINTMENTS);
-            }
-          }}
-          className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#009688] transition">
-              Today's Appointments
-            </span>
-            <div className="p-2 rounded-xl bg-teal-50 text-[#009688]">
-              <Calendar className="w-4 h-4" />
-            </div>
-          </div>
-          <div
-            className="text-2xl font-bold text-[#111827] mb-1"
-            style={{ fontFamily: PP }}
-          >
-            {kpi.todayAppointments}
-          </div>
-          <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
-            <span className="text-[#009688] font-semibold">
-              0 Completed Today
-            </span>
-            <span className="text-[#009688] font-semibold flex items-center gap-0.5 group-hover:underline">
-              View Detail <ChevronRight className="w-3 h-3" />
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-            <div>
-              <div className="text-[#0D47A1] font-bold">0</div>
-              <div className="text-[#64748B]">Booked</div>
-            </div>
-            <div>
-              <div className="text-[#66BB6A] font-bold">0</div>
-              <div className="text-[#64748B]">Completed</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 3: Checked-In Patients */}
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={() => navigate(ROUTES.QUEUE)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              navigate(ROUTES.QUEUE);
-            }
-          }}
-          className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#66BB6A] transition">
-              Checked-In Patients
-            </span>
-            <div className="p-2 rounded-xl bg-emerald-50 text-[#66BB6A]">
-              <UserCheck className="w-4 h-4" />
-            </div>
-          </div>
-          <div
-            className="text-2xl font-bold text-[#111827] mb-1"
-            style={{ fontFamily: PP }}
-          >
-            {kpi.checkedInPatients}
-          </div>
-          <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
-            <span className="text-[#66BB6A] font-semibold">
-              -- Check-in Rate
-            </span>
-            <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5 group-hover:underline">
-              View Detail <ChevronRight className="w-3 h-3" />
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-            <div>
-              <div className="text-[#66BB6A] font-bold">0</div>
-              <div className="text-[#64748B]">Checked In</div>
-            </div>
-            <div>
-              <div className="text-[#F59E0B] font-bold">0</div>
-              <div className="text-[#64748B]">Waiting</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 4: Reception Queue */}
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-[#64748B]">
-              Reception Queue
-            </span>
-            <div className="p-2 rounded-xl bg-amber-50 text-[#F59E0B]">
-              <Activity className="w-4 h-4" />
-            </div>
-          </div>
-          <div
-            className="text-2xl font-bold text-[#111827] mb-1"
-            style={{ fontFamily: PP }}
-          >
-            {kpi.receptionQueue}
-          </div>
-          <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
-            <span className="text-[#F59E0B] font-semibold">
-              Patients Waiting
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-            <div>
-              <div className="text-[#F59E0B] font-bold">0</div>
-              <div className="text-[#64748B]">Waiting</div>
-            </div>
-            <div>
-              <div className="text-[#0D47A1] font-bold">--</div>
-              <div className="text-[#64748B]">Avg Queue</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 5: Completed Check-Ins */}
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-[#64748B]">
-              Completed Check-Ins
-            </span>
-            <div className="p-2 rounded-xl bg-[#0D47A1]/10 text-[#0D47A1]">
-              <CheckCircle2 className="w-4 h-4" />
-            </div>
-          </div>
-          <div
-            className="text-2xl font-bold text-[#111827] mb-1"
-            style={{ fontFamily: PP }}
-          >
-            {kpi.completedCheckIns}
-          </div>
-          <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
-            <span className="text-[#0D47A1] font-semibold">
-              -- Completion Rate
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-            <div>
-              <div className="text-[#66BB6A] font-bold">0</div>
-              <div className="text-[#64748B]">Done</div>
-            </div>
-            <div>
-              <div className="text-[#0D47A1] font-bold">--</div>
-              <div className="text-[#64748B]">Rate</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 6: Average Waiting Time */}
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-[#64748B]">
-              Average Waiting Time
-            </span>
             <div
-              className="text-2xl font-bold text-[#111827] mt-1"
+              className="text-2xl font-bold text-[#111827] mb-1"
               style={{ fontFamily: PP }}
             >
-              {kpi.avgWaitingTime}
+              {kpi.todayRegistrations}
             </div>
-            <p className="text-[11px] text-[#64748B] mt-1">Longest Today: --</p>
-            <div className="mt-2 text-[11px] font-semibold text-[#66BB6A]">
-              Target Met
+            <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
+              <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5">
+                <TrendingUp className="w-3 h-3" /> --
+              </span>
+              <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
+                View Detail <ChevronRight className="w-3 h-3" />
+              </span>
             </div>
-          </div>
-          <CircularProgress percentage={89} size={64} strokeWidth={7} />
-        </div>
-      </div>
-
-      {/* PATIENT REGISTRATION TREND & APPOINTMENT STATUS DONUT */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Patient Registration Trend Area Chart */}
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-            <div>
-              <h3
-                className="text-sm font-bold text-[#111827]"
-                style={{ fontFamily: PP }}
-              >
-                Patient Registration Trend
-              </h3>
-              <p className="text-[11px] text-[#64748B]">
-                New vs returning vs walk-in patient intake
-              </p>
-            </div>
-
-            <div className="flex items-center gap-1 bg-[#F1F5F9] p-1 rounded-xl border border-[#E5E7EB] text-[10px]">
-              {(["7 Days", "30 Days", "90 Days"] as const).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setTrendDays(t)}
-                  className={`px-2 py-0.5 rounded-lg font-medium transition ${trendDays === t ? "bg-[#0D47A1] text-white shadow-sm" : "text-[#64748B]"}`}
-                >
-                  {t}
-                </button>
-              ))}
+            <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+              <div>
+                <div className="text-[#0D47A1] font-bold">0</div>
+                <div className="text-[#64748B]">New Reg</div>
+              </div>
+              <div>
+                <div className="text-[#009688] font-bold">0</div>
+                <div className="text-[#64748B]">Returning</div>
+              </div>
             </div>
           </div>
 
-          <div className="h-60">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart
-                data={regTrendData}
-                margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
-              >
-                <defs>
-                  <linearGradient id="recNewGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#0D47A1" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#0D47A1" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="recRetGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#009688" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#009688" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                <XAxis
-                  dataKey="date"
-                  tick={{ fontSize: 10, fill: "#64748B" }}
-                />
-                <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#FFFFFF",
-                    borderRadius: "12px",
-                    borderColor: "#E5E7EB",
-                    fontSize: "11px",
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="newReg"
-                  name="New Registrations"
-                  stroke="#0D47A1"
-                  fillOpacity={1}
-                  fill="url(#recNewGrad)"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="returning"
-                  name="Returning Patients"
-                  stroke="#009688"
-                  fillOpacity={1}
-                  fill="url(#recRetGrad)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Appointment Status Distribution Donut Chart */}
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3
-                className="text-sm font-bold text-[#111827]"
-                style={{ fontFamily: PP }}
-              >
-                Appointment Status Distribution
-              </h3>
-              <p className="text-[11px] text-[#64748B]">
-                Distribution of booked, checked-in & queue status
-              </p>
-            </div>
-            <PieChartIcon className="w-4 h-4 text-[#009688]" />
-          </div>
-          <div className="h-60">
-            <ResponsiveContainer width="100%" height="100%">
-              <RechartsPie>
-                <Pie
-                  data={apptStatusData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={45}
-                  outerRadius={75}
-                  paddingAngle={3}
-                  dataKey="value"
-                >
-                  {apptStatusData.map((entry) => (
-                    <Cell
-                      key={entry.name}
-                      fill={entry.color}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#FFFFFF",
-                    borderRadius: "12px",
-                    borderColor: "#E5E7EB",
-                    fontSize: "11px",
-                  }}
-                />
-                <Legend
-                  layout="horizontal"
-                  verticalAlign="bottom"
-                  align="center"
-                  wrapperStyle={{
-                    fontSize: "10px",
-                    paddingTop: "10px",
-                  }}
-                />
-              </RechartsPie>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      {/* CHECK-IN ANALYTICS & QUEUE PERFORMANCE CHARTS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Check-In Analytics Vertical Bar Chart */}
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3
-                className="text-sm font-bold text-[#111827]"
-                style={{ fontFamily: PP }}
-              >
-                Check-In Analytics
-              </h3>
-              <p className="text-[11px] text-[#64748B]">
-                Patients checked-in grouped by time slot
-              </p>
-            </div>
-            <UserCheck className="w-4 h-4 text-[#0D47A1]" />
-          </div>
-          <div className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={checkInAnalyticsData}
-                margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                <XAxis dataKey="slot" tick={{ fontSize: 9, fill: "#64748B" }} />
-                <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#FFFFFF",
-                    borderRadius: "12px",
-                    borderColor: "#E5E7EB",
-                    fontSize: "11px",
-                  }}
-                />
-                <Bar
-                  dataKey="count"
-                  name="Patients Checked-In"
-                  fill="#0D47A1"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Queue Performance Horizontal Bar Chart */}
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3
-                className="text-sm font-bold text-[#111827]"
-                style={{ fontFamily: PP }}
-              >
-                Queue Performance
-              </h3>
-              <p className="text-[11px] text-[#64748B]">
-                Waiting patients vs completed reception queue
-              </p>
-            </div>
-            <Activity className="w-4 h-4 text-[#009688]" />
-          </div>
-          <div className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                layout="vertical"
-                data={queuePerformanceData}
-                margin={{ top: 5, right: 10, left: 45, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                <XAxis type="number" tick={{ fontSize: 10, fill: "#64748B" }} />
-                <YAxis
-                  type="category"
-                  dataKey="queue"
-                  tick={{ fontSize: 9, fill: "#111827" }}
-                  width={130}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#FFFFFF",
-                    borderRadius: "12px",
-                    borderColor: "#E5E7EB",
-                    fontSize: "11px",
-                  }}
-                />
-                <Bar
-                  dataKey="count"
-                  name="Count / Minutes"
-                  fill="#009688"
-                  radius={[0, 4, 4, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      {/* RECENT RECEPTION ACTIVITIES ENTERPRISE DATA TABLE */}
-      <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h3
-              className="text-base font-bold text-[#111827]"
-              style={{ fontFamily: PP }}
-            >
-              Recent Reception Register
-            </h3>
-            <p className="text-xs text-[#64748B]">
-              Live reception patient check-in and queue register
-            </p>
-          </div>
-          <button
-            onClick={() => alert("Exporting Reception Register (CSV)...")}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] text-xs font-semibold text-[#111827] rounded-xl hover:bg-slate-100 transition"
+          {/* Card 2: Today's Appointments */}
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => navigate(ROUTES.APPOINTMENTS)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                navigate(ROUTES.APPOINTMENTS);
+              }
+            }}
+            className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
           >
-            <Download className="w-3.5 h-3.5 text-[#0D47A1]" />
-            <span>Export Register</span>
-          </button>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#009688] transition">
+                Today's Appointments
+              </span>
+              <div className="p-2 rounded-xl bg-teal-50 text-[#009688]">
+                <Calendar className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              {kpi.todayAppointments}
+            </div>
+            <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
+              <span className="text-[#009688] font-semibold">
+                0 Completed Today
+              </span>
+              <span className="text-[#009688] font-semibold flex items-center gap-0.5 group-hover:underline">
+                View Detail <ChevronRight className="w-3 h-3" />
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+              <div>
+                <div className="text-[#0D47A1] font-bold">0</div>
+                <div className="text-[#64748B]">Booked</div>
+              </div>
+              <div>
+                <div className="text-[#66BB6A] font-bold">0</div>
+                <div className="text-[#64748B]">Completed</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: Checked-In Patients */}
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => navigate(ROUTES.QUEUE)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                navigate(ROUTES.QUEUE);
+              }
+            }}
+            className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#66BB6A] transition">
+                Checked-In Patients
+              </span>
+              <div className="p-2 rounded-xl bg-emerald-50 text-[#66BB6A]">
+                <UserCheck className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              {kpi.checkedInPatients}
+            </div>
+            <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
+              <span className="text-[#66BB6A] font-semibold">
+                -- Check-in Rate
+              </span>
+              <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5 group-hover:underline">
+                View Detail <ChevronRight className="w-3 h-3" />
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+              <div>
+                <div className="text-[#66BB6A] font-bold">0</div>
+                <div className="text-[#64748B]">Checked In</div>
+              </div>
+              <div>
+                <div className="text-[#F59E0B] font-bold">0</div>
+                <div className="text-[#64748B]">Waiting</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 4: Reception Queue */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Reception Queue
+              </span>
+              <div className="p-2 rounded-xl bg-amber-50 text-[#F59E0B]">
+                <Activity className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              {kpi.receptionQueue}
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
+              <span className="text-[#F59E0B] font-semibold">
+                Patients Waiting
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+              <div>
+                <div className="text-[#F59E0B] font-bold">0</div>
+                <div className="text-[#64748B]">Waiting</div>
+              </div>
+              <div>
+                <div className="text-[#0D47A1] font-bold">--</div>
+                <div className="text-[#64748B]">Avg Queue</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 5: Completed Check-Ins */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Completed Check-Ins
+              </span>
+              <div className="p-2 rounded-xl bg-[#0D47A1]/10 text-[#0D47A1]">
+                <CheckCircle2 className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              {kpi.completedCheckIns}
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
+              <span className="text-[#0D47A1] font-semibold">
+                -- Completion Rate
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+              <div>
+                <div className="text-[#66BB6A] font-bold">0</div>
+                <div className="text-[#64748B]">Done</div>
+              </div>
+              <div>
+                <div className="text-[#0D47A1] font-bold">--</div>
+                <div className="text-[#64748B]">Rate</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 6: Average Waiting Time */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
+            <div>
+              <span className="text-xs font-semibold text-[#64748B]">
+                Average Waiting Time
+              </span>
+              <div
+                className="text-2xl font-bold text-[#111827] mt-1"
+                style={{ fontFamily: PP }}
+              >
+                {kpi.avgWaitingTime}
+              </div>
+              <p className="text-[11px] text-[#64748B] mt-1">
+                Longest Today: --
+              </p>
+              <div className="mt-2 text-[11px] font-semibold text-[#66BB6A]">
+                Target Met
+              </div>
+            </div>
+            <CircularProgress percentage={89} size={64} strokeWidth={7} />
+          </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-[#F1F5F9] text-[11px] font-bold text-[#64748B] uppercase tracking-wider border-b border-[#E5E7EB]">
-                <th className="py-3.5 px-4">MRN</th>
-                <th className="py-3.5 px-4">Patient Name</th>
-                <th className="py-3.5 px-4">Appointment ID</th>
-                <th className="py-3.5 px-4">Visit Type</th>
-                <th className="py-3.5 px-4">Reg Time</th>
-                <th className="py-3.5 px-4">Check-In Time</th>
-                <th className="py-3.5 px-4">Queue Status</th>
-                <th className="py-3.5 px-4 text-center">Appt Status</th>
-                <th className="py-3.5 px-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#E5E7EB] text-xs">
-              {filteredActivities.length === 0 ? (
-                <tr>
-                  <td colSpan={9} className="py-8 text-center text-[#64748B]">
-                    No reception records match your search or filter criteria.
-                  </td>
-                </tr>
-              ) : (
-                filteredActivities.map((item) => (
-                  <tr
-                    key={item.mrn}
-                    className="hover:bg-slate-50 transition-colors"
+        {/* PATIENT REGISTRATION TREND & APPOINTMENT STATUS DONUT */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Patient Registration Trend Area Chart */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+              <div>
+                <h3
+                  className="text-sm font-bold text-[#111827]"
+                  style={{ fontFamily: PP }}
+                >
+                  Patient Registration Trend
+                </h3>
+                <p className="text-[11px] text-[#64748B]">
+                  New vs returning vs walk-in patient intake
+                </p>
+              </div>
+
+              <div className="flex items-center gap-1 bg-[#F1F5F9] p-1 rounded-xl border border-[#E5E7EB] text-[10px]">
+                {(["7 Days", "30 Days", "90 Days"] as const).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setTrendDays(t)}
+                    className={`px-2 py-0.5 rounded-lg font-medium transition ${trendDays === t ? "bg-[#0D47A1] text-white shadow-sm" : "text-[#64748B]"}`}
                   >
-                    <td className="py-3.5 px-4 font-mono font-bold text-[#0D47A1]">
-                      {item.mrn}
-                    </td>
-                    <td className="py-3.5 px-4 font-bold text-[#111827]">
-                      {item.patientName}
-                    </td>
-                    <td className="py-3.5 px-4 font-semibold text-[#0D47A1]">
-                      {item.appointmentId}
-                    </td>
-                    <td className="py-3.5 px-4 font-medium text-[#111827]">
-                      {item.visitType}
-                    </td>
-                    <td className="py-3.5 px-4 text-[#64748B]">
-                      {item.registrationTime}
-                    </td>
-                    <td className="py-3.5 px-4 text-[#111827] font-semibold">
-                      {item.checkInTime}
-                    </td>
-                    <td className="py-3.5 px-4 text-[#009688] font-medium">
-                      {item.queueStatus}
-                    </td>
-                    <td className="py-3.5 px-4 text-center">
-                      <span
-                        className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${item.appointmentStatus === "Completed" ? "bg-teal-50 text-[#009688] border border-teal-200" : item.appointmentStatus === "In Progress" ? "bg-amber-50 text-[#F59E0B] border border-amber-200" : "bg-slate-100 text-[#64748B]"}`}
-                      >
-                        {item.appointmentStatus}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() =>
-                            alert(`Viewing patient ${item.patientName}`)
-                          }
-                          className="p-1.5 text-[#0D47A1] hover:bg-blue-50 rounded-lg transition"
-                          title="View Patient"
-                        >
-                          <Users className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() =>
-                            alert(`Viewing appointment ${item.appointmentId}`)
-                          }
-                          className="p-1.5 text-[#009688] hover:bg-teal-50 rounded-lg transition"
-                          title="View Appointment"
-                        >
-                          <Calendar className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() =>
-                            alert(`Printing summary for ${item.mrn}`)
-                          }
-                          className="p-1.5 text-[#64748B] hover:bg-slate-100 rounded-lg transition"
-                          title="Print Summary"
-                        >
-                          <Printer className="w-4 h-4" />
-                        </button>
-                      </div>
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="h-60">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={regTrendData}
+                  margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="recNewGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#0D47A1" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#0D47A1" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="recRetGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#009688" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#009688" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fontSize: 10, fill: "#64748B" }}
+                  />
+                  <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#FFFFFF",
+                      borderRadius: "12px",
+                      borderColor: "#E5E7EB",
+                      fontSize: "11px",
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="newReg"
+                    name="New Registrations"
+                    stroke="#0D47A1"
+                    fillOpacity={1}
+                    fill="url(#recNewGrad)"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="returning"
+                    name="Returning Patients"
+                    stroke="#009688"
+                    fillOpacity={1}
+                    fill="url(#recRetGrad)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Appointment Status Distribution Donut Chart */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3
+                  className="text-sm font-bold text-[#111827]"
+                  style={{ fontFamily: PP }}
+                >
+                  Appointment Status Distribution
+                </h3>
+                <p className="text-[11px] text-[#64748B]">
+                  Distribution of booked, checked-in & queue status
+                </p>
+              </div>
+              <PieChartIcon className="w-4 h-4 text-[#009688]" />
+            </div>
+            <div className="h-60">
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsPie>
+                  <Pie
+                    data={apptStatusData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={45}
+                    outerRadius={75}
+                    paddingAngle={3}
+                    dataKey="value"
+                  >
+                    {apptStatusData.map((entry) => (
+                      <Cell key={entry.name} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#FFFFFF",
+                      borderRadius: "12px",
+                      borderColor: "#E5E7EB",
+                      fontSize: "11px",
+                    }}
+                  />
+                  <Legend
+                    layout="horizontal"
+                    verticalAlign="bottom"
+                    align="center"
+                    wrapperStyle={{
+                      fontSize: "10px",
+                      paddingTop: "10px",
+                    }}
+                  />
+                </RechartsPie>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* CHECK-IN ANALYTICS & QUEUE PERFORMANCE CHARTS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Check-In Analytics Vertical Bar Chart */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3
+                  className="text-sm font-bold text-[#111827]"
+                  style={{ fontFamily: PP }}
+                >
+                  Check-In Analytics
+                </h3>
+                <p className="text-[11px] text-[#64748B]">
+                  Patients checked-in grouped by time slot
+                </p>
+              </div>
+              <UserCheck className="w-4 h-4 text-[#0D47A1]" />
+            </div>
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={checkInAnalyticsData}
+                  margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                  <XAxis
+                    dataKey="slot"
+                    tick={{ fontSize: 9, fill: "#64748B" }}
+                  />
+                  <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#FFFFFF",
+                      borderRadius: "12px",
+                      borderColor: "#E5E7EB",
+                      fontSize: "11px",
+                    }}
+                  />
+                  <Bar
+                    dataKey="count"
+                    name="Patients Checked-In"
+                    fill="#0D47A1"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Queue Performance Horizontal Bar Chart */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3
+                  className="text-sm font-bold text-[#111827]"
+                  style={{ fontFamily: PP }}
+                >
+                  Queue Performance
+                </h3>
+                <p className="text-[11px] text-[#64748B]">
+                  Waiting patients vs completed reception queue
+                </p>
+              </div>
+              <Activity className="w-4 h-4 text-[#009688]" />
+            </div>
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  layout="vertical"
+                  data={queuePerformanceData}
+                  margin={{ top: 5, right: 10, left: 45, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                  <XAxis
+                    type="number"
+                    tick={{ fontSize: 10, fill: "#64748B" }}
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="queue"
+                    tick={{ fontSize: 9, fill: "#111827" }}
+                    width={130}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#FFFFFF",
+                      borderRadius: "12px",
+                      borderColor: "#E5E7EB",
+                      fontSize: "11px",
+                    }}
+                  />
+                  <Bar
+                    dataKey="count"
+                    name="Count / Minutes"
+                    fill="#009688"
+                    radius={[0, 4, 4, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* RECENT RECEPTION ACTIVITIES ENTERPRISE DATA TABLE */}
+        <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
+          <div className="p-5 border-b border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h3
+                className="text-base font-bold text-[#111827]"
+                style={{ fontFamily: PP }}
+              >
+                Recent Reception Register
+              </h3>
+              <p className="text-xs text-[#64748B]">
+                Live reception patient check-in and queue register
+              </p>
+            </div>
+            <button
+              onClick={() => alert("Exporting Reception Register (CSV)...")}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] text-xs font-semibold text-[#111827] rounded-xl hover:bg-slate-100 transition"
+            >
+              <Download className="w-3.5 h-3.5 text-[#0D47A1]" />
+              <span>Export Register</span>
+            </button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-[#F1F5F9] text-[11px] font-bold text-[#64748B] uppercase tracking-wider border-b border-[#E5E7EB]">
+                  <th className="py-3.5 px-4">MRN</th>
+                  <th className="py-3.5 px-4">Patient Name</th>
+                  <th className="py-3.5 px-4">Appointment ID</th>
+                  <th className="py-3.5 px-4">Visit Type</th>
+                  <th className="py-3.5 px-4">Reg Time</th>
+                  <th className="py-3.5 px-4">Check-In Time</th>
+                  <th className="py-3.5 px-4">Queue Status</th>
+                  <th className="py-3.5 px-4 text-center">Appt Status</th>
+                  <th className="py-3.5 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#E5E7EB] text-xs">
+                {filteredActivities.length === 0 ? (
+                  <tr>
+                    <td colSpan={9} className="py-8 text-center text-[#64748B]">
+                      No reception records match your search or filter criteria.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Table Pagination */}
-        <div className="p-4 bg-[#F1F5F9] border-t border-[#E5E7EB] flex items-center justify-between text-xs text-[#64748B]">
-          <span>
-            Showing 1 to {filteredActivities.length} of{" "}
-            {filteredActivities.length} entries
-          </span>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              aria-label="Previous page"
-              disabled
-              className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <span className="font-semibold text-[#111827]">Page 1 of 1</span>
-            <button
-              type="button"
-              aria-label="Next page"
-              disabled
-              className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
-            >
-              <ChevronRightIcon className="w-4 h-4" />
-            </button>
+                ) : (
+                  filteredActivities.map((item) => (
+                    <tr
+                      key={item.mrn}
+                      className="hover:bg-slate-50 transition-colors"
+                    >
+                      <td className="py-3.5 px-4 font-mono font-bold text-[#0D47A1]">
+                        {item.mrn}
+                      </td>
+                      <td className="py-3.5 px-4 font-bold text-[#111827]">
+                        {item.patientName}
+                      </td>
+                      <td className="py-3.5 px-4 font-semibold text-[#0D47A1]">
+                        {item.appointmentId}
+                      </td>
+                      <td className="py-3.5 px-4 font-medium text-[#111827]">
+                        {item.visitType}
+                      </td>
+                      <td className="py-3.5 px-4 text-[#64748B]">
+                        {item.registrationTime}
+                      </td>
+                      <td className="py-3.5 px-4 text-[#111827] font-semibold">
+                        {item.checkInTime}
+                      </td>
+                      <td className="py-3.5 px-4 text-[#009688] font-medium">
+                        {item.queueStatus}
+                      </td>
+                      <td className="py-3.5 px-4 text-center">
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${item.appointmentStatus === "Completed" ? "bg-teal-50 text-[#009688] border border-teal-200" : item.appointmentStatus === "In Progress" ? "bg-amber-50 text-[#F59E0B] border border-amber-200" : "bg-slate-100 text-[#64748B]"}`}
+                        >
+                          {item.appointmentStatus}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() =>
+                              alert(`Viewing patient ${item.patientName}`)
+                            }
+                            className="p-1.5 text-[#0D47A1] hover:bg-blue-50 rounded-lg transition"
+                            title="View Patient"
+                          >
+                            <Users className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() =>
+                              alert(`Viewing appointment ${item.appointmentId}`)
+                            }
+                            className="p-1.5 text-[#009688] hover:bg-teal-50 rounded-lg transition"
+                            title="View Appointment"
+                          >
+                            <Calendar className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() =>
+                              alert(`Printing summary for ${item.mrn}`)
+                            }
+                            className="p-1.5 text-[#64748B] hover:bg-slate-100 rounded-lg transition"
+                            title="Print Summary"
+                          >
+                            <Printer className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
-        </div>
-      </div>
 
-      {/* RECEPTION ACTIVITY TIMELINE */}
-      <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
-        <h3
-          className="text-base font-bold text-[#111827] mb-4"
-          style={{ fontFamily: PP }}
-        >
-          Recent Reception Activity Logs
-        </h3>
-        <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-          {(
-            [] as Array<{
-              id: string | number;
-              action?: string;
-              date?: string;
-              time?: string;
-              detail?: string;
-              details?: string;
-            }>
-          ).map((act) => (
-            <div key={act.id} className="flex items-start gap-4 relative z-10">
-              <div className="w-7 h-7 rounded-full bg-white border-2 border-[#0D47A1] flex items-center justify-center text-[#0D47A1] shrink-0">
-                <Activity className="w-3.5 h-3.5" />
-              </div>
-              <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] flex-1 text-xs">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-[#111827]">{act.action}</span>
-                  <span className="text-[11px] text-[#64748B]">
-                    {act.date} - {act.time}
-                  </span>
-                </div>
-                <p className="text-[#64748B]">{act.detail}</p>
-              </div>
+          {/* Table Pagination */}
+          <div className="p-4 bg-[#F1F5F9] border-t border-[#E5E7EB] flex items-center justify-between text-xs text-[#64748B]">
+            <span>
+              Showing 1 to {filteredActivities.length} of{" "}
+              {filteredActivities.length} entries
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                aria-label="Previous page"
+                disabled
+                className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="font-semibold text-[#111827]">Page 1 of 1</span>
+              <button
+                type="button"
+                aria-label="Next page"
+                disabled
+                className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
+              >
+                <ChevronRightIcon className="w-4 h-4" />
+              </button>
             </div>
-          ))}
+          </div>
         </div>
-      </div>
-    </div>
 
-    {/* RIGHT STICKY SUMMARY PANEL (1 Col) */}
-    <div className="lg:col-span-1">
-      <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm sticky top-20 space-y-6">
-        {/* Header */}
-        <div>
+        {/* RECEPTION ACTIVITY TIMELINE */}
+        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
           <h3
-            className="text-base font-bold text-[#111827] flex items-center gap-2"
+            className="text-base font-bold text-[#111827] mb-4"
             style={{ fontFamily: PP }}
           >
-            <Shield className="w-4 h-4 text-[#0D47A1]" />
-            <span>Reception Summary</span>
+            Recent Reception Activity Logs
           </h3>
-          <p className="text-[11px] text-[#64748B]">
-            Live reception counter overview
-          </p>
-        </div>
-
-        {/* Metrics Overview */}
-        <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] text-xs space-y-2">
-          <div className="text-[11px] font-bold text-[#64748B] uppercase">
-            Today's Counter Metrics
-          </div>
-          <div className="flex justify-between">
-            <span className="text-[#64748B]">Registrations:</span>
-            <span className="font-bold text-[#111827]">
-              {kpi.todayRegistrations} Total
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-[#64748B]">Appointments:</span>
-            <span className="font-bold text-[#0D47A1]">
-              {kpi.todayAppointments} Booked
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-[#64748B]">Checked-In:</span>
-            <span className="font-bold text-[#66BB6A]">
-              {kpi.checkedInPatients} Checked In
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-[#64748B]">Patients Waiting:</span>
-            <span className="font-bold text-[#F59E0B]">
-              {kpi.receptionQueue} Waiting
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-[#64748B]">Completed Check-Ins:</span>
-            <span className="font-bold text-[#009688]">
-              {kpi.completedCheckIns} Done
-            </span>
-          </div>
-          <div className="border-t border-[#E5E7EB] pt-2 flex justify-between">
-            <span className="text-[#64748B]">Avg Waiting Time:</span>
-            <span className="font-semibold text-[#0D47A1]">
-              {kpi.avgWaitingTime}
-            </span>
+          <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
+            {(
+              [] as Array<{
+                id: string | number;
+                action?: string;
+                date?: string;
+                time?: string;
+                detail?: string;
+                details?: string;
+              }>
+            ).map((act) => (
+              <div
+                key={act.id}
+                className="flex items-start gap-4 relative z-10"
+              >
+                <div className="w-7 h-7 rounded-full bg-white border-2 border-[#0D47A1] flex items-center justify-center text-[#0D47A1] shrink-0">
+                  <Activity className="w-3.5 h-3.5" />
+                </div>
+                <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] flex-1 text-xs">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-bold text-[#111827]">
+                      {act.action}
+                    </span>
+                    <span className="text-[11px] text-[#64748B]">
+                      {act.date} - {act.time}
+                    </span>
+                  </div>
+                  <p className="text-[#64748B]">{act.detail}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
+      </div>
 
-        {/* Quick Actions */}
-        <div>
-          <h4
-            className="text-xs font-bold text-[#111827] uppercase tracking-wider mb-2"
-            style={{ fontFamily: PP }}
-          >
-            Quick Actions
-          </h4>
-          <div className="space-y-2">
-            <button
-              onClick={() => alert("Exporting PDF...")}
-              className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-semibold text-[#0D47A1]"
+      {/* RIGHT STICKY SUMMARY PANEL (1 Col) */}
+      <div className="lg:col-span-1">
+        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm sticky top-20 space-y-6">
+          {/* Header */}
+          <div>
+            <h3
+              className="text-base font-bold text-[#111827] flex items-center gap-2"
+              style={{ fontFamily: PP }}
             >
-              <div className="flex items-center gap-2">
-                <Download className="w-3.5 h-3.5 text-[#0D47A1]" />
-                <span>Export PDF Report</span>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-            </button>
+              <Shield className="w-4 h-4 text-[#0D47A1]" />
+              <span>Reception Summary</span>
+            </h3>
+            <p className="text-[11px] text-[#64748B]">
+              Live reception counter overview
+            </p>
+          </div>
 
-            <button
-              onClick={() => window.print()}
-              className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#111827]"
+          {/* Metrics Overview */}
+          <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] text-xs space-y-2">
+            <div className="text-[11px] font-bold text-[#64748B] uppercase">
+              Today's Counter Metrics
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[#64748B]">Registrations:</span>
+              <span className="font-bold text-[#111827]">
+                {kpi.todayRegistrations} Total
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[#64748B]">Appointments:</span>
+              <span className="font-bold text-[#0D47A1]">
+                {kpi.todayAppointments} Booked
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[#64748B]">Checked-In:</span>
+              <span className="font-bold text-[#66BB6A]">
+                {kpi.checkedInPatients} Checked In
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[#64748B]">Patients Waiting:</span>
+              <span className="font-bold text-[#F59E0B]">
+                {kpi.receptionQueue} Waiting
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[#64748B]">Completed Check-Ins:</span>
+              <span className="font-bold text-[#009688]">
+                {kpi.completedCheckIns} Done
+              </span>
+            </div>
+            <div className="border-t border-[#E5E7EB] pt-2 flex justify-between">
+              <span className="text-[#64748B]">Avg Waiting Time:</span>
+              <span className="font-semibold text-[#0D47A1]">
+                {kpi.avgWaitingTime}
+              </span>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div>
+            <h4
+              className="text-xs font-bold text-[#111827] uppercase tracking-wider mb-2"
+              style={{ fontFamily: PP }}
             >
-              <div className="flex items-center gap-2">
-                <Printer className="w-3.5 h-3.5 text-[#64748B]" />
-                <span>Print Report</span>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-            </button>
-
-            {onOpenDailyAppointments && (
+              Quick Actions
+            </h4>
+            <div className="space-y-2">
               <button
-                onClick={onOpenDailyAppointments}
-                className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#0D47A1]"
+                onClick={() => alert("Exporting PDF...")}
+                className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-semibold text-[#0D47A1]"
               >
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-3.5 h-3.5 text-[#0D47A1]" />
-                  <span>Open Daily Appointment Report</span>
+                  <Download className="w-3.5 h-3.5 text-[#0D47A1]" />
+                  <span>Export PDF Report</span>
                 </div>
                 <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
               </button>
-            )}
 
-            {onOpenPatientReport && (
               <button
-                onClick={onOpenPatientReport}
-                className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#009688]"
+                onClick={() => window.print()}
+                className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#111827]"
               >
                 <div className="flex items-center gap-2">
-                  <Users className="w-3.5 h-3.5 text-[#009688]" />
-                  <span>Open Patient Report</span>
+                  <Printer className="w-3.5 h-3.5 text-[#64748B]" />
+                  <span>Print Report</span>
                 </div>
                 <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
               </button>
-            )}
-          </div>
-        </div>
 
-        {/* Compliance Note */}
-        <div className="p-3 bg-slate-50 rounded-xl border border-[#E5E7EB] text-[11px] text-[#64748B]">
-          <div className="flex items-center gap-1 text-[#009688] font-bold mb-1">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Receptionist Scope Verified</span>
+              {onOpenDailyAppointments && (
+                <button
+                  onClick={onOpenDailyAppointments}
+                  className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#0D47A1]"
+                >
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-3.5 h-3.5 text-[#0D47A1]" />
+                    <span>Open Daily Appointment Report</span>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
+                </button>
+              )}
+
+              {onOpenPatientReport && (
+                <button
+                  onClick={onOpenPatientReport}
+                  className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#009688]"
+                >
+                  <div className="flex items-center gap-2">
+                    <Users className="w-3.5 h-3.5 text-[#009688]" />
+                    <span>Open Patient Report</span>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
+                </button>
+              )}
+            </div>
           </div>
-          <span>
-            Read-only reception operational analytics for front-desk queue
-            oversight.
-          </span>
+
+          {/* Compliance Note */}
+          <div className="p-3 bg-slate-50 rounded-xl border border-[#E5E7EB] text-[11px] text-[#64748B]">
+            <div className="flex items-center gap-1 text-[#009688] font-bold mb-1">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>Receptionist Scope Verified</span>
+            </div>
+            <span>
+              Read-only reception operational analytics for front-desk queue
+              oversight.
+            </span>
+          </div>
         </div>
       </div>
     </div>
-  </div>
   );
 };
 
@@ -1292,9 +1306,7 @@ const ReceptionDashboardFooter = ({ resultCount }: { resultCount: number }) => (
         {resultCount} Reception Report Results
       </strong>
     </div>
-    <div>
-      Hospital Management System - Receptionist Reports Dashboard v1.0
-    </div>
+    <div>Hospital Management System - Receptionist Reports Dashboard v1.0</div>
     <div>
       Last Refreshed:{" "}
       <strong className="text-[#111827]">2026-07-26 13:34</strong>

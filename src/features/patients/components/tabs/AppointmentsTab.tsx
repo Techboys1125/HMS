@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Search,
   Calendar,
@@ -35,11 +35,23 @@ const extractCleanString = (val: unknown, fallback: string = ""): string => {
   }
   if (typeof val === "object" && val !== null) {
     const obj = val as Record<string, unknown>;
-    if ("fullName" in obj && obj.fullName != null && String(obj.fullName).trim())
+    if (
+      "fullName" in obj &&
+      obj.fullName != null &&
+      String(obj.fullName).trim()
+    )
       return String(obj.fullName).trim();
-    if ("doctorName" in obj && obj.doctorName != null && String(obj.doctorName).trim())
+    if (
+      "doctorName" in obj &&
+      obj.doctorName != null &&
+      String(obj.doctorName).trim()
+    )
       return String(obj.doctorName).trim();
-    if ("departmentName" in obj && obj.departmentName != null && String(obj.departmentName).trim())
+    if (
+      "departmentName" in obj &&
+      obj.departmentName != null &&
+      String(obj.departmentName).trim()
+    )
       return String(obj.departmentName).trim();
     if ("name" in obj && obj.name != null && String(obj.name).trim())
       return String(obj.name).trim();
@@ -72,7 +84,12 @@ function renderStatusBadge(status?: string) {
     badgeStyle = "bg-red-50 text-red-600 border-red-200";
   } else if (upper === "NO SHOW" || upper === "NO_SHOW") {
     badgeStyle = "bg-slate-100 text-slate-600 border-slate-200";
-  } else if (upper === "SCHEDULED" || upper === "CONFIRMED" || upper === "BOOKED" || upper === "PENDING") {
+  } else if (
+    upper === "SCHEDULED" ||
+    upper === "CONFIRMED" ||
+    upper === "BOOKED" ||
+    upper === "PENDING"
+  ) {
     badgeStyle = "bg-[#0D47A1]/10 text-[#0D47A1] border-blue-200";
   } else if (upper.includes("CONSULTATION") || upper.includes("CHECKED")) {
     badgeStyle = "bg-sky-50 text-sky-700 border-sky-200";
@@ -105,9 +122,12 @@ export function PatientAppointmentsTab({
   const [activeTabPill, setActiveTabPill] = useState<TabFilterType>("all");
 
   // Dialog & Drawer state
-  const [reschedulingAppt, setReschedulingAppt] = useState<AppointmentRecord | null>(null);
-  const [cancellingAppt, setCancellingAppt] = useState<ApiPatientAppointment | null>(null);
-  const [selectedDetailsAppt, setSelectedDetailsAppt] = useState<AppointmentRecord | null>(null);
+  const [reschedulingAppt, setReschedulingAppt] =
+    useState<AppointmentRecord | null>(null);
+  const [cancellingAppt, setCancellingAppt] =
+    useState<ApiPatientAppointment | null>(null);
+  const [selectedDetailsAppt, setSelectedDetailsAppt] =
+    useState<AppointmentRecord | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   if (patient.mrn !== prevMrn) {
@@ -115,7 +135,7 @@ export function PatientAppointmentsTab({
     setLoading(true);
   }
 
-  const loadAppointmentsData = async () => {
+  const loadAppointmentsData = useCallback(async () => {
     try {
       const data = await patientsApi.getAppointments(patient.mrn);
       setAppointments(data || []);
@@ -124,10 +144,24 @@ export function PatientAppointmentsTab({
     } finally {
       setLoading(false);
     }
-  };
+  }, [patient.mrn]);
 
   useEffect(() => {
-    loadAppointmentsData();
+    let cancelled = false;
+    patientsApi
+      .getAppointments(patient.mrn)
+      .then((data) => {
+        if (!cancelled) setAppointments(data || []);
+      })
+      .catch(() => {
+        if (!cancelled) setAppointments([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [patient.mrn]);
 
   const triggerToast = (msg: string) => {
@@ -135,7 +169,10 @@ export function PatientAppointmentsTab({
     setTimeout(() => setToastMsg(null), 3000);
   };
 
-  const safeAppointments = Array.isArray(appointments) ? appointments : [];
+  const safeAppointments = useMemo(
+    () => (Array.isArray(appointments) ? appointments : []),
+    [appointments],
+  );
 
   // Extract unique departments for dropdown
   const uniqueDepartments = useMemo(() => {
@@ -176,14 +213,19 @@ export function PatientAppointmentsTab({
   const filteredAppointments = useMemo(() => {
     return safeAppointments.filter((a) => {
       const statusUpper = (a.status || "").toUpperCase();
-      const docName = extractCleanString(a.doctor || a.doctorName, "").toLowerCase();
+      const docName = extractCleanString(
+        a.doctor || a.doctorName,
+        "",
+      ).toLowerCase();
       const deptName = extractCleanString(a.department, "").toLowerCase();
       const apptId = formatAppointmentId(a.id).toLowerCase();
       const q = searchQuery.toLowerCase().trim();
 
       // Tab Pill Filter
       if (activeTabPill === "upcoming") {
-        if (!["SCHEDULED", "CONFIRMED", "BOOKED", "PENDING"].includes(statusUpper)) {
+        if (
+          !["SCHEDULED", "CONFIRMED", "BOOKED", "PENDING"].includes(statusUpper)
+        ) {
           return false;
         }
       } else if (activeTabPill === "completed") {
@@ -211,12 +253,21 @@ export function PatientAppointmentsTab({
 
       // Search Query
       if (q) {
-        return apptId.includes(q) || docName.includes(q) || deptName.includes(q);
+        return (
+          apptId.includes(q) || docName.includes(q) || deptName.includes(q)
+        );
       }
 
       return true;
     });
-  }, [safeAppointments, activeTabPill, searchQuery, statusDropdown, departmentFilter, isOwnProfile]);
+  }, [
+    safeAppointments,
+    activeTabPill,
+    searchQuery,
+    statusDropdown,
+    departmentFilter,
+    isOwnProfile,
+  ]);
 
   const isFilterActive =
     searchQuery.trim() !== "" ||
@@ -243,7 +294,9 @@ export function PatientAppointmentsTab({
         startTime: newTimeSlot,
         reason,
       });
-      triggerToast(`Appointment ${aptId} rescheduled to ${newDate} at ${newTimeSlot}`);
+      triggerToast(
+        `Appointment ${aptId} rescheduled to ${newDate} at ${newTimeSlot}`,
+      );
       loadAppointmentsData();
     } catch {
       triggerToast(`Failed to reschedule appointment ${aptId}`);
@@ -512,7 +565,9 @@ export function PatientAppointmentsTab({
 
                     const apptRecord: AppointmentRecord = {
                       id: String(appt.id),
-                      appointmentNumber: String(appt.appointmentNumber || appt.id),
+                      appointmentNumber: String(
+                        appt.appointmentNumber || appt.id,
+                      ),
                       patientId: patient.id || patient.mrn,
                       patientName: patientDisplayName,
                       patientMrn: patient.mrn,
@@ -550,8 +605,12 @@ export function PatientAppointmentsTab({
                         </td>
                         <td className="px-4 py-3.5 font-medium text-slate-900">
                           <div>
-                            <div className="font-bold text-[#111827]">{formattedDocName}</div>
-                            <div className="text-[10px] text-slate-400 font-normal">{departmentName}</div>
+                            <div className="font-bold text-[#111827]">
+                              {formattedDocName}
+                            </div>
+                            <div className="text-[10px] text-slate-400 font-normal">
+                              {departmentName}
+                            </div>
                           </div>
                         </td>
                         <td className="px-4 py-3.5 text-slate-700 font-semibold uppercase">
@@ -572,7 +631,9 @@ export function PatientAppointmentsTab({
                               <>
                                 <button
                                   type="button"
-                                  onClick={() => setReschedulingAppt(apptRecord)}
+                                  onClick={() =>
+                                    setReschedulingAppt(apptRecord)
+                                  }
                                   className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-teal-50 text-[#009688] transition-colors cursor-pointer"
                                   title="Reschedule Appointment"
                                 >
@@ -648,8 +709,12 @@ export function PatientAppointmentsTab({
                       {renderStatusBadge(appt.status)}
                     </div>
                     <div className="space-y-1 text-xs">
-                      <div className="font-bold text-[#111827]">{formattedDocName}</div>
-                      <div className="text-slate-500">{departmentName} · {appt.date} at {appt.time}</div>
+                      <div className="font-bold text-[#111827]">
+                        {formattedDocName}
+                      </div>
+                      <div className="text-slate-500">
+                        {departmentName} · {appt.date} at {appt.time}
+                      </div>
                     </div>
                     <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
                       <button
@@ -686,9 +751,15 @@ export function PatientAppointmentsTab({
             id: String(cancellingAppt.id),
             date: cancellingAppt.date || "",
             time: cancellingAppt.time || "",
-            doctor: extractCleanString(cancellingAppt.doctor || cancellingAppt.doctorName, "Doctor"),
+            doctor: extractCleanString(
+              cancellingAppt.doctor || cancellingAppt.doctorName,
+              "Doctor",
+            ),
             specialty: cancellingAppt.specialty || "OPD",
-            department: extractCleanString(cancellingAppt.department, "General OPD"),
+            department: extractCleanString(
+              cancellingAppt.department,
+              "General OPD",
+            ),
             visitType: "In-Person OPD",
             status: (cancellingAppt.status as "Scheduled") || "Scheduled",
             roomLocation: "OPD Room",

@@ -79,7 +79,7 @@ const formatLastLogin = (lastLogin: string | null): string => {
   }
 };
 
-export type SystemRole =
+type SystemRole =
   | "Super Admin"
   | "Hospital Admin"
   | "Doctor"
@@ -88,9 +88,9 @@ export type SystemRole =
   | "Accountant"
   | "Patient";
 
-export type AccountStatus = "Active" | "Inactive" | "Pending" | "Suspended";
+type AccountStatus = "Active" | "Inactive" | "Pending" | "Suspended";
 
-export interface UserRecord {
+interface UserRecord {
   id: string;
   empId: string;
   fullName: string;
@@ -127,7 +127,7 @@ const BACKEND_TO_DISPLAY_STATUS: Record<string, AccountStatus> = {
   SUSPENDED: "Suspended",
 };
 
-export const UserManagement: React.FC = () => {
+const UserManagement: React.FC = () => {
   const navigate = useNavigate();
 
   const [isCreatingStaff, setIsCreatingStaff] = useState(false);

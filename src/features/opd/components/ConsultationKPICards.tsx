@@ -158,5 +158,3 @@ export const ConsultationKPICards: React.FC<ConsultationKPICardsProps> = ({
     </div>
   );
 };
-
-export default ConsultationKPICards;

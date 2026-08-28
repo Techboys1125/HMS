@@ -54,11 +54,7 @@ function renderBillingStatusBadge(status?: string) {
   );
 }
 
-export function PatientBillingTab({
-  patient,
-  canEdit,
-  isOwnProfile,
-}: BillingTabProps) {
+export function PatientBillingTab({ patient }: BillingTabProps) {
   const [invoices, setInvoices] = useState<ApiPatientInvoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [prevMrn, setPrevMrn] = useState<string | null>(null);
@@ -91,7 +87,10 @@ export function PatientBillingTab({
     };
   }, [patient.mrn]);
 
-  const safeInvoices = Array.isArray(invoices) ? invoices : [];
+  const safeInvoices = useMemo(
+    () => (Array.isArray(invoices) ? invoices : []),
+    [invoices],
+  );
 
   // Summary Metrics (Total Billed, Total Paid, Outstanding, Payment Rate)
   const summary = useMemo(() => {
@@ -101,7 +100,12 @@ export function PatientBillingTab({
 
     safeInvoices.forEach((inv) => {
       const amt = parseAmount(inv.amount);
-      const paid = inv.paidAmount != null ? inv.paidAmount : (inv.status === "Paid" ? amt : 0);
+      const paid =
+        inv.paidAmount != null
+          ? inv.paidAmount
+          : inv.status === "Paid"
+            ? amt
+            : 0;
       const bal = inv.balance != null ? inv.balance : Math.max(0, amt - paid);
 
       totalBilled += amt;
@@ -130,10 +134,7 @@ export function PatientBillingTab({
       const status = String(inv.status || "").toLowerCase();
 
       const matchesSearch =
-        !q ||
-        invNo.includes(q) ||
-        doc.includes(q) ||
-        status.includes(q);
+        !q || invNo.includes(q) || doc.includes(q) || status.includes(q);
 
       const matchesStatus =
         statusFilter === "All" ||
@@ -331,8 +332,16 @@ export function PatientBillingTab({
                       ? billId
                       : `BL-2026-${String(billId).padStart(6, "0")}`;
                     const amountNum = parseAmount(inv.amount);
-                    const paidNum = inv.paidAmount != null ? inv.paidAmount : (inv.status === "Paid" ? amountNum : 0);
-                    const balanceNum = inv.balance != null ? inv.balance : Math.max(0, amountNum - paidNum);
+                    const paidNum =
+                      inv.paidAmount != null
+                        ? inv.paidAmount
+                        : inv.status === "Paid"
+                          ? amountNum
+                          : 0;
+                    const balanceNum =
+                      inv.balance != null
+                        ? inv.balance
+                        : Math.max(0, amountNum - paidNum);
 
                     return (
                       <tr
@@ -415,8 +424,16 @@ export function PatientBillingTab({
                   ? billId
                   : `BL-2026-${String(billId).padStart(6, "0")}`;
                 const amountNum = parseAmount(inv.amount);
-                const paidNum = inv.paidAmount != null ? inv.paidAmount : (inv.status === "Paid" ? amountNum : 0);
-                const balanceNum = inv.balance != null ? inv.balance : Math.max(0, amountNum - paidNum);
+                const paidNum =
+                  inv.paidAmount != null
+                    ? inv.paidAmount
+                    : inv.status === "Paid"
+                      ? amountNum
+                      : 0;
+                const balanceNum =
+                  inv.balance != null
+                    ? inv.balance
+                    : Math.max(0, amountNum - paidNum);
 
                 return (
                   <div key={inv.id} className="p-4 space-y-3">
@@ -427,11 +444,19 @@ export function PatientBillingTab({
                       {renderBillingStatusBadge(inv.status)}
                     </div>
                     <div className="space-y-1 text-xs">
-                      <div className="text-slate-500">Date: {inv.date || "—"}</div>
-                      <div className="text-slate-700 font-medium">Doctor: {inv.doctorName || "—"}</div>
+                      <div className="text-slate-500">
+                        Date: {inv.date || "—"}
+                      </div>
+                      <div className="text-slate-700 font-medium">
+                        Doctor: {inv.doctorName || "—"}
+                      </div>
                       <div className="flex items-center justify-between pt-1">
-                        <span className="text-slate-500">Amount: ₹{amountNum.toLocaleString("en-IN")}</span>
-                        <span className="text-[#EF4444] font-bold">Balance: ₹{balanceNum.toLocaleString("en-IN")}</span>
+                        <span className="text-slate-500">
+                          Amount: ₹{amountNum.toLocaleString("en-IN")}
+                        </span>
+                        <span className="text-[#EF4444] font-bold">
+                          Balance: ₹{balanceNum.toLocaleString("en-IN")}
+                        </span>
                       </div>
                     </div>
                     <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">

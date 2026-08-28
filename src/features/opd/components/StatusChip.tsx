@@ -119,5 +119,3 @@ export const StatusChip: React.FC<StatusChipProps> = ({ status }) => {
     </span>
   );
 };
-
-export default StatusChip;

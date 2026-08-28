@@ -30,7 +30,8 @@ function formatIssueDate(rawDate?: string): string {
 }
 
 function getDisplayPrescriptionId(rx: ApiPatientPrescription): string {
-  if (rx.prescriptionId && rx.prescriptionId.trim()) return rx.prescriptionId.trim();
+  if (rx.prescriptionId && rx.prescriptionId.trim())
+    return rx.prescriptionId.trim();
   const idStr = String(rx.id || "").trim();
   if (idStr.startsWith("RX-")) return idStr;
   if (/^\d{8}-\d{4}$/.test(idStr)) return `RX-${idStr}`;
@@ -58,7 +59,10 @@ function getMedicineCount(rx: ApiPatientPrescription): number {
   if (Array.isArray(rx.medicines) && rx.medicines.length > 0) {
     return rx.medicines.length;
   }
-  if (Array.isArray(obj.medications) && (obj.medications as unknown[]).length > 0) {
+  if (
+    Array.isArray(obj.medications) &&
+    (obj.medications as unknown[]).length > 0
+  ) {
     return (obj.medications as unknown[]).length;
   }
   if (Array.isArray(obj.items) && (obj.items as unknown[]).length > 0) {
@@ -67,10 +71,16 @@ function getMedicineCount(rx: ApiPatientPrescription): number {
   if (typeof rx.medicineCount === "number" && rx.medicineCount > 0) {
     return rx.medicineCount;
   }
-  if (typeof obj.totalMedicines === "number" && (obj.totalMedicines as number) > 0) {
+  if (
+    typeof obj.totalMedicines === "number" &&
+    (obj.totalMedicines as number) > 0
+  ) {
     return obj.totalMedicines as number;
   }
-  if (typeof obj.medicationCount === "number" && (obj.medicationCount as number) > 0) {
+  if (
+    typeof obj.medicationCount === "number" &&
+    (obj.medicationCount as number) > 0
+  ) {
     return obj.medicationCount as number;
   }
   return typeof rx.medicineCount === "number" ? rx.medicineCount : 0;
@@ -87,9 +97,19 @@ function renderStatusBadge(status?: string) {
   } else if (s === "CANCELLED" || s === "ARCHIVED") {
     badgeStyle = "bg-red-50 text-red-600 border-red-200";
     displayLabel = s === "CANCELLED" ? "Cancelled" : "Archived";
-  } else if (s === "COMPLETED" || s === "FINALIZED" || s === "ISSUED" || s === "ACTIVE") {
+  } else if (
+    s === "COMPLETED" ||
+    s === "FINALIZED" ||
+    s === "ISSUED" ||
+    s === "ACTIVE"
+  ) {
     badgeStyle = "bg-emerald-50 text-emerald-600 border-emerald-200";
-    displayLabel = s === "COMPLETED" ? "Completed" : s === "FINALIZED" ? "Finalized" : "Issued";
+    displayLabel =
+      s === "COMPLETED"
+        ? "Completed"
+        : s === "FINALIZED"
+          ? "Finalized"
+          : "Issued";
   }
 
   return (
@@ -142,7 +162,10 @@ export function PatientPrescriptionsTab({
   const safePrescriptions = Array.isArray(prescriptions) ? prescriptions : [];
 
   const filtered = safePrescriptions.filter((rx) => {
-    if (isOwnProfile && (rx.status === "Cancelled" || rx.status === "Archived")) {
+    if (
+      isOwnProfile &&
+      (rx.status === "Cancelled" || rx.status === "Archived")
+    ) {
       return false;
     }
     if (statusFilter !== "ALL") {

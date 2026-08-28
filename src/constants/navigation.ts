@@ -11,7 +11,6 @@ import {
   UserCheck,
   BarChart2,
   Activity,
-  ClipboardList,
   Receipt,
   MessageSquare,
   User,

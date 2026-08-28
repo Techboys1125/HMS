@@ -402,5 +402,3 @@ export function PatientMyBillsPage() {
     </div>
   );
 }
-
-export default PatientMyBillsPage;

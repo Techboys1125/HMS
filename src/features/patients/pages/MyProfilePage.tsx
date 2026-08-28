@@ -133,5 +133,3 @@ export function MyProfilePage({ mrn }: { currentRole: Role; mrn: string }) {
     </>
   );
 }
-
-export default MyProfilePage;

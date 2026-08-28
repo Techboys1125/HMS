@@ -21,7 +21,7 @@ import {
 import { normalizeRole } from "../services/role.mapper";
 import type { UserRole } from "../types/notifications.types";
 
-export const notificationKeys = {
+const notificationKeys = {
   all: ["notifications"] as const,
   rules: () => [...notificationKeys.all, "rules"] as const,
   templates: () => [...notificationKeys.all, "templates"] as const,
@@ -104,14 +104,14 @@ export function useNotificationFailures() {
 
 // ─── User Preferences Hooks ───────────────────────────────────────────────────
 
-export function useNotificationPreferences() {
+function useNotificationPreferences() {
   return useQuery({
     queryKey: notificationKeys.preferences(),
     queryFn: fetchNotificationPreferences,
   });
 }
 
-export function useUpdateNotificationPreferences() {
+function useUpdateNotificationPreferences() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (

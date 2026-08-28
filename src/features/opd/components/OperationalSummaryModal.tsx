@@ -90,5 +90,3 @@ export const OperationalSummaryModal: React.FC<
     </div>
   );
 };
-
-export default OperationalSummaryModal;

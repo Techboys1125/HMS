@@ -30,16 +30,8 @@ export {
   markNotificationAsUnread,
   markAllNotificationsAsRead,
   deleteNotification,
-  triggerInternalNotification,
 } from "../api/notification.api";
 
-export {
-  mapApiNotificationToRecord,
-  mapApiNotificationsToRecords,
-} from "./notification.mapper";
-export { normalizeRole } from "./role.mapper";
-
-// ─── Typed re-exports for consumers of the service layer ─────────────────────
 export type {
   NotificationRule,
   NotificationRulePayload,

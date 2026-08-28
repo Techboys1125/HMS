@@ -251,4 +251,3 @@ export const AvailabilityScheduleSection: React.FC<
     </div>
   );
 };
-export default AvailabilityScheduleSection;

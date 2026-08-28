@@ -350,7 +350,7 @@ export const usersApi = {
   },
 };
 
-export function extractUploadedUrl(result: unknown): string {
+function extractUploadedUrl(result: unknown): string {
   if (!result) return "";
   if (typeof result === "string") return result.trim();
   if (typeof result === "object") {

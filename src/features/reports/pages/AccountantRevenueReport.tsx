@@ -20,9 +20,7 @@ import {
   CreditCard,
   BarChartIcon,
 } from "lucide-react";
-import {
-  useAccountantRefundLog,
-} from "../hooks/useReports";
+import { useAccountantRefundLog } from "../hooks/useReports";
 
 import {
   AreaChart,
@@ -93,7 +91,7 @@ function CircularProgress({
 import { useDailyRevenueDetails, extractList } from "../hooks/useReports";
 import type { DailyRevenueDetail } from "../types/reports.types";
 
-export function AccountantRevenueReportScreen({
+function AccountantRevenueReportScreen({
   onBack,
 }: {
   onBack?: () => void;
@@ -122,14 +120,22 @@ export function AccountantRevenueReportScreen({
   const [hasError, setHasError] = useState(false);
 
   const today = new Date().toISOString().slice(0, 10);
-  const { data: rawRevenueDetails, refetch: refetchRevenue } = useDailyRevenueDetails({ fromDate: "2025-01-01", toDate: today });
-  const revDetailsList = useMemo(() => extractList<DailyRevenueDetail>(rawRevenueDetails), [rawRevenueDetails]);
+  const { data: rawRevenueDetails, refetch: refetchRevenue } =
+    useDailyRevenueDetails({ fromDate: "2025-01-01", toDate: today });
+  const revDetailsList = useMemo(
+    () => extractList<DailyRevenueDetail>(rawRevenueDetails),
+    [rawRevenueDetails],
+  );
   const { refetch: refetchRefunds } = useAccountantRefundLog();
 
   const revenueRowsSource = useMemo(() => {
     const list = revDetailsList.map((d) => ({
       patientName: d.patientName || "N/A",
-      mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
+      mrn: d.mrn
+        ? String(d.mrn).startsWith("MRN-")
+          ? String(d.mrn)
+          : `MRN-${d.mrn}`
+        : `MRN-${d.patientId || ""}`,
       invoiceId: d.paymentId || d.receiptNumber || `INV-${d.id || ""}`,
       paymentStatus: d.paymentStatus || "Paid",
       paymentMethod: d.paymentMethod || "Cash",
@@ -212,15 +218,30 @@ export function AccountantRevenueReportScreen({
         item.paymentMethod.toLowerCase() === paymentMethodFilter.toLowerCase();
       return matchesSearch && matchesStatus && matchesMethod;
     });
-  }, [searchQuery, paymentStatusFilter, paymentMethodFilter, revenueRowsSource]);
+  }, [
+    searchQuery,
+    paymentStatusFilter,
+    paymentMethodFilter,
+    revenueRowsSource,
+  ]);
 
   const trendData = useMemo(() => {
-    const daysCount = trendRange === "Today" ? 1 : trendRange === "7 Days" ? 7 : trendRange === "30 Days" ? 30 : 90;
+    const daysCount =
+      trendRange === "Today"
+        ? 1
+        : trendRange === "7 Days"
+          ? 7
+          : trendRange === "30 Days"
+            ? 30
+            : 90;
     const result = [];
     for (let i = daysCount - 1; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      const dateStr = d.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
       const rev = Math.max(50000, 150000 + ((i * 12345) % 50000));
       result.push({
         date: dateStr,

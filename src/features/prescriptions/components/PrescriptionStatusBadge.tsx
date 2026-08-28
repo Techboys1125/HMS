@@ -67,5 +67,3 @@ export const PrescriptionStatusBadge: React.FC<{
     </span>
   );
 };
-
-export default PrescriptionStatusBadge;

@@ -26,7 +26,7 @@ const unwrap = <T>(body: ApiEnvelope<T> | T): T => {
   return body as T;
 };
 
-export function extractNumericAppointmentId(id: string | number): number | string {
+function extractNumericAppointmentId(id: string | number): number | string {
   if (typeof id === "number") return id;
   const str = String(id).trim();
   if (/^\d+$/.test(str)) return Number(str);
@@ -232,9 +232,9 @@ export const vitalsApi = {
    */
   async getVitalsByEncounterId(encounterId: string | number) {
     try {
-      const response = await apiClient.get<NurseVitalsApiResponse<unknown> | Record<string, unknown>>(
-        `/api/v1/encounters/${encounterId}/vitals`,
-      );
+      const response = await apiClient.get<
+        NurseVitalsApiResponse<unknown> | Record<string, unknown>
+      >(`/api/v1/encounters/${encounterId}/vitals`);
       return response.data;
     } catch {
       return null;

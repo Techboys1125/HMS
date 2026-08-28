@@ -15,8 +15,6 @@ export type AppointmentStatus =
 
 export type VisitType = "First Visit" | "Follow-up" | "Walk-In";
 
-export type PriorityLevel = "Normal" | "Urgent" | "High" | string;
-
 export type UserRole =
   | "Receptionist"
   | "Admin"
@@ -26,37 +24,8 @@ export type UserRole =
   | "Nurse"
   | "Patient";
 
-export interface TimelineActivity {
-  id: string;
-  title: string;
-  timestamp: string;
-  performedBy: string;
-  status: AppointmentStatus;
-  notes?: string;
-}
-
 import type { AppointmentRecord } from "./appointment.types";
 
-export interface AppointmentManagementCenterScreenProps {
-  onPatientSelect?: (id: number | string) => void;
-  onStartConsultation?: (
-    apt?: AppointmentRecord | null | string | number,
-  ) => void;
-  onBookAppointmentClick?: () => void;
-  onReceptionQueueClick?: () => void;
-  userRole?: UserRole;
-  onBack?: () => void;
-  onConfirmSuccess?: (uhid: string | number) => void;
-  onRegisterNewPatientClick?: () => void;
-  onViewPatientProfileClick?: (uhid: string | number) => void;
-  initialUhid?: string;
-  initialAptId?: string;
-  onCheckInSuccess?: (uhid: string | number) => void;
-  onViewQueueClick?: (uhid?: string | number) => void;
-  onCheckInClick?: (token?: string | number, uhid?: string | number) => void;
-  onPatientSearchClick?: () => void;
-  onRegisterPatientClick?: () => void;
-}
 type Role =
   | "super-admin"
   | "admin"

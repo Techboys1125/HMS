@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   X,
-  Download,
   Printer,
   ChevronRight,
   ChevronLeft,
@@ -76,7 +75,6 @@ interface DetailsModalProps {
 export const PrescriptionDetailsModal: React.FC<DetailsModalProps> = ({
   prescription: initialPrescription,
   onClose,
-  onDownload,
 }) => {
   const [prescriptionData, setPrescriptionData] =
     useState<UnifiedPrescription>(initialPrescription);
@@ -520,8 +518,10 @@ export const PrescriptionDetailsModal: React.FC<DetailsModalProps> = ({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {prescription.medicines.map((m, idx) => {
-                    const mObj = (m && typeof m === "object" ? m : {}) as Record<string, unknown>;
+                  {prescription.medicines.map((m) => {
+                    const mObj = (
+                      m && typeof m === "object" ? m : {}
+                    ) as Record<string, unknown>;
 
                     const nameStr = safeStr(
                       m.name ||
@@ -532,26 +532,35 @@ export const PrescriptionDetailsModal: React.FC<DetailsModalProps> = ({
                       "—",
                     );
 
-                    const doseObj = mObj.dose as { value?: unknown; unit?: unknown } | undefined;
+                    const doseObj = mObj.dose as
+                      { value?: unknown; unit?: unknown } | undefined;
                     const doseVal =
                       typeof mObj.dose === "object" && mObj.dose !== null
                         ? `${doseObj?.value ?? ""} ${doseObj?.unit ?? ""}`.trim()
                         : mObj.doseValue != null
                           ? `${mObj.doseValue} ${mObj.doseUnit || ""}`.trim()
-                          : m.dosage || mObj.dosage || mObj.dose || mObj.strength;
+                          : m.dosage ||
+                            mObj.dosage ||
+                            mObj.dose ||
+                            mObj.strength;
 
                     const strengthStr = safeStr(
                       m.strength || mObj.strength || doseVal,
                       "—",
                     );
 
-                    const routeStr = safeStr(m.route || mObj.route || mObj.form, "ORAL");
+                    const routeStr = safeStr(
+                      m.route || mObj.route || mObj.form,
+                      "ORAL",
+                    );
 
                     const dosageStr = safeStr(m.dosage || doseVal, "—");
 
-                    const freqObj = mObj.frequency as { code?: unknown; display?: unknown } | undefined;
+                    const freqObj = mObj.frequency as
+                      { code?: unknown; display?: unknown } | undefined;
                     const freqVal =
-                      typeof mObj.frequency === "object" && mObj.frequency !== null
+                      typeof mObj.frequency === "object" &&
+                      mObj.frequency !== null
                         ? String(freqObj?.display || freqObj?.code || "")
                         : mObj.frequencyDisplay ||
                           mObj.frequencyCode ||
@@ -560,18 +569,22 @@ export const PrescriptionDetailsModal: React.FC<DetailsModalProps> = ({
                           mObj.frequency;
                     const frequencyStr = safeStr(freqVal, "—");
 
-                    const durObj = mObj.duration as { value?: unknown; unit?: unknown } | undefined;
+                    const durObj = mObj.duration as
+                      { value?: unknown; unit?: unknown } | undefined;
                     const durVal =
-                      typeof mObj.duration === "object" && mObj.duration !== null
+                      typeof mObj.duration === "object" &&
+                      mObj.duration !== null
                         ? `${durObj?.value ?? ""} ${durObj?.unit ?? ""}`.trim()
                         : mObj.durationValue != null
                           ? `${mObj.durationValue} ${mObj.durationUnit || "DAYS"}`.trim()
                           : m.duration || mObj.duration;
                     const durationStr = safeStr(durVal, "—");
 
-                    const qtyObj = mObj.quantity as { value?: unknown; unit?: unknown } | undefined;
+                    const qtyObj = mObj.quantity as
+                      { value?: unknown; unit?: unknown } | undefined;
                     const qtyVal =
-                      typeof mObj.quantity === "object" && mObj.quantity !== null
+                      typeof mObj.quantity === "object" &&
+                      mObj.quantity !== null
                         ? `${qtyObj?.value ?? ""} ${qtyObj?.unit ?? ""}`.trim()
                         : mObj.quantityValue != null
                           ? `${mObj.quantityValue} ${mObj.quantityUnit || ""}`.trim()

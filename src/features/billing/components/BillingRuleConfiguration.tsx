@@ -127,5 +127,3 @@ export function BillingRuleConfiguration({
     </div>
   );
 }
-
-export default BillingRuleConfiguration;

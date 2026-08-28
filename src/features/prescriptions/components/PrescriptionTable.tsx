@@ -65,20 +65,20 @@ export const PrescriptionTable: React.FC<PrescriptionTableProps> = ({
     currentPage * pageSize,
   );
 
-const formatDateTimeDisplay = (rawStr?: string) => {
-  if (!rawStr || rawStr === "—") return "—";
-  try {
-    const d = new Date(rawStr);
-    if (isNaN(d.getTime())) return rawStr;
-    return d.toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  } catch {
-    return rawStr;
-  }
-};
+  const formatDateTimeDisplay = (rawStr?: string) => {
+    if (!rawStr || rawStr === "—") return "—";
+    try {
+      const d = new Date(rawStr);
+      if (isNaN(d.getTime())) return rawStr;
+      return d.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+    } catch {
+      return rawStr;
+    }
+  };
 
   if (role === "patient") {
     return (
@@ -122,7 +122,9 @@ const formatDateTimeDisplay = (rawStr?: string) => {
                   rx.medicines && rx.medicines.length > 0
                     ? rx.medicines.length
                     : rx.totalMedicines || rx.medicineCount || 0;
-                const formattedDate = formatDateTimeDisplay(rx.consultationDate || rx.date);
+                const formattedDate = formatDateTimeDisplay(
+                  rx.consultationDate || rx.date,
+                );
 
                 return (
                   <tr
@@ -187,8 +189,11 @@ const formatDateTimeDisplay = (rawStr?: string) => {
             const displayEncId = rx.encounterId
               ? `ENC-${rx.encounterId}`
               : rx.encounterNumber || (rx.id ? `ENC-${rx.id}` : "—");
-            const medCount = rx.totalMedicines ?? rx.medicineCount ?? rx.medicines.length;
-            const formattedDate = formatDateTimeDisplay(rx.consultationDate || rx.date);
+            const medCount =
+              rx.totalMedicines ?? rx.medicineCount ?? rx.medicines.length;
+            const formattedDate = formatDateTimeDisplay(
+              rx.consultationDate || rx.date,
+            );
 
             return (
               <div key={rx.id} className="p-4 space-y-3">
@@ -208,11 +213,10 @@ const formatDateTimeDisplay = (rawStr?: string) => {
                     className="font-bold text-[#111827]"
                     style={{ fontFamily: PP }}
                   >
-                    {rx.doctorName || "Attending Doctor"} ({rx.department || "General OPD"})
+                    {rx.doctorName || "Attending Doctor"} (
+                    {rx.department || "General OPD"})
                   </div>
-                  <div className="text-slate-500">
-                    Date: {formattedDate}
-                  </div>
+                  <div className="text-slate-500">Date: {formattedDate}</div>
                   <div className="text-[#009688] font-semibold">
                     {medCount} Prescribed Medication{medCount !== 1 ? "s" : ""}
                   </div>
@@ -285,7 +289,9 @@ const formatDateTimeDisplay = (rawStr?: string) => {
               <th className="px-4 py-3.5">Medicines</th>
               <th className="px-4 py-3.5">Follow-up</th>
               <th className="px-4 py-3.5">Status</th>
-              {role !== "admin" && <th className="px-4 py-3.5 text-right">Actions</th>}
+              {role !== "admin" && (
+                <th className="px-4 py-3.5 text-right">Actions</th>
+              )}
             </tr>
           </thead>
           <tbody
@@ -459,5 +465,3 @@ const formatDateTimeDisplay = (rawStr?: string) => {
     </div>
   );
 };
-
-export default PrescriptionTable;

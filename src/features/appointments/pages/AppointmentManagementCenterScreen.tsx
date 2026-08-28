@@ -636,12 +636,8 @@ export function AppointmentManagementCenterScreen({
                   <option value="All">All Statuses</option>
                   <option value="Booked">Booked</option>
                   <option value="Checked-In">Checked-In</option>
-                  <option value="Waiting for Vitals">
-                    Waiting for Vitals
-                  </option>
-                  <option value="Waiting for Doctor">
-                    Waiting for Doctor
-                  </option>
+                  <option value="Waiting for Vitals">Waiting for Vitals</option>
+                  <option value="Waiting for Doctor">Waiting for Doctor</option>
                   <option value="Called">Called</option>
                   <option value="In Consultation">In Consultation</option>
                   <option value="Completed">Completed</option>
@@ -657,9 +653,7 @@ export function AppointmentManagementCenterScreen({
                   <select
                     aria-label="Select option"
                     value={filters.doctorFilter}
-                    onChange={(e) =>
-                      setFilter("doctorFilter", e.target.value)
-                    }
+                    onChange={(e) => setFilter("doctorFilter", e.target.value)}
                     className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
                   >
                     <option value="All">All Doctors</option>
@@ -708,15 +702,11 @@ export function AppointmentManagementCenterScreen({
 
               <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
                 <Building2 size={13} className="text-slate-400" />
-                <span className="text-slate-500 font-medium">
-                  Visit Type:
-                </span>
+                <span className="text-slate-500 font-medium">Visit Type:</span>
                 <select
                   aria-label="Select option"
                   value={filters.visitTypeFilter}
-                  onChange={(e) =>
-                    setFilter("visitTypeFilter", e.target.value)
-                  }
+                  onChange={(e) => setFilter("visitTypeFilter", e.target.value)}
                   className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
                 >
                   <option value="All">All Visit Types</option>
@@ -742,84 +732,79 @@ export function AppointmentManagementCenterScreen({
                 <RotateCcw size={14} />
               </button>
             </div>
-
-           
           </div>
- {/* STATUS TABS STRIP (Row 3) */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-2 border-t border-gray-100">
-              {[
-                { id: "All", label: "All", count: roleAppointments.length },
-                {
-                  id: "Waiting",
-                  label: "Waiting",
-                  count: roleAppointments.filter(
-                    (a) =>
-                      a.status === "Waiting" ||
-                      a.status === "Waiting for Vitals" ||
-                      a.status === "Waiting for Doctor" ||
-                      a.status === "Called",
-                  ).length,
-                },
-                {
-                  id: "Checked-In",
-                  label: "Checked-In",
-                  count: roleAppointments.filter(
-                    (a) => a.status === "Checked-In",
-                  ).length,
-                },
-                {
-                  id: "In Consultation",
-                  label: "In Consultation",
-                  count: roleAppointments.filter(
-                    (a) =>
-                      a.status === "In Consultation" ||
-                      a.status === "In Progress",
-                  ).length,
-                },
-                {
-                  id: "Completed",
-                  label: "Completed",
-                  count: roleAppointments.filter(
-                    (a) => a.status === "Completed",
-                  ).length,
-                },
-                {
-                  id: "Cancelled",
-                  label: "Cancelled",
-                  count: roleAppointments.filter(
-                    (a) => a.status === "Cancelled",
-                  ).length,
-                },
-                {
-                  id: "No Show",
-                  label: "No Show",
-                  count: roleAppointments.filter((a) => a.status === "No Show")
-                    .length,
-                },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setFilter("statusFilter", tab.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap ${
+          {/* STATUS TABS STRIP (Row 3) */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-2 border-t border-gray-100">
+            {[
+              { id: "All", label: "All", count: roleAppointments.length },
+              {
+                id: "Waiting",
+                label: "Waiting",
+                count: roleAppointments.filter(
+                  (a) =>
+                    a.status === "Waiting" ||
+                    a.status === "Waiting for Vitals" ||
+                    a.status === "Waiting for Doctor" ||
+                    a.status === "Called",
+                ).length,
+              },
+              {
+                id: "Checked-In",
+                label: "Checked-In",
+                count: roleAppointments.filter((a) => a.status === "Checked-In")
+                  .length,
+              },
+              {
+                id: "In Consultation",
+                label: "In Consultation",
+                count: roleAppointments.filter(
+                  (a) =>
+                    a.status === "In Consultation" ||
+                    a.status === "In Progress",
+                ).length,
+              },
+              {
+                id: "Completed",
+                label: "Completed",
+                count: roleAppointments.filter((a) => a.status === "Completed")
+                  .length,
+              },
+              {
+                id: "Cancelled",
+                label: "Cancelled",
+                count: roleAppointments.filter((a) => a.status === "Cancelled")
+                  .length,
+              },
+              {
+                id: "No Show",
+                label: "No Show",
+                count: roleAppointments.filter((a) => a.status === "No Show")
+                  .length,
+              },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setFilter("statusFilter", tab.id)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap ${
+                  filters.statusFilter === tab.id
+                    ? "bg-[#0D47A1] text-white shadow-xs"
+                    : "bg-slate-50 text-[#64748B] hover:bg-slate-100 hover:text-[#111827]"
+                }`}
+                style={{ fontFamily: PP }}
+              >
+                <span>{tab.label}</span>
+                <span
+                  className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
                     filters.statusFilter === tab.id
-                      ? "bg-[#0D47A1] text-white shadow-xs"
-                      : "bg-slate-50 text-[#64748B] hover:bg-slate-100 hover:text-[#111827]"
+                      ? "bg-white/20 text-white"
+                      : "bg-slate-200 text-[#111827]"
                   }`}
-                  style={{ fontFamily: PP }}
                 >
-                  <span>{tab.label}</span>
-                  <span
-                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                      filters.statusFilter === tab.id
-                        ? "bg-white/20 text-white"
-                        : "bg-slate-200 text-[#111827]"
-                    }`}
-                  >
-                    {tab.count}
-                  </span>
-                </button>
-              ))}
-            </div>
+                  {tab.count}
+                </span>
+              </button>
+            ))}
+          </div>
           {/* ── 2. SUMMARY KPI CARDS (5 CARDS) ── */}
           {userRole === "Nurse" ? (
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5">

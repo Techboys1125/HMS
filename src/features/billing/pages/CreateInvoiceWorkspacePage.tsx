@@ -790,7 +790,8 @@ export function CreateInvoiceWorkspacePage() {
           try {
             const currentBill = await billingService.getBill(billId);
             const billObj = currentBill as unknown as Record<string, unknown>;
-            const summaryObj = billObj?.summary as Record<string, unknown> | undefined;
+            const summaryObj = billObj?.summary as
+              Record<string, unknown> | undefined;
             const rawBalance =
               summaryObj?.balanceAmount ??
               billObj?.balanceAmount ??
@@ -801,7 +802,10 @@ export function CreateInvoiceWorkspacePage() {
               payAmount = Math.min(numReceived, rawBalance);
             }
           } catch (fetchErr) {
-            console.warn("Could not fetch bill balance before payment:", fetchErr);
+            console.warn(
+              "Could not fetch bill balance before payment:",
+              fetchErr,
+            );
           }
 
           let payRes: { paymentStatus?: string } | null = null;
@@ -818,7 +822,10 @@ export function CreateInvoiceWorkspacePage() {
               remarks: txnNotes || undefined,
             });
           } catch (payErr) {
-            const errObj = payErr as { message?: string; data?: { message?: string } } | null | undefined;
+            const errObj = payErr as
+              | { message?: string; data?: { message?: string } }
+              | null
+              | undefined;
             const errMsg = String(
               errObj?.message || errObj?.data?.message || payErr || "",
             );
@@ -826,8 +833,12 @@ export function CreateInvoiceWorkspacePage() {
               // Retry with exact backend balance if overpayment detected
               try {
                 const refreshed = await billingService.getBill(billId);
-                const refreshedObj = refreshed as unknown as Record<string, unknown>;
-                const refreshedSummary = refreshedObj?.summary as Record<string, unknown> | undefined;
+                const refreshedObj = refreshed as unknown as Record<
+                  string,
+                  unknown
+                >;
+                const refreshedSummary = refreshedObj?.summary as
+                  Record<string, unknown> | undefined;
                 const exactBalance =
                   refreshedSummary?.balanceAmount ??
                   refreshedObj?.balanceAmount ??
@@ -2091,5 +2102,3 @@ export function CreateInvoiceWorkspacePage() {
     </div>
   );
 }
-
-export default CreateInvoiceWorkspacePage;

@@ -483,5 +483,3 @@ export function InvoiceConfiguration({
     </div>
   );
 }
-
-export default InvoiceConfiguration;

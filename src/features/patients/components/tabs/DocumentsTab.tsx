@@ -7,7 +7,6 @@ import {
   Upload,
   Download,
   Trash2,
-  Eye,
   Plus,
   X,
   FileCheck,
@@ -50,20 +49,26 @@ export function PatientDocumentsTab({ patient, canEdit }: DocumentsTabProps) {
 
   const mrn = patient.mrn || String(patient.id || "");
 
-  const loadDocuments = async () => {
-    setIsLoading(true);
-    try {
-      const list = await patientsApi.getDocuments(mrn);
-      setDocuments(list || []);
-    } catch {
-      setDocuments([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
-    loadDocuments();
+    let cancelled = false;
+
+    const fetchDocuments = async () => {
+      setIsLoading(true);
+      try {
+        const list = await patientsApi.getDocuments(mrn);
+        if (!cancelled) setDocuments(list || []);
+      } catch {
+        if (!cancelled) setDocuments([]);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+
+    fetchDocuments();
+
+    return () => {
+      cancelled = true;
+    };
   }, [mrn]);
 
   const triggerToast = (msg: string) => {
@@ -133,7 +138,8 @@ export function PatientDocumentsTab({ patient, canEdit }: DocumentsTabProps) {
             Patient Medical Documents
           </h3>
           <p className="text-xs text-[#64748B] mt-0.5">
-            Manage lab reports, identity proofs, prescriptions, and health documents.
+            Manage lab reports, identity proofs, prescriptions, and health
+            documents.
           </p>
         </div>
 
@@ -165,7 +171,8 @@ export function PatientDocumentsTab({ patient, canEdit }: DocumentsTabProps) {
             No documents uploaded yet.
           </p>
           <p className="text-xs text-[#64748B] max-w-sm mx-auto">
-            Upload patient lab reports, scan results, or ID proofs to store them securely.
+            Upload patient lab reports, scan results, or ID proofs to store them
+            securely.
           </p>
           {canEdit && (
             <button
@@ -291,7 +298,10 @@ export function PatientDocumentsTab({ patient, canEdit }: DocumentsTabProps) {
             </div>
 
             {/* Modal Form */}
-            <form onSubmit={handleUploadSubmit} className="p-5 space-y-4 text-xs">
+            <form
+              onSubmit={handleUploadSubmit}
+              className="p-5 space-y-4 text-xs"
+            >
               <div>
                 <label className="block text-[#111827] font-bold mb-1">
                   Document Title *

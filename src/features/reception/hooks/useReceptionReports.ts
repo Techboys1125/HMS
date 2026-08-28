@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { receptionReportsApi } from "../api/receptionReports.api";
 
-export const receptionReportKeys = {
+const receptionReportKeys = {
   all: ["reception-reports"] as const,
   activityLog: (params?: { date?: string; page?: number; size?: number }) =>
     [...receptionReportKeys.all, "activity-log", params] as const,

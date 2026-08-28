@@ -96,5 +96,3 @@ export const PrescriptionHeader: React.FC<PrescriptionHeaderProps> = ({
     </div>
   );
 };
-
-export default PrescriptionHeader;

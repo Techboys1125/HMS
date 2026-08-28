@@ -19,7 +19,6 @@ import type { BookAppointmentScreenProps } from "../types/appointment-screen.typ
 import { appointmentService } from "../services/appointment.service";
 import { patientsApi } from "../../patients/api/patient.api";
 import { departmentsApi } from "../../users/api/departments.api";
-import { doctorsApi } from "../../doctors/api/doctors.api";
 import type { DoctorDailySlot } from "../../doctors/types/doctors.types";
 import { AppointmentDetailsDrawer } from "../components/AppointmentDetailsDrawer";
 

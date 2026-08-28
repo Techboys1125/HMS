@@ -169,5 +169,3 @@ export const PrescriptionManagementPage: React.FC<{
     </div>
   );
 };
-
-export default PrescriptionManagementPage;

@@ -17,7 +17,7 @@ export interface RoleItem {
   createdDate: string;
 }
 
-export interface RolePermission {
+interface RolePermission {
   view: boolean;
   edit: boolean;
   delete: boolean;

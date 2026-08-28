@@ -1,4 +1,10 @@
-import { Phone, Stethoscope, FolderOpen, FileText, XCircle } from "lucide-react";
+import {
+  Phone,
+  Stethoscope,
+  FolderOpen,
+  FileText,
+  XCircle,
+} from "lucide-react";
 import type { ConsultationRecord, OauthRole } from "../types/consultation";
 
 const PP = "'Poppins', system-ui, sans-serif";
@@ -35,8 +41,7 @@ export const ConsultationActionMenu: React.FC<ConsultationActionMenuProps> = ({
   const isCalled = statusUpper === "CALLED";
   const isInConsultation =
     statusUpper === "IN_CONSULTATION" || statusUpper === "IN_PROGRESS";
-  const isCancelled =
-    statusUpper === "CANCELLED" || statusUpper === "CANCELED";
+  const isCancelled = statusUpper === "CANCELLED" || statusUpper === "CANCELED";
   const isCompleted =
     statusUpper === "COMPLETED" ||
     statusUpper === "CONSULTATION_COMPLETED" ||
@@ -98,16 +103,19 @@ export const ConsultationActionMenu: React.FC<ConsultationActionMenuProps> = ({
           </button>
         )}
 
-        {isDoctorRole && !isCompleted && !isCancelled && onCancelConsultation && (
-          <button
-            onClick={() => onCancelConsultation(item)}
-            className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer"
-            title="Cancel Consultation"
-            style={{ fontFamily: PP }}
-          >
-            <XCircle size={13} /> Cancel
-          </button>
-        )}
+        {isDoctorRole &&
+          !isCompleted &&
+          !isCancelled &&
+          onCancelConsultation && (
+            <button
+              onClick={() => onCancelConsultation(item)}
+              className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer"
+              title="Cancel Consultation"
+              style={{ fontFamily: PP }}
+            >
+              <XCircle size={13} /> Cancel
+            </button>
+          )}
 
         {isCompleted && (
           <button
@@ -123,5 +131,3 @@ export const ConsultationActionMenu: React.FC<ConsultationActionMenuProps> = ({
     </td>
   );
 };
-
-export default ConsultationActionMenu;

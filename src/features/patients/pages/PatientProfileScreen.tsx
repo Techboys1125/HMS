@@ -22,7 +22,6 @@ export function PatientProfileScreen({
     [],
   );
   const [billing, setBilling] = useState<Record<string, unknown>[]>([]);
-
   const [loading, setLoading] = useState(patientMrn ? true : false);
   const [error, setError] = useState<string | null>(
     !patientMrn ? "No patient MRN provided" : null,
@@ -84,8 +83,6 @@ export function PatientProfileScreen({
       cancelled = true;
     };
   }, [patientMrn, missingMrn]);
-
-
 
   const userRole = useAuthStore((s) => s.user?.role);
   const normalizedRole: Role =

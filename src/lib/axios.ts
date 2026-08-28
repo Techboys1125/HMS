@@ -354,5 +354,3 @@ export const axios = {
     );
   },
 };
-
-export default apiClient;

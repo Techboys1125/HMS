@@ -296,5 +296,3 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
     </div>
   );
 };
-
-export default ConsultationTable;

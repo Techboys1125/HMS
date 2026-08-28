@@ -165,5 +165,3 @@ export const DiagnosisForm: React.FC<DiagnosisFormProps> = ({
     </div>
   );
 };
-
-export default DiagnosisForm;

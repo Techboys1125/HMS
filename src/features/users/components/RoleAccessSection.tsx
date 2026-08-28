@@ -105,4 +105,3 @@ export const RoleAccessSection: React.FC<RoleAccessSectionProps> = ({
     </div>
   );
 };
-export default RoleAccessSection;

@@ -304,4 +304,3 @@ export const ReviewInfoSection: React.FC<ReviewInfoSectionProps> = ({
     </div>
   );
 };
-export default ReviewInfoSection;

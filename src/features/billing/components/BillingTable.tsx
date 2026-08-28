@@ -279,5 +279,3 @@ export function BillingTable({
     </div>
   );
 }
-
-export default BillingTable;

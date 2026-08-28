@@ -13,29 +13,6 @@ export interface DoctorSummaryPerformanceRecord {
   avatar: string;
 }
 
-export interface DoctorConsultationPerformanceRecord {
-  consultationId: string;
-  patientName: string;
-  mrn: string;
-  appointmentDate: string;
-  consultationTime: string;
-  diagnosis: string;
-  prescriptionStatus: string;
-  followUp: string;
-  consultationStatus: string;
-}
-
-export interface ActivityItem {
-  id: string;
-  user: string;
-  role: string;
-  action: string;
-  reportName: string;
-  date: string;
-  time: string;
-  type: "generation" | "export" | "view" | "print" | "download";
-}
-
 export interface AvailableReportCard {
   id: string;
   name: string;
@@ -178,42 +155,6 @@ export interface KpiPendingPaymentRecord {
   status: "Pending" | "Overdue" | "Partially Paid";
 }
 
-// Doctor RBAC types
-export interface DoctorConsultationRecord {
-  id: string;
-  patientName: string;
-  mrn: string;
-  appointmentDate: string;
-  consultationTime: string;
-  diagnosis: string;
-  prescription: string;
-  status: string;
-}
-
-export interface DoctorDailyAppointmentRecord {
-  id: string;
-  patientName: string;
-  mrn: string;
-  appointmentDate: string;
-  appointmentTime: string;
-  visitType: string;
-  status: string;
-  consultationStatus: string;
-}
-
-export interface DoctorPatientRecord {
-  mrn: string;
-  patientName: string;
-  age: number;
-  gender: string;
-  mobileNumber: string;
-  lastConsultationDate: string;
-  visitType: string;
-  diagnosis: string;
-  followUpDate: string;
-  status: string;
-}
-
 export type DoctorKpiKey =
   | "today-appointments"
   | "completed-consultations"
@@ -222,138 +163,6 @@ export type DoctorKpiKey =
   | "followup-patients"
   | "avg-consult-time"
   | "patient-satisfaction";
-
-export interface DoctorKpiMeta {
-  key: DoctorKpiKey;
-  title: string;
-  value: string;
-  yesterdayComp: string;
-  monthlyComp: string;
-  growth: string;
-  isPositive: boolean;
-  unit: string;
-}
-
-// Receptionist types
-export interface ReceptionistActivityRecord {
-  mrn: string;
-  patientName: string;
-  appointmentId: string;
-  visitType: string;
-  registrationTime: string;
-  checkInTime: string;
-  queueStatus: string;
-  appointmentStatus: string;
-}
-
-export interface ReceptionistDailyAppointmentRecord {
-  appointmentId: string;
-  patientName: string;
-  mrn: string;
-  mobileNumber: string;
-  appointmentTime: string;
-  visitType: string;
-  checkInTime: string;
-  queueStatus: string;
-  appointmentStatus: string;
-}
-
-export interface ReceptionistPatientReportRecord {
-  mrn: string;
-  patientName: string;
-  mobileNumber: string;
-  age: number;
-  gender: string;
-  registrationDate: string;
-  visitType: string;
-  appointmentStatus: string;
-  checkInStatus: string;
-  registrationStatus: string;
-}
-
-export type ReceptionistKpiType =
-  | "Today's Registrations"
-  | "Today's Appointments"
-  | "Checked-In Patients"
-  | "Patients Waiting"
-  | "Completed Check-Ins"
-  | "Average Waiting Time"
-  | "Walk-In Patients"
-  | "Returning Patients";
-
-export interface ReceptionistKpiMeta {
-  title: string;
-  currentValue: string;
-  yesterdayComp: string;
-  monthlyComp: string;
-  growthPercent: string;
-  isPositive: boolean;
-  description: string;
-  unit: string;
-}
-
-// Accountant types
-export interface AccountantFinancialTransactionRecord {
-  invoiceId: string;
-  patientName: string;
-  mrn: string;
-  invoiceDate: string;
-  grandTotal: number;
-  amountPaid: number;
-  balance: number;
-  paymentMethod: string;
-  paymentStatus: string;
-  collectedBy: string;
-}
-
-export interface AccountantDailyRevenueRecord {
-  invoiceId: string;
-  patientName: string;
-  mrn: string;
-  invoiceDate: string;
-  paymentTime: string;
-  invoiceAmount: number;
-  amountPaid: number;
-  outstandingAmount: number;
-  paymentMethod: string;
-  paymentStatus: string;
-  collectedBy: string;
-}
-
-export interface AccountantBillingRecord {
-  invoiceId: string;
-  patientName: string;
-  mrn: string;
-  invoiceDate: string;
-  invoiceAmount: number;
-  amountPaid: number;
-  outstandingBalance: number;
-  paymentMethod: string;
-  paymentStatus: string;
-  invoiceStatus: string;
-  collectedBy: string;
-}
-
-export type AccountantKpiType =
-  | "Today's Revenue"
-  | "Today's Invoices"
-  | "Paid Bills"
-  | "Pending Payments"
-  | "Outstanding Amount"
-  | "Refunded Bills"
-  | "Payment Collection Rate"
-  | "Average Invoice Value";
-
-export interface AccountantKpiMeta {
-  title: string;
-  currentValue: string;
-  yesterdayComp: string;
-  monthlyComp: string;
-  growthPercent: string;
-  isPositive: boolean;
-  description: string;
-  unit: string;
-}
 
 // ─── Backend API Response Types ──────────────────────────────────────────────
 
@@ -526,15 +335,6 @@ export interface PatientRegistrationSummary {
   returningPatients: number;
 }
 
-// 12. Patient Registration Detail
-export interface PatientRegistrationDetail {
-  patientId: number;
-  patientName: string;
-  mrn: string;
-  gender: string;
-  registeredAt: string;
-}
-
 // 13. Revenue vs Collection
 export interface RevenueVsCollectionPoint {
   outstanding: number;
@@ -601,7 +401,7 @@ export interface MostViewedReport {
 }
 
 // 18. Patient Age Demographics
-export interface AgeGroup {
+interface AgeGroup {
   ageGroup: string;
   count: number;
   percentage: number;
@@ -612,38 +412,12 @@ export interface PatientAgeDemographics {
   ageGroups: AgeGroup[];
 }
 
-// 19. Patient Dashboard
-export interface PatientDashboardData {
-  totalPatients: number;
-  newPatients: number;
-  returningPatients: number;
-  activePatients: number;
-  genderDistribution: {
-    male: number;
-    female: number;
-    other: number;
-  };
-  topDepartments: {
-    departmentName: string;
-    visitCount: number;
-  }[];
-}
-
 // 20. Department Patient Visits
 export interface DepartmentPatientVisit {
   departmentId: number;
   departmentName: string;
   patientCount: number;
   percentage: number;
-}
-
-// 21. Doctor Patient Workload
-export interface DoctorPatientWorkload {
-  doctorId: number;
-  doctorName: string;
-  department: string;
-  patientCount: number;
-  activeEncounterCount: number;
 }
 
 // 22. Gender Breakdown
@@ -678,28 +452,6 @@ export interface PatientMasterRecord {
   createdDate?: string;
 }
 
-export interface PatientMasterRegisterData {
-  content: PatientMasterRecord[];
-  pageable: {
-    pageNumber: number;
-    pageSize: number;
-  };
-  totalElements: number;
-  totalPages: number;
-}
-
-// 24. Patient Registration Trend
-export interface RegistrationTrendPoint {
-  date: string;
-  newPatients: number;
-  returningPatients: number;
-}
-
-export interface RegistrationTrendData {
-  period: string;
-  points: RegistrationTrendPoint[];
-}
-
 // ─── Doctor Personal Practice Reports Interfaces ─────────────────────────────
 
 export interface DoctorDailyAppointmentsAnalyticsData {
@@ -725,7 +477,7 @@ export interface DoctorDailyAppointmentsAnalyticsData {
   }>;
 }
 
-export interface DoctorPracticeSummary {
+interface DoctorPracticeSummary {
   myPatients: number;
   newPatients: number;
   returningPatients: number;
@@ -747,7 +499,7 @@ export interface DoctorDailyAppointmentsDashboardData {
   summary: DoctorPracticeSummary;
 }
 
-export interface DoctorDailyAppointmentRegisterItem {
+interface DoctorDailyAppointmentRegisterItem {
   appointmentId: string;
   patientId: string;
   patientName: string;
@@ -767,35 +519,7 @@ export interface DoctorDailyAppointmentRegisterResponse {
   totalPages: number;
 }
 
-export interface DoctorPatientAnalyticsData {
-  consultationTrend: Array<{
-    date: string;
-    patients: number;
-    completedConsultations: number;
-  }>;
-  followUpCompliance: {
-    completed: number;
-    scheduled: number;
-    pending: number;
-    missed: number;
-  };
-}
-
-export interface DoctorPatientReportDashboardData {
-  doctor: {
-    doctorId: string;
-    doctorName: string;
-    department: string;
-  };
-  reportPeriod: {
-    fromDate: string;
-    toDate: string;
-  };
-  lastUpdated: string;
-  summary: DoctorPracticeSummary;
-}
-
-export interface DoctorPatientRegisterItem {
+interface DoctorPatientRegisterItem {
   patientId: string;
   patientName: string;
   mrn: string;
@@ -873,7 +597,7 @@ export interface AccountantBillingAnalysisData {
   }>;
 }
 
-export interface AccountantPaymentMethodItem {
+interface AccountantPaymentMethodItem {
   paymentMethod: string;
   totalAmount: number;
   transactionCount: number;
@@ -888,7 +612,7 @@ export interface AccountantPaymentCollectionData {
   methodBreakdown: AccountantPaymentMethodItem[];
 }
 
-export interface AccountantRefundItem {
+interface AccountantRefundItem {
   refundId?: string;
   invoiceId?: string;
   patientName?: string;
@@ -905,7 +629,7 @@ export interface AccountantRefundLogData {
   refunds: AccountantRefundItem[];
 }
 
-export interface AccountantRevenueDataPoint {
+interface AccountantRevenueDataPoint {
   label: string;
   amount: number;
   invoiceCount: number;
@@ -919,7 +643,7 @@ export interface AccountantRevenueReportData {
   dataPoints: AccountantRevenueDataPoint[];
 }
 
-export interface AccountantTransactionItem {
+interface AccountantTransactionItem {
   paymentNumber: string;
   invoiceId: string;
   patientName: string;
@@ -936,107 +660,4 @@ export interface AccountantTransactionRegisterResponse {
   size: number;
   totalElements: number;
   totalPages: number;
-}
-
-// ─── Reception Reports ─────────────────────────────────────────────────────
-
-export interface ReceptionDashboardData {
-  date: string;
-  totalAppointments: number;
-  checkedIn: number;
-  inConsultation: number;
-  completed: number;
-  cancelled: number;
-  noShow: number;
-  averageWaitTime: number;
-  queueLength: number;
-}
-
-export interface ReceptionRegistrationTrendPoint {
-  date: string;
-  registrations: number;
-  walkIns: number;
-  online: number;
-}
-
-export interface ReceptionRegistrationTrendData {
-  fromDate: string;
-  toDate: string;
-  dataPoints: ReceptionRegistrationTrendPoint[];
-}
-
-export interface ReceptionAppointmentStatusItem {
-  status: string;
-  count: number;
-  percentage: number;
-}
-
-export interface ReceptionAppointmentStatusData {
-  date: string;
-  total: number;
-  breakdown: ReceptionAppointmentStatusItem[];
-}
-
-export interface ReceptionCheckinAnalyticsData {
-  date: string;
-  totalCheckedIn: number;
-  averageCheckinTime: string;
-  peakHour: string;
-  checkinsByHour: Array<{ hour: string; count: number }>;
-}
-
-export interface ReceptionQueuePerformanceData {
-  date: string;
-  averageWaitTime: number;
-  longestWait: number;
-  patientsWaiting: number;
-  tokensIssued: number;
-  patientsServed: number;
-}
-
-export interface ReceptionRegisterItem {
-  appointmentId: string;
-  patientName: string;
-  mrn: string;
-  doctorName: string;
-  department: string;
-  timeSlot: string;
-  visitType: string;
-  status: string;
-  checkedInAt: string;
-}
-
-export interface ReceptionRegisterResponse {
-  content: ReceptionRegisterItem[];
-  page: number;
-  size: number;
-  totalElements: number;
-  totalPages: number;
-}
-
-export interface ReceptionActivityLogItem {
-  id: string;
-  timestamp: string;
-  user: string;
-  action: string;
-  patientName: string;
-  details: string;
-}
-
-export interface ReceptionActivityLogResponse {
-  content: ReceptionActivityLogItem[];
-  page: number;
-  size: number;
-  totalElements: number;
-  totalPages: number;
-}
-
-export interface ReceptionSummaryData {
-  date: string;
-  todayAppointments: number;
-  todayCheckedIn: number;
-  todayCompleted: number;
-  todayCancelled: number;
-  averageWaitTime: number;
-  patientSatisfaction: number;
 }

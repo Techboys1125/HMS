@@ -106,7 +106,7 @@ export interface OpdBreak {
   endTime: string;
 }
 
-export interface OpdWorkingInterval {
+interface OpdWorkingInterval {
   startTime: string;
   endTime: string;
 }

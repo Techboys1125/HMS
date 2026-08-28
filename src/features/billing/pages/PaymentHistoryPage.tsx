@@ -669,5 +669,3 @@ export function PaymentHistoryPage() {
     </div>
   );
 }
-
-export default PaymentHistoryPage;

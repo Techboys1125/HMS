@@ -70,7 +70,7 @@ function toDisplayTimestamp(createdAt: string): string {
   });
 }
 
-export function mapApiNotificationToRecord(
+function mapApiNotificationToRecord(
   item: NotificationListItem,
 ): NotificationRecord {
   const uiStatus =

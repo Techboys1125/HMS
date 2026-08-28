@@ -53,7 +53,7 @@ export async function uploadHospitalLogo(file: File): Promise<UploadResponse> {
   return uploadFile(file);
 }
 
-export async function uploadFile(file: File): Promise<UploadResponse> {
+async function uploadFile(file: File): Promise<UploadResponse> {
   const formData = new FormData();
   formData.append("file", file);
   const res = await apiClient.post<ApiEnvelope<UploadResponse>>(

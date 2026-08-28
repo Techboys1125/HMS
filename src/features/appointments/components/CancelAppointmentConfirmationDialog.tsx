@@ -115,7 +115,8 @@ export function CancelAppointmentConfirmationDialog({
           <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 space-y-2 text-xs">
             <div className="flex items-center justify-between">
               <span className="font-mono font-bold text-[#0D47A1] text-xs">
-                {apt.appointmentNumber || apt.id} ({apt.tokenNo || apt.queueToken || "Pending"})
+                {apt.appointmentNumber || apt.id} (
+                {apt.tokenNo || apt.queueToken || "Pending"})
               </span>
               <StatusBadge status={apt.status} />
             </div>

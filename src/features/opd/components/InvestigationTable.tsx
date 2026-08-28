@@ -114,5 +114,3 @@ export const InvestigationTable: React.FC<InvestigationTableProps> = ({
     </div>
   );
 };
-
-export default InvestigationTable;

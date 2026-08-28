@@ -50,5 +50,3 @@ export const ConsultationTabs: React.FC<ConsultationTabsProps> = ({
     </div>
   );
 };
-
-export default ConsultationTabs;

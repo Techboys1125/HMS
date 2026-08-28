@@ -1027,5 +1027,3 @@ export function StaffProfilePage({ currentRole }: { currentRole: Role }) {
     </div>
   );
 }
-
-export default StaffProfilePage;

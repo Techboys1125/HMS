@@ -75,7 +75,10 @@ const saveMedications = async (
   medicines: MedicineItem[],
 ) => {
   const validMeds = medicines.filter((m) => m.name.trim() !== "");
-  console.log("SAVE MEDICATIONS CALLED:", { prescriptionId, medicines: validMeds });
+  console.log("SAVE MEDICATIONS CALLED:", {
+    prescriptionId,
+    medicines: validMeds,
+  });
 
   if (validMeds.length === 0) {
     console.warn("No valid medicines to save");
@@ -202,7 +205,7 @@ export function StartConsultationPage({
         if (!isMounted) return;
 
         if (res) {
-          const c = ((res.consultation || res) as unknown) as Record<
+          const c = (res.consultation || res) as unknown as Record<
             string,
             unknown
           >;
@@ -227,7 +230,11 @@ export function StartConsultationPage({
               age: Number(c.age || c.patientAge || pSub.age || 0),
               gender: String(c.gender || c.patientGender || pSub.gender || ""),
               phone: String(
-                c.phone || c.mobile || pSub.phone || pSub.registeredMobile || "",
+                c.phone ||
+                  c.mobile ||
+                  pSub.phone ||
+                  pSub.registeredMobile ||
+                  "",
               ),
               bloodGroup: String(c.bloodGroup || pSub.bloodGroup || ""),
               allergies: Array.isArray(c.allergies)
@@ -236,7 +243,11 @@ export function StartConsultationPage({
                   ? (pSub.allergies as string[])
                   : [],
               doctor: String(
-                c.doctor || c.doctorName || docSub.name || docSub.fullName || "",
+                c.doctor ||
+                  c.doctorName ||
+                  docSub.name ||
+                  docSub.fullName ||
+                  "",
               ),
               opdRoom: String(c.opdRoom || c.roomNumber || ""),
               visitType: String(
@@ -245,7 +256,9 @@ export function StartConsultationPage({
               appointmentTime: String(c.appointmentTime || c.time || ""),
             });
 
-            const vObj = (c.vitals || (res as Record<string, unknown>).vitals || {}) as Record<string, unknown>;
+            const vObj = (c.vitals ||
+              (res as Record<string, unknown>).vitals ||
+              {}) as Record<string, unknown>;
             const toStr = (v: unknown) => (v != null ? String(v) : "");
 
             setFormData((prev) => ({
@@ -260,26 +273,43 @@ export function StartConsultationPage({
               visitType:
                 (c.visitType as "New Consultation" | "Follow-up") ||
                 prev.visitType,
-              height: vObj.height ? toStr(vObj.height).replace(" cm", "") : prev.height,
-              weight: vObj.weight ? toStr(vObj.weight).replace(" kg", "") : prev.weight,
-              temperature: (vObj.temp || vObj.temperature)
-                ? toStr(vObj.temp || vObj.temperature).replace(" °C", "").replace("°C", "")
-                : prev.temperature,
-              bp: (vObj.bp || vObj.bloodPressure)
-                ? toStr(vObj.bp || vObj.bloodPressure).replace(" mmHg", "")
-                : prev.bp,
-              pulse: (vObj.pulse || vObj.heartRate)
-                ? toStr(vObj.pulse || vObj.heartRate).replace(" bpm", "")
-                : prev.pulse,
-              respiratoryRate: (vObj.respiratoryRate || vObj.respRate)
-                ? toStr(vObj.respiratoryRate || vObj.respRate).replace(" /min", "")
-                : prev.respiratoryRate,
-              spo2: (vObj.spo2 || vObj.oxygenSaturation)
-                ? toStr(vObj.spo2 || vObj.oxygenSaturation).replace(" %", "").replace("%", "")
-                : prev.spo2,
-              bloodSugar: (vObj.bloodSugar || vObj.sugar)
-                ? toStr(vObj.bloodSugar || vObj.sugar).replace(" mg/dL", "")
-                : prev.bloodSugar,
+              height: vObj.height
+                ? toStr(vObj.height).replace(" cm", "")
+                : prev.height,
+              weight: vObj.weight
+                ? toStr(vObj.weight).replace(" kg", "")
+                : prev.weight,
+              temperature:
+                vObj.temp || vObj.temperature
+                  ? toStr(vObj.temp || vObj.temperature)
+                      .replace(" °C", "")
+                      .replace("°C", "")
+                  : prev.temperature,
+              bp:
+                vObj.bp || vObj.bloodPressure
+                  ? toStr(vObj.bp || vObj.bloodPressure).replace(" mmHg", "")
+                  : prev.bp,
+              pulse:
+                vObj.pulse || vObj.heartRate
+                  ? toStr(vObj.pulse || vObj.heartRate).replace(" bpm", "")
+                  : prev.pulse,
+              respiratoryRate:
+                vObj.respiratoryRate || vObj.respRate
+                  ? toStr(vObj.respiratoryRate || vObj.respRate).replace(
+                      " /min",
+                      "",
+                    )
+                  : prev.respiratoryRate,
+              spo2:
+                vObj.spo2 || vObj.oxygenSaturation
+                  ? toStr(vObj.spo2 || vObj.oxygenSaturation)
+                      .replace(" %", "")
+                      .replace("%", "")
+                  : prev.spo2,
+              bloodSugar:
+                vObj.bloodSugar || vObj.sugar
+                  ? toStr(vObj.bloodSugar || vObj.sugar).replace(" mg/dL", "")
+                  : prev.bloodSugar,
             }));
 
             // Restore existing prescription medicines
@@ -289,10 +319,7 @@ export function StartConsultationPage({
                 .getPrescriptionByEncounterId(activeConsultationId)
                 .catch(() => null);
               if (rxRes) {
-                const rxObj = rxRes as unknown as Record<
-                  string,
-                  unknown
-                >;
+                const rxObj = rxRes as unknown as Record<string, unknown>;
                 const rawMeds = (rxObj.medications ||
                   rxObj.medicines ||
                   rxObj.items ||
@@ -300,13 +327,16 @@ export function StartConsultationPage({
                   []) as unknown[];
                 if (Array.isArray(rawMeds) && rawMeds.length > 0) {
                   existingMeds = rawMeds.map((m: unknown, idx: number) => {
-                    const item = (m && typeof m === "object"
-                      ? m
-                      : {}) as Record<string, unknown>;
+                    const item = (
+                      m && typeof m === "object" ? m : {}
+                    ) as Record<string, unknown>;
                     return {
                       id: String(item.id || item.medicationId || idx + 1),
                       name: String(
-                        item.name || item.medicineName || item.drugName || "Medication",
+                        item.name ||
+                          item.medicineName ||
+                          item.drugName ||
+                          "Medication",
                       ),
                       dosage: String(
                         item.dosage || item.dose || item.doseValue || "1 tab",
@@ -368,11 +398,9 @@ export function StartConsultationPage({
 
         if (apptRes) {
           const rawData = (apptRes as unknown as Record<string, unknown>)?.data;
-          const appt = (
-            ((rawData as Record<string, unknown>)?.data ||
-              rawData ||
-              apptRes) as Record<string, unknown>
-          );
+          const appt = ((rawData as Record<string, unknown>)?.data ||
+            rawData ||
+            apptRes) as Record<string, unknown>;
           const patientObj = (appt.patient || {}) as Record<string, unknown>;
           const doctorObj = (appt.doctor || {}) as Record<string, unknown>;
           const deptObj = (appt.department || {}) as Record<string, unknown>;
@@ -386,7 +414,11 @@ export function StartConsultationPage({
               "",
           );
           const pMrn = String(
-            appt.mrn || appt.patientMrn || appt.patient_mrn || patientObj.mrn || "",
+            appt.mrn ||
+              appt.patientMrn ||
+              appt.patient_mrn ||
+              patientObj.mrn ||
+              "",
           );
           const deptName = String(
             appt.departmentName ||
@@ -735,7 +767,7 @@ export function StartConsultationPage({
             );
             console.log("CREATE PRESCRIPTION RAW RESPONSE:", createdRx);
 
-            const rxObj = (createdRx as unknown) as Record<string, unknown>;
+            const rxObj = createdRx as unknown as Record<string, unknown>;
             const rxData = (rxObj?.data as Record<string, unknown>) || {};
             const rxIdResolved = (createdRx?.id ??
               createdRx?.prescriptionId ??
@@ -759,10 +791,13 @@ export function StartConsultationPage({
           selectedConsultation?.id;
 
         if (!finalIdToUse) {
-          console.error("Cannot save medications: prescription/encounter ID is missing!", {
-            encounterId: activeEncounterId,
-            medicines: validMeds,
-          });
+          console.error(
+            "Cannot save medications: prescription/encounter ID is missing!",
+            {
+              encounterId: activeEncounterId,
+              medicines: validMeds,
+            },
+          );
         } else {
           try {
             await saveMedications(finalIdToUse, formData.medicines);
@@ -791,7 +826,8 @@ export function StartConsultationPage({
         try {
           await consultationApi.saveClinicalNotes(selectedConsultation.id, {
             chiefComplaint: formData.chiefComplaint || formData.symptoms,
-            historyOfPresentIllness: formData.symptoms || formData.chiefComplaint,
+            historyOfPresentIllness:
+              formData.symptoms || formData.chiefComplaint,
             generalExamination: formData.clinicalExamination,
             assessmentSummary: formData.assessment,
             advice: formData.advice,
@@ -810,15 +846,23 @@ export function StartConsultationPage({
 
         if (encId && String(encId) !== "ENC-TEMP") {
           const hasMeds = formData.medicines.some((m) => m.name.trim() !== "");
-          const outcome = hasMeds ? "PRESCRIPTION_CREATED" : "NO_PRESCRIPTION_REQUIRED";
+          const outcome = hasMeds
+            ? "PRESCRIPTION_CREATED"
+            : "NO_PRESCRIPTION_REQUIRED";
           try {
             await consultationApi.setPrescriptionResolution(encId, { outcome });
           } catch (resErr) {
             console.warn("Prescription resolution pre-check warning:", resErr);
           }
 
-          const checkRes = await encountersApi.getFinalizationCheck(encId).catch(() => null);
-          if (checkRes && checkRes.ready === false && Array.isArray(checkRes.checks)) {
+          const checkRes = await encountersApi
+            .getFinalizationCheck(encId)
+            .catch(() => null);
+          if (
+            checkRes &&
+            checkRes.ready === false &&
+            Array.isArray(checkRes.checks)
+          ) {
             const failedMsgs = checkRes.checks
               .filter((c) => !c.passed)
               .map((c) => c.code || "Finalization readiness check failed");
@@ -1343,5 +1387,3 @@ export function StartConsultationPage({
     </div>
   );
 }
-
-export default StartConsultationPage;

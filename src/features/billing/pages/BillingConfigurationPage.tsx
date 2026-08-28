@@ -15,5 +15,3 @@ export function BillingConfigurationPage() {
     </div>
   );
 }
-
-export default BillingConfigurationPage;

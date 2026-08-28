@@ -656,5 +656,3 @@ export function ReceptionistPaymentCollectionPage() {
     </div>
   );
 }
-
-export default ReceptionistPaymentCollectionPage;

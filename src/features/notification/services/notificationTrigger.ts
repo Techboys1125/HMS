@@ -1,6 +1,6 @@
 import { triggerInternalNotification } from "../api/notification.api";
 
-export function isEventAlreadyTriggered(eventId: string): boolean {
+function isEventAlreadyTriggered(eventId: string): boolean {
   try {
     const list = JSON.parse(
       localStorage.getItem("hms_triggered_notifications:v1") || "[]",
@@ -11,7 +11,7 @@ export function isEventAlreadyTriggered(eventId: string): boolean {
   }
 }
 
-export function markEventAsTriggered(eventId: string): void {
+function markEventAsTriggered(eventId: string): void {
   try {
     const list = JSON.parse(
       localStorage.getItem("hms_triggered_notifications:v1") || "[]",
@@ -28,7 +28,7 @@ export function markEventAsTriggered(eventId: string): void {
   }
 }
 
-export function getNotificationType(eventType: string): string {
+function getNotificationType(eventType: string): string {
   const et = String(eventType).toUpperCase();
   if (
     [
@@ -100,7 +100,7 @@ export function getNotificationType(eventType: string): string {
   return "SYSTEM";
 }
 
-export function getSourceModule(eventType: string): string {
+function getSourceModule(eventType: string): string {
   const et = String(eventType).toUpperCase();
   if (
     [

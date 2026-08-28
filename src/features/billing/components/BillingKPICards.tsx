@@ -180,5 +180,3 @@ export function BillingKPICards({
     </div>
   );
 }
-
-export default BillingKPICards;

@@ -1,12 +1,3 @@
-export interface WorkingHourRow {
-  day: string;
-  open: string;
-  close: string;
-  breakStart: string;
-  breakEnd: string;
-  enabled: boolean;
-}
-
 export interface Holiday {
   id: string;
   name: string;

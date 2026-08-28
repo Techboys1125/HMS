@@ -82,7 +82,7 @@ export function getNotificationPermission(
   );
 }
 
-export function normalizeNotificationRole(
+function normalizeNotificationRole(
   role: string | undefined,
 ): NotificationRoleKey {
   const upper = String(role ?? "").toUpperCase();

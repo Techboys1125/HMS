@@ -418,4 +418,3 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
     </div>
   );
 };
-export default PersonalInfoSection;

@@ -172,5 +172,3 @@ export const PatientSummaryCard: React.FC<PatientSummaryCardProps> = ({
     </div>
   );
 };
-
-export default PatientSummaryCard;

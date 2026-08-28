@@ -751,5 +751,3 @@ export const EncounterPrescriptionViewModal: React.FC<
     </div>
   );
 };
-
-export default EncounterPrescriptionViewModal;

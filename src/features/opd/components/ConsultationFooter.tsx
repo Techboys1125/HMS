@@ -60,5 +60,3 @@ export const ConsultationFooter: React.FC<ConsultationFooterProps> = ({
     </div>
   );
 };
-
-export default ConsultationFooter;

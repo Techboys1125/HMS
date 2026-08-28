@@ -1,10 +1,4 @@
-import {
-  Plus,
-  Download,
-  RotateCcw,
-  History,
-  BarChart2,
-} from "lucide-react";
+import { Plus, Download, RotateCcw, History, BarChart2 } from "lucide-react";
 import { useAuthStore } from "../../auth/store/auth.store";
 import { checkBillingPermission } from "../permissions/billing.permissions";
 import { PP, RB } from "../constants/billing.constants";
@@ -131,5 +125,3 @@ export function BillingHeader({
     </div>
   );
 }
-
-export default BillingHeader;
