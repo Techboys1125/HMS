@@ -462,7 +462,20 @@ export const encountersApi = {
       const response = await apiClient.get<unknown>(
         `/api/v1/prescriptions/${prescriptionId}/print-output`,
       );
-      return unwrap(response.data) as any;
+      return unwrap(response.data) as {
+        headerTitle?: string;
+        prescriptionId?: string;
+        patient?: { fullName?: string; mrn?: string };
+        doctor?: { fullName?: string };
+        medications?: Array<{
+          medicineName: string;
+          dosage?: string;
+          frequency?: string;
+          duration?: string;
+          quantity?: string;
+          instructions?: string;
+        }>;
+      };
     } catch {
       return null;
     }
@@ -761,5 +774,3 @@ export const encountersApi = {
     }
   },
 };
-
-export default encountersApi;

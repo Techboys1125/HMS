@@ -22,10 +22,6 @@ import {
 } from "./PatientPortalContext";
 
 export type { PatientPortalContextValue };
-export {
-  PatientPortalContext,
-  SWITCH_ACCOUNT_STORAGE_KEY,
-} from "./PatientPortalContext";
 
 interface PatientPortalPayload {
   name?: string;

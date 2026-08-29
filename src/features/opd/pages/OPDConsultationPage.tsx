@@ -317,6 +317,8 @@ function mapQueueItemToConsultation(
       ((rawItem.encounter as Record<string, unknown>)?.id as number | string) ||
       ((rawItem.encounter as Record<string, unknown>)?.encounterId as
         number | string) ||
+      ((rawItem.encounter as Record<string, unknown>)?.encounterId as
+        number | string) ||
       (rawItem.encounter_id as number | string) ||
       (item as unknown as { encounterId?: number | string })?.encounterId,
     patientId:
@@ -391,7 +393,7 @@ const filterReducer = (
   [action.field]: action.value,
 });
 
-export function OPDConsultationPage({
+function OPDConsultationPage({
   role: overrideRole,
   onStartConsultation,
   onOpenConsultation,
@@ -1292,5 +1294,7 @@ export function OPDConsultationPage({
   );
 }
 
+export const OpdConsultationCenterScreen: React.FC<OPDConsultationPageProps> =
+  OPDConsultationPage;
 export const OpdConsultationCenterScreen: React.FC<OPDConsultationPageProps> =
   OPDConsultationPage;

@@ -132,5 +132,3 @@ export function ReceiptConfiguration({
     </div>
   );
 }
-
-export default ReceiptConfiguration;

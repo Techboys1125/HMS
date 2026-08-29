@@ -133,5 +133,3 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({
     </div>
   );
 };
-
-export default ConsultationForm;

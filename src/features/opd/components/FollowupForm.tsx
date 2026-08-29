@@ -193,5 +193,3 @@ export const FollowupForm: React.FC<FollowupFormProps> = ({
     </div>
   );
 };
-
-export default FollowupForm;

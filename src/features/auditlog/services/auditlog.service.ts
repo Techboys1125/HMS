@@ -428,9 +428,7 @@ export async function fetchMainAuditLogs(
   };
 }
 
-export async function fetchAuditEventDetail(
-  eventId: string,
-): Promise<AuditRecord> {
+async function fetchAuditEventDetail(eventId: string): Promise<AuditRecord> {
   const response = await apiClient.get(`${AUDIT_API}/logs/${eventId}`);
   return adaptAuditEvent(unwrap<RawAuditEvent>(response));
 }
@@ -556,9 +554,7 @@ export async function fetchLoginHistoryLogs(
   };
 }
 
-export async function fetchLoginEventDetail(
-  eventId: string,
-): Promise<AuditRecord> {
+async function fetchLoginEventDetail(eventId: string): Promise<AuditRecord> {
   const response = await apiClient.get(
     `${AUDIT_API}/login-history/logs/${eventId}`,
   );
@@ -590,9 +586,7 @@ export async function fetchUserActivityLogs(
   };
 }
 
-export async function fetchUserActivityDetail(
-  eventId: string,
-): Promise<AuditRecord> {
+async function fetchUserActivityDetail(eventId: string): Promise<AuditRecord> {
   const response = await apiClient.get(
     `${AUDIT_API}/user-activities/logs/${eventId}`,
   );
@@ -619,9 +613,7 @@ export async function fetchDataChangeLogs(
   return { ...page, content: page.content.map(adaptDataChangeLog) };
 }
 
-export async function fetchDataChangeDetail(
-  eventId: string,
-): Promise<AuditRecord> {
+async function fetchDataChangeDetail(eventId: string): Promise<AuditRecord> {
   const response = await apiClient.get(
     `${AUDIT_API}/data-changes/logs/${eventId}`,
   );
@@ -648,9 +640,7 @@ export async function fetchDeletedRecordLogs(
   return { ...page, content: page.content.map(adaptDeletedRecord) };
 }
 
-export async function fetchDeletedRecordDetail(
-  eventId: string,
-): Promise<AuditRecord> {
+async function fetchDeletedRecordDetail(eventId: string): Promise<AuditRecord> {
   const response = await apiClient.get(
     `${AUDIT_API}/deleted-records/logs/${eventId}`,
   );
@@ -677,9 +667,7 @@ export async function fetchSystemLogLogs(
   return { ...page, content: page.content.map(adaptSystemLog) };
 }
 
-export async function fetchSystemLogDetail(
-  eventId: string,
-): Promise<AuditRecord> {
+async function fetchSystemLogDetail(eventId: string): Promise<AuditRecord> {
   const response = await apiClient.get(
     `${AUDIT_API}/system-logs/logs/${eventId}`,
   );

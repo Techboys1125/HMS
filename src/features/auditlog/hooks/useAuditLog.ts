@@ -330,7 +330,3 @@ export function useSystemLogLogs(params?: AuditLogListParams, enabled = true) {
     staleTime: STALE_TIME,
   });
 }
-
-export { auditLogKeys };
-
-// Aliases for backward-compat consumers that import these names

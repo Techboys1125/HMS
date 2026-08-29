@@ -46,24 +46,7 @@ export type Role =
   | "accountant"
   | "patient";
 
-export type AppStatus =
-  | "scheduled"
-  | "checked-in"
-  | "in-progress"
-  | "waiting"
-  | "completed"
-  | "cancelled";
-
-export type ReportView =
-  | "dashboard"
-  | "daily-appointments"
-  | "daily-revenue"
-  | "patient-report"
-  | "doctor-report"
-  | "billing-report"
-  | "kpi-detail";
-
-export type NavItem = {
+type NavItem = {
   id: NavId;
   Icon: React.ElementType;
   label: string;

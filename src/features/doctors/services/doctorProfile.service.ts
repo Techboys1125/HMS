@@ -30,9 +30,7 @@ const DAY_LABELS: Record<string, string> = {
   SUN: "Sunday",
 };
 
-export const toDoctorAppointment = (
-  a: AppointmentRecord,
-): DoctorAppointment => {
+const toDoctorAppointment = (a: AppointmentRecord): DoctorAppointment => {
   const patient = a.patient;
   return {
     id: String(a.id ?? a.appointmentNumber ?? ""),
@@ -69,9 +67,7 @@ export const resolveUserId = (doc: DoctorRecord): number | string => {
   return doc.id || "";
 };
 
-export const toUpdateDoctorPayload = (
-  d: DoctorRecord,
-): UpdateDoctorPayload => ({
+const toUpdateDoctorPayload = (d: DoctorRecord): UpdateDoctorPayload => ({
   fullName: d.name.replace(/^Dr\.\s*/, ""),
   email: d.email,
   mobile: d.phone,

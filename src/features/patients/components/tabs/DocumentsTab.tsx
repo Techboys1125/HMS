@@ -139,7 +139,8 @@ export function PatientDocumentsTab({ patient, canEdit }: DocumentsTabProps) {
             Patient Medical Documents
           </h3>
           <p className="text-xs text-[#64748B] mt-0.5">
-            Manage lab reports, identity proofs, prescriptions, and health documents.
+            Manage lab reports, identity proofs, prescriptions, and health
+            documents.
           </p>
         </div>
 
@@ -171,7 +172,8 @@ export function PatientDocumentsTab({ patient, canEdit }: DocumentsTabProps) {
             No documents uploaded yet.
           </p>
           <p className="text-xs text-[#64748B] max-w-sm mx-auto">
-            Upload patient lab reports, scan results, or ID proofs to store them securely.
+            Upload patient lab reports, scan results, or ID proofs to store them
+            securely.
           </p>
           {canEdit && (
             <button
@@ -297,7 +299,10 @@ export function PatientDocumentsTab({ patient, canEdit }: DocumentsTabProps) {
             </div>
 
             {/* Modal Form */}
-            <form onSubmit={handleUploadSubmit} className="p-5 space-y-4 text-xs">
+            <form
+              onSubmit={handleUploadSubmit}
+              className="p-5 space-y-4 text-xs"
+            >
               <div>
                 <label className="block text-[#111827] font-bold mb-1">
                   Document Title *

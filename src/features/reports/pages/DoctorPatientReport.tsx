@@ -356,10 +356,16 @@ export function DoctorPatientReportScreen({
   const trendData = useMemo(() => {
     const daysCount =
       trendDays === "7 Days" ? 7 : trendDays === "30 Days" ? 30 : 90;
+    const daysCount =
+      trendDays === "7 Days" ? 7 : trendDays === "30 Days" ? 30 : 90;
     const result = [];
     for (let i = daysCount - 1; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
+      const dateStr = d.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
       const dateStr = d.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
@@ -374,6 +380,9 @@ export function DoctorPatientReportScreen({
   }, [trendDays]);
 
   const genderData = useMemo(() => {
+    let male = 0,
+      female = 0,
+      other = 0;
     let male = 0,
       female = 0,
       other = 0;

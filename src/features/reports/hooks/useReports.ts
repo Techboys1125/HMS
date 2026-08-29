@@ -30,10 +30,8 @@ import {
   fetchDoctorSelfDailyAppointmentRegister,
   fetchDoctorSelfPatientRegister,
   fetchAccountantMainReport,
-  fetchAccountantBillingAnalysis,
   fetchAccountantPaymentCollection,
   fetchAccountantRefundLog,
-  fetchAccountantRevenueReport,
   fetchAccountantTransactionReport,
   fetchPatientDashboard,
   fetchPatientRegistrationTrend,
@@ -485,22 +483,6 @@ export function useAccountantMainReport(params?: {
   });
 }
 
-export function useAccountantBillingAnalysis(params?: {
-  fromDate?: string;
-  toDate?: string;
-  billType?: string;
-}) {
-  return useQuery({
-    queryKey: [
-      ...reportKeys.all,
-      "accountant-billing-analysis",
-      params,
-    ] as const,
-    queryFn: () => fetchAccountantBillingAnalysis(params),
-    staleTime: 60_000,
-  });
-}
-
 export function useAccountantPaymentCollection(params?: {
   fromDate?: string;
   toDate?: string;
@@ -524,18 +506,6 @@ export function useAccountantRefundLog(params?: {
   return useQuery({
     queryKey: [...reportKeys.all, "accountant-refund-log", params] as const,
     queryFn: () => fetchAccountantRefundLog(params),
-    staleTime: 60_000,
-  });
-}
-
-export function useAccountantRevenueReport(params?: {
-  fromDate?: string;
-  toDate?: string;
-  groupBy?: string;
-}) {
-  return useQuery({
-    queryKey: [...reportKeys.all, "accountant-revenue-report", params] as const,
-    queryFn: () => fetchAccountantRevenueReport(params),
     staleTime: 60_000,
   });
 }

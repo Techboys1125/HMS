@@ -164,5 +164,3 @@ export const MedicineTable: React.FC<MedicineTableProps> = ({
     </div>
   );
 };
-
-export default MedicineTable;

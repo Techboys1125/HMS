@@ -221,5 +221,3 @@ export const ConsultationFilters: React.FC<ConsultationFiltersProps> = ({
     </div>
   );
 };
-
-export default ConsultationFilters;

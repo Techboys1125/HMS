@@ -224,10 +224,9 @@ export const appointmentsApi = {
       } catch {
         try {
           // 3. PATCH /api/v1/reception/appointments/{appointmentId}/reschedule
-          const response = await apiClient.patch<ApiResponse<AppointmentRecord>>(
-            `/api/v1/reception/appointments/${numericId}/reschedule`,
-            payload,
-          );
+          const response = await apiClient.patch<
+            ApiResponse<AppointmentRecord>
+          >(`/api/v1/reception/appointments/${numericId}/reschedule`, payload);
           return response.data;
         } catch {
           return handleApiError(error);

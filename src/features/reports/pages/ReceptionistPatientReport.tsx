@@ -87,18 +87,6 @@ function CircularProgress({
     </div>
   );
 }
-export interface ReceptionistPatientReportRecord {
-  mrn: string;
-  patientName: string;
-  mobileNumber: string;
-  age: number;
-  gender: string;
-  registrationDate: string;
-  visitType: string;
-  appointmentStatus: string;
-  checkInStatus: string;
-  registrationStatus: string;
-}
 
 import { usePatientMasterRegister, extractList } from "../hooks/useReports";
 import type { PatientMasterRecord } from "../types/reports.types";
@@ -128,14 +116,24 @@ export function ReceptionistPatientReportScreen({
   const [hasError, setHasError] = useState(false);
 
   const today = new Date().toISOString().slice(0, 10);
-  const { data: patientMasterData } = usePatientMasterRegister({ fromDate: "2025-01-01", toDate: today });
-  const masterList = useMemo(() => extractList<PatientMasterRecord>(patientMasterData), [patientMasterData]);
+  const { data: patientMasterData } = usePatientMasterRegister({
+    fromDate: "2025-01-01",
+    toDate: today,
+  });
+  const masterList = useMemo(
+    () => extractList<PatientMasterRecord>(patientMasterData),
+    [patientMasterData],
+  );
 
   const patientSource = useMemo(() => {
     const list = masterList.map((p) => ({
       id: p.patientId || "",
       patientName: p.patientName || p.fullName || "N/A",
-      mrn: p.mrn ? (String(p.mrn).startsWith("MRN-") ? String(p.mrn) : `MRN-${p.mrn}`) : `MRN-${p.patientId || ""}`,
+      mrn: p.mrn
+        ? String(p.mrn).startsWith("MRN-")
+          ? String(p.mrn)
+          : `MRN-${p.mrn}`
+        : `MRN-${p.patientId || ""}`,
       mobileNumber: p.mobile || p.phone || "9876543210",
       appointmentStatus: p.status || "Completed",
       visitType: p.visitType || "New Visit",
@@ -209,12 +207,16 @@ export function ReceptionistPatientReportScreen({
   }, [searchQuery, apptStatusFilter, visitTypeFilter, patientSource]);
 
   const regTrendData = useMemo(() => {
-    const daysCount = trendDays === "7 Days" ? 7 : trendDays === "30 Days" ? 30 : 90;
+    const daysCount =
+      trendDays === "7 Days" ? 7 : trendDays === "30 Days" ? 30 : 90;
     const result = [];
     for (let i = daysCount - 1; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      const dateStr = d.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
       result.push({
         date: dateStr,
         New: Math.max(1, 5 + ((i * 3) % 7)),
@@ -225,7 +227,9 @@ export function ReceptionistPatientReportScreen({
   }, [trendDays]);
 
   const genderBreakdownData = useMemo(() => {
-    let male = 0, female = 0, other = 0;
+    let male = 0,
+      female = 0,
+      other = 0;
     filteredPatients.forEach((p) => {
       const g = (p.gender || "").toLowerCase();
       if (g === "male") male++;
@@ -238,7 +242,6 @@ export function ReceptionistPatientReportScreen({
       { name: "Other", value: other || 2, color: "#4DB6AC" },
     ];
   }, [filteredPatients]);
-
 
   const hourlyIntakeData = useMemo(() => {
     return [

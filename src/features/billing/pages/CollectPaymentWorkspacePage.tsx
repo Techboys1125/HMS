@@ -404,7 +404,10 @@ export function CollectPaymentWorkspacePage() {
                       (itemObj.description as string) ||
                       (itemObj.service_name as string) ||
                       (itemObj.item_name as string) ||
-                      (itemObj.service && typeof itemObj.service === "object" ? ((itemObj.service as Record<string, unknown>).name as string) : undefined) ||
+                      (itemObj.service && typeof itemObj.service === "object"
+                        ? ((itemObj.service as Record<string, unknown>)
+                            .name as string)
+                        : undefined) ||
                       "OPD Consultation Service";
 
                     return (
@@ -412,7 +415,9 @@ export function CollectPaymentWorkspacePage() {
                         <td className="py-3 px-3 font-medium text-[#111827]">
                           {name}
                         </td>
-                        <td className="py-3 px-3 text-right">{item.quantity}</td>
+                        <td className="py-3 px-3 text-right">
+                          {item.quantity}
+                        </td>
                         <td className="py-3 px-3 text-right">
                           ₹{item.unitPrice.toLocaleString()}
                         </td>
@@ -808,5 +813,3 @@ export function CollectPaymentWorkspacePage() {
     </div>
   );
 }
-
-export default CollectPaymentWorkspacePage;

@@ -67,6 +67,3 @@ export const ROUTES = {
   MY_PROFILE: "/my-profile",
   NOT_FOUND: "*",
 } as const;
-
-export type RouteKey = keyof typeof ROUTES;
-export type RouteValue = (typeof ROUTES)[RouteKey];

@@ -6,7 +6,7 @@
  */
 
 // ── Appointment Status Constants ──────────────────────────────────────────────
-export const APPOINTMENT_STATUS = {
+const APPOINTMENT_STATUS = {
   BOOKED: "BOOKED",
   CONFIRMED: "CONFIRMED",
   SCHEDULED: "SCHEDULED",
@@ -26,9 +26,6 @@ export const APPOINTMENT_STATUS = {
   RESCHEDULED: "RESCHEDULED",
 } as const;
 
-export type AppointmentStatusValue =
-  (typeof APPOINTMENT_STATUS)[keyof typeof APPOINTMENT_STATUS];
-
 // ── Normalization ─────────────────────────────────────────────────────────────
 /** Normalize any status string to UPPER_SNAKE_CASE for comparison */
 export const normalizeStatus = (status?: string | null): string =>
@@ -39,7 +36,7 @@ export const normalizeStatus = (status?: string | null): string =>
 
 // ── Doctor Consultation Eligibility ───────────────────────────────────────────
 /** Patients eligible for doctor consultation (active queue) */
-export const DOCTOR_CONSULTATION_ACTIVE_STATUSES: readonly string[] = [
+const DOCTOR_CONSULTATION_ACTIVE_STATUSES: readonly string[] = [
   APPOINTMENT_STATUS.WAITING_FOR_DOCTOR,
   APPOINTMENT_STATUS.WAITING_FOR_DOCTOR_CALL,
   APPOINTMENT_STATUS.CALLED,

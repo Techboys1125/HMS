@@ -21,10 +21,7 @@ import {
   DollarSign,
   ArrowLeft,
 } from "lucide-react";
-import {
-  useDailyRevenueDetails,
-  extractList,
-} from "../hooks/useReports";
+import { useDailyRevenueDetails, extractList } from "../hooks/useReports";
 import type { DailyRevenueDetail } from "../types/reports.types";
 
 import {
@@ -129,13 +126,21 @@ export function AccountantBillingReportScreen({
   const [hasError, setHasError] = useState(false);
 
   const today = new Date().toISOString().slice(0, 10);
-  const { data: rawRevenueDetails, refetch: refetchBilling } = useDailyRevenueDetails({ fromDate: "2025-01-01", toDate: today });
-  const revDetailsList = useMemo(() => extractList<DailyRevenueDetail>(rawRevenueDetails), [rawRevenueDetails]);
+  const { data: rawRevenueDetails, refetch: refetchBilling } =
+    useDailyRevenueDetails({ fromDate: "2025-01-01", toDate: today });
+  const revDetailsList = useMemo(
+    () => extractList<DailyRevenueDetail>(rawRevenueDetails),
+    [rawRevenueDetails],
+  );
 
   const billingRowsSource = useMemo(() => {
     const list = revDetailsList.map((d) => ({
       patientName: d.patientName || "N/A",
-      mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
+      mrn: d.mrn
+        ? String(d.mrn).startsWith("MRN-")
+          ? String(d.mrn)
+          : `MRN-${d.mrn}`
+        : `MRN-${d.patientId || ""}`,
       invoiceId: d.paymentId || d.receiptNumber || `INV-${d.id || ""}`,
       paymentStatus: d.paymentStatus || "Paid",
       invoiceStatus: d.paymentStatus || "Paid",
@@ -210,15 +215,24 @@ export function AccountantBillingReportScreen({
         item.paymentMethod.toLowerCase() === paymentMethodFilter.toLowerCase();
       return matchesSearch && matchesStatus && matchesMethod;
     });
-  }, [searchQuery, paymentStatusFilter, paymentMethodFilter, billingRowsSource]);
+  }, [
+    searchQuery,
+    paymentStatusFilter,
+    paymentMethodFilter,
+    billingRowsSource,
+  ]);
 
   const trendData = useMemo(() => {
-    const daysCount = trendRange === "7 Days" ? 7 : trendRange === "30 Days" ? 30 : 90;
+    const daysCount =
+      trendRange === "7 Days" ? 7 : trendRange === "30 Days" ? 30 : 90;
     const result = [];
     for (let i = daysCount - 1; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      const dateStr = d.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
       const rev = Math.max(50000, 150000 + ((i * 12345) % 50000));
       result.push({
         date: dateStr,
@@ -259,7 +273,10 @@ export function AccountantBillingReportScreen({
     filteredBillingRows.forEach((r) => {
       map[r.paymentMethod] = (map[r.paymentMethod] || 0) + r.amountPaid;
     });
-    const list = Object.entries(map).map(([method, amount]) => ({ method, amount }));
+    const list = Object.entries(map).map(([method, amount]) => ({
+      method,
+      amount,
+    }));
     if (list.length === 0) {
       return [
         { method: "UPI", amount: 125000 },
@@ -928,11 +945,9 @@ export function AccountantBillingReportScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {statusDistributionData.map(
-                            (entry) => (
-                              <Cell key={entry.name} fill={entry.color} />
-                            ),
-                          )}
+                          {statusDistributionData.map((entry) => (
+                            <Cell key={entry.name} fill={entry.color} />
+                          ))}
                         </Pie>
                         <Tooltip
                           contentStyle={{
@@ -1462,14 +1477,3 @@ export function AccountantBillingReportScreen({
     </div>
   );
 }
-
-// â”€â”€â”€ ACCOUNTANT DASHBOARD KPI DETAIL SCREEN (ACCOUNTANT RBAC VERSION) â”€â”€â”€â”€â”€â”€â”€â”€â”€
-export type AccountantKpiType =
-  | "Today's Revenue"
-  | "Today's Invoices"
-  | "Paid Bills"
-  | "Pending Payments"
-  | "Outstanding Amount"
-  | "Refunded Bills"
-  | "Payment Collection Rate"
-  | "Average Invoice Value";

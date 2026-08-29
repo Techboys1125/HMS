@@ -49,7 +49,9 @@ export function ScheduleExceptionsTab({
           console.log(err);
         }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 

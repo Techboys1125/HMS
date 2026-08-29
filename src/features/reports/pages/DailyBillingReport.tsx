@@ -712,5 +712,3 @@ export function DailyBillingReportPage() {
     </div>
   );
 }
-
-export default DailyBillingReportPage;

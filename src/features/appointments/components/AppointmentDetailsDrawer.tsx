@@ -197,7 +197,6 @@ const DrawerPatientSection = ({
         </h4>
         <div className="text-xs text-slate-500 font-mono mt-0.5">
           <span className="text-[#0D47A1] font-bold">{patientInfo.mrn}</span>
-         
         </div>
       </div>
     </div>
@@ -383,9 +382,7 @@ const DrawerDoctorSection = ({
         <span className="text-slate-400 text-[10px] block font-medium">
           Consultation Fee
         </span>
-        <strong className="text-[#009688]">
-          {doctorInfo.consultationFee}
-        </strong>
+        <strong className="text-[#009688]">{doctorInfo.consultationFee}</strong>
       </div>
       <div>
         <span className="text-slate-400 text-[10px] block font-medium">
@@ -730,10 +727,7 @@ export function AppointmentDetailsDrawer({
           const mapped = events.map((evtItem: unknown) => {
             const e = (evtItem as Record<string, unknown>) || {};
             const title = String(
-              e.remarks ||
-                e.eventType ||
-                e.newStatus ||
-                "Queue Event Updated",
+              e.remarks || e.eventType || e.newStatus || "Queue Event Updated",
             );
             const roleStr = e.role ? ` (${e.role})` : "";
             const by = `${e.performedBy || "System"}${roleStr}`;
@@ -760,7 +754,9 @@ export function AppointmentDetailsDrawer({
           setApiTimelineEvents([]);
         }
       } finally {
-        setIsLoadingTimeline(false);
+        if (!cancelled) {
+          setIsLoadingTimeline(false);
+        }
       }
     }
 
@@ -926,7 +922,8 @@ export function AppointmentDetailsDrawer({
       apt.doctorSpecialty ||
       apt.specialty ||
       (doctorObj.specialty as string) ||
-      (doctorObj.primarySpecialty as unknown as { specialtyName?: string })?.specialtyName ||
+      (doctorObj.primarySpecialty as unknown as { specialtyName?: string })
+        ?.specialtyName ||
       (doctorObj.specialization as string) ||
       (rawApt.specialty as string) ||
       (rawApt.doctorSpecialty as string) ||

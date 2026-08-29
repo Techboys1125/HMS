@@ -9,7 +9,7 @@ export type UserRole =
   | "Nurse"
   | "Patient";
 
-export type AppointmentStatusEnum =
+type AppointmentStatusEnum =
   | "BOOKED"
   | "CONFIRMED"
   | "CHECKED_IN"
@@ -37,13 +37,13 @@ export type AppointmentStatus =
   | "No Show"
   | string;
 
-export type QueueStatusEnum =
+type QueueStatusEnum =
   "WAITING" | "CALLED" | "IN_CONSULTATION" | "COMPLETED" | "SKIPPED";
 
-export type AppointmentTypeEnum =
+type AppointmentTypeEnum =
   "CONSULTATION" | "WALK_IN" | "FOLLOW_UP" | "EMERGENCY" | "ROUTINE";
 
-export type FamilyRelationshipEnum =
+type FamilyRelationshipEnum =
   | "SELF"
   | "FATHER"
   | "MOTHER"

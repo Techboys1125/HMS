@@ -177,5 +177,3 @@ export const PrescriptionFilters: React.FC<PrescriptionFiltersProps> = ({
     </div>
   );
 };
-
-export default PrescriptionFilters;

@@ -84,5 +84,3 @@ export function BillingFilters({
     </div>
   );
 }
-
-export default BillingFilters;

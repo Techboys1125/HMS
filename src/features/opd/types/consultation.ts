@@ -53,8 +53,6 @@ export type VisitType =
 
 export type OauthRole = "doctor" | "admin";
 
-export type AdminStatus = "All" | ConsultationStatus;
-
 export interface MedicineItem {
   id: string;
   name: string;
@@ -129,44 +127,6 @@ export interface ConsultationRecord {
   completedDate?: string;
 }
 
-export interface AdminConsultationRecord {
-  id: string;
-  tokenNo: string;
-  patientName: string;
-  mrn: string;
-  age: number;
-  gender: "Male" | "Female" | "Other";
-  phone: string;
-  doctor: string;
-  department: string;
-  appointmentTime: string;
-  visitType: VisitType;
-  status: ConsultationStatus;
-  duration: string;
-  chiefComplaint: string;
-  opdRoom: string;
-  date: string;
-}
-
-export interface DoctorWorkload {
-  name: string;
-  dept: string;
-  assigned: number;
-  completed: number;
-  waiting: number;
-  inProgress: number;
-  status: string;
-  opdRoom: string;
-}
-
-export interface DepartmentSummary {
-  dept: string;
-  total: number;
-  completed: number;
-  waiting: number;
-  inProgress: number;
-}
-
 export interface ConsultationFormData {
   visitDate: string;
   doctorName: string;
@@ -206,37 +166,4 @@ export interface ConsultationFormData {
   followUpType?: string;
   followUpIntervalValue?: number | string;
   followUpIntervalUnit?: string;
-}
-
-export interface TimelineConsultationItem {
-  id: string;
-  date: string;
-  time: string;
-  doctor: string;
-  department: string;
-  visitType: string;
-  status: string;
-  chiefComplaint: string;
-  diagnosis: string;
-  icdCode: string;
-  medicinesCount: number;
-  investigationsCount: number;
-  followupStatus: string;
-  nextFollowupDate?: string;
-  vitals: {
-    bp: string;
-    pulse: string;
-    temp: string;
-    spo2: string;
-    bmi: string;
-  };
-  medicines: Array<{
-    name: string;
-    dosage: string;
-    freq: string;
-    duration: string;
-  }>;
-  investigations: string[];
-  examinationFindings: string;
-  clinicalNotes: string;
 }

@@ -1,55 +1,6 @@
 export type RxStatus =
   "Draft" | "Issued" | "Completed" | "Cancelled" | "Archived";
 
-export interface EditableMedicine {
-  id: string;
-  name: string;
-  strength: string;
-  route: string;
-  dosage: string;
-  frequency: string;
-  duration: string;
-  quantity: string;
-  instructions: string;
-}
-
-export interface PrescriptionRecord {
-  id: string;
-  patientName: string;
-  mrn: string;
-  consultationId: string;
-  department: string;
-  consultationDate: string;
-  medicineCount: number;
-  followup: boolean;
-  followupDate?: string;
-  status: RxStatus;
-  doctorName: string;
-  diagnosis: string;
-  medicinesList: Array<{ name: string; dose: string; freq: string }>;
-}
-
-export interface PatientPrescriptionItem {
-  id: string;
-  consultationId: string;
-  consultationDate: string;
-  doctorName: string;
-  department: string;
-  diagnosisSummary: string;
-  medicines: Array<{
-    name: string;
-    strength?: string;
-    route?: string;
-    dosage?: string;
-    frequency?: string;
-    duration?: string;
-    instructions?: string;
-  }>;
-  followupDate: string;
-  status: "Issued" | "Completed" | "Archived";
-  downloadCount?: number;
-}
-
 export interface UnifiedPrescription {
   id: string;
   prescriptionId?: string;
@@ -135,14 +86,14 @@ export interface PaginatedResponse<T> {
   last: boolean;
 }
 
-export interface PrescriptionPatient {
+interface PrescriptionPatient {
   fullName?: string;
   mrn?: string;
   gender?: string;
   age?: string | number;
 }
 
-export interface PrescriptionPrescriber {
+interface PrescriptionPrescriber {
   doctorId?: string | number;
   fullName?: string;
   registrationNumber?: string;
@@ -165,14 +116,14 @@ export interface PrescriptionMedicationItem {
   instructions?: string;
 }
 
-export interface PrescriptionAdvice {
+interface PrescriptionAdvice {
   general?: string;
   diet?: string;
   precautions?: string;
   additionalInstructions?: string;
 }
 
-export interface PrescriptionFollowUp {
+interface PrescriptionFollowUp {
   instructions?: string;
   type?: string;
   intervalValue?: number;

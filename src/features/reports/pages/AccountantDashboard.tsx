@@ -488,6 +488,10 @@ export function AccountantReportsDashboardScreen({
         month: "short",
         day: "numeric",
       });
+      const dateStr = d.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
       const rev = Math.max(45000, 125000 + ((i * 14500) % 60000));
       result.push({
         date: dateStr,

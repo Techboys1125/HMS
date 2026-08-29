@@ -51,5 +51,3 @@ export const PatientRegisterPage: React.FC = () => {
     </div>
   );
 };
-
-export default PatientRegisterPage;

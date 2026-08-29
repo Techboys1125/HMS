@@ -123,7 +123,7 @@ export function mapApiInvoiceToInvoiceRecord(
   };
 }
 
-export function mapApiStatusToPaymentStatus(
+function mapApiStatusToPaymentStatus(
   status: string,
 ): InvoiceRecord["paymentStatus"] {
   const s = status.toUpperCase();
@@ -255,4 +255,3 @@ export function formatCompactCurrency(
 
   return `${sign}₹${Math.round(abs).toLocaleString()}`;
 }
-

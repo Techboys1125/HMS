@@ -30,8 +30,8 @@ export const PrescriptionSummaryCard: React.FC<
         r.status === "Completed" ||
         r.status === "Draft",
     ).length;
-    const upcomingFollowupsCount = prescriptions.filter(
-      (r) => Boolean(r.followup || r.followupDate),
+    const upcomingFollowupsCount = prescriptions.filter((r) =>
+      Boolean(r.followup || r.followupDate),
     ).length;
     const downloadedCount = prescriptions.length > 0 ? 3 : 0;
 
@@ -219,5 +219,3 @@ export const PrescriptionSummaryCard: React.FC<
     </div>
   );
 };
-
-export default PrescriptionSummaryCard;

@@ -1,26 +1,3 @@
-// Supported Roles
-export type Role =
-  | "SUPER_ADMIN"
-  | "HOSPITAL_ADMIN"
-  | "ADMIN"
-  | "RECEPTIONIST"
-  | "DOCTOR"
-  | "NURSE"
-  | "ACCOUNTANT"
-  | "PATIENT";
-
-// Complete Permission definitions
-export type PermissionAction =
-  | "VIEW"
-  | "CREATE"
-  | "EDIT"
-  | "DELETE"
-  | "CANCEL"
-  | "APPROVE"
-  | "PRINT"
-  | "EXPORT"
-  | "ADMINISTER";
-
 export type AppPermission =
   // User Management
   | "DASHBOARD_VIEW"

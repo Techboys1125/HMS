@@ -460,5 +460,3 @@ export function BillingTable({
     </>
   );
 }
-
-export default BillingTable;

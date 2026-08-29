@@ -1,6 +1,6 @@
 import { getToken, setToken, removeToken } from "./cookie-token-storage";
 
-export const API_BASE_URL = "http://192.168.1.44:8888";
+export const API_BASE_URL = "https://api.hms.viyaninfo.com";
 // (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_BASE_URL) ||
 // "";
 
@@ -356,5 +356,3 @@ export const axios = {
     );
   },
 };
-
-export default apiClient;

@@ -82,6 +82,10 @@ const saveMedications = async (
     prescriptionId,
     medicines: validMeds,
   });
+  console.log("SAVE MEDICATIONS CALLED:", {
+    prescriptionId,
+    medicines: validMeds,
+  });
 
   if (validMeds.length === 0) {
     console.warn("No valid medicines to save");
@@ -209,6 +213,7 @@ export function StartConsultationPage({
 
         if (res) {
           const c = (res.consultation || res) as unknown as Record<
+          const c = (res.consultation || res) as unknown as Record<
             string,
             unknown
           >;
@@ -238,6 +243,11 @@ export function StartConsultationPage({
                   pSub.phone ||
                   pSub.registeredMobile ||
                   "",
+                c.phone ||
+                  c.mobile ||
+                  pSub.phone ||
+                  pSub.registeredMobile ||
+                  "",
               ),
               bloodGroup: String(c.bloodGroup || pSub.bloodGroup || ""),
               allergies: Array.isArray(c.allergies)
@@ -251,6 +261,11 @@ export function StartConsultationPage({
                   docSub.name ||
                   docSub.fullName ||
                   "",
+                c.doctor ||
+                  c.doctorName ||
+                  docSub.name ||
+                  docSub.fullName ||
+                  "",
               ),
               opdRoom: String(c.opdRoom || c.roomNumber || ""),
               visitType: String(
@@ -259,6 +274,9 @@ export function StartConsultationPage({
               appointmentTime: String(c.appointmentTime || c.time || ""),
             });
 
+            const vObj = (c.vitals ||
+              (res as Record<string, unknown>).vitals ||
+              {}) as Record<string, unknown>;
             const vObj = (c.vitals ||
               (res as Record<string, unknown>).vitals ||
               {}) as Record<string, unknown>;
@@ -276,6 +294,43 @@ export function StartConsultationPage({
               visitType:
                 (c.visitType as "New Consultation" | "Follow-up") ||
                 prev.visitType,
+              height: vObj.height
+                ? toStr(vObj.height).replace(" cm", "")
+                : prev.height,
+              weight: vObj.weight
+                ? toStr(vObj.weight).replace(" kg", "")
+                : prev.weight,
+              temperature:
+                vObj.temp || vObj.temperature
+                  ? toStr(vObj.temp || vObj.temperature)
+                      .replace(" °C", "")
+                      .replace("°C", "")
+                  : prev.temperature,
+              bp:
+                vObj.bp || vObj.bloodPressure
+                  ? toStr(vObj.bp || vObj.bloodPressure).replace(" mmHg", "")
+                  : prev.bp,
+              pulse:
+                vObj.pulse || vObj.heartRate
+                  ? toStr(vObj.pulse || vObj.heartRate).replace(" bpm", "")
+                  : prev.pulse,
+              respiratoryRate:
+                vObj.respiratoryRate || vObj.respRate
+                  ? toStr(vObj.respiratoryRate || vObj.respRate).replace(
+                      " /min",
+                      "",
+                    )
+                  : prev.respiratoryRate,
+              spo2:
+                vObj.spo2 || vObj.oxygenSaturation
+                  ? toStr(vObj.spo2 || vObj.oxygenSaturation)
+                      .replace(" %", "")
+                      .replace("%", "")
+                  : prev.spo2,
+              bloodSugar:
+                vObj.bloodSugar || vObj.sugar
+                  ? toStr(vObj.bloodSugar || vObj.sugar).replace(" mg/dL", "")
+                  : prev.bloodSugar,
               height: vObj.height
                 ? toStr(vObj.height).replace(" cm", "")
                 : prev.height,
@@ -412,6 +467,9 @@ export function StartConsultationPage({
           const appt = ((rawData as Record<string, unknown>)?.data ||
             rawData ||
             apptRes) as Record<string, unknown>;
+          const appt = ((rawData as Record<string, unknown>)?.data ||
+            rawData ||
+            apptRes) as Record<string, unknown>;
           const patientObj = (appt.patient || {}) as Record<string, unknown>;
           const doctorObj = (appt.doctor || {}) as Record<string, unknown>;
           const deptObj = (appt.department || {}) as Record<string, unknown>;
@@ -425,6 +483,11 @@ export function StartConsultationPage({
               "",
           );
           const pMrn = String(
+            appt.mrn ||
+              appt.patientMrn ||
+              appt.patient_mrn ||
+              patientObj.mrn ||
+              "",
             appt.mrn ||
               appt.patientMrn ||
               appt.patient_mrn ||
@@ -793,6 +856,7 @@ export function StartConsultationPage({
             console.log("CREATE PRESCRIPTION RAW RESPONSE:", createdRx);
 
             const rxObj = createdRx as unknown as Record<string, unknown>;
+            const rxObj = createdRx as unknown as Record<string, unknown>;
             const rxData = (rxObj?.data as Record<string, unknown>) || {};
             const rxIdResolved =
               createdRx?.id ??
@@ -877,6 +941,8 @@ export function StartConsultationPage({
             chiefComplaint: formData.chiefComplaint || formData.symptoms,
             historyOfPresentIllness:
               formData.symptoms || formData.chiefComplaint,
+            historyOfPresentIllness:
+              formData.symptoms || formData.chiefComplaint,
             generalExamination: formData.clinicalExamination,
             assessmentSummary: formData.assessment,
             advice: formData.advice,
@@ -906,6 +972,14 @@ export function StartConsultationPage({
             console.warn("Prescription resolution pre-check warning:", resErr);
           }
 
+          const checkRes = await encountersApi
+            .getFinalizationCheck(encId)
+            .catch(() => null);
+          if (
+            checkRes &&
+            checkRes.ready === false &&
+            Array.isArray(checkRes.checks)
+          ) {
           const checkRes = await encountersApi
             .getFinalizationCheck(encId)
             .catch(() => null);
@@ -1421,5 +1495,3 @@ export function StartConsultationPage({
     </div>
   );
 }
-
-export default StartConsultationPage;

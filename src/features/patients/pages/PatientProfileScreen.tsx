@@ -45,7 +45,9 @@ export function PatientProfileScreen({
       } catch {
         if (!cancelled) setError("Failed to load patient data");
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 
@@ -55,8 +57,6 @@ export function PatientProfileScreen({
       cancelled = true;
     };
   }, [patientMrn, missingMrn]);
-
-
 
   const userRole = useAuthStore((s) => s.user?.role);
   const normalizedRole: Role =

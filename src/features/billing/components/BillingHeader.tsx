@@ -152,5 +152,3 @@ export function BillingHeader({
     </div>
   );
 }
-
-export default BillingHeader;

@@ -119,5 +119,3 @@ export function InvoiceDetailsDrawer({
     </div>
   );
 }
-
-export default InvoiceDetailsDrawer;

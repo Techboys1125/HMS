@@ -7,7 +7,7 @@ interface DashboardHeaderProps {
   children?: React.ReactNode;
 }
 
-export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
+const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   title,
   description,
   badge,

@@ -11,19 +11,7 @@ import type {
   Department,
 } from "../types/appointment.types";
 
-export interface AppointmentPage<T> {
-  content?: T[];
-  totalElements?: number;
-  totalPages?: number;
-  size?: number;
-  number?: number;
-  numberOfElements?: number;
-  first?: boolean;
-  last?: boolean;
-  empty?: boolean;
-}
-
-export const STATUS_MAP: Record<string, AppointmentRecord["status"]> = {
+const STATUS_MAP: Record<string, AppointmentRecord["status"]> = {
   BOOKED: "Booked",
   CONFIRMED: "Confirmed",
   CHECKED_IN: "Checked-In",
@@ -58,7 +46,7 @@ const normalizeTimeFormat = (timeStr: string): string => {
   return trimmed;
 };
 
-export const normalizeAppointmentRecord = (
+const normalizeAppointmentRecord = (
   item: Record<string, unknown> | null | undefined,
   doctorsMap?: Map<string, DoctorSummary>,
 ): AppointmentRecord => {
@@ -796,7 +784,7 @@ export const appointmentService = {
       "05:00 PM",
     ];
 
-    let slots: AppointmentSlot[] = [];
+    let slots: AppointmentSlot[];
 
     if (availabilitySlots.length === 0) {
       slots = defaultTimeSlots.map((timeStr, idx) => ({
@@ -996,5 +984,3 @@ export const appointmentService = {
     return appointmentsApi.receptionMarkNoShow(appointmentId, reason);
   },
 };
-
-export type AppointmentService = typeof appointmentService;

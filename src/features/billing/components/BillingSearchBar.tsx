@@ -29,5 +29,3 @@ export function BillingSearchBar({
     </div>
   );
 }
-
-export default BillingSearchBar;

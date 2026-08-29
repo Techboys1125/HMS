@@ -17,7 +17,7 @@ import { usersApi } from "../api/users.api";
 import { departmentsApi } from "../api/departments.api";
 import { doctorsApi } from "../../doctors/api/doctors.api";
 import { to24Hour } from "../../../lib/time-utils";
-import UserAvatar from "../../../common/components/UserAvatar";
+import { UserAvatar } from "../../../common/components/UserAvatar";
 import type {
   BackendAvailabilityItem,
   UserDetailData,

@@ -1,7 +1,7 @@
 import { X, Stethoscope, Eye } from "lucide-react";
 import type { DoctorRecord } from "../types/doctors.types";
 import { PP } from "../constants/doctors.constants";
-import UserAvatar from "../../../common/components/UserAvatar";
+import { UserAvatar } from "../../../common/components/UserAvatar";
 
 function getAvailabilityBadgeStyle(avail: string) {
   switch (avail) {

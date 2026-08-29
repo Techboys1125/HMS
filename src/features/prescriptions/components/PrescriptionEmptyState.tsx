@@ -35,5 +35,3 @@ export const PrescriptionEmptyState: React.FC<{ onReset: () => void }> = ({
     </div>
   );
 };
-
-export default PrescriptionEmptyState;

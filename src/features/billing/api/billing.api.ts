@@ -94,7 +94,7 @@ export interface BillFinalizeResponse {
 }
 
 // ─── Payment Types ──────────────────────────────────────────────────────────
-export interface PaymentEntry {
+interface PaymentEntry {
   method: string;
   amount: number;
   referenceNumber?: string;
@@ -228,7 +228,7 @@ export interface PaymentModeReport {
 }
 
 // ─── Audit Types ────────────────────────────────────────────────────────────
-export interface BillAuditLog {
+interface BillAuditLog {
   action: string;
   newValue: string;
 }

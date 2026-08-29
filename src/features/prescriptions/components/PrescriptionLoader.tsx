@@ -16,5 +16,3 @@ export const PrescriptionLoader: React.FC = () => {
     </div>
   );
 };
-
-export default PrescriptionLoader;

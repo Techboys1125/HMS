@@ -191,5 +191,3 @@ export function PaymentMethodConfiguration({
     </div>
   );
 }
-
-export default PaymentMethodConfiguration;

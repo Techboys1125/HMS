@@ -29,7 +29,7 @@ interface CreateStaffPageProps {
   onSuccess?: () => void;
 }
 
-export const CreateStaffPage: React.FC<CreateStaffPageProps> = ({
+const CreateStaffPage: React.FC<CreateStaffPageProps> = ({
   onBack,
   onSuccess,
 }) => {

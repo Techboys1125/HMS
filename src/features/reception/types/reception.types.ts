@@ -35,15 +35,6 @@ export interface ReceptionQueueItem {
   notes?: string;
 }
 
-export interface ReceptionFilters {
-  searchQuery: string;
-  queueStatus: string;
-  billingStatus: string;
-  departmentId: string;
-  doctorId: string;
-  date: string;
-}
-
 export interface ArrivalCheckInPayload {
   queueItemId: string | number;
   patientId: string | number;
@@ -66,57 +57,3 @@ export interface WalkInRegistrationPayload {
   visitType: "WALK_IN" | "EMERGENCY";
   paymentMode: "CASH" | "CARD" | "UPI" | "INSURANCE" | "PENDING";
 }
-
-export interface VisitSlipData {
-  tokenNumber: string;
-  patientName: string;
-  mrn: string;
-  mobile: string;
-  gender: string;
-  age?: number | string;
-  departmentName: string;
-  doctorName: string;
-  consultationFee: number;
-  billingStatus: BillingStatus;
-  checkInTime: string;
-  visitType: string;
-  hospitalName?: string;
-  barcodeValue?: string;
-}
-
-export interface ReceptionPermissions {
-  canViewWorklist: boolean;
-  canCheckInPatient: boolean;
-  canGenerateToken: boolean;
-  canRegisterWalkIn: boolean;
-  canPrintVisitSlip: boolean;
-  canUpdateBillingStatus: boolean;
-  canCancelQueueItem: boolean;
-  canViewClinicalNotes: boolean;
-}
-
-export interface ReceptionCheckInResponse {
-  tokenNumber?: string;
-  status?: string;
-  success?: boolean;
-
-  additionalProp1?: Record<string, unknown>;
-  additionalProp2?: Record<string, unknown>;
-  additionalProp3?: Record<string, unknown>;
-}
-
-export interface ReceptionTokenResponse {
-  additionalProp1?: Record<string, unknown>;
-  additionalProp2?: Record<string, unknown>;
-  additionalProp3?: Record<string, unknown>;
-  tokenNumber?: string;
-  token?: string;
-  [key: string]: unknown;
-}
-
-export type ReceptionQueueResponse = Array<{
-  additionalProp1?: Record<string, unknown>;
-  additionalProp2?: Record<string, unknown>;
-  additionalProp3?: Record<string, unknown>;
-  [key: string]: unknown;
-}>;

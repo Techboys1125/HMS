@@ -22,7 +22,7 @@ import { PP, RB } from "../constants/patient.fonts";
 import { useAuthStore } from "../../auth/store/auth.store";
 import { usersApi } from "../../users/api/users.api";
 import { authService } from "../../auth/services/auth.service";
-import UserAvatar from "../../../common/components/UserAvatar";
+import { UserAvatar } from "../../../common/components/UserAvatar";
 import type { UserDetailData } from "../../users/types/users.types";
 import type { Role } from "../utils/patientPermissions";
 
@@ -1027,5 +1027,3 @@ export function StaffProfilePage({ currentRole }: { currentRole: Role }) {
     </div>
   );
 }
-
-export default StaffProfilePage;

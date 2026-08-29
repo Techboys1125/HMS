@@ -16,18 +16,18 @@ export type AuditSeverity = "Information" | "Success" | "Warning" | "Critical";
  */
 export type AuditStatus = string;
 
-export interface AuditUser {
+interface AuditUser {
   userId?: string;
   fullName?: string;
   role?: string;
 }
 
-export interface AuditEntity {
+interface AuditEntity {
   type?: string;
   id?: string;
 }
 
-export interface AuditChange {
+interface AuditChange {
   field: string;
   before: string;
   after: string;

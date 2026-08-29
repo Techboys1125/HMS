@@ -56,6 +56,7 @@ export const ConsultationActionMenu: React.FC<ConsultationActionMenuProps> = ({
   const isInConsultation =
     statusUpper === "IN_CONSULTATION" || statusUpper === "IN_PROGRESS";
   const isCancelled = statusUpper === "CANCELLED" || statusUpper === "CANCELED";
+  const isCancelled = statusUpper === "CANCELLED" || statusUpper === "CANCELED";
   const isCompleted =
     statusUpper === "COMPLETED" ||
     statusUpper === "CONSULTATION_COMPLETED" ||
@@ -132,5 +133,3 @@ export const ConsultationActionMenu: React.FC<ConsultationActionMenuProps> = ({
     </td>
   );
 };
-
-export default ConsultationActionMenu;

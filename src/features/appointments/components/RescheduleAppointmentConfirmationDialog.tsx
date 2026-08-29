@@ -153,7 +153,8 @@ const CurrentBookingDetails = ({ apt }: CurrentBookingDetailsProps) => (
       <div>
         <span className="text-[10px] text-slate-400 block">Appointment ID</span>
         <strong className="text-[#0D47A1] font-mono">
-          {apt.appointmentNumber || apt.id} ({apt.tokenNo || apt.queueToken || "Pending"})
+          {apt.appointmentNumber || apt.id} (
+          {apt.tokenNo || apt.queueToken || "Pending"})
         </strong>
       </div>
       <div>
@@ -538,11 +539,7 @@ export function RescheduleAppointmentConfirmationDialog({
           const parts = defaultDateStr.split("-");
           if (parts.length === 3) {
             setCurrentMonthDate(
-              new Date(
-                parseInt(parts[0], 10),
-                parseInt(parts[1], 10) - 1,
-                1,
-              ),
+              new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, 1),
             );
           }
         }

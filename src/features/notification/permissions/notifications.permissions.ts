@@ -1,6 +1,6 @@
 import { ALL_ROLES } from "../constants/notifications.constants";
 
-export type NotificationRoleKey = (typeof ALL_ROLES)[number];
+type NotificationRoleKey = (typeof ALL_ROLES)[number];
 
 export interface NotificationPermission {
   canView: boolean;
@@ -82,7 +82,7 @@ export function getNotificationPermission(
   );
 }
 
-export function normalizeNotificationRole(
+function normalizeNotificationRole(
   role: string | undefined,
 ): NotificationRoleKey {
   const upper = String(role ?? "").toUpperCase();

@@ -159,5 +159,3 @@ export function DiscountConfiguration({
     </div>
   );
 }
-
-export default DiscountConfiguration;

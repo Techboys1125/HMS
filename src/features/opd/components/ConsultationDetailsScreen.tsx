@@ -176,7 +176,6 @@ export function ConsultationDetailsScreen({
   encounterId,
   initialRecord,
   onBack,
-  onEditConsultation,
   onViewHistory,
   onViewPatientProfile,
 }: ConsultationDetailsScreenProps) {
@@ -1371,6 +1370,10 @@ export function ConsultationDetailsScreen({
                 size={18}
                 className={`text-slate-400 transition-transform ${collapsedSections.visitInfo ? "-rotate-90" : ""}`}
               />
+              <ChevronDown
+                size={18}
+                className={`text-slate-400 transition-transform ${collapsedSections.visitInfo ? "-rotate-90" : ""}`}
+              />
             </button>
 
             {!collapsedSections.visitInfo && (
@@ -1456,6 +1459,10 @@ export function ConsultationDetailsScreen({
                   Patient Vitals
                 </h3>
               </div>
+              <ChevronDown
+                size={18}
+                className={`text-slate-400 transition-transform ${collapsedSections.vitals ? "-rotate-90" : ""}`}
+              />
               <ChevronDown
                 size={18}
                 className={`text-slate-400 transition-transform ${collapsedSections.vitals ? "-rotate-90" : ""}`}
@@ -1576,6 +1583,10 @@ export function ConsultationDetailsScreen({
                   Clinical Examination & Diagnosis
                 </h3>
               </div>
+              <ChevronDown
+                size={18}
+                className={`text-slate-400 transition-transform ${collapsedSections.examination ? "-rotate-90" : ""}`}
+              />
               <ChevronDown
                 size={18}
                 className={`text-slate-400 transition-transform ${collapsedSections.examination ? "-rotate-90" : ""}`}
@@ -1733,6 +1744,10 @@ export function ConsultationDetailsScreen({
                 size={18}
                 className={`text-slate-400 transition-transform ${collapsedSections.investigation ? "-rotate-90" : ""}`}
               />
+              <ChevronDown
+                size={18}
+                className={`text-slate-400 transition-transform ${collapsedSections.investigation ? "-rotate-90" : ""}`}
+              />
             </button>
 
             {!collapsedSections.investigation && (
@@ -1802,6 +1817,10 @@ export function ConsultationDetailsScreen({
                 size={18}
                 className={`text-slate-400 transition-transform ${collapsedSections.clinicalNotes ? "-rotate-90" : ""}`}
               />
+              <ChevronDown
+                size={18}
+                className={`text-slate-400 transition-transform ${collapsedSections.clinicalNotes ? "-rotate-90" : ""}`}
+              />
             </button>
 
             {!collapsedSections.clinicalNotes && (
@@ -1863,6 +1882,10 @@ export function ConsultationDetailsScreen({
                   Follow-up
                 </h3>
               </div>
+              <ChevronDown
+                size={18}
+                className={`text-slate-400 transition-transform ${collapsedSections.followup ? "-rotate-90" : ""}`}
+              />
               <ChevronDown
                 size={18}
                 className={`text-slate-400 transition-transform ${collapsedSections.followup ? "-rotate-90" : ""}`}

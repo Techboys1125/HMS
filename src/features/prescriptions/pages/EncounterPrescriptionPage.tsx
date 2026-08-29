@@ -688,5 +688,3 @@ export const EncounterPrescriptionPage: React.FC = () => {
     </div>
   );
 };
-
-export default EncounterPrescriptionPage;

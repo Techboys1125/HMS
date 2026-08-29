@@ -92,6 +92,20 @@ export const PrescriptionTable: React.FC<PrescriptionTableProps> = ({
       return rawStr;
     }
   };
+  const formatDateTimeDisplay = (rawStr?: string) => {
+    if (!rawStr || rawStr === "—") return "—";
+    try {
+      const d = new Date(rawStr);
+      if (isNaN(d.getTime())) return rawStr;
+      return d.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+    } catch {
+      return rawStr;
+    }
+  };
 
   if (role === "patient") {
     const hasActiveFilters =
@@ -525,5 +539,3 @@ export const PrescriptionTable: React.FC<PrescriptionTableProps> = ({
     </>
   );
 };
-
-export default PrescriptionTable;

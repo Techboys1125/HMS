@@ -54,11 +54,23 @@ function formatField(val: unknown, fallback: string = "—"): string {
       const res = `${v}${u}`.trim();
       if (res && res !== "[object Object]") return res;
     }
-    if ("fullName" in obj && obj.fullName != null && String(obj.fullName).trim())
+    if (
+      "fullName" in obj &&
+      obj.fullName != null &&
+      String(obj.fullName).trim()
+    )
       return String(obj.fullName).trim();
-    if ("doctorName" in obj && obj.doctorName != null && String(obj.doctorName).trim())
+    if (
+      "doctorName" in obj &&
+      obj.doctorName != null &&
+      String(obj.doctorName).trim()
+    )
       return String(obj.doctorName).trim();
-    if ("departmentName" in obj && obj.departmentName != null && String(obj.departmentName).trim())
+    if (
+      "departmentName" in obj &&
+      obj.departmentName != null &&
+      String(obj.departmentName).trim()
+    )
       return String(obj.departmentName).trim();
     if ("name" in obj && obj.name != null && String(obj.name).trim()) {
       const res = String(obj.name).trim();
@@ -70,7 +82,11 @@ function formatField(val: unknown, fallback: string = "—"): string {
       return String(obj.text).trim();
     if ("code" in obj && obj.code != null && String(obj.code).trim())
       return String(obj.code).trim();
-    if ("followUpDate" in obj && obj.followUpDate != null && String(obj.followUpDate).trim())
+    if (
+      "followUpDate" in obj &&
+      obj.followUpDate != null &&
+      String(obj.followUpDate).trim()
+    )
       return String(obj.followUpDate).trim();
     if ("department" in obj && obj.department != null) {
       return formatField(obj.department, fallback);

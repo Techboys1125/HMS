@@ -105,5 +105,3 @@ export const ConsultationHeader: React.FC<ConsultationHeaderProps> = ({
     </div>
   );
 };
-
-export default ConsultationHeader;

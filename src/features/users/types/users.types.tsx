@@ -87,17 +87,17 @@ export interface AdminUpdateStaffData {
   status?: string;
 }
 
-export interface DepartmentInfo {
+interface DepartmentInfo {
   departmentId: number;
   departmentName: string;
 }
 
-export interface SpecialtyInfo {
+interface SpecialtyInfo {
   specialtyId: number;
   specialtyName: string;
 }
 
-export interface DoctorProfileDetail {
+interface DoctorProfileDetail {
   doctorId: number;
   medicalRegistrationNumber?: string;
   qualification?: string;
@@ -131,12 +131,12 @@ export interface UserDetailData {
   doctorProfile?: DoctorProfileDetail | null;
 }
 
-export interface SlotRequest {
+interface SlotRequest {
   startTime: string;
   endTime: string;
 }
 
-export interface DoctorAvailability {
+interface DoctorAvailability {
   endTime: string;
   startTime: string;
   day: string;
@@ -149,7 +149,7 @@ export interface ScheduleException {
   reason: string;
 }
 
-export interface DoctorProfile {
+interface DoctorProfile {
   registrationNumber?: string;
   medicalRegistrationNumber?: string;
   qualification?: string;
@@ -174,12 +174,12 @@ export interface AdminCreateDoctorStaffData extends AdminCreateStaffData {
   doctorProfile?: DoctorProfile;
 }
 
-export interface OpdWorkingInterval {
+interface OpdWorkingInterval {
   startTime: string;
   endTime: string;
 }
 
-export interface OpdWeeklyScheduleDay {
+interface OpdWeeklyScheduleDay {
   dayOfWeek: string;
   workingIntervals: OpdWorkingInterval[];
   breaks: { startTime: string; endTime: string; label?: string }[];

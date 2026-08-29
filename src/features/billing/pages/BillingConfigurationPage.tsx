@@ -33,5 +33,3 @@ export function BillingConfigurationPage({ onBack }: { onBack?: () => void }) {
     </div>
   );
 }
-
-export default BillingConfigurationPage;

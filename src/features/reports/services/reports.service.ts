@@ -26,10 +26,8 @@ import type {
   DoctorDailyAppointmentRegisterResponse,
   DoctorPatientRegisterResponse,
   AccountantMainReportData,
-  AccountantBillingAnalysisData,
   AccountantPaymentCollectionData,
   AccountantRefundLogData,
-  AccountantRevenueReportData,
   AccountantTransactionRegisterResponse,
 } from "../types/reports.types";
 
@@ -460,22 +458,6 @@ export async function fetchAccountantMainReport(params?: {
   return unwrap(res);
 }
 
-export async function fetchAccountantBillingAnalysis(params?: {
-  fromDate?: string;
-  toDate?: string;
-  billType?: string;
-}): Promise<AccountantBillingAnalysisData> {
-  const qs = buildQuery({
-    fromDate: params?.fromDate,
-    toDate: params?.toDate,
-    billType: params?.billType,
-  });
-  const res = await apiClient.get<ApiEnvelope<AccountantBillingAnalysisData>>(
-    `/api/v1/accountant/reports/billing${qs}`,
-  );
-  return unwrap(res);
-}
-
 export async function fetchAccountantPaymentCollection(params?: {
   fromDate?: string;
   toDate?: string;
@@ -502,22 +484,6 @@ export async function fetchAccountantRefundLog(params?: {
   });
   const res = await apiClient.get<ApiEnvelope<AccountantRefundLogData>>(
     `/api/v1/accountant/reports/refunds${qs}`,
-  );
-  return unwrap(res);
-}
-
-export async function fetchAccountantRevenueReport(params?: {
-  fromDate?: string;
-  toDate?: string;
-  groupBy?: string;
-}): Promise<AccountantRevenueReportData> {
-  const qs = buildQuery({
-    fromDate: params?.fromDate,
-    toDate: params?.toDate,
-    groupBy: params?.groupBy,
-  });
-  const res = await apiClient.get<ApiEnvelope<AccountantRevenueReportData>>(
-    `/api/v1/accountant/reports/revenue${qs}`,
   );
   return unwrap(res);
 }

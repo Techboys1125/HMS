@@ -118,5 +118,3 @@ export function PatientQueueCard({
     </div>
   );
 }
-
-export default PatientQueueCard;

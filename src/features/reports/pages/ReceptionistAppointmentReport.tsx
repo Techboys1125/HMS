@@ -89,19 +89,8 @@ function CircularProgress({
     </div>
   );
 }
-export interface ReceptionistDailyAppointmentRecord {
-  appointmentId: string;
-  patientName: string;
-  mrn: string;
-  mobileNumber: string;
-  appointmentTime: string;
-  visitType: string;
-  checkInTime?: string;
-  queueStatus?: string;
-  appointmentStatus: string;
-}
 
-export function ReceptionistAppointmentReportScreen({
+function ReceptionistAppointmentReportScreen({
   onBack,
   onOpenPatientReport,
 }: {
@@ -131,15 +120,28 @@ export function ReceptionistAppointmentReportScreen({
   const [hasError, setHasError] = useState(false);
 
   const today = new Date().toISOString().slice(0, 10);
-  const { data: rawApptData } = useDailyAppointments({ fromDate: "2025-01-01", toDate: today });
-  const apptList = useMemo(() => extractList<DailyAppointmentDetail>(rawApptData), [rawApptData]);
+  const { data: rawApptData } = useDailyAppointments({
+    fromDate: "2025-01-01",
+    toDate: today,
+  });
+  const apptList = useMemo(
+    () => extractList<DailyAppointmentDetail>(rawApptData),
+    [rawApptData],
+  );
 
   const apptSource = useMemo(() => {
     const list = apptList.map((d) => ({
       appointmentId: d.appointmentNumber || `APT-${d.appointmentId || ""}`,
       patientName: d.patientName || "N/A",
-      mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
-      mobileNumber: (d as { patientPhone?: string; phone?: string }).phone || (d as { patientPhone?: string }).patientPhone || "9876543210",
+      mrn: d.mrn
+        ? String(d.mrn).startsWith("MRN-")
+          ? String(d.mrn)
+          : `MRN-${d.mrn}`
+        : `MRN-${d.patientId || ""}`,
+      mobileNumber:
+        (d as { patientPhone?: string; phone?: string }).phone ||
+        (d as { patientPhone?: string }).patientPhone ||
+        "9876543210",
       doctorName: d.doctorName || "Dr. sarath",
       department: d.department || "General Medicine",
       appointmentTime: d.appointmentTime || "10:00 AM",
@@ -225,12 +227,16 @@ export function ReceptionistAppointmentReportScreen({
   }, [searchQuery, apptStatusFilter, visitTypeFilter, apptSource]);
 
   const trendData = useMemo(() => {
-    const daysCount = trendDays === "7 Days" ? 7 : trendDays === "30 Days" ? 30 : 90;
+    const daysCount =
+      trendDays === "7 Days" ? 7 : trendDays === "30 Days" ? 30 : 90;
     const result = [];
     for (let i = daysCount - 1; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      const dateStr = d.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
       result.push({
         date: dateStr,
         booked: Math.max(1, 8 + ((i * 4) % 9)),
@@ -953,11 +959,9 @@ export function ReceptionistAppointmentReportScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {statusDistributionData.map(
-                            (entry) => (
-                              <Cell key={entry.name} fill={entry.color} />
-                            ),
-                          )}
+                          {statusDistributionData.map((entry) => (
+                            <Cell key={entry.name} fill={entry.color} />
+                          ))}
                         </Pie>
                         <Tooltip
                           contentStyle={{

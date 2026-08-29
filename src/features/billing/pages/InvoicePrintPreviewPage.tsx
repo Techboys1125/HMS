@@ -862,5 +862,3 @@ export function InvoicePrintPreviewPage() {
     </div>
   );
 }
-
-export default InvoicePrintPreviewPage;

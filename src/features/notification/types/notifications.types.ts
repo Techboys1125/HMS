@@ -12,27 +12,6 @@ export type NotificationPriority = "Normal" | "High" | "Critical";
 
 export type NotificationStatus = "Unread" | "Read" | "Completed";
 
-export type NotificationCategory =
-  | "Appointments"
-  | "Patients"
-  | "Doctors"
-  | "Consultations"
-  | "Prescriptions"
-  | "Billing"
-  | "Invoices"
-  | "Payments"
-  | "Revenue"
-  | "Vitals"
-  | "Clinical Alerts"
-  | "Reports"
-  | "Security"
-  | "Audit"
-  | "System"
-  | "Registration"
-  | "Schedule"
-  | "Queue"
-  | "Announcements";
-
 export interface NotificationRecord {
   id: string;
   title: string;
@@ -51,9 +30,7 @@ export interface NotificationRecord {
 
 // ─── API Types (mirrors backend contract) ─────────────────────────────────────
 
-export type NotificationEventType = string;
-
-export type NotificationPriorityLevel = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+type NotificationPriorityLevel = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 
 export interface NotificationRule {
   id: number;
@@ -226,37 +203,6 @@ export interface NotificationSettings {
   soundAlerts: boolean;
 }
 
-export interface CommunicationChannel {
-  id: string;
-  name: string;
-  desc: string;
-  enabled: boolean;
-  isDefault: boolean;
-  icon: React.ElementType;
-}
-
-export type RolePreferenceKey =
-  | "inApp"
-  | "email"
-  | "sms"
-  | "push"
-  | "critical"
-  | "appointment"
-  | "billing"
-  | "system";
-
-export type RolePreferenceMatrix = Record<
-  UserRole,
-  Record<RolePreferenceKey, boolean>
->;
-
-export interface ReminderConfig {
-  appointmentReminderTime: string;
-  billingReminderTime: string;
-  followupReminderTime: string;
-  enableAutoReminders: boolean;
-}
-
 export interface CommRule {
   label: string;
   sub: string;
@@ -267,19 +213,4 @@ export interface QuickFilterItem {
   id: string;
   title: string;
   icon: React.ElementType;
-}
-
-export interface NotificationKpiMetrics {
-  unread: number;
-  today: number;
-  critical: number;
-  completed: number;
-}
-
-export interface NotificationPageFilters {
-  searchQuery: string;
-  priority: string;
-  status: string;
-  department: string;
-  category: string;
 }

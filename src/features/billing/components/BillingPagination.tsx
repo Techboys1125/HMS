@@ -48,5 +48,3 @@ export function BillingPagination({
     </div>
   );
 }
-
-export default BillingPagination;

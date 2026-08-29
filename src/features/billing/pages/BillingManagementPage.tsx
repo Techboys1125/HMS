@@ -155,9 +155,7 @@ export function BillingManagementPage({ onBack }: { onBack?: () => void }) {
 
   const normalizedRole = String(role).toUpperCase();
   const isAdminReadOnly =
-    normalizedRole === "DOCTOR" ||
-    normalizedRole === "NURSE" ||
-    isPatient;
+    normalizedRole === "DOCTOR" || normalizedRole === "NURSE" || isPatient;
   const canCancelInvoice = ["SUPER_ADMIN", "HOSPITAL_ADMIN", "ADMIN"].includes(
     normalizedRole,
   );
@@ -345,5 +343,3 @@ export function BillingManagementPage({ onBack }: { onBack?: () => void }) {
     </div>
   );
 }
-
-export default BillingManagementPage;

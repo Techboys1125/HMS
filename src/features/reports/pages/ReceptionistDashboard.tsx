@@ -910,6 +910,10 @@ const ReceptionDashboardCharts = ({
         month: "short",
         day: "numeric",
       });
+      const dateStr = d.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
       result.push({
         date: dateStr,
         newReg: Math.max(1, 4 + ((i * 3) % 5)),
@@ -1078,69 +1082,69 @@ const ReceptionDashboardCharts = ({
               </p>
             </div>
 
-            <div className="flex items-center gap-1 bg-[#F1F5F9] p-1 rounded-xl border border-[#E5E7EB] text-[10px]">
-              {(["7 Days", "30 Days", "90 Days"] as const).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setTrendDays(t)}
-                  className={`px-2 py-0.5 rounded-lg font-medium transition ${trendDays === t ? "bg-[#0D47A1] text-white shadow-sm" : "text-[#64748B]"}`}
+              <div className="flex items-center gap-1 bg-[#F1F5F9] p-1 rounded-xl border border-[#E5E7EB] text-[10px]">
+                {(["7 Days", "30 Days", "90 Days"] as const).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setTrendDays(t)}
+                    className={`px-2 py-0.5 rounded-lg font-medium transition ${trendDays === t ? "bg-[#0D47A1] text-white shadow-sm" : "text-[#64748B]"}`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="h-60">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={regTrendData}
+                  margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                 >
-                  {t}
-                </button>
-              ))}
+                  <defs>
+                    <linearGradient id="recNewGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#0D47A1" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#0D47A1" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="recRetGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#009688" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#009688" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fontSize: 10, fill: "#64748B" }}
+                  />
+                  <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#FFFFFF",
+                      borderRadius: "12px",
+                      borderColor: "#E5E7EB",
+                      fontSize: "11px",
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="newReg"
+                    name="New Registrations"
+                    stroke="#0D47A1"
+                    fillOpacity={1}
+                    fill="url(#recNewGrad)"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="returning"
+                    name="Returning Patients"
+                    stroke="#009688"
+                    fillOpacity={1}
+                    fill="url(#recRetGrad)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           </div>
-
-          <div className="h-60">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart
-                data={regTrendData}
-                margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
-              >
-                <defs>
-                  <linearGradient id="recNewGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#0D47A1" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#0D47A1" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="recRetGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#009688" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#009688" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                <XAxis
-                  dataKey="date"
-                  tick={{ fontSize: 10, fill: "#64748B" }}
-                />
-                <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#FFFFFF",
-                    borderRadius: "12px",
-                    borderColor: "#E5E7EB",
-                    fontSize: "11px",
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="newReg"
-                  name="New Registrations"
-                  stroke="#0D47A1"
-                  fillOpacity={1}
-                  fill="url(#recNewGrad)"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="returning"
-                  name="Returning Patients"
-                  stroke="#009688"
-                  fillOpacity={1}
-                  fill="url(#recRetGrad)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
 
         {/* Appointment Status Distribution Donut Chart */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
@@ -1522,6 +1526,7 @@ const ReceptionDashboardFooter = ({ resultCount }: { resultCount: number }) => (
         {resultCount} Reception Report Results
       </strong>
     </div>
+    <div>Hospital Management System - Receptionist Reports Dashboard v1.0</div>
     <div>Hospital Management System - Receptionist Reports Dashboard v1.0</div>
     <div>
       Last Refreshed:{" "}

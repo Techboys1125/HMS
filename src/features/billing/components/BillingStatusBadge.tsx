@@ -60,5 +60,3 @@ export function BillingStatusBadge({ status }: { status: string }) {
     </span>
   );
 }
-
-export default BillingStatusBadge;

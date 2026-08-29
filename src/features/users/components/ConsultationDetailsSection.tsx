@@ -362,4 +362,3 @@ export const ConsultationDetailsSection: React.FC<
     </div>
   );
 };
-export default ConsultationDetailsSection;

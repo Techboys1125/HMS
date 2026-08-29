@@ -1,6 +1,6 @@
 // ─── Reception Reports API Types ─────────────────────────────────────────────
 
-export interface ReceptionActivityLogItem {
+interface ReceptionActivityLogItem {
   time: string;
   title: string;
   description: string;
@@ -63,7 +63,7 @@ export interface ReceptionQueuePerformanceData {
   averageWaitingMinutes: number;
 }
 
-export interface ReceptionRegisterItem {
+interface ReceptionRegisterItem {
   mrn: string;
   patientName: string;
   appointmentId: string;

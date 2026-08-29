@@ -58,8 +58,8 @@ const TAB_CONFIG: Array<{ id: PatientTabId; label: string }> = [
   { id: "overview", label: "Overview" },
   { id: "appointments", label: "Appointments" },
   { id: "prescriptions", label: "Prescriptions" },
-  { id: "billing", label: "Billing & Payments" },/* 
-  { id: "documents", label: "Documents" }, */
+  { id: "billing", label: "Billing & Payments" } /* 
+  { id: "documents", label: "Documents" }, */,
 ];
 
 function formatDate(dateStr?: string | null): string {
@@ -86,8 +86,10 @@ function formatBloodGroup(bg?: string): string {
   if (cleaned.includes("A NEGATIVE") || cleaned === "A NEGATIVE") return "A-";
   if (cleaned.includes("B POSITIVE") || cleaned === "B POSITIVE") return "B+";
   if (cleaned.includes("B NEGATIVE") || cleaned === "B NEGATIVE") return "B-";
-  if (cleaned.includes("AB POSITIVE") || cleaned === "AB POSITIVE") return "AB+";
-  if (cleaned.includes("AB NEGATIVE") || cleaned === "AB NEGATIVE") return "AB-";
+  if (cleaned.includes("AB POSITIVE") || cleaned === "AB POSITIVE")
+    return "AB+";
+  if (cleaned.includes("AB NEGATIVE") || cleaned === "AB NEGATIVE")
+    return "AB-";
   return cleaned;
 }
 
@@ -162,7 +164,10 @@ function extractRxMedCount(rx: ApiPatientPrescription): number {
   if (Array.isArray(obj.items) && obj.items.length > 0) {
     return (obj.items as unknown[]).length;
   }
-  if (Array.isArray(obj.prescriptionItems) && obj.prescriptionItems.length > 0) {
+  if (
+    Array.isArray(obj.prescriptionItems) &&
+    obj.prescriptionItems.length > 0
+  ) {
     return (obj.prescriptionItems as unknown[]).length;
   }
   return 1;
@@ -184,7 +189,9 @@ export function PatientProfilePage({
   const [isEditing, setIsEditing] = useState(false);
 
   const [appointments, setAppointments] = useState<ApiPatientAppointment[]>([]);
-  const [prescriptions, setPrescriptions] = useState<ApiPatientPrescription[]>([]);
+  const [prescriptions, setPrescriptions] = useState<ApiPatientPrescription[]>(
+    [],
+  );
   const [billing, setBilling] = useState<ApiPatientInvoice[]>([]);
   const [rxSummary, setRxSummary] = useState<{
     active: number;
@@ -207,13 +214,14 @@ export function PatientProfilePage({
 
     async function loadData() {
       try {
-        const [pRes, apptRes, rxRes, billRes, rxSumRes] = await Promise.allSettled([
-          patientsApi.getPatientByMrn(mrn),
-          patientsApi.getAppointments(mrn),
-          patientsApi.getPrescriptions(mrn),
-          patientsApi.getBilling(mrn),
-          patientsApi.getPrescriptionSummary(mrn),
-        ]);
+        const [pRes, apptRes, rxRes, billRes, rxSumRes] =
+          await Promise.allSettled([
+            patientsApi.getPatientByMrn(mrn),
+            patientsApi.getAppointments(mrn),
+            patientsApi.getPrescriptions(mrn),
+            patientsApi.getBilling(mrn),
+            patientsApi.getPrescriptionSummary(mrn),
+          ]);
 
         if (cancelled) return;
 
@@ -301,10 +309,7 @@ export function PatientProfilePage({
       const now = new Date();
       let age = now.getFullYear() - birth.getFullYear();
       const monthDiff = now.getMonth() - birth.getMonth();
-      if (
-        monthDiff < 0 ||
-        (monthDiff === 0 && now.getDate() < birth.getDate())
-      )
+      if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birth.getDate()))
         age--;
       return `${age >= 0 ? age : "—"} Y`;
     } catch {
@@ -462,7 +467,10 @@ export function PatientProfilePage({
     Array.isArray(rawAllergies) && rawAllergies.length > 0
       ? (rawAllergies as string[])
       : typeof rawAllergies === "string" && rawAllergies.trim()
-        ? rawAllergies.split(",").map((s) => s.trim()).filter(Boolean)
+        ? rawAllergies
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
         : [];
 
   const rawConditions: unknown = currentPatient.chronicDiseases;
@@ -470,7 +478,10 @@ export function PatientProfilePage({
     Array.isArray(rawConditions) && rawConditions.length > 0
       ? (rawConditions as string[])
       : typeof rawConditions === "string" && rawConditions.trim()
-        ? rawConditions.split(",").map((s) => s.trim()).filter(Boolean)
+        ? rawConditions
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
         : [];
 
   return (
@@ -603,7 +614,8 @@ export function PatientProfilePage({
               </span>
               <span>•</span>
               <span className="flex items-center gap-1 text-[#64748B] font-medium">
-                <Calendar size={13} className="text-blue-500" /> Reg: {regDateStr}
+                <Calendar size={13} className="text-blue-500" /> Reg:{" "}
+                {regDateStr}
               </span>
             </div>
           </div>
@@ -623,7 +635,8 @@ export function PatientProfilePage({
             className="px-3.5 py-2 rounded-xl border border-[#E5E7EB] bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
             style={{ fontFamily: PP }}
           >
-            <Edit size={14} className="text-slate-500" /> Edit Patient Information
+            <Edit size={14} className="text-slate-500" /> Edit Patient
+            Information
           </button>
 
           <button
@@ -798,9 +811,9 @@ export function PatientProfilePage({
                   </span>
                   <div className="flex items-center gap-2 flex-wrap">
                     {allergiesList.length > 0 ? (
-                      allergiesList.map((a, idx) => (
+                      allergiesList.map((a) => (
                         <span
-                          key={idx}
+                          key={a}
                           className="px-3 py-1 rounded-full text-xs font-medium border flex items-center gap-1 bg-red-50 text-[#EF4444] border-red-100"
                         >
                           <AlertTriangle size={12} /> {a}
@@ -820,9 +833,9 @@ export function PatientProfilePage({
                   </span>
                   <div className="flex items-center gap-2 flex-wrap">
                     {conditionsList.length > 0 ? (
-                      conditionsList.map((c, idx) => (
+                      conditionsList.map((c) => (
                         <span
-                          key={idx}
+                          key={c}
                           className="px-3 py-1 rounded-full text-xs font-medium border bg-blue-50 text-[#0D47A1] border-blue-100"
                         >
                           {c}
@@ -956,14 +969,18 @@ export function PatientProfilePage({
       {activeTab === "appointments" && (
         <PatientAppointmentsTab
           patient={currentPatient}
-          canEdit={can(currentRole, "manageAppointments", currentRole === "PATIENT")}
+          canEdit={can(
+            currentRole,
+            "manageAppointments",
+            currentRole === "PATIENT",
+          )}
           isOwnProfile={currentRole === "PATIENT"}
           onBookAppointment={onBookAppointment}
         />
       )}
 
       {/* TAB 3: MEDICAL HISTORY */}
-     {/*  {activeTab === "medicalHistory" && (
+      {/*  {activeTab === "medicalHistory" && (
         <PatientMedicalRecordsTab
           patient={currentPatient}
           canEdit={can(currentRole, "editMedicalRecords", currentRole === "PATIENT")}
@@ -983,7 +1000,11 @@ export function PatientProfilePage({
       {activeTab === "prescriptions" && (
         <PatientPrescriptionsTab
           patient={currentPatient}
-          canEdit={can(currentRole, "editPrescriptions", currentRole === "PATIENT")}
+          canEdit={can(
+            currentRole,
+            "editPrescriptions",
+            currentRole === "PATIENT",
+          )}
           isOwnProfile={currentRole === "PATIENT"}
         />
       )}

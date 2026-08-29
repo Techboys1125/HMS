@@ -25,9 +25,7 @@ import { mapApiBillToInvoiceRecord } from "../utils/billing.utils";
 
 const billIdCache = new Map<string, number>();
 
-export async function resolveBillId(
-  rawId: number | string,
-): Promise<number | string> {
+async function resolveBillId(rawId: number | string): Promise<number | string> {
   if (rawId === null || rawId === undefined) return rawId;
   const strId = String(rawId).trim();
   if (!strId) return rawId;

@@ -857,5 +857,3 @@ export function PatientProfileCenterScreen({
     </div>
   );
 }
-
-export default PatientProfileCenterScreen;

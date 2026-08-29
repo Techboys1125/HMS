@@ -192,5 +192,3 @@ export const VitalsCard: React.FC<VitalsCardProps> = ({
     </div>
   );
 };
-
-export default VitalsCard;

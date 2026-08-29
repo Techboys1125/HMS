@@ -3,7 +3,7 @@
  * Used by: FamilyMembersTab, PatientRegistrationForm (mode="family"), useFamilyMembers hook
  */
 
-export type FamilyMemberRelationship =
+type FamilyMemberRelationship =
   | "SELF"
   | "FATHER"
   | "MOTHER"
@@ -50,52 +50,4 @@ export interface FamilyMember {
   primaryDoctor?: string;
   latestBillId?: string;
   latestBillAmount?: number;
-}
-
-export interface AddFamilyMemberRequest {
-  name: string;
-  relationship: string;
-  gender?: string;
-  dateOfBirth?: string;
-  mobileNumber?: string;
-  email?: string;
-  bloodGroup?: string;
-  address?:
-    | {
-        addressLine1?: string;
-        addressLine2?: string;
-        city?: string;
-        state?: string;
-        pincode?: string;
-        country?: string;
-      }
-    | string;
-  emergencyContact?: {
-    name: string;
-    relationship: string;
-    mobileNumber: string;
-  };
-}
-
-export interface UpdateFamilyMemberRequest extends Partial<AddFamilyMemberRequest> {
-  id: string | number;
-}
-
-export interface FamilyMemberFormData {
-  fullName: string;
-  relationship: string;
-  gender: string;
-  dateOfBirth: string;
-  mobileNumber: string;
-  email: string;
-  bloodGroup: string;
-  addressLine1: string;
-  addressLine2: string;
-  city: string;
-  state: string;
-  pincode: string;
-  country: string;
-  ecName: string;
-  ecRelationship: string;
-  ecMobile: string;
 }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useState } from "react";
 import {
   RefreshCw,
   X,
@@ -9,10 +10,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { formatTime } from "../../../lib/time-utils";
-import type {
-  PatientCancelAppointmentDialogProps,
-  PatientRescheduleAppointmentDialogProps,
-} from "../types/patient.types";
+import type { PatientCancelAppointmentDialogProps } from "../types/patient.types";
 import { PP, RB } from "../constants/patient.fonts";
 import { RescheduleAppointmentConfirmationDialog } from "../../appointments/components/RescheduleAppointmentConfirmationDialog";
 import type { AppointmentRecord } from "../../appointments/types/appointment.types";

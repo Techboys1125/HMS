@@ -408,5 +408,3 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
     />
   );
 };
-
-export default ConsultationTable;
