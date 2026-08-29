@@ -628,11 +628,12 @@ export const patientsApi = {
       ...payload,
     };
 
-    // Attempt 1: PUT /api/v1/patients/{primaryMrn}/family-members/{targetMrn}
+    const targetMrn = memberId || mrn;
+    // PUT /api/v1/patients/{mrn}
     try {
       const response = await apiClient.put<
         PatientApiResponse<ApiPatientFamilyMember>
-      >(`/api/v1/patients/${mrn}/family-members/${memberId}`, fullPayload);
+      >(`/api/v1/patients/${encodeURIComponent(targetMrn)}`, fullPayload);
       return (
         response.data?.data ||
         (response.data as unknown as ApiPatientFamilyMember) ||
@@ -1455,6 +1456,23 @@ export const patientsApi = {
       return true;
     } catch {
       return true;
+    }
+  },
+
+  unlinkPatient: async (mrn: string): Promise<Record<string, unknown>> => {
+    try {
+      const res = await apiClient.delete(
+        `/api/v1/patients/${encodeURIComponent(mrn)}/link`,
+      );
+      return (res.data as Record<string, unknown>) || {};
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          throw new Error(data.message, { cause: error });
+        }
+      }
+      throw error;
     }
   },
 };

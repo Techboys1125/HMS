@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   X,
-  Download,
   Printer,
   ChevronRight,
   ChevronLeft,
@@ -76,7 +75,6 @@ interface DetailsModalProps {
 export const PrescriptionDetailsModal: React.FC<DetailsModalProps> = ({
   prescription: initialPrescription,
   onClose,
-  onDownload,
 }) => {
   const [prescriptionData, setPrescriptionData] =
     useState<UnifiedPrescription>(initialPrescription);
@@ -520,7 +518,7 @@ export const PrescriptionDetailsModal: React.FC<DetailsModalProps> = ({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {prescription.medicines.map((m, idx) => {
+                  {prescription.medicines.map((m) => {
                     const mObj = (m && typeof m === "object" ? m : {}) as Record<string, unknown>;
 
                     const nameStr = safeStr(

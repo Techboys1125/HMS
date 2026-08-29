@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router";
 import { DoctorProfilePage } from "./DoctorProfilePage";
 import { DoctorProfileScreen } from "../components/DoctorProfileScreen";
+import { CommonProfilePage } from "../../users/pages/CommonProfilePage";
 import { useAuthStore } from "../../auth/store/auth.store";
 import { useState, useEffect } from "react";
 import { ROUTES } from "../../../app/routes/routes";
@@ -80,7 +81,7 @@ export function DoctorProfileRoute() {
   }, [doctorId, userDoctorId, user?.role, navigate]);
 
   if (isMeProfile) {
-    return <DoctorProfilePage />;
+    return <CommonProfilePage />;
   }
 
   const resolvedDoctorId = doctorId || String(userDoctorId);

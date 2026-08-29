@@ -33,6 +33,7 @@ export interface User {
   role: AuthRole | string;
   hospitalId: number;
   mustChangePassword: boolean;
+  profileCompleted?: boolean;
   permissions?: string[];
   status?: "ACTIVE" | "INACTIVE" | "SUSPENDED";
   lastLogin?: string | null;

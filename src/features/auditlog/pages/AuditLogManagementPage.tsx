@@ -46,13 +46,30 @@ import {
 import { QUICK_ACTION_CARDS } from "../constants/auditlog-cards";
 import { SeverityBadge, StatusBadge } from "../components/AuditBadges";
 import { AuditLogDetailsPage } from "./AuditLogDetailsPage";
+import { DataTable, type Column } from "../../../common/components/DataTable";
+import { LoginSupplementaryData } from "../components/LoginSupplementaryPanels";
+import { AuditLogHeaderMetrics } from "../components/AuditLogHeaderMetrics";
+import {
+  ApiFilterSelect,
+  DateCalendarPicker,
+  FilterSelect,
+} from "../components/AuditLogFilterControls";
+import {
+  display,
+  getDateRange,
+  getErrorMessage,
+  isInDateRange,
+  matchesAnyCode,
+  matchesCode,
+  normalizeCode,
+  safeArray,
+} from "../utils/auditlog.utils";
 import type {
   AuditCategory,
   AuditFilterOptions,
   AuditLogListParams,
   AuditMetric,
   AuditRecord,
-  AuditSelectOption,
 } from "../types/auditlog.types";
 
 const PP = "Poppins, sans-serif";
@@ -65,104 +82,6 @@ type KpiCard = {
   trend?: number;
   Icon: typeof Activity;
 };
-
-function safeArray<T>(data: T[] | undefined | null): T[] {
-  return Array.isArray(data) ? data : [];
-}
-
-function display(value: string | number | undefined | null): string {
-  if (value === undefined || value === null || value === "") return "—";
-  return String(value);
-}
-
-function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Unable to load audit data.";
-}
-
-function localDate(date: Date): string {
-  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
-  return local.toISOString().slice(0, 10);
-}
-
-function getDateRange(
-  range: string,
-): Pick<AuditLogListParams, "fromDate" | "toDate"> {
-  if (range === "All Time") return {};
-
-  const today = new Date();
-  const from = new Date(today);
-
-  if (range === "Yesterday") {
-    from.setDate(from.getDate() - 1);
-    const date = localDate(from);
-    return { fromDate: date, toDate: date };
-  }
-
-  if (range === "Last 7 Days") from.setDate(from.getDate() - 6);
-  if (range === "Last 30 Days") from.setDate(from.getDate() - 29);
-
-  return { fromDate: localDate(from), toDate: localDate(today) };
-}
-
-function normalizeCode(value: string | undefined): string {
-  return (value || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
-}
-
-function matchesCode(value: string | undefined, selected: string): boolean {
-  if (selected === "All") return true;
-  const actual = normalizeCode(value);
-  const expected = normalizeCode(selected);
-  return Boolean(
-    actual &&
-    expected &&
-    (actual === expected ||
-      actual.includes(expected) ||
-      expected.includes(actual)),
-  );
-}
-
-function matchesAnyCode(
-  values: Array<string | undefined>,
-  selected: string,
-): boolean {
-  return (
-    selected === "All" || values.some((value) => matchesCode(value, selected))
-  );
-}
-
-function isInDateRange(timestamp: string | undefined, range: string): boolean {
-  if (range === "All Time" || !timestamp) return true;
-  const value = new Date(timestamp).getTime();
-  if (Number.isNaN(value)) return true;
-  const now = new Date();
-  const start = new Date(now);
-  start.setHours(0, 0, 0, 0);
-  if (range === "Yesterday") {
-    start.setDate(start.getDate() - 1);
-    const end = new Date(start);
-    end.setDate(end.getDate() + 1);
-    return value >= start.getTime() && value < end.getTime();
-  }
-  if (range === "Today") return value >= start.getTime();
-  const days = range === "Last 7 Days" ? 7 : 30;
-  start.setDate(start.getDate() - (days - 1));
-  return value >= start.getTime();
-}
-
-function optionValue(option: AuditSelectOption): string {
-  if (typeof option === "string") return option;
-  return option.userId || option.code || option.id || option.name || "";
-}
-
-function optionLabel(option: AuditSelectOption): string {
-  if (typeof option === "string") return option;
-  if (option.fullName) {
-    return option.role
-      ? `${option.fullName} (${option.role})`
-      : option.fullName;
-  }
-  return option.name || option.code || option.id || option.userId || "Unknown";
-}
 
 function formatTrend(trend: number | undefined): string | null {
   if (trend === undefined || Number.isNaN(trend)) return null;
@@ -221,6 +140,8 @@ interface FilterState {
   currentWorkspace: AuditCategory;
   searchQuery: string;
   selectedDateRange: string;
+  customStartDate: string;
+  customEndDate: string;
   selectedModule: string;
   selectedDepartment: string;
   selectedRole: string;
@@ -249,6 +170,8 @@ export function AuditLogManagementPage() {
     currentWorkspace: "All Logs" as AuditCategory,
     searchQuery: "",
     selectedDateRange: "All Time",
+    customStartDate: "",
+    customEndDate: "",
     selectedModule: "All",
     selectedDepartment: "All",
     selectedRole: "All",
@@ -268,8 +191,13 @@ export function AuditLogManagementPage() {
   const [page, setPage] = useState(0);
 
   const dateRange = useMemo(
-    () => getDateRange(filters.selectedDateRange),
-    [filters.selectedDateRange],
+    () =>
+      getDateRange(
+        filters.selectedDateRange,
+        filters.customStartDate,
+        filters.customEndDate,
+      ),
+    [filters.selectedDateRange, filters.customStartDate, filters.customEndDate],
   );
   const listParams = useMemo<AuditLogListParams>(
     () => ({ page, size: PAGE_SIZE, ...dateRange }),
@@ -440,13 +368,463 @@ export function AuditLogManagementPage() {
     filters.searchQuery,
     filters.selectedDateRange,
     filters.selectedDepartment,
-    filters.selectedEventType,
-    filters.selectedModule,
-    filters.selectedRole,
     filters.selectedSeverity,
     filters.selectedStatus,
     filters.selectedUser,
   ]);
+
+  const tableColumns = useMemo<Column<AuditRecord>[]>(() => {
+    const detailsCol: Column<AuditRecord> = {
+      key: "actions",
+      label: "ACTIONS",
+      sortable: false,
+      align: "right",
+      render: (record) => (
+        <button
+          onClick={() => setActiveDetailsRecord(record)}
+          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-white bg-[#0D47A1] hover:bg-[#0c3d8a] rounded-lg transition-colors shadow-2xs cursor-pointer"
+        >
+          <Eye className="w-3.5 h-3.5" /> Details
+        </button>
+      ),
+    };
+
+    if (isLoginWorkspace) {
+      return [
+        {
+          key: "user",
+          label: "USER",
+          sortable: true,
+          getValue: (r) => r.user,
+          render: (r) => (
+            <span className="font-bold text-gray-900">{r.user}</span>
+          ),
+        },
+        {
+          key: "userRole",
+          label: "ROLE",
+          sortable: true,
+          getValue: (r) => r.userRole || "",
+          render: (r) => <span className="text-gray-600">{r.userRole}</span>,
+        },
+        {
+          key: "loginTime",
+          label: "LOGIN TIME",
+          sortable: true,
+          getValue: (r) => r.loginTime || r.timestamp || "",
+          render: (r) => (
+            <span className="font-mono text-gray-600">
+              {display(r.loginTime || r.timestamp)}
+            </span>
+          ),
+        },
+        {
+          key: "logoutTime",
+          label: "LOGOUT TIME",
+          sortable: true,
+          getValue: (r) => r.logoutTime || "",
+          render: (r) => (
+            <span className="font-mono text-gray-500">
+              {display(r.logoutTime)}
+            </span>
+          ),
+        },
+        {
+          key: "ipAddress",
+          label: "IP ADDRESS",
+          sortable: true,
+          getValue: (r) => r.ipAddress || "",
+          render: (r) => (
+            <span className="font-mono text-xs text-gray-600">
+              {display(r.ipAddress)}
+            </span>
+          ),
+        },
+        {
+          key: "device",
+          label: "DEVICE",
+          sortable: true,
+          getValue: (r) => r.device || "",
+          render: (r) => (
+            <span className="text-gray-600 max-w-xs truncate block">
+              {display(r.device)}
+            </span>
+          ),
+        },
+        {
+          key: "status",
+          label: "STATUS",
+          sortable: true,
+          getValue: (r) => r.status || "",
+          render: (r) => <StatusBadge status={r.status} />,
+        },
+        detailsCol,
+      ];
+    }
+
+    if (filters.currentWorkspace === "User Activities") {
+      return [
+        {
+          key: "user",
+          label: "USER",
+          sortable: true,
+          getValue: (r) => r.user,
+          render: (r) => (
+            <span className="font-bold text-gray-900">{r.user}</span>
+          ),
+        },
+        {
+          key: "module",
+          label: "MODULE",
+          sortable: true,
+          getValue: (r) => r.module,
+          render: (r) => (
+            <span className="px-2 py-0.5 rounded bg-purple-50 text-purple-700 font-medium border border-purple-100">
+              {r.module}
+            </span>
+          ),
+        },
+        {
+          key: "action",
+          label: "ACTION",
+          sortable: true,
+          getValue: (r) => r.action,
+          render: (r) => (
+            <span className="font-semibold text-blue-950">{r.action}</span>
+          ),
+        },
+        {
+          key: "description",
+          label: "DESCRIPTION",
+          sortable: true,
+          getValue: (r) => r.description || "",
+          render: (r) => (
+            <span
+              className="max-w-xs truncate text-gray-500 block"
+              title={r.description}
+            >
+              {display(r.description)}
+            </span>
+          ),
+        },
+        {
+          key: "timestamp",
+          label: "TIMESTAMP",
+          sortable: true,
+          getValue: (r) => r.timestamp || "",
+          render: (r) => (
+            <span className="text-gray-500 font-mono">
+              {display(r.timestamp)}
+            </span>
+          ),
+        },
+        {
+          key: "status",
+          label: "STATUS",
+          sortable: true,
+          getValue: (r) => r.status || "",
+          render: (r) => <StatusBadge status={r.status} />,
+        },
+        detailsCol,
+      ];
+    }
+
+    if (filters.currentWorkspace === "Data Changes") {
+      return [
+        {
+          key: "module",
+          label: "MODULE",
+          sortable: true,
+          getValue: (r) => r.module,
+          render: (r) => (
+            <span className="px-2 py-0.5 rounded bg-teal-50 text-teal-700 font-medium border border-teal-100">
+              {r.module}
+            </span>
+          ),
+        },
+        {
+          key: "recordId",
+          label: "RECORD ID",
+          sortable: true,
+          getValue: (r) => r.recordId || "",
+          render: (r) => (
+            <span className="font-mono font-bold text-blue-700">
+              {display(r.recordId)}
+            </span>
+          ),
+        },
+        {
+          key: "fieldChanged",
+          label: "FIELD",
+          sortable: true,
+          getValue: (r) => r.fieldChanged || "",
+          render: (r) => (
+            <span className="font-semibold text-gray-800">
+              {display(r.fieldChanged)}
+            </span>
+          ),
+        },
+        {
+          key: "oldValue",
+          label: "OLD VALUE",
+          sortable: true,
+          getValue: (r) => r.oldValue || "",
+          render: (r) => (
+            <span
+              className="font-mono text-red-600 max-w-48 truncate block"
+              title={r.oldValue}
+            >
+              {display(r.oldValue)}
+            </span>
+          ),
+        },
+        {
+          key: "newValue",
+          label: "NEW VALUE",
+          sortable: true,
+          getValue: (r) => r.newValue || "",
+          render: (r) => (
+            <span
+              className="font-mono text-emerald-600 max-w-48 truncate block"
+              title={r.newValue}
+            >
+              {display(r.newValue)}
+            </span>
+          ),
+        },
+        {
+          key: "user",
+          label: "MODIFIED BY",
+          sortable: true,
+          getValue: (r) => r.user,
+          render: (r) => (
+            <span className="font-bold text-gray-900">{r.user}</span>
+          ),
+        },
+        {
+          key: "timestamp",
+          label: "TIMESTAMP",
+          sortable: true,
+          getValue: (r) => r.timestamp || "",
+          render: (r) => (
+            <span className="text-gray-500 font-mono">
+              {display(r.timestamp)}
+            </span>
+          ),
+        },
+        detailsCol,
+      ];
+    }
+
+    if (filters.currentWorkspace === "Deleted Records") {
+      return [
+        {
+          key: "recordId",
+          label: "RECORD ID",
+          sortable: true,
+          getValue: (r) => r.recordId || "",
+          render: (r) => (
+            <span className="font-mono font-bold text-red-700">
+              {display(r.recordId)}
+            </span>
+          ),
+        },
+        {
+          key: "module",
+          label: "MODULE",
+          sortable: true,
+          getValue: (r) => r.module,
+          render: (r) => (
+            <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-800 font-medium border border-amber-200">
+              {r.module}
+            </span>
+          ),
+        },
+        {
+          key: "user",
+          label: "DELETED BY",
+          sortable: true,
+          getValue: (r) => r.user,
+          render: (r) => (
+            <span className="font-bold text-gray-900">{r.user}</span>
+          ),
+        },
+        {
+          key: "reason",
+          label: "REASON",
+          sortable: true,
+          getValue: (r) => r.deletionReason || r.description || "",
+          render: (r) => (
+            <span
+              className="text-gray-600 max-w-xs truncate block"
+              title={r.deletionReason || r.description}
+            >
+              {display(r.deletionReason || r.description)}
+            </span>
+          ),
+        },
+        {
+          key: "timestamp",
+          label: "DELETED TIME",
+          sortable: true,
+          getValue: (r) => r.timestamp || "",
+          render: (r) => (
+            <span className="text-gray-500 font-mono">
+              {display(r.timestamp)}
+            </span>
+          ),
+        },
+        {
+          key: "status",
+          label: "STATUS",
+          sortable: true,
+          getValue: (r) => r.status || "",
+          render: (r) => <StatusBadge status={r.status} />,
+        },
+        detailsCol,
+      ];
+    }
+
+    if (filters.currentWorkspace === "System Logs") {
+      return [
+        {
+          key: "severity",
+          label: "SEVERITY",
+          sortable: true,
+          getValue: (r) => r.severity || "",
+          render: (r) => <SeverityBadge severity={r.severity} />,
+        },
+        {
+          key: "action",
+          label: "EVENT",
+          sortable: true,
+          getValue: (r) => r.action,
+          render: (r) => (
+            <span className="font-semibold text-gray-900">{r.action}</span>
+          ),
+        },
+        {
+          key: "module",
+          label: "MODULE",
+          sortable: true,
+          getValue: (r) => r.module,
+          render: (r) => (
+            <span className="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-medium border border-indigo-100">
+              {r.module}
+            </span>
+          ),
+        },
+        {
+          key: "description",
+          label: "DESCRIPTION",
+          sortable: true,
+          getValue: (r) => r.description || "",
+          render: (r) => (
+            <span
+              className="max-w-xs truncate text-gray-500 block"
+              title={r.description}
+            >
+              {display(r.description)}
+            </span>
+          ),
+        },
+        {
+          key: "timestamp",
+          label: "TIMESTAMP",
+          sortable: true,
+          getValue: (r) => r.timestamp || "",
+          render: (r) => (
+            <span className="text-gray-500 font-mono">
+              {display(r.timestamp)}
+            </span>
+          ),
+        },
+        {
+          key: "status",
+          label: "STATUS",
+          sortable: true,
+          getValue: (r) => r.status || "",
+          render: (r) => <StatusBadge status={r.status} />,
+        },
+        detailsCol,
+      ];
+    }
+
+    // Default / All Logs
+    return [
+      {
+        key: "timestamp",
+        label: "TIMESTAMP",
+        sortable: true,
+        getValue: (r) => r.timestamp || "",
+        render: (r) => (
+          <span className="text-gray-500 font-mono">
+            {display(r.timestamp)}
+          </span>
+        ),
+      },
+      {
+        key: "category",
+        label: "CATEGORY",
+        sortable: true,
+        getValue: (r) => r.category || "",
+        render: (r) => (
+          <span className="font-semibold text-gray-700">{r.category}</span>
+        ),
+      },
+      {
+        key: "user",
+        label: "USER",
+        sortable: true,
+        getValue: (r) => r.user,
+        render: (r) => (
+          <span className="font-bold text-gray-900">{r.user}</span>
+        ),
+      },
+      {
+        key: "userRole",
+        label: "ROLE",
+        sortable: true,
+        getValue: (r) => r.userRole || "",
+        render: (r) => <span className="text-gray-600">{r.userRole}</span>,
+      },
+      {
+        key: "module",
+        label: "MODULE",
+        sortable: true,
+        getValue: (r) => r.module,
+        render: (r) => (
+          <span className="px-2 py-0.5 rounded bg-gray-100 font-medium text-gray-700">
+            {r.module}
+          </span>
+        ),
+      },
+      {
+        key: "action",
+        label: "ACTION",
+        sortable: true,
+        getValue: (r) => r.action,
+        render: (r) => (
+          <span className="font-semibold text-blue-950">{r.action}</span>
+        ),
+      },
+      {
+        key: "severity",
+        label: "SEVERITY",
+        sortable: true,
+        getValue: (r) => r.severity || "",
+        render: (r) => <SeverityBadge severity={r.severity} />,
+      },
+      {
+        key: "status",
+        label: "STATUS",
+        sortable: true,
+        getValue: (r) => r.status || "",
+        render: (r) => <StatusBadge status={r.status} />,
+      },
+      detailsCol,
+    ];
+  }, [filters.currentWorkspace, isLoginWorkspace]);
 
   const criticalRecords = safeArray(criticalEventsQuery.data?.content);
   const workspaceCards = useMemo(() => {
@@ -665,6 +1043,8 @@ export function AuditLogManagementPage() {
   const resetFilters = () => {
     setFilter("searchQuery", "");
     setFilter("selectedDateRange", "All Time");
+    setFilter("customStartDate", "");
+    setFilter("customEndDate", "");
     setFilter("selectedModule", "All");
     setFilter("selectedDepartment", "All");
     setFilter("selectedRole", "All");
@@ -1006,100 +1386,6 @@ export function AuditLogManagementPage() {
         </div>
       </section>
 
-      <section className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
-        <div className="relative">
-          <Search className="w-5 h-5 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            aria-label="Input field"
-            type="search"
-            value={filters.searchQuery}
-            onChange={(event) => setFilter("searchQuery", event.target.value)}
-            placeholder="Search loaded records by event, user, module, action, or record ID"
-            className="w-full pl-10 pr-4 py-3 text-sm bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition-colors"
-          />
-        </div>
-        <div className="mt-4 pt-4 border-t border-gray-100">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
-            <FilterSelect
-              label="Date range"
-              value={filters.selectedDateRange}
-              onChange={(value) => {
-                setFilter("selectedDateRange", value);
-                setPage(0);
-              }}
-            >
-              <option value="All Time">All time</option>
-              <option value="Today">Today</option>
-              <option value="Yesterday">Yesterday</option>
-              <option value="Last 7 Days">Last 7 days</option>
-              <option value="Last 30 Days">Last 30 days</option>
-            </FilterSelect>
-            <ApiFilterSelect
-              label="Module"
-              value={filters.selectedModule}
-              onChange={(v) => setFilter("selectedModule", v)}
-              options={filterOptions?.modules}
-              allLabel="All modules"
-            />
-            <ApiFilterSelect
-              label="Department"
-              value={filters.selectedDepartment}
-              onChange={(v) => setFilter("selectedDepartment", v)}
-              options={filterOptions?.departments}
-              allLabel="All departments"
-            />
-            <ApiFilterSelect
-              label="Role"
-              value={filters.selectedRole}
-              onChange={(v) => setFilter("selectedRole", v)}
-              options={filterOptions?.roles}
-              allLabel="All roles"
-            />
-            <ApiFilterSelect
-              label="User"
-              value={filters.selectedUser}
-              onChange={(v) => setFilter("selectedUser", v)}
-              options={filterOptions?.users}
-              allLabel="All users"
-            />
-            <ApiFilterSelect
-              label="Severity"
-              value={filters.selectedSeverity}
-              onChange={(v) => setFilter("selectedSeverity", v)}
-              options={filterOptions?.severities}
-              allLabel="All severities"
-            />
-            <ApiFilterSelect
-              label="Status"
-              value={filters.selectedStatus}
-              onChange={(v) => setFilter("selectedStatus", v)}
-              options={filterOptions?.statuses}
-              allLabel="All statuses"
-            />
-            <ApiFilterSelect
-              label="Event type"
-              value={filters.selectedEventType}
-              onChange={(v) => setFilter("selectedEventType", v)}
-              options={filterOptions?.eventTypes}
-              allLabel="All event types"
-            />
-          </div>
-          <div className="flex items-center justify-between gap-3 pt-3 mt-3 border-t border-gray-100">
-            <p className="text-[11px] text-gray-500">
-              Date range is sent to the backend; the remaining filters apply to
-              the loaded API records.
-            </p>
-            <button
-              onClick={resetFilters}
-              className="inline-flex shrink-0 items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              Reset filters
-            </button>
-          </div>
-        </div>
-      </section>
-
       {isLoginWorkspace && (
         <LoginSupplementaryData
           activeSessions={safeArray(activeSessionsQuery.data?.content)}
@@ -1122,92 +1408,113 @@ export function AuditLogManagementPage() {
         />
       )}
 
-      <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="p-4 border-b border-gray-200 bg-gray-50/50 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-blue-900" />
-            <h2
-              className="text-sm font-bold text-gray-900"
-              style={{ fontFamily: PP }}
-            >
-              {filters.currentWorkspace} stream
-            </h2>
-          </div>
-          <span className="text-xs font-semibold text-gray-500 font-mono">
-            {activeQuery.isLoading
-              ? "Loading…"
-              : `${filteredRecords.length} shown of ${totalElements.toLocaleString()}`}
+      <DataTable<AuditRecord>
+        data={filteredRecords}
+        columns={tableColumns}
+        loading={activeQuery.isLoading}
+        getRowId={(r) => r.id}
+        title={`${filters.currentWorkspace} Stream`}
+        subtitle="Comprehensive audit trail & system event logs."
+        headerBadge={
+          <span className="text-xs font-semibold text-[#0D47A1] bg-blue-50 px-3 py-1 rounded-xl border border-blue-100 font-mono">
+            Showing {filteredRecords.length} of {totalElements.toLocaleString()}
           </span>
-        </div>
-        <div className="p-6">
-          {activeQuery.isLoading ? (
-            <LoadingState label="Loading audit records…" />
-          ) : activeQuery.isError ? (
-            <ErrorState
-              error={activeQuery.error}
-              onRetry={() => void activeQuery.refetch()}
-            />
-          ) : filteredRecords.length === 0 ? (
-            <EmptyState onReset={resetFilters} />
-          ) : (
-            <div className="overflow-x-auto rounded-xl border border-gray-200">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 font-bold uppercase tracking-wider">
-                    {isAllTable && <AllLogHeaders />}
-                    {isLoginWorkspace && <LoginHeaders />}
-                    {filters.currentWorkspace === "User Activities" && (
-                      <UserActivityHeaders />
-                    )}
-                    {filters.currentWorkspace === "Data Changes" && (
-                      <DataChangeHeaders />
-                    )}
-                    {filters.currentWorkspace === "Deleted Records" && (
-                      <DeletedRecordHeaders />
-                    )}
-                    {filters.currentWorkspace === "System Logs" && (
-                      <SystemLogHeaders />
-                    )}
-                    <th className="p-3.5 text-right">View</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 bg-white font-medium text-gray-800">
-                  {filteredRecords.map((record) => (
-                    <tr
-                      key={record.id}
-                      className="hover:bg-blue-50/40 transition-colors"
-                    >
-                      {isAllTable && <AllLogCells record={record} />}
-                      {isLoginWorkspace && <LoginCells record={record} />}
-                      {filters.currentWorkspace === "User Activities" && (
-                        <UserActivityCells record={record} />
-                      )}
-                      {filters.currentWorkspace === "Data Changes" && (
-                        <DataChangeCells record={record} />
-                      )}
-                      {filters.currentWorkspace === "Deleted Records" && (
-                        <DeletedRecordCells record={record} />
-                      )}
-                      {filters.currentWorkspace === "System Logs" && (
-                        <SystemLogCells record={record} />
-                      )}
-                      <td className="p-3.5 text-right whitespace-nowrap">
-                        <button
-                          onClick={() => setActiveDetailsRecord(record)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-white bg-blue-900 hover:bg-blue-800 rounded-lg transition-colors shadow-sm"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          Details
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        }
+        searchable={true}
+        searchPlaceholder="🔍 Search loaded records by event, user, module, action, or record ID..."
+        searchValue={filters.searchQuery}
+        onSearchChange={(v) => setFilter("searchQuery", v)}
+        toolbar={
+          <div className="bg-slate-50/80 border border-[#E5E7EB] rounded-xl p-2.5 space-y-2 shadow-2xs text-xs">
+            <div className="flex items-center gap-2 flex-wrap">
+              <FilterSelect
+                label="Date range"
+                value={filters.selectedDateRange}
+                onChange={(value) => {
+                  setFilter("selectedDateRange", value);
+                  setPage(0);
+                }}
+              >
+                <option value="All Time">All time</option>
+                <option value="Today">Today</option>
+                <option value="Yesterday">Yesterday</option>
+                <option value="Last 7 Days">Last 7 days</option>
+                <option value="Last 30 Days">Last 30 days</option>
+                <option value="Custom Range">Custom Range</option>
+              </FilterSelect>
+
+              <DateCalendarPicker
+                selectedDateRange={filters.selectedDateRange}
+                startDate={filters.customStartDate}
+                endDate={filters.customEndDate}
+                onStartDateChange={(d) => setFilter("customStartDate", d)}
+                onEndDateChange={(d) => setFilter("customEndDate", d)}
+              />
+
+              <ApiFilterSelect
+                label="Module"
+                value={filters.selectedModule}
+                onChange={(v) => setFilter("selectedModule", v)}
+                options={filterOptions?.modules}
+                allLabel="All modules"
+              />
+              <ApiFilterSelect
+                label="Department"
+                value={filters.selectedDepartment}
+                onChange={(v) => setFilter("selectedDepartment", v)}
+                options={filterOptions?.departments}
+                allLabel="All departments"
+              />
+              <ApiFilterSelect
+                label="Role"
+                value={filters.selectedRole}
+                onChange={(v) => setFilter("selectedRole", v)}
+                options={filterOptions?.roles}
+                allLabel="All roles"
+              />
+              <ApiFilterSelect
+                label="User"
+                value={filters.selectedUser}
+                onChange={(v) => setFilter("selectedUser", v)}
+                options={filterOptions?.users}
+                allLabel="All users"
+              />
+              <ApiFilterSelect
+                label="Severity"
+                value={filters.selectedSeverity}
+                onChange={(v) => setFilter("selectedSeverity", v)}
+                options={filterOptions?.severities}
+                allLabel="All severities"
+              />
+              <ApiFilterSelect
+                label="Status"
+                value={filters.selectedStatus}
+                onChange={(v) => setFilter("selectedStatus", v)}
+                options={filterOptions?.statuses}
+                allLabel="All statuses"
+              />
+              <ApiFilterSelect
+                label="Event type"
+                value={filters.selectedEventType}
+                onChange={(v) => setFilter("selectedEventType", v)}
+                options={filterOptions?.eventTypes}
+                allLabel="All event types"
+              />
+
+              <button
+                onClick={resetFilters}
+                className="px-2.5 py-1.5 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer shadow-2xs shrink-0 ml-auto"
+                style={{ fontFamily: PP }}
+              >
+                <RotateCcw className="w-3.5 h-3.5" /> Reset filters
+              </button>
             </div>
-          )}
-        </div>
-      </section>
+          </div>
+        }
+        emptyTitle="No Audit Records Found"
+        emptySubtitle="The server returned no records matching the current search query or filters."
+        pagination={true}
+      />
 
       <footer className="sticky bottom-0 z-30 bg-white/95 backdrop-blur border-t border-gray-200 px-6 py-3 rounded-2xl shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
@@ -1239,519 +1546,5 @@ export function AuditLogManagementPage() {
         </div>
       </footer>
     </div>
-  );
-}
-
-function FilterSelect({
-  label,
-  value,
-  onChange,
-  children,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="block text-xs font-semibold text-gray-600">
-      <span className="block mb-1">{label}</span>
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="w-full text-xs py-2 px-2 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
-      >
-        {children}
-      </select>
-    </label>
-  );
-}
-
-function ApiFilterSelect({
-  label,
-  value,
-  onChange,
-  options,
-  allLabel,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: AuditSelectOption[] | undefined;
-  allLabel: string;
-}) {
-  return (
-    <FilterSelect label={label} value={value} onChange={onChange}>
-      <option value="All">{allLabel}</option>
-      {safeArray(options).map((option) => {
-        const optionId = optionValue(option);
-        return (
-          <option key={optionId} value={optionId}>
-            {optionLabel(option)}
-          </option>
-        );
-      })}
-    </FilterSelect>
-  );
-}
-
-function LoginSupplementaryData({
-  activeSessions,
-  failedAttempts,
-  lockedAccounts,
-  loading,
-  error,
-}: {
-  activeSessions: Array<{
-    sessionId: string;
-    user?: { fullName?: string; userId?: string; role?: string };
-    loginTime?: string;
-    lastActivityTime?: string;
-    device?: string;
-    status?: string;
-  }>;
-  failedAttempts: Array<{
-    eventId?: string;
-    userName?: string;
-    userId?: string;
-    failureReason?: string;
-    attemptCount?: number;
-    timestamp?: string;
-  }>;
-  lockedAccounts: Array<{
-    userId?: string;
-    fullName?: string;
-    email?: string;
-    lockedAt?: string;
-    failedAttemptCount?: number;
-    reason?: string;
-  }>;
-  loading: boolean;
-  error: unknown;
-}) {
-  return (
-    <section className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-      <div>
-        <h2
-          className="text-base font-bold text-gray-900"
-          style={{ fontFamily: PP }}
-        >
-          Login Security Data
-        </h2>
-        <p className="text-xs text-gray-500 mt-0.5">
-          Active sessions, failed attempts, and locked accounts from the
-          login-history endpoints.
-        </p>
-      </div>
-      {loading ? (
-        <p className="text-sm text-gray-500">Loading login security data…</p>
-      ) : error ? (
-        <p className="text-sm text-red-700">{getErrorMessage(error)}</p>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <LoginDataPanel title="Active Sessions" count={activeSessions.length}>
-            {activeSessions.map((session) => (
-              <div
-                key={session.sessionId}
-                className="border-b border-gray-100 pb-2 last:border-0 last:pb-0"
-              >
-                <p className="font-semibold text-gray-900">
-                  {session.user?.fullName || session.user?.userId || "—"}
-                </p>
-                <p className="text-gray-500">
-                  {display(session.device)} · {display(session.status)}
-                </p>
-                <p className="font-mono text-[10px] text-gray-400">
-                  {display(session.loginTime)}
-                </p>
-              </div>
-            ))}
-          </LoginDataPanel>
-          <LoginDataPanel title="Failed Attempts" count={failedAttempts.length}>
-            {failedAttempts.map((attempt) => (
-              <div
-                key={attempt.eventId}
-                className="border-b border-gray-100 pb-2 last:border-0 last:pb-0"
-              >
-                <p className="font-semibold text-gray-900">
-                  {attempt.userName || attempt.userId || "—"}
-                </p>
-                <p className="text-gray-500">
-                  {display(attempt.failureReason)} ·{" "}
-                  {display(attempt.attemptCount)} attempts
-                </p>
-                <p className="font-mono text-[10px] text-gray-400">
-                  {display(attempt.timestamp)}
-                </p>
-              </div>
-            ))}
-          </LoginDataPanel>
-          <LoginDataPanel title="Locked Accounts" count={lockedAccounts.length}>
-            {lockedAccounts.map((account) => (
-              <div
-                key={account.userId}
-                className="border-b border-gray-100 pb-2 last:border-0 last:pb-0"
-              >
-                <p className="font-semibold text-gray-900">
-                  {account.fullName || account.userId || "—"}
-                </p>
-                <p className="text-gray-500">
-                  {display(account.reason)} ·{" "}
-                  {display(account.failedAttemptCount)} attempts
-                </p>
-                <p className="font-mono text-[10px] text-gray-400">
-                  {display(account.lockedAt)}
-                </p>
-              </div>
-            ))}
-          </LoginDataPanel>
-        </div>
-      )}
-    </section>
-  );
-}
-
-function LoginDataPanel({
-  title,
-  count,
-  children,
-}: {
-  title: string;
-  count: number;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-xl border border-gray-200 p-4 space-y-3 text-xs">
-      <div className="flex justify-between items-center border-b border-gray-100 pb-2">
-        <h3 className="font-bold text-gray-900">{title}</h3>
-        <span className="font-mono text-gray-500">{count}</span>
-      </div>
-      {count ? (
-        <div className="space-y-2">{children}</div>
-      ) : (
-        <p className="text-gray-500">No records returned.</p>
-      )}
-    </div>
-  );
-}
-
-function LoadingState({ label }: { label: string }) {
-  return (
-    <div className="py-16 text-center space-y-3">
-      <RefreshCw className="w-8 h-8 text-blue-600 animate-spin mx-auto" />
-      <p className="text-sm text-gray-500">{label}</p>
-    </div>
-  );
-}
-
-function ErrorState({
-  error,
-  onRetry,
-}: {
-  error: unknown;
-  onRetry: () => void;
-}) {
-  return (
-    <div className="py-16 text-center space-y-3">
-      <AlertTriangle className="w-8 h-8 text-red-600 mx-auto" />
-      <p className="text-sm text-red-700 max-w-xl mx-auto">
-        {getErrorMessage(error)}
-      </p>
-      <button
-        onClick={onRetry}
-        className="px-4 py-2 text-xs font-semibold text-white bg-blue-900 rounded-lg"
-      >
-        Retry request
-      </button>
-    </div>
-  );
-}
-
-function EmptyState({ onReset }: { onReset: () => void }) {
-  return (
-    <div className="py-16 text-center space-y-3">
-      <Search className="w-8 h-8 text-gray-400 mx-auto" />
-      <div>
-        <h3
-          className="text-base font-bold text-gray-800"
-          style={{ fontFamily: PP }}
-        >
-          No Audit Records Found
-        </h3>
-        <p className="text-xs text-gray-500 mt-1">
-          The server returned no records matching the current filters.
-        </p>
-      </div>
-      <button
-        onClick={onReset}
-        className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white rounded-lg bg-blue-900"
-      >
-        <RotateCcw className="w-4 h-4" />
-        Reset filters
-      </button>
-    </div>
-  );
-}
-
-function AllLogHeaders() {
-  return (
-    <>
-      <th className="p-3.5">Timestamp</th>
-      <th className="p-3.5">Category</th>
-      <th className="p-3.5">User</th>
-      <th className="p-3.5">Role</th>
-      <th className="p-3.5">Module</th>
-      <th className="p-3.5">Action</th>
-      <th className="p-3.5">Severity</th>
-      <th className="p-3.5">Status</th>
-    </>
-  );
-}
-
-function LoginHeaders() {
-  return (
-    <>
-      <th className="p-3.5">User</th>
-      <th className="p-3.5">Role</th>
-      <th className="p-3.5">Login Time</th>
-      <th className="p-3.5">Logout Time</th>
-      <th className="p-3.5">IP Address</th>
-      <th className="p-3.5">Device</th>
-      <th className="p-3.5">Status</th>
-    </>
-  );
-}
-
-function UserActivityHeaders() {
-  return (
-    <>
-      <th className="p-3.5">User</th>
-      <th className="p-3.5">Module</th>
-      <th className="p-3.5">Action</th>
-      <th className="p-3.5">Description</th>
-      <th className="p-3.5">Timestamp</th>
-      <th className="p-3.5">Status</th>
-    </>
-  );
-}
-
-function DataChangeHeaders() {
-  return (
-    <>
-      <th className="p-3.5">Module</th>
-      <th className="p-3.5">Record</th>
-      <th className="p-3.5">Field</th>
-      <th className="p-3.5 text-red-600">Old Value</th>
-      <th className="p-3.5 text-emerald-600">New Value</th>
-      <th className="p-3.5">Modified By</th>
-      <th className="p-3.5">Timestamp</th>
-    </>
-  );
-}
-
-function DeletedRecordHeaders() {
-  return (
-    <>
-      <th className="p-3.5">Record</th>
-      <th className="p-3.5">Module</th>
-      <th className="p-3.5">Deleted By</th>
-      <th className="p-3.5">Reason</th>
-      <th className="p-3.5">Deleted Time</th>
-      <th className="p-3.5">Status</th>
-    </>
-  );
-}
-
-function SystemLogHeaders() {
-  return (
-    <>
-      <th className="p-3.5">Severity</th>
-      <th className="p-3.5">Event</th>
-      <th className="p-3.5">Module</th>
-      <th className="p-3.5">Description</th>
-      <th className="p-3.5">Timestamp</th>
-      <th className="p-3.5">Status</th>
-    </>
-  );
-}
-
-function AllLogCells({ record }: { record: AuditRecord }) {
-  return (
-    <>
-      <td className="p-3.5 whitespace-nowrap text-gray-500 font-mono">
-        {display(record.timestamp)}
-      </td>
-      <td className="p-3.5 whitespace-nowrap font-semibold text-gray-700">
-        {record.category}
-      </td>
-      <td className="p-3.5 whitespace-nowrap font-bold text-gray-900">
-        {record.user}
-      </td>
-      <td className="p-3.5 whitespace-nowrap text-gray-600">
-        {record.userRole}
-      </td>
-      <td className="p-3.5 whitespace-nowrap">
-        <span className="px-2 py-0.5 rounded bg-gray-100 font-medium text-gray-700">
-          {record.module}
-        </span>
-      </td>
-      <td className="p-3.5 font-semibold text-blue-950">{record.action}</td>
-      <td className="p-3.5 whitespace-nowrap">
-        <SeverityBadge severity={record.severity} />
-      </td>
-      <td className="p-3.5 whitespace-nowrap">
-        <StatusBadge status={record.status} />
-      </td>
-    </>
-  );
-}
-
-function LoginCells({ record }: { record: AuditRecord }) {
-  return (
-    <>
-      <td className="p-3.5 whitespace-nowrap font-bold text-gray-900">
-        {record.user}
-      </td>
-      <td className="p-3.5 whitespace-nowrap text-gray-600">
-        {record.userRole}
-      </td>
-      <td className="p-3.5 whitespace-nowrap font-mono text-gray-600">
-        {display(record.loginTime || record.timestamp)}
-      </td>
-      <td className="p-3.5 whitespace-nowrap font-mono text-gray-500">
-        {display(record.logoutTime)}
-      </td>
-      <td className="p-3.5 whitespace-nowrap font-mono text-xs text-gray-600">
-        {display(record.ipAddress)}
-      </td>
-      <td className="p-3.5 whitespace-nowrap text-gray-600 max-w-xs truncate">
-        {display(record.device)}
-      </td>
-      <td className="p-3.5 whitespace-nowrap">
-        <StatusBadge status={record.status} />
-      </td>
-    </>
-  );
-}
-
-function UserActivityCells({ record }: { record: AuditRecord }) {
-  return (
-    <>
-      <td className="p-3.5 whitespace-nowrap font-bold text-gray-900">
-        {record.user}
-      </td>
-      <td className="p-3.5 whitespace-nowrap">
-        <span className="px-2 py-0.5 rounded bg-purple-50 text-purple-700 font-medium border border-purple-100">
-          {record.module}
-        </span>
-      </td>
-      <td className="p-3.5 font-semibold text-blue-950">{record.action}</td>
-      <td
-        className="p-3.5 max-w-xs truncate text-gray-500"
-        title={record.description}
-      >
-        {display(record.description)}
-      </td>
-      <td className="p-3.5 whitespace-nowrap text-gray-500 font-mono">
-        {display(record.timestamp)}
-      </td>
-      <td className="p-3.5 whitespace-nowrap">
-        <StatusBadge status={record.status} />
-      </td>
-    </>
-  );
-}
-
-function DataChangeCells({ record }: { record: AuditRecord }) {
-  return (
-    <>
-      <td className="p-3.5 whitespace-nowrap">
-        <span className="px-2 py-0.5 rounded bg-teal-50 text-teal-700 font-medium border border-teal-100">
-          {record.module}
-        </span>
-      </td>
-      <td className="p-3.5 whitespace-nowrap font-mono font-bold text-blue-700">
-        {display(record.recordId)}
-      </td>
-      <td className="p-3.5 font-semibold text-gray-800">
-        {display(record.fieldChanged)}
-      </td>
-      <td
-        className="p-3.5 font-mono text-red-600 max-w-48 truncate"
-        title={record.oldValue}
-      >
-        {display(record.oldValue)}
-      </td>
-      <td
-        className="p-3.5 font-mono text-emerald-600 max-w-48 truncate"
-        title={record.newValue}
-      >
-        {display(record.newValue)}
-      </td>
-      <td className="p-3.5 whitespace-nowrap font-bold text-gray-900">
-        {record.user}
-      </td>
-      <td className="p-3.5 whitespace-nowrap text-gray-500 font-mono">
-        {display(record.timestamp)}
-      </td>
-    </>
-  );
-}
-
-function DeletedRecordCells({ record }: { record: AuditRecord }) {
-  return (
-    <>
-      <td className="p-3.5 whitespace-nowrap font-mono font-bold text-red-700">
-        {display(record.recordId)}
-      </td>
-      <td className="p-3.5 whitespace-nowrap">
-        <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-800 font-medium border border-amber-200">
-          {record.module}
-        </span>
-      </td>
-      <td className="p-3.5 whitespace-nowrap font-bold text-gray-900">
-        {record.user}
-      </td>
-      <td
-        className="p-3.5 text-gray-600 max-w-xs truncate"
-        title={record.deletionReason || record.description}
-      >
-        {display(record.deletionReason || record.description)}
-      </td>
-      <td className="p-3.5 whitespace-nowrap text-gray-500 font-mono">
-        {display(record.timestamp)}
-      </td>
-      <td className="p-3.5 whitespace-nowrap">
-        <StatusBadge status={record.status} />
-      </td>
-    </>
-  );
-}
-
-function SystemLogCells({ record }: { record: AuditRecord }) {
-  return (
-    <>
-      <td className="p-3.5 whitespace-nowrap">
-        <SeverityBadge severity={record.severity} />
-      </td>
-      <td className="p-3.5 font-semibold text-gray-900">{record.action}</td>
-      <td className="p-3.5 whitespace-nowrap">
-        <span className="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-medium border border-indigo-100">
-          {record.module}
-        </span>
-      </td>
-      <td
-        className="p-3.5 max-w-xs truncate text-gray-500"
-        title={record.description}
-      >
-        {display(record.description)}
-      </td>
-      <td className="p-3.5 whitespace-nowrap text-gray-500 font-mono">
-        {display(record.timestamp)}
-      </td>
-      <td className="p-3.5 whitespace-nowrap">
-        <StatusBadge status={record.status} />
-      </td>
-    </>
   );
 }

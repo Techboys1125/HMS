@@ -114,27 +114,29 @@ export const PrescriptionManagementPage: React.FC<{
         {/* KPI Cards */}
         <PrescriptionSummaryCard role={role} prescriptions={prescriptions} />
 
-        {/* Filter Toolbar */}
-        <PrescriptionFilters
-          role={role}
-          searchTerm={filters.searchTerm}
-          setSearchTerm={(val) => setFilterValue("searchTerm", val)}
-          selectedStatus={filters.status}
-          setSelectedStatus={(val) => setFilterValue("status", val)}
-          selectedDept={filters.dept}
-          setSelectedDept={(val) => setFilterValue("dept", val)}
-          dateRange={filters.dateRange}
-          setDateRange={(val) => setFilterValue("dateRange", val)}
-          onReset={handleResetAll}
-          onApply={handleApply}
-        />
+        {/* Filter Toolbar (Only for Doctor/Admin, Patient filters are embedded directly inside DataTable) */}
+        {role !== "patient" && (
+          <PrescriptionFilters
+            role={role}
+            searchTerm={filters.searchTerm}
+            setSearchTerm={(val) => setFilterValue("searchTerm", val)}
+            selectedStatus={filters.status}
+            setSelectedStatus={(val) => setFilterValue("status", val)}
+            selectedDept={filters.dept}
+            setSelectedDept={(val) => setFilterValue("dept", val)}
+            dateRange={filters.dateRange}
+            setDateRange={(val) => setFilterValue("dateRange", val)}
+            onReset={handleResetAll}
+            onApply={handleApply}
+          />
+        )}
 
         {/* Data list / table */}
         {loading ? (
           <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm">
             <PrescriptionLoader />
           </div>
-        ) : prescriptions.length === 0 ? (
+        ) : role !== "patient" && prescriptions.length === 0 ? (
           <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm">
             <PrescriptionEmptyState onReset={handleResetAll} />
           </div>
@@ -151,6 +153,15 @@ export const PrescriptionManagementPage: React.FC<{
             onDownload={handleDownload}
             onDuplicate={handleDuplicate}
             onViewConsultation={onViewConsultation}
+            searchTerm={filters.searchTerm}
+            setSearchTerm={(val) => setFilterValue("searchTerm", val)}
+            selectedStatus={filters.status}
+            setSelectedStatus={(val) => setFilterValue("status", val)}
+            selectedDept={filters.dept}
+            setSelectedDept={(val) => setFilterValue("dept", val)}
+            dateRange={filters.dateRange}
+            setDateRange={(val) => setFilterValue("dateRange", val)}
+            onReset={handleResetAll}
           />
         )}
       </div>

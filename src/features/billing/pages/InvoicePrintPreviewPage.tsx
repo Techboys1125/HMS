@@ -10,6 +10,7 @@ import {
   X,
   Zap,
   Copy,
+  ArrowLeft,
 } from "lucide-react";
 import { PP, RB } from "../constants/billing.constants";
 import {
@@ -323,6 +324,15 @@ export function InvoicePrintPreviewPage() {
       {/* ── 1. PAGE HEADER ── */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm">
         <div>
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-2 px-3.5 py-2 mb-3 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-xs transition-all cursor-pointer"
+            style={{ fontFamily: RB }}
+          >
+            <ArrowLeft size={16} />
+            Back
+          </button>
           {/* Breadcrumb */}
           <div
             className="flex items-center gap-2 text-xs text-[#64748B] mb-1 font-medium"

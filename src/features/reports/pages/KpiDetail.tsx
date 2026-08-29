@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useReducer } from "react";
+import { useState, useMemo, useReducer } from "react";
+import { ArrowLeft } from "lucide-react";
 
 type ReportState = {
   searchQuery: string;
@@ -104,6 +105,9 @@ import {
   useDailyAppointmentDetails,
   usePatientMasterRegister,
   useInvoiceRegister,
+  useCollectionRateSummary,
+  useCollectionRateAnalytics,
+  useCollectionRateActivityTrend,
   extractList,
 } from "../hooks/useReports";
 import {
@@ -209,29 +213,73 @@ export function DashboardKpiDetailScreen({
     isLoading,
   } = state;
 
-  // API Data Hooks
+  // API Data Hooks & Dynamic Parameter Mapping
   const today = new Date().toISOString().slice(0, 10);
+  const [fromDate] = useState(today);
+  const [toDate] = useState(today);
+
   const getDateRange = (range: string) => {
     const now = new Date();
     if (range === "Today") return { fromDate: today, toDate: today };
-    if (range === "7 Days") {
+    if (range === "Yesterday") {
+      const y = new Date(now);
+      y.setDate(now.getDate() - 1);
+      const yStr = y.toISOString().slice(0, 10);
+      return { fromDate: yStr, toDate: yStr };
+    }
+    if (range === "7 Days" || range === "Last 7 Days") {
       const from = new Date(now);
       from.setDate(now.getDate() - 7);
       return { fromDate: from.toISOString().slice(0, 10), toDate: today };
     }
-    if (range === "30 Days") {
+    if (range === "30 Days" || range === "This Month") {
       const from = new Date(now);
       from.setDate(now.getDate() - 30);
       return { fromDate: from.toISOString().slice(0, 10), toDate: today };
     }
-    return { fromDate: "2025-01-01", toDate: today };
+    if (range === "Custom" && fromDate && toDate) {
+      return { fromDate, toDate };
+    }
+    return { fromDate: fromDate || today, toDate: toDate || today };
   };
-  const reportFilters = getDateRange(appliedFilters.dateRange);
+
+  const dates = getDateRange(appliedFilters.dateRange);
+
+  const reportFilters = useMemo(
+    () => ({
+      fromDate: dates.fromDate,
+      toDate: dates.toDate,
+      doctorId:
+        appliedFilters.doctor !== "All Doctors"
+          ? appliedFilters.doctor
+          : undefined,
+      departmentId:
+        appliedFilters.dept !== "All Departments"
+          ? appliedFilters.dept
+          : undefined,
+      status:
+        appliedFilters.payStatus !== "All Payment Statuses"
+          ? appliedFilters.payStatus
+          : appliedFilters.aptStatus !== "All Appointment Statuses"
+            ? appliedFilters.aptStatus
+            : undefined,
+      appointmentType:
+        appliedFilters.visitType !== "All Visit Types"
+          ? appliedFilters.visitType
+          : undefined,
+      page: 0,
+      size: 50,
+    }),
+    [dates, appliedFilters],
+  );
 
   const { data: rawRevenueDetails } = useDailyRevenueDetails(reportFilters);
   const { data: rawApptDetails } = useDailyAppointmentDetails(reportFilters);
   const { data: rawPatientRegister } = usePatientMasterRegister(reportFilters);
   const { data: rawInvoiceRegister } = useInvoiceRegister(reportFilters);
+  useCollectionRateSummary(reportFilters);
+  useCollectionRateAnalytics(reportFilters);
+  useCollectionRateActivityTrend(reportFilters);
 
   const revenueList = useMemo(
     () => extractList<DailyRevenueDetail>(rawRevenueDetails),
@@ -352,7 +400,8 @@ export function DashboardKpiDetailScreen({
                   ? String((d as { mrn: string }).mrn)
                   : `MRN-${(d as { mrn: string }).mrn}`
                 : `MRN-`,
-            doctorName: (d as { doctorName?: string }).doctorName || "Dr. Sarath",
+            doctorName:
+              (d as { doctorName?: string }).doctorName || "Dr. Sarath",
             department:
               (d as { department?: string }).department || "General Medicine",
             invoiceDate: isDaily
@@ -366,7 +415,11 @@ export function DashboardKpiDetailScreen({
                 ? daily.paidAmount || daily.amount || 0
                 : invoice.paidAmount || 0,
             ),
-            invoiceStatus: isDaily ? "Paid" : (invoice as { status?: string }).status || invoice.paymentStatus || "Paid",
+            invoiceStatus: isDaily
+              ? "Paid"
+              : (invoice as { status?: string }).status ||
+                invoice.paymentStatus ||
+                "Paid",
             paymentMethod: isDaily
               ? daily.paymentMethod || "Cash"
               : invoice.paymentMethod || "Cash",
@@ -410,15 +463,24 @@ export function DashboardKpiDetailScreen({
           item.department.toLowerCase().includes(q);
         const matchesDept =
           appliedFilters.dept === "All Departments" ||
-          item.department.toLowerCase().includes(appliedFilters.dept.toLowerCase()) ||
-          appliedFilters.dept.toLowerCase().includes(item.department.toLowerCase());
+          item.department
+            .toLowerCase()
+            .includes(appliedFilters.dept.toLowerCase()) ||
+          appliedFilters.dept
+            .toLowerCase()
+            .includes(item.department.toLowerCase());
         const matchesDoctor =
           appliedFilters.doctor === "All Doctors" ||
-          item.doctorName.toLowerCase().includes(appliedFilters.doctor.toLowerCase()) ||
-          appliedFilters.doctor.toLowerCase().includes(item.doctorName.toLowerCase());
+          item.doctorName
+            .toLowerCase()
+            .includes(appliedFilters.doctor.toLowerCase()) ||
+          appliedFilters.doctor
+            .toLowerCase()
+            .includes(item.doctorName.toLowerCase());
         const matchesStatus =
           appliedFilters.payStatus === "All Payment Statuses" ||
-          item.invoiceStatus.toLowerCase() === appliedFilters.payStatus.toLowerCase();
+          item.invoiceStatus.toLowerCase() ===
+            appliedFilters.payStatus.toLowerCase();
         return matchesSearch && matchesDept && matchesDoctor && matchesStatus;
       }) as unknown as KpiRevenueRecord[];
     }
@@ -474,18 +536,28 @@ export function DashboardKpiDetailScreen({
           item.department.toLowerCase().includes(q);
         const matchesDept =
           appliedFilters.dept === "All Departments" ||
-          item.department.toLowerCase().includes(appliedFilters.dept.toLowerCase()) ||
-          appliedFilters.dept.toLowerCase().includes(item.department.toLowerCase());
+          item.department
+            .toLowerCase()
+            .includes(appliedFilters.dept.toLowerCase()) ||
+          appliedFilters.dept
+            .toLowerCase()
+            .includes(item.department.toLowerCase());
         const matchesDoctor =
           appliedFilters.doctor === "All Doctors" ||
-          item.doctorName.toLowerCase().includes(appliedFilters.doctor.toLowerCase()) ||
-          appliedFilters.doctor.toLowerCase().includes(item.doctorName.toLowerCase());
+          item.doctorName
+            .toLowerCase()
+            .includes(appliedFilters.doctor.toLowerCase()) ||
+          appliedFilters.doctor
+            .toLowerCase()
+            .includes(item.doctorName.toLowerCase());
         const matchesVisit =
           appliedFilters.visitType === "All Visit Types" ||
-          item.visitType.toLowerCase() === appliedFilters.visitType.toLowerCase();
+          item.visitType.toLowerCase() ===
+            appliedFilters.visitType.toLowerCase();
         const matchesStatus =
           appliedFilters.aptStatus === "All Appointment Statuses" ||
-          item.appointmentStatus.toLowerCase() === appliedFilters.aptStatus.toLowerCase();
+          item.appointmentStatus.toLowerCase() ===
+            appliedFilters.aptStatus.toLowerCase();
         return (
           matchesSearch &&
           matchesDept &&
@@ -543,13 +615,18 @@ export function DashboardKpiDetailScreen({
           item.registeredBy.toLowerCase().includes(q);
         const matchesDept =
           appliedFilters.dept === "All Departments" ||
-          item.registeredBy.toLowerCase().includes(appliedFilters.dept.toLowerCase());
+          item.registeredBy
+            .toLowerCase()
+            .includes(appliedFilters.dept.toLowerCase());
         const matchesDoctor =
           appliedFilters.doctor === "All Doctors" ||
-          item.registeredBy.toLowerCase().includes(appliedFilters.doctor.toLowerCase());
+          item.registeredBy
+            .toLowerCase()
+            .includes(appliedFilters.doctor.toLowerCase());
         const matchesVisit =
           appliedFilters.visitType === "All Visit Types" ||
-          item.visitType.toLowerCase() === appliedFilters.visitType.toLowerCase();
+          item.visitType.toLowerCase() ===
+            appliedFilters.visitType.toLowerCase();
         return matchesSearch && matchesDept && matchesDoctor && matchesVisit;
       }) as unknown as KpiPatientRecord[];
     }
@@ -597,10 +674,14 @@ export function DashboardKpiDetailScreen({
           item.department.toLowerCase().includes(q);
         const matchesDept =
           appliedFilters.dept === "All Departments" ||
-          item.department.toLowerCase().includes(appliedFilters.dept.toLowerCase());
+          item.department
+            .toLowerCase()
+            .includes(appliedFilters.dept.toLowerCase());
         const matchesDoctor =
           appliedFilters.doctor === "All Doctors" ||
-          item.doctorName.toLowerCase().includes(appliedFilters.doctor.toLowerCase());
+          item.doctorName
+            .toLowerCase()
+            .includes(appliedFilters.doctor.toLowerCase());
         return matchesSearch && matchesDept && matchesDoctor;
       }) as unknown as KpiConsultationRecord[];
     }
@@ -657,10 +738,14 @@ export function DashboardKpiDetailScreen({
           item.department.toLowerCase().includes(q);
         const matchesDept =
           appliedFilters.dept === "All Departments" ||
-          item.department.toLowerCase().includes(appliedFilters.dept.toLowerCase());
+          item.department
+            .toLowerCase()
+            .includes(appliedFilters.dept.toLowerCase());
         const matchesDoctor =
           appliedFilters.doctor === "All Doctors" ||
-          item.doctorName.toLowerCase().includes(appliedFilters.doctor.toLowerCase());
+          item.doctorName
+            .toLowerCase()
+            .includes(appliedFilters.doctor.toLowerCase());
         return matchesSearch && matchesDept && matchesDoctor;
       }) as unknown as KpiPendingPaymentRecord[];
     }
@@ -718,7 +803,7 @@ export function DashboardKpiDetailScreen({
     >
       {/* Top Header Section */}
       <div className="bg-white border-b border-[#E5E7EB] sticky top-0 z-20 shadow-sm">
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 xl:px-10 py-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
@@ -749,9 +834,6 @@ export function DashboardKpiDetailScreen({
                 >
                   {selectedKpi} Register
                 </h1>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-[#0D47A1] border border-blue-200">
-                  Phase 1 OPD Audit Register
-                </span>
               </div>
               <p className="text-xs text-[#64748B] mt-0.5">
                 Audit, verify, and export transaction details for {selectedKpi}.
@@ -760,6 +842,15 @@ export function DashboardKpiDetailScreen({
 
             {/* Header Actions */}
             <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => (onBack ? onBack() : window.history.back())}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#E5E7EB] bg-white text-xs font-semibold text-[#111827] hover:bg-slate-50 transition-all shadow-2xs cursor-pointer mr-1"
+                style={{ fontFamily: PP }}
+              >
+                <ArrowLeft size={14} />
+                Back
+              </button>
               <div className="hidden lg:flex items-center gap-2 text-xs text-[#64748B] bg-slate-50 border border-[#E5E7EB] px-3 py-2 rounded-xl mr-1">
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
@@ -804,7 +895,7 @@ export function DashboardKpiDetailScreen({
       </div>
 
       {/* Main Container */}
-      <div className="w-full px-4 sm:px-6 lg:px-8 mt-6">
+      <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 xl:px-10 mt-6">
         {/* UNIFIED ENTERPRISE KPI DRILL-DOWN CONTEXT CARD */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#E5E7EB] pb-4 mb-4">
@@ -849,63 +940,71 @@ export function DashboardKpiDetailScreen({
           </div>
 
           {/* DYNAMIC KPI SUMMARY METRICS (Mutates based on selected KPI) */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch justify-center text-xs">
             {isRevenueKpi && (
               <>
-                <div className="bg-[#F1F5F9] rounded-xl p-3.5 border border-[#E5E7EB]">
-                  <span className="text-[#64748B] text-[11px] block mb-1">
-                    Current Revenue
-                  </span>
-                  <strong
-                    className="text-xl font-bold text-[#111827] block"
-                    style={{ fontFamily: PP }}
-                  >
-                    â‚¹{summaryMetrics.totalAmount.toLocaleString()}
-                  </strong>
-                  <span className="text-[10px] text-[#009688] font-semibold">
-                    Collected: â‚¹
+                <div className="bg-[#F1F5F9] rounded-xl p-3.5 border border-[#E5E7EB] flex flex-col justify-between h-full">
+                  <div>
+                    <span className="text-[#64748B] text-[11px] block mb-1">
+                      Current Revenue
+                    </span>
+                    <strong
+                      className="text-xl font-bold text-[#111827] block"
+                      style={{ fontFamily: PP }}
+                    >
+                      ₹{summaryMetrics.totalAmount.toLocaleString()}
+                    </strong>
+                  </div>
+                  <span className="text-[10px] text-[#009688] font-semibold mt-2 block">
+                    Collected: ₹
                     {summaryMetrics.collectedAmount.toLocaleString()}
                   </span>
                 </div>
-                <div className="bg-[#F1F5F9] rounded-xl p-3.5 border border-[#E5E7EB]">
-                  <span className="text-[#64748B] text-[11px] block mb-1">
-                    Yesterday Revenue
-                  </span>
-                  <strong
-                    className="text-xl font-bold text-[#0D47A1] block"
-                    style={{ fontFamily: PP }}
-                  >
-                    â‚¹--
-                  </strong>
-                  <span className="text-[10px] text-[#66BB6A] font-semibold">
+                <div className="bg-[#F1F5F9] rounded-xl p-3.5 border border-[#E5E7EB] flex flex-col justify-between h-full">
+                  <div>
+                    <span className="text-[#64748B] text-[11px] block mb-1">
+                      Yesterday Revenue
+                    </span>
+                    <strong
+                      className="text-xl font-bold text-[#0D47A1] block"
+                      style={{ fontFamily: PP }}
+                    >
+                      ₹--
+                    </strong>
+                  </div>
+                  <span className="text-[10px] text-[#66BB6A] font-semibold mt-2 block">
                     --
                   </span>
                 </div>
-                <div className="bg-[#F1F5F9] rounded-xl p-3.5 border border-[#E5E7EB]">
-                  <span className="text-[#64748B] text-[11px] block mb-1">
-                    Monthly Growth
-                  </span>
-                  <strong
-                    className="text-xl font-bold text-[#009688] block"
-                    style={{ fontFamily: PP }}
-                  >
-                    --
-                  </strong>
-                  <span className="text-[10px] text-[#64748B]">
+                <div className="bg-[#F1F5F9] rounded-xl p-3.5 border border-[#E5E7EB] flex flex-col justify-between h-full">
+                  <div>
+                    <span className="text-[#64748B] text-[11px] block mb-1">
+                      Monthly Growth
+                    </span>
+                    <strong
+                      className="text-xl font-bold text-[#009688] block"
+                      style={{ fontFamily: PP }}
+                    >
+                      --
+                    </strong>
+                  </div>
+                  <span className="text-[10px] text-[#64748B] mt-2 block">
                     vs monthly baseline
                   </span>
                 </div>
-                <div className="bg-[#F1F5F9] rounded-xl p-3.5 border border-[#E5E7EB]">
-                  <span className="text-[#64748B] text-[11px] block mb-1">
-                    Yearly Growth
-                  </span>
-                  <strong
-                    className="text-xl font-bold text-[#66BB6A] block"
-                    style={{ fontFamily: PP }}
-                  >
-                    --
-                  </strong>
-                  <span className="text-[10px] text-[#64748B]">
+                <div className="bg-[#F1F5F9] rounded-xl p-3.5 border border-[#E5E7EB] flex flex-col justify-between h-full">
+                  <div>
+                    <span className="text-[#64748B] text-[11px] block mb-1">
+                      Yearly Growth
+                    </span>
+                    <strong
+                      className="text-xl font-bold text-[#66BB6A] block"
+                      style={{ fontFamily: PP }}
+                    >
+                      --
+                    </strong>
+                  </div>
+                  <span className="text-[10px] text-[#64748B] mt-2 block">
                     YoY growth trajectory
                   </span>
                 </div>

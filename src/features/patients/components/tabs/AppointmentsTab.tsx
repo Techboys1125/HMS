@@ -16,6 +16,7 @@ import { appointmentService } from "../../../appointments/services/appointment.s
 import { RescheduleAppointmentConfirmationDialog } from "../../../appointments/components/RescheduleAppointmentConfirmationDialog";
 import { PatientCancelAppointmentDialog } from "../PatientDialogs";
 import { AppointmentDetailsDrawer } from "../../../appointments/components/AppointmentDetailsDrawer";
+import { DataTable } from "../../../../common/components/DataTable";
 
 export interface AppointmentsTabProps {
   patient: Patient;
@@ -127,7 +128,26 @@ export function PatientAppointmentsTab({
   };
 
   useEffect(() => {
-    loadAppointmentsData();
+    let active = true;
+
+    patientsApi
+      .getAppointments(patient.mrn)
+      .then((data) => {
+        if (active) {
+          setAppointments(data || []);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setAppointments([]);
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
   }, [patient.mrn]);
 
   const triggerToast = (msg: string) => {
@@ -135,7 +155,10 @@ export function PatientAppointmentsTab({
     setTimeout(() => setToastMsg(null), 3000);
   };
 
-  const safeAppointments = Array.isArray(appointments) ? appointments : [];
+  const safeAppointments = useMemo(
+    () => (Array.isArray(appointments) ? appointments : []),
+    [appointments],
+  );
 
   // Extract unique departments for dropdown
   const uniqueDepartments = useMemo(() => {
@@ -471,138 +494,221 @@ export function PatientAppointmentsTab({
           </div>
         ) : (
           <>
-            {/* Desktop Table View */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full border-collapse text-left text-xs">
-                <thead>
-                  <tr
-                    className="bg-slate-50/80 border-b border-[#E5E7EB] text-[#64748B] font-bold uppercase tracking-wider text-[11px]"
-                    style={{ fontFamily: PP }}
-                  >
-                    <th className="px-4 py-3.5">Appointment ID</th>
-                    <th className="px-4 py-3.5">Patient Name</th>
-                    <th className="px-4 py-3.5">Doctor</th>
-                    <th className="px-4 py-3.5">Department</th>
-                    <th className="px-4 py-3.5">Date</th>
-                    <th className="px-4 py-3.5">Time</th>
-                    <th className="px-4 py-3.5">Status</th>
-                    <th className="px-4 py-3.5 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 text-[#111827]">
-                  {filteredAppointments.map((appt) => {
-                    const displayApptId = formatAppointmentId(appt.id);
-                    const doctorName = extractCleanString(
-                      appt.doctor || appt.doctorName,
-                      "Doctor",
-                    );
-                    const formattedDocName = doctorName.startsWith("Dr.")
-                      ? doctorName
-                      : `Dr. ${doctorName}`;
-                    const departmentName = extractCleanString(
-                      appt.department,
-                      "General OPD",
-                    );
-                    const isUpcoming = [
-                      "Confirmed",
-                      "Scheduled",
-                      "Booked",
-                      "Pending",
-                    ].includes(appt.status || "");
+            {/* Desktop Table View rendered via common DataTable */}
+            <div className="hidden md:block">
+              <DataTable<ApiPatientAppointment>
+                data={filteredAppointments}
+                columns={[
+                  {
+                    key: "id",
+                    label: "APPOINTMENT ID",
+                    sortable: true,
+                    getValue: (appt) => formatAppointmentId(appt.id),
+                    render: (appt) => {
+                      const displayApptId = formatAppointmentId(appt.id);
+                      const doctorName = extractCleanString(
+                        appt.doctor || appt.doctorName,
+                        "Doctor",
+                      );
+                      const formattedDocName = doctorName.startsWith("Dr.")
+                        ? doctorName
+                        : `Dr. ${doctorName}`;
+                      const departmentName = extractCleanString(
+                        appt.department,
+                        "General OPD",
+                      );
+                      const apptRecord: AppointmentRecord = {
+                        id: String(appt.id),
+                        appointmentNumber: String(appt.appointmentNumber || appt.id),
+                        patientId: patient.id || patient.mrn,
+                        patientName: patientDisplayName,
+                        patientMrn: patient.mrn,
+                        doctorId: appt.doctorId || 1,
+                        doctorName: formattedDocName,
+                        appointmentDate: appt.date || "",
+                        timeSlot: appt.time || "",
+                        time: appt.time || "",
+                        status: appt.status || "Scheduled",
+                        department: departmentName,
+                        specialty: appt.specialty || departmentName,
+                        reason: appt.reason || "General Consultation",
+                        notes: appt.notes || "",
+                      };
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedDetailsAppt(apptRecord)}
+                          className="font-mono font-bold text-[#0D47A1] hover:underline text-left cursor-pointer"
+                        >
+                          {displayApptId}
+                        </button>
+                      );
+                    },
+                  },
+                  {
+                    key: "patientName",
+                    label: "PATIENT NAME",
+                    sortable: true,
+                    getValue: () => patientDisplayName,
+                    render: () => (
+                      <span className="font-bold text-[#111827]">
+                        {patientDisplayName}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "doctor",
+                    label: "DOCTOR",
+                    sortable: true,
+                    getValue: (appt) =>
+                      extractCleanString(
+                        appt.doctor || appt.doctorName,
+                        "Doctor",
+                      ),
+                    render: (appt) => {
+                      const doctorName = extractCleanString(
+                        appt.doctor || appt.doctorName,
+                        "Doctor",
+                      );
+                      const formattedDocName = doctorName.startsWith("Dr.")
+                        ? doctorName
+                        : `Dr. ${doctorName}`;
+                      const departmentName = extractCleanString(
+                        appt.department,
+                        "General OPD",
+                      );
+                      return (
+                        <div>
+                          <div className="font-bold text-[#111827]">
+                            {formattedDocName}
+                          </div>
+                          <div className="text-[10px] text-slate-400 font-normal">
+                            {departmentName}
+                          </div>
+                        </div>
+                      );
+                    },
+                  },
+                  {
+                    key: "department",
+                    label: "DEPARTMENT",
+                    sortable: true,
+                    getValue: (appt) =>
+                      extractCleanString(appt.department, "General OPD"),
+                    render: (appt) => (
+                      <span className="text-slate-700 font-semibold uppercase">
+                        {extractCleanString(appt.department, "General OPD")}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "date",
+                    label: "DATE",
+                    sortable: true,
+                    getValue: (appt) => appt.date || "",
+                    render: (appt) => (
+                      <span className="text-slate-700 font-mono font-medium">
+                        {appt.date || "—"}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "time",
+                    label: "TIME",
+                    sortable: true,
+                    getValue: (appt) => appt.time || "",
+                    render: (appt) => (
+                      <span className="text-slate-700 font-mono font-medium">
+                        {appt.time || "—"}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "status",
+                    label: "STATUS",
+                    sortable: true,
+                    getValue: (appt) => appt.status || "",
+                    render: (appt) => renderStatusBadge(appt.status),
+                  },
+                  {
+                    key: "actions",
+                    label: "ACTIONS",
+                    sortable: false,
+                    align: "right",
+                    render: (appt) => {
+                      const doctorName = extractCleanString(
+                        appt.doctor || appt.doctorName,
+                        "Doctor",
+                      );
+                      const formattedDocName = doctorName.startsWith("Dr.")
+                        ? doctorName
+                        : `Dr. ${doctorName}`;
+                      const departmentName = extractCleanString(
+                        appt.department,
+                        "General OPD",
+                      );
+                      const isUpcoming = [
+                        "Confirmed",
+                        "Scheduled",
+                        "Booked",
+                        "Pending",
+                      ].includes(appt.status || "");
+                      const apptRecord: AppointmentRecord = {
+                        id: String(appt.id),
+                        appointmentNumber: String(appt.appointmentNumber || appt.id),
+                        patientId: patient.id || patient.mrn,
+                        patientName: patientDisplayName,
+                        patientMrn: patient.mrn,
+                        doctorId: appt.doctorId || 1,
+                        doctorName: formattedDocName,
+                        appointmentDate: appt.date || "",
+                        timeSlot: appt.time || "",
+                        time: appt.time || "",
+                        status: appt.status || "Scheduled",
+                        department: departmentName,
+                        specialty: appt.specialty || departmentName,
+                        reason: appt.reason || "General Consultation",
+                        notes: appt.notes || "",
+                      };
 
-                    const apptRecord: AppointmentRecord = {
-                      id: String(appt.id),
-                      appointmentNumber: String(appt.appointmentNumber || appt.id),
-                      patientId: patient.id || patient.mrn,
-                      patientName: patientDisplayName,
-                      patientMrn: patient.mrn,
-                      doctorId: appt.doctorId || 1,
-                      doctorName: formattedDocName,
-                      appointmentDate: appt.date || "",
-                      timeSlot: appt.time || "",
-                      time: appt.time || "",
-                      status: appt.status || "Scheduled",
-                      department: departmentName,
-                      specialty: appt.specialty || departmentName,
-                      reason: appt.reason || "General Consultation",
-                      notes: appt.notes || "",
-                    };
-
-                    return (
-                      <tr
-                        key={appt.id}
-                        className="hover:bg-slate-50/80 transition-colors group"
-                      >
-                        <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
+                      return (
+                        <div className="flex items-center justify-end gap-1.5">
+                          {isUpcoming && canEdit && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => setReschedulingAppt(apptRecord)}
+                                className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-teal-50 text-[#009688] transition-colors cursor-pointer"
+                                title="Reschedule Appointment"
+                              >
+                                <Calendar size={14} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setCancellingAppt(appt)}
+                                className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-red-50 text-[#EF4444] transition-colors cursor-pointer"
+                                title="Cancel Appointment"
+                              >
+                                <XCircle size={14} />
+                              </button>
+                            </>
+                          )}
                           <button
                             type="button"
                             onClick={() => setSelectedDetailsAppt(apptRecord)}
-                            className="hover:underline text-left cursor-pointer"
+                            className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-[#0D47A1] text-xs font-semibold rounded-xl transition-colors flex items-center gap-1 cursor-pointer"
+                            style={{ fontFamily: PP }}
                           >
-                            {displayApptId}
+                            <Eye size={13} /> View
                           </button>
-                        </td>
-                        <td
-                          className="px-4 py-3.5 font-bold text-[#111827]"
-                          style={{ fontFamily: PP }}
-                        >
-                          {patientDisplayName}
-                        </td>
-                        <td className="px-4 py-3.5 font-medium text-slate-900">
-                          <div>
-                            <div className="font-bold text-[#111827]">{formattedDocName}</div>
-                            <div className="text-[10px] text-slate-400 font-normal">{departmentName}</div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3.5 text-slate-700 font-semibold uppercase">
-                          {departmentName}
-                        </td>
-                        <td className="px-4 py-3.5 text-slate-700 font-mono font-medium">
-                          {appt.date || "—"}
-                        </td>
-                        <td className="px-4 py-3.5 text-slate-700 font-mono font-medium">
-                          {appt.time || "—"}
-                        </td>
-                        <td className="px-4 py-3.5">
-                          {renderStatusBadge(appt.status)}
-                        </td>
-                        <td className="px-4 py-3.5 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            {isUpcoming && canEdit && (
-                              <>
-                                <button
-                                  type="button"
-                                  onClick={() => setReschedulingAppt(apptRecord)}
-                                  className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-teal-50 text-[#009688] transition-colors cursor-pointer"
-                                  title="Reschedule Appointment"
-                                >
-                                  <Calendar size={14} />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setCancellingAppt(appt)}
-                                  className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-red-50 text-[#EF4444] transition-colors cursor-pointer"
-                                  title="Cancel Appointment"
-                                >
-                                  <XCircle size={14} />
-                                </button>
-                              </>
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => setSelectedDetailsAppt(apptRecord)}
-                              className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-[#0D47A1] text-xs font-semibold rounded-xl transition-colors flex items-center gap-1 cursor-pointer"
-                              style={{ fontFamily: PP }}
-                            >
-                              <Eye size={13} /> View
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                        </div>
+                      );
+                    },
+                  },
+                ]}
+                getRowId={(appt) => appt.id}
+                pagination={true}
+              />
             </div>
 
             {/* Mobile Cards View */}

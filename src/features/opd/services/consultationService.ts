@@ -100,17 +100,23 @@ export const consultationService = {
         );
       }
 
-      // 2. Create / Open Encounter with linked appointment (POST /api/v1/encounters)
+      // 2. Create / Open Encounter with linked appointment & patient (POST /api/v1/encounters)
+      const rawApt = appointment as unknown as Record<string, unknown>;
+      const pSub = (
+        rawApt.patient && typeof rawApt.patient === "object"
+          ? rawApt.patient
+          : {}
+      ) as Record<string, unknown>;
       const patientId =
         appointment.patientId ||
-        (typeof (appointment as unknown as Record<string, unknown>).patient ===
-        "object"
-          ? (
-              (appointment as unknown as Record<string, unknown>).patient as {
-                id?: string | number;
-              }
-            )?.id
-          : undefined);
+        (rawApt.patientId as string | number) ||
+        (rawApt.patient_id as string | number) ||
+        (rawApt.patientID as string | number) ||
+        (pSub.id as string | number) ||
+        (pSub.patientId as string | number) ||
+        (pSub.patient_id as string | number) ||
+        undefined;
+
       const encounter = await consultationApi.createEncounter(
         appointmentId,
         patientId,
@@ -144,15 +150,8 @@ export const consultationService = {
         chiefComplaint || appointment.chiefComplaint || "",
       );
 
-      // 6. Fetch existing or create draft prescription
+      // 6. Initialize empty prescription draft for active consultation
       let prescription = null;
-      try {
-        prescription = await encountersApi.getPrescriptionByEncounterId(
-          encounter.encounterId,
-        );
-      } catch {
-        prescription = null;
-      }
       consultationStoreActions.setPrescription(prescription);
 
       // 5. Build consultation record (status already IN_CONSULTATION from queue/encounter)
@@ -563,7 +562,11 @@ export const consultationService = {
 
       // Hydrate Redux store
       if (eSub.encounterId) {
-        consultationStoreActions.setEncounter(eSub as unknown as Parameters<typeof consultationStoreActions.setEncounter>[0]);
+        consultationStoreActions.setEncounter(
+          eSub as unknown as Parameters<
+            typeof consultationStoreActions.setEncounter
+          >[0],
+        );
       }
       consultationStoreActions.setVitals(normalizedVitals);
       consultationStoreActions.setStatus("IN_CONSULTATION");

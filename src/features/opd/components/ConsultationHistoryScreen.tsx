@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router";
 import {
   Stethoscope,
   Clock,
@@ -12,7 +13,6 @@ import {
   Download,
   Search,
   RotateCcw,
-  Plus,
   ArrowLeft,
   ChevronUp,
   X,
@@ -20,23 +20,39 @@ import {
 } from "lucide-react";
 import { consultationApi } from "../api/consultationApi";
 import { patientsApi } from "../../patients/api/patient.api";
+import { departmentsApi } from "../../users/api/departments.api";
+import { apiClient } from "../../../lib/axios";
 
 // --- Design System Tokens ---
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
 
-function calculateAge(dobStr: string): number {
+function calculateAge(dobStr: string): number | string {
   try {
     const birth = new Date(dobStr);
+    if (Number.isNaN(birth.getTime())) return "—";
     const ageDifMs = Date.now() - birth.getTime();
     const ageDate = new Date(ageDifMs);
-    return Math.abs(ageDate.getUTCFullYear() - 1970);
+    const calculated = Math.abs(ageDate.getUTCFullYear() - 1970);
+    return Number.isNaN(calculated) ? "—" : calculated;
   } catch {
-    return 34;
+    return "—";
   }
 }
 function handlePrintHistory() {
   window.print();
+}
+
+function unwrapApiData<T>(res: unknown): T {
+  if (
+    res &&
+    typeof res === "object" &&
+    "data" in res &&
+    (res as Record<string, unknown>).data !== undefined
+  ) {
+    return (res as Record<string, unknown>).data as T;
+  }
+  return res as T;
 }
 export interface TimelineConsultationItem {
   id: string;
@@ -44,6 +60,7 @@ export interface TimelineConsultationItem {
   time: string;
   doctor: string;
   department: string;
+  patientAge?: number | string;
   visitType: "First Visit" | "Follow-up" | "Walk-In";
   status: "Completed" | "In Progress" | "Cancelled" | "Follow-up Scheduled";
   chiefComplaint: string;
@@ -70,7 +87,6 @@ export function ConsultationHistoryScreen({
   patientId = "",
   role = "doctor",
   onBack,
-  onStartNewConsultation,
   onViewFullConsultation,
   onPatientSelect,
 }: {
@@ -81,6 +97,7 @@ export function ConsultationHistoryScreen({
   onViewFullConsultation?: (consultationId: string) => void;
   onPatientSelect?: (patientId: string) => void;
 }) {
+  const navigate = useNavigate();
   const isReadOnly = role === "admin" || role === "nurse";
 
   // Dynamic API state
@@ -93,6 +110,7 @@ export function ConsultationHistoryScreen({
     bloodGroup: string;
     allergies: string[];
     primaryDoctor: string;
+    department: string;
   }>({
     name: "Patient",
     mrn: patientId,
@@ -101,6 +119,7 @@ export function ConsultationHistoryScreen({
     bloodGroup: "—",
     allergies: [],
     primaryDoctor: "—",
+    department: "—",
   });
 
   const [consultations, setConsultations] = useState<
@@ -124,23 +143,54 @@ export function ConsultationHistoryScreen({
     let isMounted = true;
 
     async function loadHistoryData() {
-      try {
-        setLoading(true);
+      if (!patientId) {
+        if (isMounted) setLoading(false);
+        return;
+      }
 
-        // Fetch patient details if available
+      try {
+        if (isMounted) setLoading(true);
+
+        // 1. Fetch real Patient Profile
         try {
           const patRes = await patientsApi.getPatientByMrn(patientId);
-          const p = ((patRes as unknown as Record<string, unknown>)?.data ||
-            patRes) as Record<string, unknown>;
+          const p = unwrapApiData<Record<string, unknown>>(patRes) || {};
           if (p && isMounted) {
+            const rawAge = p.age ?? p.patientAge ?? p.ageYears;
+            const rawDob = p.dob || p.dateOfBirth || p.birthDate;
+            const computedAge = (() => {
+              if (rawAge != null && rawAge !== "" && rawAge !== "—") {
+                const n = Number(rawAge);
+                if (!Number.isNaN(n) && n >= 0) return n;
+                if (typeof rawAge === "string" && rawAge.trim())
+                  return rawAge.trim();
+              }
+              if (rawDob && typeof rawDob === "string" && rawDob.trim()) {
+                const calc = calculateAge(rawDob);
+                if (calc !== "—") return calc;
+              }
+              return "—";
+            })();
+
+            const primaryDocName = String(
+              p.primaryDoctorName ||
+                p.assignedDoctor ||
+                p.doctorName ||
+                p.primaryDoctor ||
+                "—",
+            );
+            const primaryDeptName = String(
+              p.department ||
+                p.departmentName ||
+                p.doctorSpecialty ||
+                p.specialty ||
+                "—",
+            );
+
             setPatientData({
-              name: String(p.fullName || p.name || "Patient"),
+              name: String(p.fullName || p.name || p.patientName || "—"),
               mrn: String(p.mrn || patientId),
-              age: p.age
-                ? String(p.age)
-                : p.dob
-                  ? calculateAge(String(p.dob))
-                  : "—",
+              age: computedAge,
               gender: String(p.gender || "—"),
               bloodGroup:
                 p.bloodGroup && p.bloodGroup !== "N/A"
@@ -148,132 +198,553 @@ export function ConsultationHistoryScreen({
                   : "—",
               allergies: Array.isArray(p.allergies)
                 ? (p.allergies as string[])
-                : [],
-              primaryDoctor: String(
-                p.primaryDoctorName || p.assignedDoctor || "—",
-              ),
+                : p.allergies
+                  ? [String(p.allergies)]
+                  : [],
+              primaryDoctor: primaryDocName,
+              department: primaryDeptName,
+            });
+          }
+        } catch (e) {
+          console.warn("Patient profile fetch notice:", e);
+        }
+
+        // 2. Pre-fetch Doctor and Department Lookups for doctorId & departmentId
+        const doctorMap: Record<string, { name: string; department: string }> =
+          {};
+        const departmentMap: Record<string, string> = {};
+
+        try {
+          const docRes = await apiClient
+            .get("/api/v1/doctors")
+            .catch(() => null);
+          const docList =
+            unwrapApiData<Record<string, unknown>[]>(docRes?.data) ||
+            (Array.isArray(docRes?.data) ? docRes.data : []);
+          if (Array.isArray(docList)) {
+            docList.forEach((d) => {
+              const dId = String(d.id || d.doctorId || d.userId || "");
+              const dName = String(d.fullName || d.name || d.doctorName || "");
+              const dDept = String(
+                (typeof d.department === "string"
+                  ? d.department
+                  : (d.department as Record<string, unknown>)?.name ||
+                    (d.department as Record<string, unknown>)
+                      ?.departmentName) ||
+                  d.departmentName ||
+                  d.specialty ||
+                  d.doctorSpecialty ||
+                  "",
+              );
+              if (dId && dName) {
+                doctorMap[dId] = { name: dName, department: dDept };
+              }
             });
           }
         } catch {
-          // Fallback patient data info
+          // ignore
         }
 
-        // Fetch encounter history for this patient
+        try {
+          const deptRes = await departmentsApi
+            .getDepartments({ page: 0, size: 100 })
+            .catch(() => null);
+          const deptObj = deptRes as { content?: unknown[]; items?: unknown[] } | null;
+          const deptList = (deptObj?.content || deptObj?.items || []) as Array<Record<string, unknown>>;
+          if (Array.isArray(deptList)) {
+            deptList.forEach((dp) => {
+              const dpId = String(dp.id || dp.departmentId || "");
+              const dpName = String(
+                dp.departmentName || dp.name || dp.label || "",
+              );
+              if (dpId && dpName) {
+                departmentMap[dpId] = dpName;
+              }
+            });
+          }
+        } catch {
+          // ignore
+        }
+
+        // 3. Fetch Encounters via GET /api/v1/patients/{mrn}/encounters
         const encountersList =
           await consultationApi.getPatientEncounters(patientId);
 
         if (isMounted) {
           if (Array.isArray(encountersList) && encountersList.length > 0) {
-            const mapped: TimelineConsultationItem[] = (
-              encountersList as Record<string, unknown>[]
-            ).map((enc: Record<string, unknown>, idx: number) => {
-              const encId = String(
-                enc.id || enc.encounterId || `CNS-${1000 + idx}`,
-              );
-              const doc = (enc.doctor as Record<string, unknown>) || {};
-              const vit = (enc.vitals as Record<string, unknown>) || {};
-              const rawMeds = enc.medicines || enc.medications;
-              const medsList = Array.isArray(rawMeds)
-                ? (rawMeds as Record<string, unknown>[]).map(
-                    (m: Record<string, unknown>) => ({
-                      name: String(m.name || m.medicineName || "Medication"),
-                      dosage: String(m.dosage || m.dose || "—"),
-                      freq: String(m.frequency || m.freq || "—"),
-                      duration: String(m.duration || "—"),
-                    }),
-                  )
-                : [];
+            const mappedItems: TimelineConsultationItem[] = await Promise.all(
+              encountersList.map(async (rawEnc: Record<string, unknown>) => {
+                const encounterId = String(
+                  rawEnc.encounterId ||
+                    rawEnc.id ||
+                    rawEnc.encounterNumber ||
+                    "—",
+                );
+                const appointmentId = rawEnc.appointmentId || rawEnc.apptId;
 
-              const tests = Array.isArray(enc.investigations)
-                ? (enc.investigations as string[])
-                : enc.customInvestigation
-                  ? [String(enc.customInvestigation)]
+                // 1. Fetch consultation details
+                const consultationDetails =
+                  encounterId !== "—"
+                    ? await consultationApi
+                        .getConsultation(encounterId)
+                        .catch(() => null)
+                    : null;
+
+                // 2. Fetch workspace details
+                const workspaceDetails =
+                  encounterId !== "—"
+                    ? await consultationApi
+                        .getWorkspace(encounterId)
+                        .catch(() => null)
+                    : null;
+
+                const ws = (workspaceDetails || {}) as Record<string, unknown>;
+                const cons = (consultationDetails ||
+                  ws.consultation ||
+                  {}) as Record<string, unknown>;
+                const vit = (ws.vitals || rawEnc.vitals || {}) as Record<
+                  string,
+                  unknown
+                >;
+                const diagList = Array.isArray(ws.diagnoses)
+                  ? (ws.diagnoses as Record<string, unknown>[])
+                  : [];
+                const primaryDiag =
+                  diagList.find(
+                    (d) =>
+                      (d.diagnosisType === "PRIMARY" || d.type === "PRIMARY") &&
+                      d.active !== false,
+                  ) ||
+                  diagList.find((d) => d.active !== false) ||
+                  diagList[0] ||
+                  {};
+
+                const rx = (ws.prescription ||
+                  ws.prescriptions ||
+                  {}) as Record<string, unknown>;
+                const rxPrescriber = (rx.prescriber ||
+                  rx.doctor ||
+                  {}) as Record<string, unknown>;
+
+                let rawMeds =
+                  Array.isArray(rx.medications) && rx.medications.length > 0
+                    ? rx.medications
+                    : Array.isArray(rx.medicines) && rx.medicines.length > 0
+                      ? rx.medicines
+                      : Array.isArray(rx.items) && rx.items.length > 0
+                        ? rx.items
+                        : Array.isArray(rx.prescriptionItems) &&
+                            rx.prescriptionItems.length > 0
+                          ? rx.prescriptionItems
+                          : Array.isArray(ws.medications) &&
+                              ws.medications.length > 0
+                            ? ws.medications
+                            : Array.isArray(ws.medicines) &&
+                                ws.medicines.length > 0
+                              ? ws.medicines
+                              : Array.isArray(rawEnc.medications) &&
+                                  rawEnc.medications.length > 0
+                                ? rawEnc.medications
+                                : Array.isArray(rawEnc.medicines) &&
+                                    rawEnc.medicines.length > 0
+                                  ? rawEnc.medicines
+                                  : [];
+
+                if (rawMeds.length === 0) {
+                  try {
+                    const saved =
+                      localStorage.getItem(
+                        `hms-completed-meds:${encounterId}`,
+                      ) ||
+                      localStorage.getItem(
+                        `hms-completed-meds:${appointmentId}`,
+                      );
+                    if (saved) {
+                      const parsed = JSON.parse(saved);
+                      if (Array.isArray(parsed) && parsed.length > 0) {
+                        rawMeds = parsed;
+                      }
+                    }
+                  } catch {
+                    // ignore
+                  }
+                }
+
+                const medsList = (rawMeds as Record<string, unknown>[]).map(
+                  (m) => {
+                    const doseVal = (() => {
+                      const d = m.dose as Record<string, unknown> | undefined;
+                      if (d && typeof d === "object") {
+                        const val = d.value != null ? String(d.value) : "";
+                        const unit = d.unit != null ? String(d.unit) : "";
+                        const text = `${val} ${unit}`.trim();
+                        if (text) return text;
+                      }
+                      if (m.doseValue != null || m.doseUnit != null) {
+                        const val =
+                          m.doseValue != null ? String(m.doseValue) : "";
+                        const unit =
+                          m.doseUnit != null ? String(m.doseUnit) : "";
+                        const text = `${val} ${unit}`.trim();
+                        if (text) return text;
+                      }
+                      if (typeof m.dosage === "string" && m.dosage.trim())
+                        return m.dosage.trim();
+                      if (typeof m.dose === "string" && m.dose.trim())
+                        return m.dose.trim();
+                      if (typeof m.strength === "string" && m.strength.trim())
+                        return m.strength.trim();
+                      if (
+                        typeof m.doseQuantity === "string" &&
+                        m.doseQuantity.trim()
+                      )
+                        return m.doseQuantity.trim();
+                      return "—";
+                    })();
+
+                    const freqObj = m.frequency as
+                      { display?: unknown; code?: unknown } | undefined;
+                    const freqVal =
+                      m.frequency && typeof m.frequency === "object"
+                        ? (freqObj?.display as string) ||
+                          (freqObj?.code as string) ||
+                          "—"
+                        : m.frequencyDisplay ||
+                          m.frequencyCode ||
+                          m.frequency ||
+                          m.freq ||
+                          "—";
+
+                    const durObj = m.duration as
+                      { value?: unknown; unit?: unknown } | undefined;
+                    const durVal =
+                      m.duration && typeof m.duration === "object"
+                        ? `${durObj?.value ?? ""} ${durObj?.unit ?? ""}`.trim()
+                        : m.durationValue
+                          ? `${m.durationValue} ${m.durationUnit || ""}`.trim()
+                          : m.duration || "—";
+
+                    return {
+                      name: String(
+                        m.medicineName ||
+                          m.medicationName ||
+                          m.drugName ||
+                          m.name ||
+                          "Medication",
+                      ),
+                      dosage: String(doseVal || "—"),
+                      freq: String(freqVal || "—"),
+                      duration: String(durVal || "—"),
+                    };
+                  },
+                );
+
+                // Map Investigations from workspace / consultation / orders
+                const rawInv =
+                  ws.investigations ||
+                  ws.orders ||
+                  ws.labOrders ||
+                  ws.radiologyOrders ||
+                  cons.investigations ||
+                  rawEnc.investigations ||
+                  [];
+                const invList = Array.isArray(rawInv)
+                  ? rawInv
+                      .map((item: unknown) => {
+                        if (typeof item === "string") return item;
+                        const obj = item as Record<string, unknown>;
+                        return String(
+                          obj.testName ||
+                            obj.investigationName ||
+                            obj.name ||
+                            obj.displayName ||
+                            obj.testCode ||
+                            "",
+                        );
+                      })
+                      .filter(Boolean)
                   : [];
 
-              return {
-                id: encId,
-                date: enc.encounterDate
-                  ? new Date(String(enc.encounterDate)).toLocaleDateString(
-                      "en-GB",
-                      { day: "2-digit", month: "short", year: "numeric" },
-                    )
-                  : String(
-                      enc.date ||
-                        new Date().toLocaleDateString("en-GB", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        }),
-                    ),
-                time: enc.encounterDate
-                  ? new Date(String(enc.encounterDate)).toLocaleTimeString([], {
+                const startDateStr = String(
+                  rawEnc.startedAt ||
+                    rawEnc.createdAt ||
+                    rawEnc.encounterDate ||
+                    rawEnc.date ||
+                    "",
+                );
+                const displayDate = startDateStr
+                  ? new Date(startDateStr).toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })
+                  : "—";
+                const displayTime = startDateStr
+                  ? new Date(startDateStr).toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
                     })
-                  : String(enc.time || "—"),
-                doctor: String(
-                  doc.name ||
-                    doc.fullName ||
-                    enc.doctorName ||
-                    enc.doctor ||
+                  : "—";
+
+                const bpStr = vit.bloodPressure
+                  ? typeof vit.bloodPressure === "object"
+                    ? `${(vit.bloodPressure as Record<string, unknown>).systolic}/${(vit.bloodPressure as Record<string, unknown>).diastolic}`
+                    : String(vit.bloodPressure)
+                  : vit.bpSystolic != null && vit.bpDiastolic != null
+                    ? `${vit.bpSystolic}/${vit.bpDiastolic}`
+                    : vit.bp
+                      ? String(vit.bp)
+                      : "—";
+
+                const vtRaw = String(
+                  rawEnc.encounterType ||
+                    rawEnc.visitType ||
+                    rawEnc.appointmentType ||
+                    cons.visitType ||
+                    "",
+                ).toUpperCase();
+                const mappedVisitType: "First Visit" | "Follow-up" | "Walk-In" =
+                  vtRaw.includes("FOLLOW")
+                    ? "Follow-up"
+                    : vtRaw.includes("WALK")
+                      ? "Walk-In"
+                      : "First Visit";
+
+                const sRaw = String(
+                  rawEnc.status || cons.status || ws.status || "",
+                ).toUpperCase();
+                const mappedStatus:
+                  | "Completed"
+                  | "In Progress"
+                  | "Cancelled"
+                  | "Follow-up Scheduled" =
+                  sRaw === "COMPLETED" ||
+                  sRaw === "FINALIZED" ||
+                  sRaw === "CLOSED"
+                    ? "Completed"
+                    : sRaw === "CANCELLED" || sRaw === "CANCELED"
+                      ? "Cancelled"
+                      : sRaw.includes("SCHEDULED") ||
+                          sRaw.includes("FOLLOW")
+                        ? "Follow-up Scheduled"
+                        : "In Progress";
+
+                const examFindings =
+                  [cons.generalExamination, cons.physicalExamination]
+                    .filter(Boolean)
+                    .join("\n") || String(cons.examinationNotes || "—");
+
+                const notesArr = [
+                  cons.historyOfPresentIllness
+                    ? `HPI: ${cons.historyOfPresentIllness}`
+                    : "",
+                  cons.assessmentSummary
+                    ? `Assessment: ${cons.assessmentSummary}`
+                    : "",
+                  cons.advice ? `Advice: ${cons.advice}` : "",
+                  cons.lifestyleRecommendations
+                    ? `Lifestyle: ${cons.lifestyleRecommendations}`
+                    : "",
+                ].filter(Boolean);
+                const clinicalNotesText =
+                  notesArr.join(" • ") ||
+                  String(cons.clinicalNotes || cons.subjective || "—");
+
+                const fuDate =
+                  cons.followUpDate || cons.nextVisitDate || rx.followUpDate;
+
+                const encSub = (ws.encounter || rawEnc) as Record<
+                  string,
+                  unknown
+                >;
+                const apptSub = (ws.appointment ||
+                  rawEnc.appointment ||
+                  {}) as Record<string, unknown>;
+                const docSub = (ws.doctor ||
+                  rawEnc.doctor ||
+                  encSub.doctor ||
+                  apptSub.doctor ||
+                  {}) as Record<string, unknown>;
+
+                const targetDocId = String(
+                  rawEnc.doctorId ||
+                    rawEnc.finalizedByUserId ||
+                    encSub.doctorId ||
+                    apptSub.doctorId ||
+                    "",
+                );
+                const targetDeptId = String(
+                  rawEnc.departmentId ||
+                    encSub.departmentId ||
+                    apptSub.departmentId ||
+                    "",
+                );
+
+                const docFromMap = doctorMap[targetDocId];
+                const deptFromMap = departmentMap[targetDeptId];
+
+                const doctorNameVal = String(
+                  (typeof encSub.doctorName === "string" &&
+                    encSub.doctorName) ||
+                    (typeof encSub.doctor === "string" && encSub.doctor) ||
+                    (typeof apptSub.doctorName === "string" &&
+                      apptSub.doctorName) ||
+                    (typeof apptSub.doctor === "string" && apptSub.doctor) ||
+                    (typeof ws.doctorName === "string" && ws.doctorName) ||
+                    (typeof ws.doctor === "string" && ws.doctor) ||
+                    (typeof cons.doctorName === "string" && cons.doctorName) ||
+                    (typeof cons.doctor === "string" && cons.doctor) ||
+                    docFromMap?.name ||
+                    rxPrescriber.fullName ||
+                    rxPrescriber.name ||
+                    docSub.fullName ||
+                    docSub.name ||
+                    docSub.doctorName ||
+                    patientData.primaryDoctor ||
                     "—",
-                ),
-                department: String(doc.department || enc.department || "OPD"),
-                visitType:
-                  enc.visitType === "Follow-up" || enc.visitType === "Walk-In"
-                    ? enc.visitType
-                    : "First Visit",
-                status:
-                  enc.status === "In Progress" ? "In Progress" : "Completed",
-                chiefComplaint: String(
-                  enc.chiefComplaint ||
-                    enc.symptoms ||
+                );
+
+                const departmentVal = String(
+                  (typeof encSub.department === "string"
+                    ? encSub.department
+                    : (encSub.department as Record<string, unknown>)?.name ||
+                      (encSub.department as Record<string, unknown>)
+                        ?.departmentName ||
+                      "") ||
+                    (typeof apptSub.department === "string"
+                      ? apptSub.department
+                      : (apptSub.department as Record<string, unknown>)?.name ||
+                        (apptSub.department as Record<string, unknown>)
+                          ?.departmentName ||
+                        "") ||
+                    (typeof ws.department === "string"
+                      ? ws.department
+                      : (ws.department as Record<string, unknown>)?.name ||
+                        (ws.department as Record<string, unknown>)
+                          ?.departmentName ||
+                        "") ||
+                    (typeof cons.department === "string"
+                      ? cons.department
+                      : "") ||
+                    (typeof cons.doctorSpecialty === "string"
+                      ? cons.doctorSpecialty
+                      : "") ||
+                    deptFromMap ||
+                    docFromMap?.department ||
+                    rxPrescriber.department ||
+                    docSub.department ||
+                    docSub.departmentName ||
+                    docSub.specialty ||
+                    docSub.doctorSpecialty ||
+                    patientData.department ||
                     "—",
-                ),
-                diagnosis: String(
-                  enc.finalDiagnosis ||
-                    enc.diagnosis ||
-                    enc.provisionalDiagnosis ||
-                    "—",
-                ),
-                icdCode: String(enc.icdCode || enc.icd10Code || "—"),
-                medicinesCount: medsList.length,
-                investigationsCount: tests.length,
-                followupStatus: enc.nextVisitDate
-                  ? `Scheduled for ${enc.nextVisitDate}`
-                  : "Completed",
-                nextFollowupDate: enc.nextVisitDate
-                  ? String(enc.nextVisitDate)
-                  : undefined,
-                vitals: {
-                  bp: String(
-                    vit.bp ||
-                      (vit.systolicBp && vit.diastolicBp
-                        ? `${vit.systolicBp}/${vit.diastolicBp}`
-                        : "—"),
+                );
+
+                const patAge = (() => {
+                  const pObj = (ws.patient || rawEnc.patient || {}) as Record<
+                    string,
+                    unknown
+                  >;
+                  const a =
+                    pObj.age ??
+                    pObj.patientAge ??
+                    ws.patientAge ??
+                    apptSub.patientAge ??
+                    apptSub.age;
+                  if (a != null && a !== "" && a !== "—") {
+                    const n = Number(a);
+                    if (!Number.isNaN(n) && n >= 0) return n;
+                    if (typeof a === "string" && a.trim()) return a.trim();
+                  }
+                  const dob = pObj.dob || pObj.dateOfBirth;
+                  if (dob && typeof dob === "string") {
+                    const calc = calculateAge(dob);
+                    if (calc !== "—") return calc;
+                  }
+                  return "—";
+                })();
+
+                return {
+                  id: encounterId,
+                  date: displayDate,
+                  time: displayTime,
+                  doctor: doctorNameVal,
+                  department: departmentVal,
+                  patientAge: patAge,
+                  visitType: mappedVisitType,
+                  status: mappedStatus,
+                  chiefComplaint: String(
+                    cons.chiefComplaint ||
+                      rawEnc.chiefComplaint ||
+                      ws.chiefComplaint ||
+                      "—",
                   ),
-                  pulse: vit.pulse ? `${vit.pulse} bpm` : "—",
-                  temp: vit.temperature ? `${vit.temperature}°C` : "—",
-                  spo2: vit.spo2 ? `${vit.spo2}%` : "—",
-                  bmi: vit.bmi ? `${vit.bmi} kg/m²` : "—",
-                },
-                medicines: medsList,
-                investigations: tests,
-                examinationFindings: String(
-                  enc.clinicalExamination ||
-                    enc.examinationNotes ||
-                    "—",
-                ),
-                clinicalNotes: String(
-                  enc.advice ||
-                    enc.plan ||
-                    "—",
-                ),
-              };
-            });
-            setConsultations(mapped);
-            if (mapped.length > 0) {
-              setExpandedCardIds({ [mapped[0].id]: true });
+                  diagnosis: String(
+                    primaryDiag.diagnosisName ||
+                      cons.assessmentSummary ||
+                      rawEnc.diagnosis ||
+                      "—",
+                  ),
+                  icdCode: String(
+                    primaryDiag.diagnosisCode || rawEnc.icdCode || "—",
+                  ),
+                  medicinesCount: medsList.length,
+                  investigationsCount: invList.length,
+                  followupStatus: fuDate
+                    ? `Scheduled for ${fuDate}`
+                    : mappedStatus === "Completed"
+                      ? "Completed"
+                      : "No Follow-up Scheduled",
+                  nextFollowupDate: fuDate ? String(fuDate) : undefined,
+                  vitals: {
+                    bp: bpStr,
+                    pulse: vit.pulseRate
+                      ? `${(vit.pulseRate as Record<string, unknown>).value || vit.pulseRate} bpm`
+                      : vit.pulse
+                        ? `${vit.pulse} bpm`
+                        : "—",
+                    temp: vit.temperature
+                      ? `${(vit.temperature as Record<string, unknown>).value || vit.temperature}°C`
+                      : "—",
+                    spo2: vit.oxygenSaturation
+                      ? `${(vit.oxygenSaturation as Record<string, unknown>).value || vit.oxygenSaturation}%`
+                      : vit.spo2
+                        ? `${vit.spo2}%`
+                        : "—",
+                    bmi: vit.bmi ? `${vit.bmi} kg/m²` : "—",
+                  },
+                  medicines: medsList,
+                  investigations: invList,
+                  examinationFindings: examFindings,
+                  clinicalNotes: clinicalNotesText,
+                };
+              }),
+            );
+
+            setConsultations(mappedItems);
+            if (mappedItems.length > 0) {
+              setExpandedCardIds({ [mappedItems[0].id]: true });
+              setPatientData((prev) => {
+                const firstItem = mappedItems[0];
+                const resolvedAge =
+                  prev.age && prev.age !== "—"
+                    ? prev.age
+                    : firstItem.patientAge && firstItem.patientAge !== "—"
+                      ? firstItem.patientAge
+                      : "—";
+                return {
+                  ...prev,
+                  age: resolvedAge,
+                  primaryDoctor:
+                    prev.primaryDoctor !== "—"
+                      ? prev.primaryDoctor
+                      : firstItem.doctor,
+                  department:
+                    prev.department !== "—"
+                      ? prev.department
+                      : firstItem.department,
+                };
+              });
             }
           } else {
             setConsultations([]);
@@ -291,7 +762,7 @@ export function ConsultationHistoryScreen({
     return () => {
       isMounted = false;
     };
-  }, [patientId]);
+  }, [patientId, patientData.department, patientData.primaryDoctor]);
 
   const toggleExpand = (id: string) => {
     setExpandedCardIds((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -401,18 +872,16 @@ export function ConsultationHistoryScreen({
           </div>
 
           <div className="flex items-center gap-2">
-            {onBack && (
-              <button
-                onClick={onBack}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-xs font-semibold transition-colors shadow-sm"
-                style={{ fontFamily: PP }}
-              >
-                <ArrowLeft size={14} />
-                Back
-              </button>
-            )}
+            <button
+              onClick={onBack ? onBack : () => navigate(-1)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-xs font-semibold transition-colors shadow-sm cursor-pointer"
+              style={{ fontFamily: PP }}
+            >
+              <ArrowLeft size={14} />
+              Back
+            </button>
 
-            {isReadOnly ? (
+            {isReadOnly && (
               <>
                 <button
                   onClick={handlePrintHistory}
@@ -431,15 +900,6 @@ export function ConsultationHistoryScreen({
                   Download PDF
                 </button>
               </>
-            ) : (
-              <button
-                onClick={() => onStartNewConsultation?.()}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0D47A1] hover:bg-[#0a3880] text-white text-xs font-semibold transition-colors shadow-sm"
-                style={{ fontFamily: PP }}
-              >
-                <Plus size={15} />
-                Start New Consultation
-              </button>
             )}
           </div>
         </div>
@@ -501,6 +961,15 @@ export function ConsultationHistoryScreen({
                     {patientData.primaryDoctor}
                   </strong>
                 </span>
+                <span>•</span>
+                <span>
+                  Department:{" "}
+                  <strong className="text-slate-800">
+                    {patientData.department && patientData.department !== "—"
+                      ? patientData.department
+                      : consultations[0]?.department || "—"}
+                  </strong>
+                </span>
               </div>
             </div>
 
@@ -523,15 +992,6 @@ export function ConsultationHistoryScreen({
             >
               View Patient Profile
             </button>
-            {!isReadOnly && (
-              <button
-                onClick={() => onStartNewConsultation?.()}
-                className="px-3 py-1.5 rounded-lg bg-[#009688] text-white text-xs font-semibold hover:bg-[#00827a] transition-colors"
-                style={{ fontFamily: PP }}
-              >
-                Start New Consultation
-              </button>
-            )}
           </div>
         </div>
       </div>
@@ -603,7 +1063,11 @@ export function ConsultationHistoryScreen({
                     className="text-[11px] text-emerald-600 font-medium mt-0.5"
                     style={{ fontFamily: RB }}
                   >
-                    100% Verified Records
+                    {
+                      consultations.filter((c) => c.status === "Completed")
+                        .length
+                    }{" "}
+                    Verified Records
                   </div>
                 </div>
               </div>
@@ -684,16 +1148,18 @@ export function ConsultationHistoryScreen({
                     className="text-2xl font-bold text-[#111827]"
                     style={{ fontFamily: PP }}
                   >
-                    {consultations.reduce(
-                      (acc, curr) => acc + curr.medicinesCount,
-                      0,
-                    )}
+                    {consultations.filter((c) => c.medicinesCount > 0).length}
                   </div>
                   <div
                     className="text-[11px] text-slate-500 mt-0.5"
                     style={{ fontFamily: RB }}
                   >
-                    Prescribed Medications
+                    Prescriptions Issued (
+                    {consultations.reduce(
+                      (acc, curr) => acc + curr.medicinesCount,
+                      0,
+                    )}{" "}
+                    Meds Total)
                   </div>
                 </div>
               </div>
@@ -825,6 +1291,10 @@ export function ConsultationHistoryScreen({
                     <option value="All">All Statuses</option>
                     <option value="Completed">Completed</option>
                     <option value="In Progress">In Progress</option>
+                    <option value="Cancelled">Cancelled</option>
+                    <option value="Follow-up Scheduled">
+                      Follow-up Scheduled
+                    </option>
                   </select>
                 </div>
               </div>

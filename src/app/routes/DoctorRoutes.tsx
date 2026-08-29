@@ -4,7 +4,6 @@ import { RouteGuard } from "../../permissions/guards";
 import { DoctorScheduleScreen } from "../../features/doctors/components/DoctorScheduleScreen";
 import { DoctorQueueScreen } from "../../features/doctors/components/DoctorQueueScreen";
 import { DoctorPatientsScreen } from "../../features/doctors/components/DoctorPatientsScreen";
-import { DoctorMedicalRecordsScreen } from "../../features/doctors/components/DoctorMedicalRecordsScreen";
 import { DoctorAppointmentsScreen } from "../../features/doctors/components/DoctorAppointmentsScreen";
 import { OpdConsultationCenterScreen } from "../../features/opd/pages/OPDConsultationPage";
 import { StartConsultationPage as StartOpdConsultationWorkspaceScreen } from "../../features/opd/pages/StartConsultationPage";
@@ -37,14 +36,6 @@ export function DoctorRoutes() {
         element={
           <RouteGuard requiredPermission="PATIENT_VIEW">
             <DoctorPatientsScreen />
-          </RouteGuard>
-        }
-      />
-      <Route
-        path={ROUTES.DOCTOR_MEDICAL_RECORDS}
-        element={
-          <RouteGuard requiredPermission="MEDICAL_HISTORY_VIEW">
-            <DoctorMedicalRecordsScreen />
           </RouteGuard>
         }
       />

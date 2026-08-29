@@ -18,6 +18,7 @@ import {
   ChevronRight as ChevronRightIcon,
   CreditCard,
   Eye,
+  ArrowLeft,
 } from "lucide-react";
 import { PP, RB } from "../constants/reports.constants";
 import type {
@@ -312,7 +313,6 @@ export function DailyRevenueReportScreen({
     doctorFilter,
     paymentStatusFilter,
     paymentMethodFilter,
-    reportPeriodFilter,
     isRefreshing,
     isLoading,
     hasError,
@@ -326,6 +326,9 @@ export function DailyRevenueReportScreen({
 
   // ─── API Data Hooks ──────────────────────────────────────────────────────
   const today = new Date().toISOString().slice(0, 10);
+  const [fromDate, setFromDate] = useState(today);
+  const [toDate, setToDate] = useState(today);
+
   const getDateRange = (range: string) => {
     const now = new Date();
     if (range === "Today") return { fromDate: today, toDate: today };
@@ -344,9 +347,33 @@ export function DailyRevenueReportScreen({
       from.setDate(now.getDate() - 90);
       return { fromDate: from.toISOString().slice(0, 10), toDate: today };
     }
-    return { fromDate: today, toDate: today };
+    if (range === "Custom" && fromDate && toDate) {
+      return { fromDate, toDate };
+    }
+    return { fromDate: fromDate || today, toDate: toDate || today };
   };
-  const reportFilters = getDateRange(dateRange);
+  const dates = getDateRange(dateRange);
+  const reportFilters = useMemo(
+    () => ({
+      fromDate: dates.fromDate,
+      toDate: dates.toDate,
+      doctorId: doctorFilter !== "All Doctors" ? doctorFilter : undefined,
+      departmentId: deptFilter !== "All Departments" ? deptFilter : undefined,
+      status:
+        paymentStatusFilter !== "All Statuses"
+          ? paymentStatusFilter
+          : undefined,
+      paymentStatus:
+        paymentStatusFilter !== "All Statuses"
+          ? paymentStatusFilter
+          : undefined,
+      paymentMethod:
+        paymentMethodFilter !== "All Methods" ? paymentMethodFilter : undefined,
+      page: 0,
+      size: 50,
+    }),
+    [dates, doctorFilter, deptFilter, paymentStatusFilter, paymentMethodFilter],
+  );
   const { data: rawDailyRevenue } = useDailyRevenue(reportFilters);
   const { data: rawDetails } = useDailyRevenueDetails(reportFilters);
   const { data: collectionRateData } = useCollectionRate(reportFilters);
@@ -400,13 +427,23 @@ export function DailyRevenueReportScreen({
         Outstanding: Math.round(d.amount * 0.07),
       }));
     }
-    const daysCount = trendDays === "Today" ? 1 : trendDays === "7 Days" ? 7 : trendDays === "30 Days" ? 30 : 90;
+    const daysCount =
+      trendDays === "Today"
+        ? 1
+        : trendDays === "7 Days"
+          ? 7
+          : trendDays === "30 Days"
+            ? 30
+            : 90;
     const result = [];
     const baseRev = 14500000;
     for (let i = daysCount - 1; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      const dateStr = d.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
       const dayRev = Math.max(500000, baseRev + ((i * 123456) % 3000000));
       result.push({
         date: dateStr,
@@ -419,9 +456,64 @@ export function DailyRevenueReportScreen({
     return result;
   }, [dailyRevenueData, trendDays]);
 
+  // Filtered records
+  const filteredData = useMemo(() => {
+    return revenueTableSource.filter((item) => {
+      const query = searchQuery.trim().toLowerCase();
+      const matchesSearch =
+        !query ||
+        item.id.toLowerCase().includes(query) ||
+        item.patientName.toLowerCase().includes(query) ||
+        item.mrn.toLowerCase().includes(query) ||
+        item.doctorName.toLowerCase().includes(query) ||
+        item.department.toLowerCase().includes(query);
+
+      const matchesDept =
+        deptFilter === "All Departments" ||
+        item.department.toLowerCase().includes(deptFilter.toLowerCase()) ||
+        deptFilter.toLowerCase().includes(item.department.toLowerCase());
+
+      const matchesDoctor =
+        doctorFilter === "All Doctors" ||
+        item.doctorName.toLowerCase().includes(doctorFilter.toLowerCase()) ||
+        doctorFilter.toLowerCase().includes(item.doctorName.toLowerCase());
+
+      const matchesStatus =
+        paymentStatusFilter === "All Statuses" ||
+        item.paymentStatus.toLowerCase() === paymentStatusFilter.toLowerCase();
+
+      const matchesMethod =
+        paymentMethodFilter === "All Methods" ||
+        item.paymentMethod.toLowerCase() === paymentMethodFilter.toLowerCase();
+
+      const itemDate = item.invoiceDate ? item.invoiceDate.slice(0, 10) : "";
+      const matchesDate =
+        !dates.fromDate ||
+        !dates.toDate ||
+        (itemDate >= dates.fromDate && itemDate <= dates.toDate);
+
+      return (
+        matchesSearch &&
+        matchesDept &&
+        matchesDoctor &&
+        matchesStatus &&
+        matchesMethod &&
+        matchesDate
+      );
+    });
+  }, [
+    searchQuery,
+    deptFilter,
+    doctorFilter,
+    paymentStatusFilter,
+    paymentMethodFilter,
+    dates,
+    revenueTableSource,
+  ]);
+
   const paymentMethodShareData = useMemo(() => {
     const map: Record<string, number> = {};
-    revenueTableSource.forEach((d) => {
+    filteredData.forEach((d) => {
       map[d.paymentMethod] = (map[d.paymentMethod] || 0) + d.collectedAmount;
     });
     const colors: Record<string, string> = {
@@ -443,11 +535,11 @@ export function DailyRevenueReportScreen({
       ];
     }
     return list;
-  }, [revenueTableSource]);
+  }, [filteredData]);
 
   const deptRevenueData = useMemo(() => {
     const map: Record<string, { department: string; revenue: number }> = {};
-    revenueTableSource.forEach((d) => {
+    filteredData.forEach((d) => {
       if (!map[d.department])
         map[d.department] = { department: d.department, revenue: 0 };
       map[d.department].revenue += d.invoiceAmount;
@@ -461,11 +553,11 @@ export function DailyRevenueReportScreen({
       ];
     }
     return list;
-  }, [revenueTableSource]);
+  }, [filteredData]);
 
   const doctorRevenueData = useMemo(() => {
     const map: Record<string, { doctor: string; revenue: number }> = {};
-    revenueTableSource.forEach((d) => {
+    filteredData.forEach((d) => {
       if (!map[d.doctorName])
         map[d.doctorName] = { doctor: d.doctorName, revenue: 0 };
       map[d.doctorName].revenue += d.invoiceAmount;
@@ -479,6 +571,31 @@ export function DailyRevenueReportScreen({
       ];
     }
     return list;
+  }, [filteredData]);
+
+  const deptOptions = useMemo(() => {
+    const set = new Set<string>();
+    revenueTableSource.forEach((d) => {
+      if (d.department) set.add(d.department);
+    });
+    const list = Array.from(set).filter(Boolean);
+    if (!list.includes("General Medicine")) list.push("General Medicine");
+    if (!list.includes("EYE DEPT")) list.push("EYE DEPT");
+    if (!list.includes("Cardiology")) list.push("Cardiology");
+    if (!list.includes("Pediatrics")) list.push("Pediatrics");
+    return ["All Departments", ...list];
+  }, [revenueTableSource]);
+
+  const doctorOptions = useMemo(() => {
+    const set = new Set<string>();
+    revenueTableSource.forEach((d) => {
+      if (d.doctorName) set.add(d.doctorName);
+    });
+    const list = Array.from(set).filter(Boolean);
+    if (!list.includes("Dr. sarath")) list.push("Dr. sarath");
+    if (!list.includes("Dr. pradeep")) list.push("Dr. pradeep");
+    if (!list.includes("Dr. Rajesh Kumar")) list.push("Dr. Rajesh Kumar");
+    return ["All Doctors", ...list];
   }, [revenueTableSource]);
 
   const [lastUpdated] = useState(() => {
@@ -546,86 +663,49 @@ export function DailyRevenueReportScreen({
     }, 300);
   };
 
-  // Computed KPI Card Values from API hooks
+  // Computed KPI Card Values from filtered data
   const computedRevenueStats = useMemo(() => {
-    let totalRev = collectionRateData?.totalBilled ?? 0;
-    let collectedRev = collectionRateData?.totalCollected ?? 0;
-    let outstanding = collectionRateData?.outstandingAmount ?? 0;
-    const invoicesCount = revenueDetailsList.length;
-
+    let sumBilled = 0;
+    let sumPaid = 0;
+    let sumDue = 0;
     let paidInvoices = 0;
     let pendingInvoices = 0;
     let voidInvoices = 0;
 
-    if (revenueDetailsList.length > 0) {
-      let sumBilled = 0;
-      let sumPaid = 0;
-      let sumDue = 0;
-      revenueDetailsList.forEach((inv) => {
-        const billed = Number(inv.amount || inv.billedAmount || inv.totalAmount || 0);
-        const paid = Number(inv.paidAmount || inv.amount || inv.collectedAmount || 0);
-        const due = Number(inv.outstandingAmount || (billed - paid > 0 ? billed - paid : 0));
-        sumBilled += billed;
-        sumPaid += paid;
-        sumDue += due;
-        const st = String((inv as { status?: string }).status || inv.paymentStatus || "").toUpperCase();
-        if (st === "PAID" || st === "COMPLETED") paidInvoices++;
-        else if (st === "CANCELLED" || st === "VOID") voidInvoices++;
-        else pendingInvoices++;
-      });
-      if (totalRev === 0) totalRev = sumBilled;
-      if (collectedRev === 0) collectedRev = sumPaid;
-      if (outstanding === 0) outstanding = sumDue;
-    }
+    filteredData.forEach((inv) => {
+      const billed = inv.invoiceAmount;
+      const paid = inv.collectedAmount;
+      const due = inv.outstandingAmount || Math.max(0, billed - paid);
+      sumBilled += billed;
+      sumPaid += paid;
+      sumDue += due;
+      const st = String(inv.paymentStatus).toUpperCase();
+      if (st === "PAID" || st === "COMPLETED") paidInvoices++;
+      else if (st === "CANCELLED" || st === "VOID") voidInvoices++;
+      else pendingInvoices++;
+    });
+
+    const invoicesCount = filteredData.length;
+    const totalRev = sumBilled || collectionRateData?.totalBilled || 2173826168;
+    const collectedRev =
+      sumPaid || collectionRateData?.totalCollected || 2173826168;
+    const outstanding =
+      sumDue || collectionRateData?.outstandingAmount || 1032500000;
 
     return {
-      totalRev: totalRev || 2173826168,
-      collectedRev: collectedRev || 2173826168,
-      outstanding: outstanding || 1032500000,
-      invoicesCount: invoicesCount || 4,
+      totalRev,
+      collectedRev,
+      outstanding,
+      invoicesCount:
+        invoicesCount ||
+        (revenueDetailsList.length > 0 ? revenueDetailsList.length : 4),
       paidInvoices: paidInvoices || 2,
       pendingInvoices: pendingInvoices || 2,
       voidInvoices: voidInvoices || 0,
-      avgValue: invoicesCount > 0 ? Math.round(totalRev / invoicesCount) : 543456542,
+      avgValue:
+        invoicesCount > 0 ? Math.round(sumBilled / invoicesCount) : 543456542,
     };
-  }, [collectionRateData, revenueDetailsList]);
-
-  // Filtered records
-  const filteredData = useMemo(() => {
-    return revenueTableSource.filter((item) => {
-      const matchesSearch =
-        item.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.doctorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.department.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesDept =
-        deptFilter === "All Departments" || item.department === deptFilter;
-      const matchesDoctor =
-        doctorFilter === "All Doctors" || item.doctorName === doctorFilter;
-      const matchesStatus =
-        paymentStatusFilter === "All Statuses" ||
-        item.paymentStatus === paymentStatusFilter;
-      const matchesMethod =
-        paymentMethodFilter === "All Methods" ||
-        item.paymentMethod === paymentMethodFilter;
-
-      return (
-        matchesSearch &&
-        matchesDept &&
-        matchesDoctor &&
-        matchesStatus &&
-        matchesMethod
-      );
-    });
-  }, [
-    searchQuery,
-    deptFilter,
-    doctorFilter,
-    paymentStatusFilter,
-    paymentMethodFilter,
-    revenueTableSource,
-  ]);
+  }, [filteredData, collectionRateData, revenueDetailsList]);
 
   // Sorted records
   const sortedData = useMemo(() => {
@@ -670,7 +750,7 @@ export function DailyRevenueReportScreen({
     >
       {/* Top Header Section */}
       <div className="bg-white border-b border-[#E5E7EB] sticky top-0 z-20 shadow-sm">
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 xl:px-10 py-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
@@ -707,12 +787,21 @@ export function DailyRevenueReportScreen({
               </div>
               <p className="text-xs text-[#64748B] mt-0.5">
                 Monitor hospital revenue, collections and billing performance
-                for Phase 1 operations.
+                for operations.
               </p>
             </div>
 
             {/* Header Actions */}
             <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => (onBack ? onBack() : window.history.back())}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#E5E7EB] bg-white text-xs font-semibold text-[#111827] hover:bg-slate-50 transition-all shadow-2xs cursor-pointer mr-1"
+                style={{ fontFamily: PP }}
+              >
+                <ArrowLeft size={14} />
+                Back
+              </button>
               <div className="hidden lg:flex items-center gap-2 text-xs text-[#64748B] bg-slate-50 border border-[#E5E7EB] px-3 py-2 rounded-xl mr-1">
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
@@ -758,7 +847,229 @@ export function DailyRevenueReportScreen({
       </div>
 
       {/* Main Container */}
-      <div className="w-full px-4 sm:px-6 lg:px-8 mt-6">
+      <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 xl:px-10 mt-6 space-y-6">
+        {/* TOP 6 KPI CARDS SECTION */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {/* Card 1: Today's Revenue */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Today's Revenue
+              </span>
+              <div className="p-2 rounded-xl bg-emerald-50 text-[#66BB6A]">
+                <DollarSign className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              {formatCurrency(computedRevenueStats.totalRev)}
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
+              <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5">
+                <TrendingUp className="w-3 h-3" /> --
+              </span>
+              <span>vs period average</span>
+            </div>
+            <div className="h-8">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={trendSource}>
+                  <Line
+                    type="monotone"
+                    dataKey="Revenue"
+                    stroke="#66BB6A"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Card 2: Collected Revenue */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Collected Revenue
+              </span>
+              <div className="p-2 rounded-xl bg-teal-50 text-[#009688]">
+                <CheckCircle2 className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              {formatCurrency(computedRevenueStats.collectedRev)}
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
+              <span className="text-[#009688] font-semibold">
+                {(
+                  (computedRevenueStats.collectedRev /
+                    (computedRevenueStats.totalRev || 1)) *
+                  100
+                ).toFixed(1)}
+                % Collection Rate
+              </span>
+            </div>
+            <div className="h-8">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={trendSource}>
+                  <Area
+                    type="monotone"
+                    dataKey="Collections"
+                    stroke="#009688"
+                    fill="#009688"
+                    fillOpacity={0.2}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Card 3: Outstanding Amount */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Outstanding Amount
+              </span>
+              <div className="p-2 rounded-xl bg-amber-50 text-[#F59E0B]">
+                <Clock className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              {formatCurrency(computedRevenueStats.outstanding)}
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
+              <span className="text-[#F59E0B] font-semibold">
+                {(
+                  (computedRevenueStats.outstanding /
+                    (computedRevenueStats.totalRev || 1)) *
+                  100
+                ).toFixed(1)}
+                % Outstanding Rate
+              </span>
+            </div>
+            <div className="h-8">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={trendSource}>
+                  <Line
+                    type="monotone"
+                    dataKey="Outstanding"
+                    stroke="#F59E0B"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Card 4: Invoices Summary */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Invoices Generated
+              </span>
+              <div className="p-2 rounded-xl bg-blue-50 text-[#0D47A1]">
+                <CreditCard className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              {computedRevenueStats.invoicesCount}
+            </div>
+            <div className="grid grid-cols-3 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center mt-1">
+              <div>
+                <div className="text-[#66BB6A] font-bold">
+                  {computedRevenueStats.paidInvoices}
+                </div>
+                <div className="text-[#64748B]">Paid</div>
+              </div>
+              <div>
+                <div className="text-[#F59E0B] font-bold">
+                  {computedRevenueStats.pendingInvoices}
+                </div>
+                <div className="text-[#64748B]">Pending</div>
+              </div>
+              <div>
+                <div className="text-[#64748B] font-bold">
+                  {computedRevenueStats.voidInvoices}
+                </div>
+                <div className="text-[#64748B]">Void</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 5: Payment Methods Stack */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Payment Methods
+              </span>
+              <div className="p-2 rounded-xl bg-[#F1F5F9] text-[#0D47A1]">
+                <PieChartIcon className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-xs font-bold text-[#111827] mb-1">
+              Cash: -- | Card: --
+            </div>
+            <div className="text-[11px] text-[#64748B] mb-2">
+              UPI: -- | Bank: --
+            </div>
+            <div className="w-full bg-slate-100 rounded-full h-2 flex overflow-hidden">
+              <div
+                className="bg-[#009688] h-full"
+                style={{ width: "35%" }}
+              />
+              <div
+                className="bg-[#0D47A1] h-full"
+                style={{ width: "32%" }}
+              />
+              <div
+                className="bg-[#4DB6AC] h-full"
+                style={{ width: "26%" }}
+              />
+              <div
+                className="bg-[#66BB6A] h-full"
+                style={{ width: "7%" }}
+              />
+            </div>
+          </div>
+
+          {/* Card 6: Average Invoice Value */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
+            <div>
+              <span className="text-xs font-semibold text-[#64748B]">
+                Avg Invoice Value
+              </span>
+              <div
+                className="text-2xl font-bold text-[#111827] mt-1"
+                style={{ fontFamily: PP }}
+              >
+                {formatCurrency(computedRevenueStats.avgValue)}
+              </div>
+              <p className="text-[11px] text-[#64748B] mt-1">
+                Highest: -- | Min: --
+              </p>
+              <div className="mt-1 text-[11px] font-semibold text-[#0D47A1]">
+                OPD Fee Benchmark
+              </div>
+            </div>
+            <CircularProgress
+              percentage={collectionRateData?.collectionRate ?? 0}
+              size={64}
+              strokeWidth={7}
+            />
+          </div>
+        </div>
+
         {/* Global Search Bar */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
           <div className="relative">
@@ -784,162 +1095,213 @@ export function DailyRevenueReportScreen({
           </div>
         </div>
 
-        {/* Global Filter Bar */}
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-6">
-          <div
-            className="flex items-center gap-2 mb-3 text-xs font-semibold text-[#111827]"
-            style={{ fontFamily: PP }}
-          >
-            <Filter className="w-4 h-4 text-[#009688]" />
-            <span>Filter Financial Analytics</span>
+        {/* Global Filter Bar with Calendar Toolbar */}
+        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4 pb-4 border-b border-[#E5E7EB]">
+            <div
+              className="flex items-center gap-2 text-sm font-bold text-[#111827]"
+              style={{ fontFamily: PP }}
+            >
+              <Filter className="w-4 h-4 text-[#009688]" />
+              <span>Filter Revenue & Financial Analytics</span>
+            </div>
+
+            {/* Quick Date Range Toolbar Buttons */}
+            <div className="flex items-center gap-1.5 flex-wrap bg-[#F1F5F9] p-1.5 rounded-xl border border-[#E5E7EB] text-xs">
+              <span className="text-[11px] font-semibold text-[#64748B] px-2 flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5 text-[#0D47A1]" /> Range:
+              </span>
+              {[
+                { label: "Today Only", value: "Today" },
+                { label: "Yesterday", value: "Yesterday" },
+                { label: "This Week (7 Days)", value: "7 Days" },
+                { label: "This Month", value: "30 Days" },
+              ].map((btn) => (
+                <button
+                  key={btn.value}
+                  type="button"
+                  onClick={() => {
+                    dispatch({
+                      type: "SET_FILTER",
+                      payload: { key: "dateRange", value: btn.value },
+                    });
+                    const r = getDateRange(btn.value);
+                    setFromDate(r.fromDate);
+                    setToDate(r.toDate);
+                  }}
+                  className={`px-3 py-1.5 rounded-lg font-semibold transition ${
+                    dateRange === btn.value
+                      ? "bg-white text-[#0D47A1] shadow-sm border border-[#E5E7EB]"
+                      : "text-[#64748B] hover:text-[#111827]"
+                  }`}
+                >
+                  {btn.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3">
+            {/* Custom Date Pickers */}
             <div>
-              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
-                Date Range
-                <select
-                  aria-label="Select option"
-                  value={dateRange}
-                  onChange={(e) =>
-                    dispatch({
-                      type: "SET_FILTER",
-                      payload: { key: "dateRange", value: e.target.value },
-                    })
-                  }
-                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-                >
-                  <option>Today</option>
-                  <option>Yesterday</option>
-                  <option>Last 7 Days</option>
-                  <option>This Month</option>
-                </select>
+              <span className="block text-[11px] font-semibold text-[#64748B] mb-1">
+                From Date
               </span>
+              <input
+                type="date"
+                value={fromDate}
+                onChange={(e) => {
+                  setFromDate(e.target.value);
+                  dispatch({
+                    type: "SET_FILTER",
+                    payload: { key: "dateRange", value: "Custom" },
+                  });
+                }}
+                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+              />
             </div>
 
             <div>
-              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-semibold text-[#64748B] mb-1">
+                To Date
+              </span>
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) => {
+                  setToDate(e.target.value);
+                  dispatch({
+                    type: "SET_FILTER",
+                    payload: { key: "dateRange", value: "Custom" },
+                  });
+                }}
+                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+              />
+            </div>
+
+            <div>
+              <span className="block text-[11px] font-semibold text-[#64748B] mb-1">
+                Preset Range
+              </span>
+              <select
+                aria-label="Select option"
+                value={dateRange}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  dispatch({
+                    type: "SET_FILTER",
+                    payload: { key: "dateRange", value: val },
+                  });
+                  const r = getDateRange(val);
+                  setFromDate(r.fromDate);
+                  setToDate(r.toDate);
+                }}
+                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+              >
+                <option value="Today">Today</option>
+                <option value="Yesterday">Yesterday</option>
+                <option value="7 Days">Last 7 Days</option>
+                <option value="30 Days">This Month</option>
+                <option value="Custom">Custom Range</option>
+              </select>
+            </div>
+
+            <div>
+              <span className="block text-[11px] font-semibold text-[#64748B] mb-1">
                 Department
-                <select
-                  aria-label="Select option"
-                  value={deptFilter}
-                  onChange={(e) =>
-                    dispatch({
-                      type: "SET_FILTER",
-                      payload: { key: "deptFilter", value: e.target.value },
-                    })
-                  }
-                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-                >
-                  <option>All Departments</option>
-                  <option>General Medicine</option>
-                  <option>Cardiology</option>
-                  <option>Orthopedics</option>
-                  <option>Neurology</option>
-                  <option>ENT</option>
-                  <option>Pediatrics</option>
-                </select>
               </span>
+              <select
+                aria-label="Select option"
+                value={deptFilter}
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    payload: { key: "deptFilter", value: e.target.value },
+                  })
+                }
+                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+              >
+                {deptOptions.map((dept) => (
+                  <option key={dept} value={dept}>
+                    {dept}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
-              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-semibold text-[#64748B] mb-1">
                 Doctor
-                <select
-                  aria-label="Select option"
-                  value={doctorFilter}
-                  onChange={(e) =>
-                    dispatch({
-                      type: "SET_FILTER",
-                      payload: { key: "doctorFilter", value: e.target.value },
-                    })
-                  }
-                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-                >
-                  <option>All Doctors</option>
-                  <option>Dr. Sarah Jenkins</option>
-                  <option>Dr. Rajesh Kapoor</option>
-                  <option>Dr. Priya Sharma</option>
-                  <option>Dr. Arjun Mehta</option>
-                  <option>Dr. Sunita Patel</option>
-                </select>
               </span>
+              <select
+                aria-label="Select option"
+                value={doctorFilter}
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    payload: { key: "doctorFilter", value: e.target.value },
+                  })
+                }
+                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+              >
+                {doctorOptions.map((doc) => (
+                  <option key={doc} value={doc}>
+                    {doc}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
-              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-semibold text-[#64748B] mb-1">
                 Payment Status
-                <select
-                  aria-label="Select option"
-                  value={paymentStatusFilter}
-                  onChange={(e) =>
-                    dispatch({
-                      type: "SET_FILTER",
-                      payload: {
-                        key: "paymentStatusFilter",
-                        value: e.target.value,
-                      },
-                    })
-                  }
-                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-                >
-                  <option>All Statuses</option>
-                  <option>Paid</option>
-                  <option>Partially Paid</option>
-                  <option>Pending</option>
-                  <option>Cancelled</option>
-                </select>
               </span>
+              <select
+                aria-label="Select option"
+                value={paymentStatusFilter}
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    payload: {
+                      key: "paymentStatusFilter",
+                      value: e.target.value,
+                    },
+                  })
+                }
+                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+              >
+                <option>All Statuses</option>
+                <option>Paid</option>
+                <option>Partially Paid</option>
+                <option>Pending</option>
+                <option>Cancelled</option>
+              </select>
             </div>
 
             <div>
-              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <span className="block text-[11px] font-semibold text-[#64748B] mb-1">
                 Payment Method
-                <select
-                  aria-label="Select option"
-                  value={paymentMethodFilter}
-                  onChange={(e) =>
-                    dispatch({
-                      type: "SET_FILTER",
-                      payload: {
-                        key: "paymentMethodFilter",
-                        value: e.target.value,
-                      },
-                    })
-                  }
-                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-                >
-                  <option>All Methods</option>
-                  <option>Cash</option>
-                  <option>Card</option>
-                  <option>UPI</option>
-                  <option>Bank Transfer</option>
-                </select>
               </span>
-            </div>
-
-            <div>
-              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
-                Report Period
-                <select
-                  aria-label="Select option"
-                  value={reportPeriodFilter}
-                  onChange={(e) =>
-                    dispatch({
-                      type: "SET_FILTER",
-                      payload: {
-                        key: "reportPeriodFilter",
-                        value: e.target.value,
-                      },
-                    })
-                  }
-                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-                >
-                  <option>Daily</option>
-                  <option>Weekly</option>
-                  <option>Monthly</option>
-                </select>
-              </span>
+              <select
+                aria-label="Select option"
+                value={paymentMethodFilter}
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    payload: {
+                      key: "paymentMethodFilter",
+                      value: e.target.value,
+                    },
+                  })
+                }
+                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+              >
+                <option>All Methods</option>
+                <option>Cash</option>
+                <option>Card</option>
+                <option>UPI</option>
+                <option>Bank Transfer</option>
+              </select>
             </div>
           </div>
 
@@ -1178,314 +1540,152 @@ export function DailyRevenueReportScreen({
         )}
 
         {!isLoading && !hasError && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* LEFT MAIN CONTENT AREA (3 Cols) */}
-            <div className="lg:col-span-3 space-y-6">
-              {/* TOP 6 KPI CARDS SECTION */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Card 1: Today's Revenue */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Today's Revenue
-                    </span>
-                    <div className="p-2 rounded-xl bg-emerald-50 text-[#66BB6A]">
-                      <DollarSign className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
+          <div className="w-full space-y-6">
+            {/* REVENUE TREND AREA CHART */}
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div>
+                  <h3
+                    className="text-base font-bold text-[#111827]"
                     style={{ fontFamily: PP }}
                   >
-                    {formatCurrency(computedRevenueStats.totalRev)}
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
-                    <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5">
-                      <TrendingUp className="w-3 h-3" /> --
-                    </span>
-                    <span>vs period average</span>
-                  </div>
-                  <div className="h-8">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={trendSource}>
-                        <Line
-                          type="monotone"
-                          dataKey="Revenue"
-                          stroke="#66BB6A"
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
+                    Revenue & Collection Trend
+                  </h3>
+                  <p className="text-xs text-[#64748B]">
+                    Daily comparative tracking of total revenue vs collected
+                    cash flow
+                  </p>
                 </div>
 
-                {/* Card 2: Collected Revenue */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Collected Revenue
-                    </span>
-                    <div className="p-2 rounded-xl bg-teal-50 text-[#009688]">
-                      <CheckCircle2 className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    {formatCurrency(computedRevenueStats.collectedRev)}
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
-                    <span className="text-[#009688] font-semibold">
-                      {(
-                        (computedRevenueStats.collectedRev /
-                          (computedRevenueStats.totalRev || 1)) *
-                        100
-                      ).toFixed(1)}
-                      % Collection Rate
-                    </span>
-                  </div>
-                  <div className="h-8">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={trendSource}>
-                        <Area
-                          type="monotone"
-                          dataKey="Collections"
-                          stroke="#009688"
-                          fill="#009688"
-                          fillOpacity={0.2}
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* Card 3: Outstanding Amount */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Outstanding Amount
-                    </span>
-                    <div className="p-2 rounded-xl bg-amber-50 text-[#F59E0B]">
-                      <Clock className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    {formatCurrency(computedRevenueStats.outstanding)}
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
-                    <span className="text-[#F59E0B] font-semibold">
-                      {(
-                        (computedRevenueStats.outstanding /
-                          (computedRevenueStats.totalRev || 1)) *
-                        100
-                      ).toFixed(1)}
-                      % Outstanding Rate
-                    </span>
-                  </div>
-                  <div className="h-8">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={trendSource}>
-                        <Line
-                          type="monotone"
-                          dataKey="Outstanding"
-                          stroke="#F59E0B"
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* Card 4: Invoices Summary */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Invoices Generated
-                    </span>
-                    <div className="p-2 rounded-xl bg-blue-50 text-[#0D47A1]">
-                      <CreditCard className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    {computedRevenueStats.invoicesCount}
-                  </div>
-                  <div className="grid grid-cols-3 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center mt-1">
-                    <div>
-                      <div className="text-[#66BB6A] font-bold">
-                        {computedRevenueStats.paidInvoices}
-                      </div>
-                      <div className="text-[#64748B]">Paid</div>
-                    </div>
-                    <div>
-                      <div className="text-[#F59E0B] font-bold">
-                        {computedRevenueStats.pendingInvoices}
-                      </div>
-                      <div className="text-[#64748B]">Pending</div>
-                    </div>
-                    <div>
-                      <div className="text-[#64748B] font-bold">
-                        {computedRevenueStats.voidInvoices}
-                      </div>
-                      <div className="text-[#64748B]">Void</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 5: Payment Methods Stack */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Payment Methods
-                    </span>
-                    <div className="p-2 rounded-xl bg-[#F1F5F9] text-[#0D47A1]">
-                      <PieChartIcon className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div className="text-xs font-bold text-[#111827] mb-1">
-                    Cash: -- | Card: --
-                  </div>
-                  <div className="text-[11px] text-[#64748B] mb-2">
-                    UPI: -- | Bank: --
-                  </div>
-                  <div className="w-full bg-slate-100 rounded-full h-2 flex overflow-hidden">
-                    <div
-                      className="bg-[#009688] h-full"
-                      style={{ width: "35%" }}
-                    />
-                    <div
-                      className="bg-[#0D47A1] h-full"
-                      style={{ width: "32%" }}
-                    />
-                    <div
-                      className="bg-[#4DB6AC] h-full"
-                      style={{ width: "26%" }}
-                    />
-                    <div
-                      className="bg-[#66BB6A] h-full"
-                      style={{ width: "7%" }}
-                    />
-                  </div>
-                </div>
-
-                {/* Card 6: Average Invoice Value */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Avg Invoice Value
-                    </span>
-                    <div
-                      className="text-2xl font-bold text-[#111827] mt-1"
-                      style={{ fontFamily: PP }}
-                    >
-                      {formatCurrency(computedRevenueStats.avgValue)}
-                    </div>
-                    <p className="text-[11px] text-[#64748B] mt-1">
-                      Highest: -- | Min: --
-                    </p>
-                    <div className="mt-1 text-[11px] font-semibold text-[#0D47A1]">
-                      âœ" OPD Fee Benchmark
-                    </div>
-                  </div>
-                  <CircularProgress
-                    percentage={collectionRateData?.collectionRate ?? 0}
-                    size={64}
-                    strokeWidth={7}
-                  />
+                <div className="flex items-center gap-1 bg-[#F1F5F9] p-1 rounded-xl border border-[#E5E7EB] text-xs">
+                  {(["Today", "7 Days", "30 Days", "90 Days"] as const).map(
+                    (t) => (
+                      <button
+                        key={t}
+                        onClick={() =>
+                          dispatch({ type: "SET_TREND_DAYS", payload: t })
+                        }
+                        className={`px-3 py-1 rounded-lg font-medium transition ${trendDays === t ? "bg-white text-[#0D47A1] shadow-sm" : "text-[#64748B]"}`}
+                      >
+                        {t}
+                      </button>
+                    ),
+                  )}
                 </div>
               </div>
 
-              {/* REVENUE TREND AREA CHART */}
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+              <div className="h-72">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={trendSource}
+                    margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                  >
+                    <defs>
+                      <linearGradient
+                        id="colorRevGrad"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="5%"
+                          stopColor="#0D47A1"
+                          stopOpacity={0.4}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="#0D47A1"
+                          stopOpacity={0}
+                        />
+                      </linearGradient>
+                      <linearGradient
+                        id="colorCollGrad"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="5%"
+                          stopColor="#66BB6A"
+                          stopOpacity={0.4}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="#66BB6A"
+                          stopOpacity={0}
+                        />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fontSize: 11, fill: "#64748B" }}
+                    />
+                    <YAxis tick={{ fontSize: 11, fill: "#64748B" }} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "#FFFFFF",
+                        borderRadius: "12px",
+                        borderColor: "#E5E7EB",
+                        fontSize: "11px",
+                      }}
+                    />
+                    <Legend
+                      verticalAlign="top"
+                      height={36}
+                      wrapperStyle={{ fontSize: "11px" }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="Revenue"
+                      stroke="#0D47A1"
+                      fillOpacity={1}
+                      fill="url(#colorRevGrad)"
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="Collections"
+                      stroke="#66BB6A"
+                      fillOpacity={1}
+                      fill="url(#colorCollGrad)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* REVENUE VS COLLECTIONS & PAYMENT METHOD DISTRIBUTION */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Grouped Bar Revenue vs Collections */}
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
                   <div>
                     <h3
-                      className="text-base font-bold text-[#111827]"
+                      className="text-sm font-bold text-[#111827]"
                       style={{ fontFamily: PP }}
                     >
-                      Revenue & Collection Trend
+                      Revenue vs Collections
                     </h3>
-                    <p className="text-xs text-[#64748B]">
-                      Daily comparative tracking of total revenue vs collected
-                      cash flow
+                    <p className="text-[11px] text-[#64748B]">
+                      Billed vs collected amount per day
                     </p>
                   </div>
-
-                  <div className="flex items-center gap-1 bg-[#F1F5F9] p-1 rounded-xl border border-[#E5E7EB] text-xs">
-                    {(["Today", "7 Days", "30 Days", "90 Days"] as const).map(
-                      (t) => (
-                        <button
-                          key={t}
-                          onClick={() =>
-                            dispatch({ type: "SET_TREND_DAYS", payload: t })
-                          }
-                          className={`px-3 py-1 rounded-lg font-medium transition ${trendDays === t ? "bg-white text-[#0D47A1] shadow-sm" : "text-[#64748B]"}`}
-                        >
-                          {t}
-                        </button>
-                      ),
-                    )}
-                  </div>
+                  <DollarSign className="w-4 h-4 text-[#009688]" />
                 </div>
-
-                <div className="h-72">
+                <div className="h-60">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart
+                    <BarChart
                       data={trendSource}
-                      margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                      margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
                     >
-                      <defs>
-                        <linearGradient
-                          id="colorRevGrad"
-                          x1="0"
-                          y1="0"
-                          x2="0"
-                          y2="1"
-                        >
-                          <stop
-                            offset="5%"
-                            stopColor="#0D47A1"
-                            stopOpacity={0.4}
-                          />
-                          <stop
-                            offset="95%"
-                            stopColor="#0D47A1"
-                            stopOpacity={0}
-                          />
-                        </linearGradient>
-                        <linearGradient
-                          id="colorCollGrad"
-                          x1="0"
-                          y1="0"
-                          x2="0"
-                          y2="1"
-                        >
-                          <stop
-                            offset="5%"
-                            stopColor="#66BB6A"
-                            stopOpacity={0.4}
-                          />
-                          <stop
-                            offset="95%"
-                            stopColor="#66BB6A"
-                            stopOpacity={0}
-                          />
-                        </linearGradient>
-                      </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
                       <XAxis
                         dataKey="date"
-                        tick={{ fontSize: 11, fill: "#64748B" }}
+                        tick={{ fontSize: 10, fill: "#64748B" }}
                       />
-                      <YAxis tick={{ fontSize: 11, fill: "#64748B" }} />
+                      <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
                       <Tooltip
                         contentStyle={{
                           backgroundColor: "#FFFFFF",
@@ -1496,56 +1696,164 @@ export function DailyRevenueReportScreen({
                       />
                       <Legend
                         verticalAlign="top"
-                        height={36}
-                        wrapperStyle={{ fontSize: "11px" }}
+                        height={26}
+                        wrapperStyle={{ fontSize: "10px" }}
                       />
-                      <Area
-                        type="monotone"
+                      <Bar
                         dataKey="Revenue"
-                        stroke="#0D47A1"
-                        fillOpacity={1}
-                        fill="url(#colorRevGrad)"
+                        fill="#0D47A1"
+                        radius={[4, 4, 0, 0]}
                       />
-                      <Area
-                        type="monotone"
+                      <Bar
                         dataKey="Collections"
-                        stroke="#66BB6A"
-                        fillOpacity={1}
-                        fill="url(#colorCollGrad)"
+                        fill="#66BB6A"
+                        radius={[4, 4, 0, 0]}
                       />
-                    </AreaChart>
+                    </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
-              {/* REVENUE VS COLLECTIONS & PAYMENT METHOD DISTRIBUTION */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Grouped Bar Revenue vs Collections */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3
-                        className="text-sm font-bold text-[#111827]"
-                        style={{ fontFamily: PP }}
-                      >
-                        Revenue vs Collections
-                      </h3>
-                      <p className="text-[11px] text-[#64748B]">
-                        Billed vs collected amount per day
-                      </p>
-                    </div>
-                    <DollarSign className="w-4 h-4 text-[#009688]" />
+              {/* Payment Method Distribution Donut */}
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3
+                      className="text-sm font-bold text-[#111827]"
+                      style={{ fontFamily: PP }}
+                    >
+                      Payment Method Share
+                    </h3>
+                    <p className="text-[11px] text-[#64748B]">
+                      Collection split across payment modes
+                    </p>
                   </div>
-                  <div className="h-60">
+                  <CreditCard className="w-4 h-4 text-[#0D47A1]" />
+                </div>
+                <div className="h-60">
+                  {paymentMethodShareData.length > 0 && (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RechartsPie>
+                        <Pie
+                          data={paymentMethodShareData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={45}
+                          outerRadius={75}
+                          paddingAngle={3}
+                          dataKey="value"
+                        >
+                          {paymentMethodShareData.map((entry) => (
+                            <Cell key={entry.name} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "#FFFFFF",
+                            borderRadius: "12px",
+                            borderColor: "#E5E7EB",
+                            fontSize: "11px",
+                          }}
+                        />
+                        <Legend
+                          layout="horizontal"
+                          verticalAlign="bottom"
+                          align="center"
+                          wrapperStyle={{
+                            fontSize: "10px",
+                            paddingTop: "10px",
+                          }}
+                        />
+                      </RechartsPie>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* DEPARTMENT REVENUE & DOCTOR REVENUE CONTRIBUTION */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Department Revenue Horizontal Bar */}
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3
+                      className="text-sm font-bold text-[#111827]"
+                      style={{ fontFamily: PP }}
+                    >
+                      Department Revenue Breakdown
+                    </h3>
+                    <p className="text-[11px] text-[#64748B]">
+                      Total billing per specialty department
+                    </p>
+                  </div>
+                  <Building2 className="w-4 h-4 text-[#009688]" />
+                </div>
+                <div className="h-60">
+                  {deptRevenueData.length > 0 && (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
-                        data={trendSource}
-                        margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+                        layout="vertical"
+                        data={deptRevenueData}
+                        margin={{ top: 5, right: 10, left: 20, bottom: 5 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
                         <XAxis
-                          dataKey="date"
+                          type="number"
                           tick={{ fontSize: 10, fill: "#64748B" }}
+                        />
+                        <YAxis
+                          type="category"
+                          dataKey="department"
+                          tick={{ fontSize: 10, fill: "#111827" }}
+                          width={80}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "#FFFFFF",
+                            borderRadius: "12px",
+                            borderColor: "#E5E7EB",
+                            fontSize: "11px",
+                          }}
+                        />
+                        <Bar
+                          dataKey="revenue"
+                          fill="#009688"
+                          radius={[0, 4, 4, 0]}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </div>
+
+              {/* Doctor Revenue Contribution Vertical Bar */}
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3
+                      className="text-sm font-bold text-[#111827]"
+                      style={{ fontFamily: PP }}
+                    >
+                      Doctor Revenue Contribution
+                    </h3>
+                    <p className="text-[11px] text-[#64748B]">
+                      Top revenue generating doctors
+                    </p>
+                  </div>
+                  <UserCheck className="w-4 h-4 text-[#0D47A1]" />
+                </div>
+                <div className="h-60">
+                  {doctorRevenueData.length > 0 && (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={doctorRevenueData}
+                        margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                        <XAxis
+                          dataKey="doctor"
+                          tick={{ fontSize: 9, fill: "#64748B" }}
                         />
                         <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
                         <Tooltip
@@ -1556,376 +1864,198 @@ export function DailyRevenueReportScreen({
                             fontSize: "11px",
                           }}
                         />
-                        <Legend
-                          verticalAlign="top"
-                          height={26}
-                          wrapperStyle={{ fontSize: "10px" }}
-                        />
                         <Bar
-                          dataKey="Revenue"
+                          dataKey="revenue"
                           fill="#0D47A1"
-                          radius={[4, 4, 0, 0]}
-                        />
-                        <Bar
-                          dataKey="Collections"
-                          fill="#66BB6A"
                           radius={[4, 4, 0, 0]}
                         />
                       </BarChart>
                     </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* Payment Method Distribution Donut */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3
-                        className="text-sm font-bold text-[#111827]"
-                        style={{ fontFamily: PP }}
-                      >
-                        Payment Method Share
-                      </h3>
-                      <p className="text-[11px] text-[#64748B]">
-                        Collection split across payment modes
-                      </p>
-                    </div>
-                    <CreditCard className="w-4 h-4 text-[#0D47A1]" />
-                  </div>
-                  <div className="h-60">
-                    {paymentMethodShareData.length > 0 && (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <RechartsPie>
-                          <Pie
-                            data={paymentMethodShareData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={45}
-                            outerRadius={75}
-                            paddingAngle={3}
-                            dataKey="value"
-                          >
-                            {paymentMethodShareData.map((entry) => (
-                              <Cell key={entry.name} fill={entry.color} />
-                            ))}
-                          </Pie>
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: "#FFFFFF",
-                              borderRadius: "12px",
-                              borderColor: "#E5E7EB",
-                              fontSize: "11px",
-                            }}
-                          />
-                          <Legend
-                            layout="horizontal"
-                            verticalAlign="bottom"
-                            align="center"
-                            wrapperStyle={{
-                              fontSize: "10px",
-                              paddingTop: "10px",
-                            }}
-                          />
-                        </RechartsPie>
-                      </ResponsiveContainer>
-                    )}
-                  </div>
+                  )}
                 </div>
               </div>
+            </div>
 
-              {/* DEPARTMENT REVENUE & DOCTOR REVENUE CONTRIBUTION */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Department Revenue Horizontal Bar */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3
-                        className="text-sm font-bold text-[#111827]"
-                        style={{ fontFamily: PP }}
-                      >
-                        Department Revenue Breakdown
-                      </h3>
-                      <p className="text-[11px] text-[#64748B]">
-                        Total billing per specialty department
-                      </p>
-                    </div>
-                    <Building2 className="w-4 h-4 text-[#009688]" />
-                  </div>
-                  <div className="h-60">
-                    {deptRevenueData.length > 0 && (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          layout="vertical"
-                          data={deptRevenueData}
-                          margin={{ top: 5, right: 10, left: 20, bottom: 5 }}
-                        >
-                          <CartesianGrid
-                            strokeDasharray="3 3"
-                            stroke="#F1F5F9"
-                          />
-                          <XAxis
-                            type="number"
-                            tick={{ fontSize: 10, fill: "#64748B" }}
-                          />
-                          <YAxis
-                            type="category"
-                            dataKey="department"
-                            tick={{ fontSize: 10, fill: "#111827" }}
-                            width={80}
-                          />
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: "#FFFFFF",
-                              borderRadius: "12px",
-                              borderColor: "#E5E7EB",
-                              fontSize: "11px",
-                            }}
-                          />
-                          <Bar
-                            dataKey="revenue"
-                            fill="#009688"
-                            radius={[0, 4, 4, 0]}
-                          />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    )}
-                  </div>
-                </div>
-
-                {/* Doctor Revenue Contribution Vertical Bar */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3
-                        className="text-sm font-bold text-[#111827]"
-                        style={{ fontFamily: PP }}
-                      >
-                        Doctor Revenue Contribution
-                      </h3>
-                      <p className="text-[11px] text-[#64748B]">
-                        Top revenue generating doctors
-                      </p>
-                    </div>
-                    <UserCheck className="w-4 h-4 text-[#0D47A1]" />
-                  </div>
-                  <div className="h-60">
-                    {doctorRevenueData.length > 0 && (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          data={doctorRevenueData}
-                          margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
-                        >
-                          <CartesianGrid
-                            strokeDasharray="3 3"
-                            stroke="#F1F5F9"
-                          />
-                          <XAxis
-                            dataKey="doctor"
-                            tick={{ fontSize: 9, fill: "#64748B" }}
-                          />
-                          <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: "#FFFFFF",
-                              borderRadius: "12px",
-                              borderColor: "#E5E7EB",
-                              fontSize: "11px",
-                            }}
-                          />
-                          <Bar
-                            dataKey="revenue"
-                            fill="#0D47A1"
-                            radius={[4, 4, 0, 0]}
-                          />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* REVENUE REPORT TABLE */}
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
-                <div className="p-5 border-b border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <div>
-                    <h3
-                      className="text-base font-bold text-[#111827]"
-                      style={{ fontFamily: PP }}
-                    >
-                      Daily Billing Register
-                    </h3>
-                    <p className="text-xs text-[#64748B]">
-                      Detailed OPD invoice transactions and payment collection
-                      ledger
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => alert("Exporting Billing Register (CSV)...")}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] text-xs font-semibold text-[#111827] rounded-xl hover:bg-slate-100 transition"
+            {/* REVENUE REPORT TABLE */}
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
+              <div className="p-5 border-b border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <h3
+                    className="text-base font-bold text-[#111827]"
+                    style={{ fontFamily: PP }}
                   >
-                    <Download className="w-3.5 h-3.5 text-[#0D47A1]" />
-                    <span>Export Ledger</span>
-                  </button>
+                    Daily Billing Register
+                  </h3>
+                  <p className="text-xs text-[#64748B]">
+                    Detailed OPD invoice transactions and payment collection
+                    ledger
+                  </p>
                 </div>
+                <button
+                  onClick={() => alert("Exporting Billing Register (CSV)...")}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] text-xs font-semibold text-[#111827] rounded-xl hover:bg-slate-100 transition"
+                >
+                  <Download className="w-3.5 h-3.5 text-[#0D47A1]" />
+                  <span>Export Ledger</span>
+                </button>
+              </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-[#F1F5F9] text-[11px] font-bold text-[#64748B] uppercase tracking-wider border-b border-[#E5E7EB]">
-                        <th
-                          tabIndex={0}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              (e.currentTarget as HTMLElement).click();
-                            }
-                          }}
-                          className="py-3.5 px-4 cursor-pointer hover:text-[#0D47A1]"
-                          onClick={() => handleSort("id")}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-[#F1F5F9] text-[11px] font-bold text-[#64748B] uppercase tracking-wider border-b border-[#E5E7EB]">
+                      <th
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            (e.currentTarget as HTMLElement).click();
+                          }
+                        }}
+                        className="py-3.5 px-4 cursor-pointer hover:text-[#0D47A1]"
+                        onClick={() => handleSort("id")}
+                      >
+                        Invoice ID{" "}
+                        {sortField === "id" &&
+                          (sortOrder === "asc" ? "â†‘" : "â†“")}
+                      </th>
+                      <th
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            (e.currentTarget as HTMLElement).click();
+                          }
+                        }}
+                        className="py-3.5 px-4 cursor-pointer hover:text-[#0D47A1]"
+                        onClick={() => handleSort("patientName")}
+                      >
+                        Patient{" "}
+                        {sortField === "patientName" &&
+                          (sortOrder === "asc" ? "â†‘" : "â†“")}
+                      </th>
+                      <th className="py-3.5 px-4">MRN</th>
+                      <th className="py-3.5 px-4">Doctor</th>
+                      <th className="py-3.5 px-4">Department</th>
+                      <th
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            (e.currentTarget as HTMLElement).click();
+                          }
+                        }}
+                        className="py-3.5 px-4 text-right cursor-pointer hover:text-[#0D47A1]"
+                        onClick={() => handleSort("invoiceAmount")}
+                      >
+                        Billed{" "}
+                        {sortField === "invoiceAmount" &&
+                          (sortOrder === "asc" ? "â†‘" : "â†“")}
+                      </th>
+                      <th className="py-3.5 px-4 text-right">Collected</th>
+                      <th className="py-3.5 px-4 text-center">Method</th>
+                      <th className="py-3.5 px-4 text-center">Status</th>
+                      <th className="py-3.5 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E5E7EB] text-xs">
+                    {sortedData.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={10}
+                          className="py-8 text-center text-[#64748B]"
                         >
-                          Invoice ID{" "}
-                          {sortField === "id" &&
-                            (sortOrder === "asc" ? "â†‘" : "â†“")}
-                        </th>
-                        <th
-                          tabIndex={0}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              (e.currentTarget as HTMLElement).click();
-                            }
-                          }}
-                          className="py-3.5 px-4 cursor-pointer hover:text-[#0D47A1]"
-                          onClick={() => handleSort("patientName")}
-                        >
-                          Patient{" "}
-                          {sortField === "patientName" &&
-                            (sortOrder === "asc" ? "â†‘" : "â†“")}
-                        </th>
-                        <th className="py-3.5 px-4">MRN</th>
-                        <th className="py-3.5 px-4">Doctor</th>
-                        <th className="py-3.5 px-4">Department</th>
-                        <th
-                          tabIndex={0}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              (e.currentTarget as HTMLElement).click();
-                            }
-                          }}
-                          className="py-3.5 px-4 text-right cursor-pointer hover:text-[#0D47A1]"
-                          onClick={() => handleSort("invoiceAmount")}
-                        >
-                          Billed{" "}
-                          {sortField === "invoiceAmount" &&
-                            (sortOrder === "asc" ? "â†‘" : "â†“")}
-                        </th>
-                        <th className="py-3.5 px-4 text-right">Collected</th>
-                        <th className="py-3.5 px-4 text-center">Method</th>
-                        <th className="py-3.5 px-4 text-center">Status</th>
-                        <th className="py-3.5 px-4 text-right">Actions</th>
+                          No billing records match the selected filter criteria.
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#E5E7EB] text-xs">
-                      {sortedData.length === 0 ? (
-                        <tr>
-                          <td
-                            colSpan={10}
-                            className="py-8 text-center text-[#64748B]"
-                          >
-                            No billing records match the selected filter
-                            criteria.
+                    ) : (
+                      sortedData.map((item) => (
+                        <tr
+                          key={item.id}
+                          className="hover:bg-slate-50 transition-colors"
+                        >
+                          <td className="py-3.5 px-4 font-bold text-[#0D47A1]">
+                            {item.id}
+                          </td>
+                          <td className="py-3.5 px-4 font-semibold text-[#111827]">
+                            {item.patientName}
+                          </td>
+                          <td className="py-3.5 px-4 text-[#64748B]">
+                            {item.mrn}
+                          </td>
+                          <td className="py-3.5 px-4 font-medium text-[#111827]">
+                            {item.doctorName}
+                          </td>
+                          <td className="py-3.5 px-4 text-[#64748B]">
+                            {item.department}
+                          </td>
+                          <td className="py-3.5 px-4 text-right font-bold text-[#111827]">
+                            {formatCurrency(item.invoiceAmount)}
+                          </td>
+                          <td className="py-3.5 px-4 text-right font-semibold text-[#66BB6A]">
+                            {formatCurrency(item.collectedAmount)}
+                          </td>
+                          <td className="py-3.5 px-4 text-center">
+                            <span className="px-2 py-0.5 rounded bg-slate-100 text-[#64748B] text-[10px] font-medium">
+                              {item.paymentMethod}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-center">
+                            {renderStatusChip(item.paymentStatus)}
+                          </td>
+                          <td className="py-3.5 px-4 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                onClick={() =>
+                                  alert(`Viewing invoice ${item.id}`)
+                                }
+                                className="p-1.5 text-[#0D47A1] hover:bg-blue-50 rounded-lg transition"
+                                title="View Invoice"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() =>
+                                  alert(`Printing summary for ${item.id}`)
+                                }
+                                className="p-1.5 text-[#64748B] hover:bg-slate-100 rounded-lg transition"
+                                title="Print Summary"
+                              >
+                                <Printer className="w-4 h-4" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
-                      ) : (
-                        sortedData.map((item) => (
-                          <tr
-                            key={item.id}
-                            className="hover:bg-slate-50 transition-colors"
-                          >
-                            <td className="py-3.5 px-4 font-bold text-[#0D47A1]">
-                              {item.id}
-                            </td>
-                            <td className="py-3.5 px-4 font-semibold text-[#111827]">
-                              {item.patientName}
-                            </td>
-                            <td className="py-3.5 px-4 text-[#64748B]">
-                              {item.mrn}
-                            </td>
-                            <td className="py-3.5 px-4 font-medium text-[#111827]">
-                              {item.doctorName}
-                            </td>
-                            <td className="py-3.5 px-4 text-[#64748B]">
-                              {item.department}
-                            </td>
-                            <td className="py-3.5 px-4 text-right font-bold text-[#111827]">
-                              {formatCurrency(item.invoiceAmount)}
-                            </td>
-                            <td className="py-3.5 px-4 text-right font-semibold text-[#66BB6A]">
-                              {formatCurrency(item.collectedAmount)}
-                            </td>
-                            <td className="py-3.5 px-4 text-center">
-                              <span className="px-2 py-0.5 rounded bg-slate-100 text-[#64748B] text-[10px] font-medium">
-                                {item.paymentMethod}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4 text-center">
-                              {renderStatusChip(item.paymentStatus)}
-                            </td>
-                            <td className="py-3.5 px-4 text-right">
-                              <div className="flex items-center justify-end gap-1">
-                                <button
-                                  onClick={() =>
-                                    alert(`Viewing invoice ${item.id}`)
-                                  }
-                                  className="p-1.5 text-[#0D47A1] hover:bg-blue-50 rounded-lg transition"
-                                  title="View Invoice"
-                                >
-                                  <Eye className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    alert(`Printing summary for ${item.id}`)
-                                  }
-                                  className="p-1.5 text-[#64748B] hover:bg-slate-100 rounded-lg transition"
-                                  title="Print Summary"
-                                >
-                                  <Printer className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
 
-                {/* Table Pagination */}
-                <div className="p-4 bg-[#F1F5F9] border-t border-[#E5E7EB] flex items-center justify-between text-xs text-[#64748B]">
-                  <span>
-                    Showing 1 to {sortedData.length} of {sortedData.length}{" "}
-                    entries
+              {/* Table Pagination */}
+              <div className="p-4 bg-[#F1F5F9] border-t border-[#E5E7EB] flex items-center justify-between text-xs text-[#64748B]">
+                <span>
+                  Showing 1 to {sortedData.length} of {sortedData.length}{" "}
+                  entries
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    aria-label="Previous"
+                    disabled
+                    className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <span className="font-semibold text-[#111827]">
+                    Page 1 of 1
                   </span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      aria-label="Previous"
-                      disabled
-                      className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <span className="font-semibold text-[#111827]">
-                      Page 1 of 1
-                    </span>
-                    <button
-                      aria-label="Next"
-                      disabled
-                      className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
-                    >
-                      <ChevronRightIcon className="w-4 h-4" />
-                    </button>
-                  </div>
+                  <button
+                    aria-label="Next"
+                    disabled
+                    className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
+                  >
+                    <ChevronRightIcon className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             </div>

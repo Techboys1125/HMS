@@ -54,6 +54,7 @@ type RoleLabelMap = typeof ROLE_LABEL;
 interface ProfileMenuProps {
   displayName: string;
   displayEmail: string;
+  photoUrl?: string | null;
   roleLabel: RoleLabelMap;
   role: Role;
   setShowProfileMenu: React.Dispatch<React.SetStateAction<boolean>>;
@@ -215,6 +216,7 @@ const ActivePatientSelector = ({
 const ProfileMenu = ({
   displayName,
   displayEmail,
+  photoUrl,
   roleLabel,
   role,
   setShowProfileMenu,
@@ -226,7 +228,7 @@ const ProfileMenu = ({
 }: ProfileMenuProps) => (
   <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl border border-gray-200 shadow-xl shadow-slate-200/50 p-2 z-50 transition-opacity duration-150">
     <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl mb-1 border border-slate-100">
-      <Avatar name={displayName} size="md" />
+      <Avatar name={displayName} photoUrl={photoUrl} size="md" />
       <div className="min-w-0 flex-1">
         <div
           className="text-xs font-bold text-[#111827] truncate"
@@ -529,6 +531,13 @@ export function Header({
   const { data: unreadData } = useUnreadCount();
   const unreadCount = unreadData?.count ?? 0;
 
+  const userPhoto =
+    user?.photoUrl ||
+    user?.photo ||
+    (user as unknown as { photo_url?: string })?.photo_url ||
+    (user as unknown as { avatar?: string })?.avatar ||
+    null;
+
   return (
     <header className="h-16 bg-white border-b border-gray-100 flex items-center px-5 gap-5 shrink-0 z-30 relative">
       <button
@@ -582,7 +591,7 @@ export function Header({
             }}
             className="flex items-center gap-2.5 p-1 rounded-xl hover:bg-slate-50 transition-colors outline-none"
           >
-            <Avatar name={displayName} size="sm" />
+            <Avatar name={displayName} photoUrl={userPhoto} size="sm" />
             <div className="hidden xl:block text-left">
               <div
                 className="text-xs font-semibold text-[#111827] leading-tight"
@@ -604,6 +613,7 @@ export function Header({
             <ProfileMenu
               displayName={displayName}
               displayEmail={displayEmail}
+              photoUrl={userPhoto}
               roleLabel={roleLabel}
               role={role}
               setShowProfileMenu={setShowProfileMenu}

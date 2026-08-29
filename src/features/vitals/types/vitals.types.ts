@@ -1,5 +1,6 @@
 export interface RecordedVitalsData {
   vitalsId?: number | string;
+  bloodPressure?: string;
   bpSystolic?: string;
   bpDiastolic?: string;
   pulseRate?: string;
@@ -7,11 +8,14 @@ export interface RecordedVitalsData {
   temperature?: string;
   tempUnit?: "F" | "C";
   spo2?: string;
+  heartRate?: string | number;
+  oxygenSaturation?: string | number;
   height?: string;
   weight?: string;
   bmi?: string;
   bmiCategory?: string;
   bloodSugar?: string;
+  bloodGroup?: string;
   painScale?: string;
   allergies?: string;
   notes?: string;
@@ -25,8 +29,18 @@ export interface RecordedVitalsData {
   appearance?: string;
   consciousness?: string;
   observation?: string;
-  recordedBy?: string;
+  recordedBy?: string | { employeeId?: string; name?: string };
   recordedAt?: string;
+  chiefComplaint?: string;
+  symptoms?: string;
+  diagnosis?: string;
+  clinicalNotes?: string;
+  status?: string;
+  version?: number;
+  lastUpdatedBy?: string | { employeeId?: string; name?: string };
+  lastUpdatedAt?: string;
+  lastReviewedBy?: string | { employeeId?: string; name?: string };
+  lastReviewedAt?: string;
 }
 
 export interface NurseVitalsPayload {
@@ -65,6 +79,10 @@ export interface NurseWaitingPatient {
   time?: string;
   timeSlot?: string;
   status?: string;
+  vitalsStatus?: string;
+  consultationStatus?: string;
+  priority?: string;
+  checkInDate?: string;
   phone?: string;
   contact?: string;
 

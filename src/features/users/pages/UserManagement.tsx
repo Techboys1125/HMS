@@ -50,6 +50,7 @@ import { usersApi } from "../api/users.api";
 import { departmentsApi } from "../api/departments.api";
 import { EditStaffUserDrawer } from "../components/EditStaffUserDrawer";
 import type { User } from "../../auth/types/auth.types";
+import { DataTable } from "../../../common/components/DataTable";
 
 // --- Typography & Design Tokens ---
 const PP = "Poppins, sans-serif";
@@ -754,482 +755,290 @@ export const UserManagement: React.FC = () => {
             </div>
           </div>
 
-          {/* ── 3. SEARCH & FILTERS TOOLBAR ── */}
-          <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-              {/* Search Box */}
-              <div className="relative flex-1 max-w-md">
-                <Search
-                  size={15}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-                />
-                <input
-                  aria-label="Input field"
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by User Name, Employee ID, Email, Username..."
-                  className="w-full pl-9 pr-3.5 py-2.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-                />
-                {searchQuery && (
-                  <button
-                    aria-label="Close"
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  >
-                    <X size={13} />
-                  </button>
-                )}
-              </div>
+          {/* ── 3. MAIN ROLES & USER MANAGEMENT TABLE ── */}
+            <DataTable<UserRecord>
+            data={filteredUsers}
+            loading={loading}
+            getRowId={(u) => u.id}
+            title="Roles & Staff User Roster"
+            subtitle="Manage clinical staff accounts, system users, access permissions, and account statuses."
+            headerBadge={
+              <span className="text-xs font-semibold text-[#0D47A1] bg-blue-50 px-3 py-1 rounded-xl border border-blue-100 font-mono">
+                Showing {filteredUsers.length} of {users.length} Users
+              </span>
+            }
+            searchable={true}
+            searchPlaceholder="🔍 Search by User Name, Employee ID, Email, Username..."
+            searchValue={searchQuery}
+            onSearchChange={setSearchQuery}
+            toolbar={
+              <div className="bg-slate-50/80 border border-[#E5E7EB] rounded-xl p-2.5 space-y-2 shadow-2xs text-xs">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-2.5 py-1 rounded-lg text-slate-700 font-medium">
+                    <Shield size={13} className="text-slate-400" />
+                    <span className="text-slate-400 text-[11px]">Role:</span>
+                    <select
+                      aria-label="Role filter"
+                      value={roleFilter}
+                      onChange={(e) => setRoleFilter(e.target.value)}
+                      className="bg-transparent font-semibold text-[#0D47A1] outline-none cursor-pointer text-xs"
+                    >
+                      <option value="All">All Roles</option>
+                      <option value="Hospital Admin">Hospital Admin</option>
+                      <option value="Doctor">Doctor</option>
+                      <option value="Receptionist">Receptionist</option>
+                      <option value="Nurse">Nurse</option>
+                      <option value="Accountant">Accountant</option>
+                      <option value="Super Admin">Super Admin</option>
+                      <option value="Patient">Patient</option>
+                    </select>
+                  </div>
 
-              {/* Filter Dropdowns */}
-              <div className="flex items-center gap-2 flex-wrap text-xs">
-                {/* Role Filter */}
-                <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
-                  <Shield size={13} className="text-slate-400" />
-                  <span className="text-slate-500 font-medium">Role:</span>
-                  <select
-                    aria-label="Select option"
-                    value={roleFilter}
-                    onChange={(e) => setRoleFilter(e.target.value)}
-                    className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
-                  >
-                    <option value="All">All Roles</option>
-                    <option value="Hospital Admin">Hospital Admin</option>
-                    <option value="Doctor">Doctor</option>
-                    <option value="Receptionist">Receptionist</option>
-                    <option value="Nurse">Nurse</option>
-                    <option value="Accountant">Accountant</option>
-                    <option value="Super Admin">Super Admin</option>
-                    <option value="Patient">Patient</option>
-                  </select>
-                </div>
+                  <div className="flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-2.5 py-1 rounded-lg text-slate-700 font-medium">
+                    <Filter size={13} className="text-slate-400" />
+                    <span className="text-slate-400 text-[11px]">Status:</span>
+                    <select
+                      aria-label="Status filter"
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      className="bg-transparent font-semibold text-[#0D47A1] outline-none cursor-pointer text-xs"
+                    >
+                      <option value="All">All Statuses</option>
+                      <option value="Active">Active</option>
+                      <option value="Inactive">Inactive</option>
+                      <option value="Pending">Pending</option>
+                      <option value="Suspended">Suspended</option>
+                    </select>
+                  </div>
 
-                {/* Status Filter */}
-                <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
-                  <Filter size={13} className="text-slate-400" />
-                  <span className="text-slate-500 font-medium">Status:</span>
-                  <select
-                    aria-label="Select option"
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
-                  >
-                    <option value="All">All Statuses</option>
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Suspended">Suspended</option>
-                  </select>
-                </div>
-
-                <button
-                  onClick={() => {
-                    setSearchQuery("");
-                    setRoleFilter("All");
-                    setStatusFilter("All");
-                    triggerToast("Filters reset.");
-                  }}
-                  className="p-2 rounded-xl border border-[#E5E7EB] bg-white text-slate-500 hover:text-[#0D47A1] hover:bg-slate-50 transition-colors cursor-pointer"
-                  title="Reset Filters"
-                >
-                  <RotateCcw size={14} />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* ── 4. MAIN USER MANAGEMENT HMS TABLE ── */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
-            {loading ? (
-              <div className="py-20 flex flex-col items-center justify-center gap-3">
-                <Loader2 className="animate-spin text-primary" size={32} />
-                <p className="text-xs text-text-muted">
-                  Fetching staff data from API database...
-                </p>
-              </div>
-            ) : errorMsg ? (
-              <div className="py-20 flex flex-col items-center justify-center gap-3 text-center px-4">
-                <AlertTriangle className="text-red-500" size={32} />
-                <h3
-                  className="text-sm font-bold text-[#111827]"
-                  style={{ fontFamily: PP }}
-                >
-                  Failed to Load Data
-                </h3>
-                <p className="text-xs text-red-650 max-w-sm">{errorMsg}</p>
-                <button
-                  onClick={fetchUsers}
-                  className="mt-2 btn btn-outline-primary inline-flex items-center gap-2 text-xs py-2 px-4 border rounded-xl"
-                >
-                  <RotateCcw size={12} />
-                  Retry Fetch
-                </button>
-              </div>
-            ) : (
-              <div className="overflow-x-auto max-h-150 overflow-y-auto">
-                <table className="w-full border-collapse text-left text-xs">
-                  <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB] z-10">
-                    <tr
-                      className="text-[#64748B] font-bold"
+                  {(roleFilter !== "All" || statusFilter !== "All" || searchQuery) && (
+                    <button
+                      onClick={() => {
+                        setSearchQuery("");
+                        setRoleFilter("All");
+                        setStatusFilter("All");
+                        triggerToast("Filters reset.");
+                      }}
+                      className="px-2.5 py-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer shadow-2xs shrink-0 ml-auto"
                       style={{ fontFamily: PP }}
                     >
-                      <th
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            (e.currentTarget as HTMLElement).click();
-                          }
-                        }}
-                        onClick={() => handleSort("empId")}
-                        className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
-                      >
-                        <div className="flex items-center gap-1">
-                          <span>Employee ID</span>
-                          <ArrowUpDown size={12} className="text-slate-400" />
-                        </div>
-                      </th>
-                      <th
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            (e.currentTarget as HTMLElement).click();
-                          }
-                        }}
-                        onClick={() => handleSort("fullName")}
-                        className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
-                      >
-                        <div className="flex items-center gap-1">
-                          <span>Full Name</span>
-                          <ArrowUpDown size={12} className="text-slate-400" />
-                        </div>
-                      </th>
-                      <th
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            (e.currentTarget as HTMLElement).click();
-                          }
-                        }}
-                        onClick={() => handleSort("role")}
-                        className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
-                      >
-                        <div className="flex items-center gap-1">
-                          <span>Role</span>
-                          <ArrowUpDown size={12} className="text-slate-400" />
-                        </div>
-                      </th>
-
-                      <th className="px-4 py-3.5">Email</th>
-                      <th className="px-4 py-3.5">Phone</th>
-                      <th
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            (e.currentTarget as HTMLElement).click();
-                          }
-                        }}
-                        onClick={() => handleSort("status")}
-                        className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
-                      >
-                        <div className="flex items-center gap-1">
-                          <span>Status</span>
-                          <ArrowUpDown size={12} className="text-slate-400" />
-                        </div>
-                      </th>
-                      <th className="px-4 py-3.5">Last Login</th>
-                      <th className="px-5 py-3.5 text-right">Actions</th>
-                    </tr>
-                  </thead>
-
-                  <tbody className="divide-y divide-gray-100 text-[#111827]">
-                    {filteredUsers.length > 0 ? (
-                      paginatedUsers.map((user) => {
-                        const initials = user.fullName
-                          .split(" ")
-                          .filter((n) => n.length > 0)
-                          .map((n) => n[0])
-                          .join("")
-                          .toUpperCase()
-                          .slice(0, 2);
-
-                        return (
-                          <tr
-                            key={user.id}
-                            className="hover:bg-slate-50/80 transition-colors group"
-                          >
-                            <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
-                              {user.empId}
-                            </td>
-                            <td className="px-4 py-3.5">
-                              <div className="flex items-center gap-3">
-                                <div
-                                  className="w-8 h-8 rounded-xl bg-blue-100 text-[#0D47A1] font-bold text-xs flex items-center justify-center shrink-0"
-                                  style={{ fontFamily: PP }}
-                                >
-                                  {initials}
-                                </div>
-                                <div>
-                                  <span
-                                    className="font-bold text-[#111827] block"
-                                    style={{ fontFamily: PP }}
-                                  >
-                                    {user.fullName}
-                                  </span>
-                                  <span className="text-[10px] text-[#64748B]">
-                                    @{user.username}
-                                  </span>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-4 py-3.5">
-                              <span
-                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border ${getRoleBadgeStyle(user.role)}`}
-                              >
-                                <Shield size={11} /> {user.role}
-                              </span>
-                            </td>
-
-                            <td className="px-4 py-3.5 text-slate-600">
-                              <a
-                                href={`mailto:${user.email}`}
-                                className="hover:text-[#0D47A1] hover:underline flex items-center gap-1"
-                              >
-                                <Mail
-                                  size={12}
-                                  className="text-slate-400 shrink-0"
-                                />
-                                <span className="truncate max-w-40">
-                                  {user.email}
-                                </span>
-                              </a>
-                            </td>
-                            <td className="px-4 py-3.5 text-slate-600 font-mono">
-                              {user.phone}
-                            </td>
-                            <td className="px-4 py-3.5">
-                              <span
-                                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
-                                  user.status === "Active"
-                                    ? "bg-green-50 text-[#66BB6A]"
-                                    : user.status === "Pending"
-                                      ? "bg-amber-50 text-[#F59E0B]"
-                                      : user.status === "Suspended"
-                                        ? "bg-orange-50 text-orange-600"
-                                        : "bg-red-50 text-[#EF4444]"
-                                }`}
-                              >
-                                <span
-                                  className={`w-1.5 h-1.5 rounded-full ${
-                                    user.status === "Active"
-                                      ? "bg-[#66BB6A]"
-                                      : user.status === "Pending"
-                                        ? "bg-[#F59E0B]"
-                                        : user.status === "Suspended"
-                                          ? "bg-orange-500"
-                                          : "bg-[#EF4444]"
-                                  }`}
-                                />
-                                {user.status}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3.5 text-slate-500 text-[11px]">
-                              {formatLastLogin(user.lastLogin)}
-                            </td>
-                            <td className="px-5 py-3.5 text-right">
-                              <div className="flex items-center justify-end gap-1">
-                                {/* View Details */}
-                                <button
-                                  onClick={() => handleOpenDetailsDrawer(user)}
-                                  className="p-1.5 text-slate-500 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
-                                  title="View User Details"
-                                >
-                                  <Eye size={15} />
-                                </button>
-
-                                {/* Edit User */}
-                                <button
-                                  onClick={() => handleOpenEditDrawer(user)}
-                                  className="p-1.5 text-slate-500 hover:text-[#009688] hover:bg-teal-50 rounded-lg transition-colors cursor-pointer"
-                                  title="Edit User Information"
-                                >
-                                  <Edit size={15} />
-                                </button>
-
-                                {/* Reset Password */}
-                                <button
-                                  onClick={() => {
-                                    setResetPassUser(user);
-                                  }}
-                                  className="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
-                                  title="Reset Password"
-                                >
-                                  <Key size={15} />
-                                </button>
-
-                                {/* Status Change Toggles */}
-                                {user.status === "Active" ? (
-                                  <button
-                                    onClick={() =>
-                                      setStatusDialogUser({
-                                        user,
-                                        action: "Deactivate",
-                                      })
-                                    }
-                                    disabled={
-                                      actionLoadingId === `suspend-${user.id}`
-                                    }
-                                    className="p-1.5 text-slate-400 hover:text-[#EF4444] hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                                    title="Suspend Account"
-                                  >
-                                    {actionLoadingId ===
-                                    `suspend-${user.id}` ? (
-                                      <Loader2
-                                        size={14}
-                                        className="animate-spin text-red-500"
-                                      />
-                                    ) : (
-                                      <UserX size={15} />
-                                    )}
-                                  </button>
-                                ) : (
-                                  <button
-                                    onClick={() =>
-                                      setStatusDialogUser({
-                                        user,
-                                        action: "Activate",
-                                      })
-                                    }
-                                    disabled={
-                                      actionLoadingId === `activate-${user.id}`
-                                    }
-                                    className="p-1.5 text-slate-400 hover:text-[#66BB6A] hover:bg-green-50 rounded-lg transition-colors cursor-pointer"
-                                    title="Activate Account"
-                                  >
-                                    {actionLoadingId ===
-                                    `activate-${user.id}` ? (
-                                      <Loader2
-                                        size={14}
-                                        className="animate-spin text-green-500"
-                                      />
-                                    ) : (
-                                      <UserCheck size={15} />
-                                    )}
-                                  </button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    ) : (
-                      <tr>
-                        <td colSpan={9} className="py-12 text-center">
-                          <div className="flex flex-col items-center justify-center space-y-3">
-                            <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400">
-                              <Users size={32} />
-                            </div>
-                            <div>
-                              <h3
-                                className="text-sm font-bold text-[#111827]"
-                                style={{ fontFamily: PP }}
-                              >
-                                No users found
-                              </h3>
-                              <p className="text-xs text-[#64748B]">
-                                No user records match your search or filter
-                                criteria.
-                              </p>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {/* Table Footer */}
-            <div className="p-4 border-t border-[#E5E7EB] bg-white flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#64748B]">
-              <div className="flex items-center gap-3">
-                <div>
-                  Showing{" "}
-                  <span className="font-bold text-[#111827]">
-                    {filteredUsers.length > 0 ? userStartIndex + 1 : 0}
-                  </span>{" "}
-                  to{" "}
-                  <span className="font-bold text-[#111827]">
-                    {userEndIndex}
-                  </span>{" "}
-                  of{" "}
-                  <span className="font-bold text-[#111827]">
-                    {filteredUsers.length}
-                  </span>{" "}
-                  filtered users (total {users.length})
-                </div>
-                <div className="flex items-center gap-1.5 ml-2 border-l border-slate-200 pl-3">
-                  <span>Rows:</span>
-                  <select
-                    aria-label="Select option"
-                    value={pageSize}
-                    onChange={(e) => {
-                      setPageSize(Number(e.target.value));
-                      setCurrentPage(1);
-                    }}
-                    className="bg-white border border-[#E5E7EB] rounded-lg px-2 py-1 font-semibold text-[#111827] outline-none"
-                  >
-                    <option value={5}>5</option>
-                    <option value={10}>10</option>
-                    <option value={20}>20</option>
-                    <option value={50}>50</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  disabled={currentPage === 1}
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.max(prev - 1, 1))
-                  }
-                  className="px-3 py-1.5 text-xs text-slate-700 bg-white border border-[#E5E7EB] rounded-lg font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                >
-                  Previous
-                </button>
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: userTotalPages }, (_, i) => i + 1).map(
-                    (p) => (
-                      <button
-                        key={p}
-                        onClick={() => setCurrentPage(p)}
-                        className={`w-7 h-7 rounded-lg text-xs font-bold transition-colors ${
-                          currentPage === p
-                            ? "bg-[#0D47A1] text-white"
-                            : "bg-white border border-[#E5E7EB] text-slate-700 hover:bg-slate-50"
-                        }`}
-                      >
-                        {p}
-                      </button>
-                    ),
+                      <RotateCcw size={12} /> Clear Filters
+                    </button>
                   )}
                 </div>
-                <button
-                  disabled={currentPage >= userTotalPages}
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.min(prev + 1, userTotalPages))
-                  }
-                  className="px-3 py-1.5 text-xs text-slate-700 bg-white border border-[#E5E7EB] rounded-lg font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                >
-                  Next
-                </button>
               </div>
-            </div>
-          </div>
+            }
+            columns={[
+              {
+                key: "empId",
+                label: "EMPLOYEE ID",
+                sortable: true,
+                getValue: (user) => user.empId,
+                render: (user) => (
+                  <span className="font-mono font-bold text-[#0D47A1]">
+                    {user.empId}
+                  </span>
+                ),
+              },
+              {
+                key: "fullName",
+                label: "FULL NAME",
+                sortable: true,
+                getValue: (user) => user.fullName,
+                render: (user) => {
+                  const initials = user.fullName
+                    .split(" ")
+                    .filter((n) => n.length > 0)
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase()
+                    .slice(0, 2);
+                  return (
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-8 h-8 rounded-xl bg-blue-100 text-[#0D47A1] font-bold text-xs flex items-center justify-center shrink-0"
+                        style={{ fontFamily: PP }}
+                      >
+                        {initials}
+                      </div>
+                      <div>
+                        <span
+                          className="font-bold text-[#111827] block"
+                          style={{ fontFamily: PP }}
+                        >
+                          {user.fullName}
+                        </span>
+                        <span className="text-[10px] text-[#64748B]">
+                          @{user.username}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                },
+              },
+              {
+                key: "role",
+                label: "ROLE",
+                sortable: true,
+                getValue: (user) => user.role,
+                render: (user) => (
+                  <span
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border ${getRoleBadgeStyle(user.role)}`}
+                  >
+                    <Shield size={11} /> {user.role}
+                  </span>
+                ),
+              },
+              {
+                key: "email",
+                label: "EMAIL",
+                sortable: true,
+                getValue: (user) => user.email,
+                render: (user) => (
+                  <a
+                    href={`mailto:${user.email}`}
+                    className="hover:text-[#0D47A1] hover:underline flex items-center gap-1 text-slate-600"
+                  >
+                    <Mail size={12} className="text-slate-400 shrink-0" />
+                    <span className="truncate max-w-40">{user.email}</span>
+                  </a>
+                ),
+              },
+              {
+                key: "phone",
+                label: "PHONE",
+                sortable: true,
+                getValue: (user) => user.phone,
+                render: (user) => (
+                  <span className="text-slate-600 font-mono">{user.phone}</span>
+                ),
+              },
+              {
+                key: "status",
+                label: "STATUS",
+                sortable: true,
+                getValue: (user) => user.status,
+                render: (user) => (
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                      user.status === "Active"
+                        ? "bg-green-50 text-[#66BB6A]"
+                        : user.status === "Pending"
+                          ? "bg-amber-50 text-[#F59E0B]"
+                          : user.status === "Suspended"
+                            ? "bg-orange-50 text-orange-600"
+                            : "bg-red-50 text-[#EF4444]"
+                    }`}
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        user.status === "Active"
+                          ? "bg-[#66BB6A]"
+                          : user.status === "Pending"
+                            ? "bg-[#F59E0B]"
+                            : user.status === "Suspended"
+                              ? "bg-orange-500"
+                              : "bg-[#EF4444]"
+                      }`}
+                    />
+                    {user.status}
+                  </span>
+                ),
+              },
+              {
+                key: "lastLogin",
+                label: "LAST LOGIN",
+                sortable: true,
+                getValue: (user) => user.lastLogin || "",
+                render: (user) => (
+                  <span className="text-slate-500 text-[11px]">
+                    {formatLastLogin(user.lastLogin)}
+                  </span>
+                ),
+              },
+              {
+                key: "actions",
+                label: "ACTIONS",
+                sortable: false,
+                align: "right",
+                render: (user) => (
+                  <div className="flex items-center justify-end gap-1">
+                    <button
+                      onClick={() => handleOpenDetailsDrawer(user)}
+                      className="p-1.5 text-slate-500 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                      title="View User Details"
+                    >
+                      <Eye size={15} />
+                    </button>
+
+                    <button
+                      onClick={() => handleOpenEditDrawer(user)}
+                      className="p-1.5 text-slate-500 hover:text-[#009688] hover:bg-teal-50 rounded-lg transition-colors cursor-pointer"
+                      title="Edit User Information"
+                    >
+                      <Edit size={15} />
+                    </button>
+
+                    <button
+                      onClick={() => setResetPassUser(user)}
+                      className="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
+                      title="Reset Password"
+                    >
+                      <Key size={15} />
+                    </button>
+
+                    {user.status === "Active" ? (
+                      <button
+                        onClick={() =>
+                          setStatusDialogUser({
+                            user,
+                            action: "Deactivate",
+                          })
+                        }
+                        disabled={actionLoadingId === `suspend-${user.id}`}
+                        className="p-1.5 text-slate-400 hover:text-[#EF4444] hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                        title="Suspend Account"
+                      >
+                        {actionLoadingId === `suspend-${user.id}` ? (
+                          <Loader2
+                            size={14}
+                            className="animate-spin text-red-500"
+                          />
+                        ) : (
+                          <UserX size={15} />
+                        )}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() =>
+                          setStatusDialogUser({
+                            user,
+                            action: "Activate",
+                          })
+                        }
+                        disabled={actionLoadingId === `activate-${user.id}`}
+                        className="p-1.5 text-slate-400 hover:text-[#66BB6A] hover:bg-green-50 rounded-lg transition-colors cursor-pointer"
+                        title="Activate Account"
+                      >
+                        {actionLoadingId === `activate-${user.id}` ? (
+                          <Loader2
+                            size={14}
+                            className="animate-spin text-green-500"
+                          />
+                        ) : (
+                          <UserCheck size={15} />
+                        )}
+                      </button>
+                    )}
+                  </div>
+                ),
+              },
+            ]}
+            emptyTitle="No users found"
+            emptySubtitle="No user records match your search or filter criteria."
+            emptyIcon={<Users size={28} />}
+            pagination={true}
+          />
         </div>
       )}
 

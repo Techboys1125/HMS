@@ -322,7 +322,36 @@ export function NurseDashboard() {
     assisted: d.patients,
   }));
 
-  const queueItems = queueData?.content || queueData?.patients || [];
+  const queueItems = React.useMemo(() => {
+    if (!queueData) return [];
+    if (Array.isArray(queueData)) return queueData;
+    if (Array.isArray((queueData as any).content)) return (queueData as any).content;
+    if (Array.isArray((queueData as any).patients)) return (queueData as any).patients;
+    if (Array.isArray((queueData as any).data)) return (queueData as any).data;
+    return [];
+  }, [queueData]);
+
+  const waitingVitalsCount = React.useMemo(() => {
+    if (queueItems && queueItems.length > 0) {
+      return queueItems.filter((q: any) => {
+        const isDone = Boolean(
+          q.vitalsRecorded === true ||
+          q.hasVitals === true ||
+          q.vitalsStatus === "COMPLETED" ||
+          q.vitalsStatus === "Vitals Recorded" ||
+          q.vitalsId != null
+        );
+        return !isDone;
+      }).length;
+    }
+    return (
+      summary?.waitingForVitals ||
+      prepStatus?.waitingForVitals ||
+      vitalsStatus?.pending ||
+      0
+    );
+  }, [queueItems, summary, prepStatus, vitalsStatus]);
+
   const totalAssisted = deptData?.totalAssisted ?? 0;
 
   if (summaryQuery.isLoading) {
@@ -409,15 +438,11 @@ export function NurseDashboard() {
         />
         <DKpi
           title="Waiting for Vitals"
-          value={String(summary?.waitingForVitals ?? 0)}
+          value={String(waitingVitalsCount)}
           sub={summaryQuery.isLoading ? "Loading..." : "Pending recording"}
-          trend={
-            summary && summary.waitingForVitals > 0
-              ? "Action Required"
-              : "All Clear"
-          }
-          up={summary ? summary.waitingForVitals === 0 : true}
-          data={[{ v: summary?.waitingForVitals ?? 0 }]}
+          trend={waitingVitalsCount > 0 ? "Action Required" : "All Clear"}
+          up={waitingVitalsCount === 0}
+          data={[{ v: waitingVitalsCount }]}
           color="#F59E0B"
           gid="nr3"
           Icon={Clock}
@@ -613,7 +638,7 @@ export function NurseDashboard() {
                 Waiting For Vitals:
               </span>
               <span className="font-bold text-[#F59E0B]">
-                {prepStatus?.waitingForVitals ?? 0}
+                {waitingVitalsCount}
               </span>
             </div>
             <div className="flex items-center justify-between p-1.5 rounded-lg bg-teal-50/60 border border-teal-100">
@@ -646,7 +671,7 @@ export function NurseDashboard() {
             className="mt-2 text-[11px] text-center font-medium text-[#0D47A1]"
             style={{ fontFamily: PP }}
           >
-            Total Patients in Queue: {prepStatus?.totalPatients ?? 0} (Active
+            Total Patients in Queue: {prepStatus?.totalPatients ?? queueItems.length} (Active
             OPD)
           </div>
         </div>
@@ -674,7 +699,7 @@ export function NurseDashboard() {
             className="text-xs font-semibold text-[#009688] bg-teal-50 px-2.5 py-1 rounded-lg"
             style={{ fontFamily: RB }}
           >
-            {prepStatus?.waitingForVitals ?? 0} Waiting for Vitals
+            {waitingVitalsCount} Waiting for Vitals
           </span>
         </div>
         <div className="overflow-x-auto">
@@ -703,70 +728,87 @@ export function NurseDashboard() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {queueItems.length > 0 ? (
-                queueItems.map((q) => (
-                  <tr
-                    key={q.token || q.patientId}
-                    className="hover:bg-slate-50 transition-colors"
-                  >
-                    <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
-                      {q.token}
-                    </td>
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-2">
-                        <Av name={q.patientName} size="sm" />
-                        <span
-                          className="text-xs font-medium text-[#111827]"
-                          style={{ fontFamily: RB }}
-                        >
-                          {q.patientName}
-                        </span>
-                      </div>
-                    </td>
-                    <td
-                      className="px-5 py-3 text-xs text-[#111827]"
-                      style={{ fontFamily: RB }}
+                queueItems.map((q: any, idx: number) => {
+                  const token = q.token || q.tokenNo || `#${idx + 1}`;
+                  const pName = q.patientName || q.patient?.name || q.patient?.fullName || "—";
+                  const dName = q.doctorName || q.doctor?.name || q.doctor?.fullName || "—";
+                  const dept = q.departmentName || q.department || q.doctorDepartment || "—";
+                  const time = q.appointmentTime || q.timeSlot || q.startTime || q.time || "—";
+                  const vitalsDone = Boolean(
+                    q.vitalsRecorded === true ||
+                    q.hasVitals === true ||
+                    q.vitalsStatus === "COMPLETED" ||
+                    q.vitalsStatus === "Vitals Recorded" ||
+                    q.vitalsId != null
+                  );
+                  const queueStatus = q.queueStatus || q.status || (vitalsDone ? "Vitals Recorded" : "Waiting for Vitals");
+                  const priority = q.priority || "NORMAL";
+
+                  return (
+                    <tr
+                      key={q.appointmentId || q.id || q.token || idx}
+                      className="hover:bg-slate-50 transition-colors"
                     >
-                      {q.doctorName}
-                    </td>
-                    <td
-                      className="px-5 py-3 text-xs text-[#64748B]"
-                      style={{ fontFamily: RB }}
-                    >
-                      {q.departmentName}
-                    </td>
-                    <td className="px-5 py-3 font-mono text-xs text-slate-500">
-                      {q.appointmentTime}
-                    </td>
-                    <td className="px-5 py-3">
-                      <Chip
-                        label={q.vitalsRecorded ? "Completed" : "Pending"}
-                        variant={q.vitalsRecorded ? "success" : "warning"}
-                      />
-                    </td>
-                    <td className="px-5 py-3">
-                      <Chip
-                        label={q.status || q.queueStatus || "Waiting"}
-                        variant={
-                          q.status === "COMPLETED"
-                            ? "success"
-                            : q.status === "IN_CONSULTATION"
-                              ? "teal"
-                              : "warning"
-                        }
-                      />
-                    </td>
-                    <td className="px-5 py-3">
-                      <Chip
-                        label={q.priority || "NORMAL"}
-                        variant={
-                          q.priority === "URGENT" || q.priority === "HIGH"
-                            ? "error"
-                            : "default"
-                        }
-                      />
-                    </td>
-                  </tr>
-                ))
+                      <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
+                        {token}
+                      </td>
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-2">
+                          <Av name={pName} size="sm" />
+                          <span
+                            className="text-xs font-medium text-[#111827]"
+                            style={{ fontFamily: RB }}
+                          >
+                            {pName}
+                          </span>
+                        </div>
+                      </td>
+                      <td
+                        className="px-5 py-3 text-xs text-[#111827]"
+                        style={{ fontFamily: RB }}
+                      >
+                        {dName}
+                      </td>
+                      <td
+                        className="px-5 py-3 text-xs text-[#64748B]"
+                        style={{ fontFamily: RB }}
+                      >
+                        {dept}
+                      </td>
+                      <td className="px-5 py-3 font-mono text-xs text-slate-500">
+                        {time}
+                      </td>
+                      <td className="px-5 py-3">
+                        <Chip
+                          label={vitalsDone ? "Completed" : "Pending"}
+                          variant={vitalsDone ? "success" : "warning"}
+                        />
+                      </td>
+                      <td className="px-5 py-3">
+                        <Chip
+                          label={queueStatus}
+                          variant={
+                            queueStatus === "COMPLETED" || queueStatus === "Vitals Recorded" || queueStatus === "Ready for Consultation"
+                              ? "success"
+                              : queueStatus === "IN_CONSULTATION" || queueStatus === "RECORDING_IN_PROGRESS"
+                                ? "teal"
+                                : "warning"
+                          }
+                        />
+                      </td>
+                      <td className="px-5 py-3">
+                        <Chip
+                          label={priority}
+                          variant={
+                            priority === "URGENT" || priority === "HIGH"
+                              ? "error"
+                              : "default"
+                          }
+                        />
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td

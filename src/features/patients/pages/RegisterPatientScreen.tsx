@@ -1,4 +1,5 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router";
 import {
   User,
   MapPin,
@@ -9,6 +10,7 @@ import {
   X,
   RotateCcw,
   Calendar,
+  ArrowLeft,
 } from "lucide-react";
 import { PP, RB } from "../constants/patient.fonts";
 import { useCreatePatient } from "../hooks/useCreatePatient";
@@ -21,6 +23,7 @@ import { ROLE_FIELD_PERMISSIONS } from "../types/patient.types";
 import { useAuthStore } from "../../auth/store/auth.store";
 import { usePatientPortal } from "../context/usePatientPortal";
 import { CustomDatePicker } from "../../../components/CustomDatePicker";
+import { apiClient } from "../../../lib/axios";
 
 /* ─────────────────── Design Tokens ─────────────────── */
 const inputBase =
@@ -30,6 +33,162 @@ const inputError =
 const inputDisabled =
   "w-full px-3.5 py-2.5 text-[13px] bg-slate-50 border border-gray-200 rounded-xl text-slate-500 font-mono outline-none cursor-not-allowed";
 const labelBase = "block text-xs font-semibold text-slate-600 mb-1.5";
+
+/* ─────────────────── Helper Normalizers ─────────────────── */
+function normalizeBloodGroup(bg?: unknown): string {
+  if (!bg) return "";
+  const s = String(bg).trim().toUpperCase();
+  if (s === "A+" || s === "A_POSITIVE" || s === "A POSITIVE" || s === "A POS" || s === "A-POSITIVE") return "A_POSITIVE";
+  if (s === "A-" || s === "A_NEGATIVE" || s === "A NEGATIVE" || s === "A NEG" || s === "A-NEGATIVE") return "A_NEGATIVE";
+  if (s === "B+" || s === "B_POSITIVE" || s === "B POSITIVE" || s === "B POS" || s === "B-POSITIVE") return "B_POSITIVE";
+  if (s === "B-" || s === "B_NEGATIVE" || s === "B NEGATIVE" || s === "B NEG" || s === "B-NEGATIVE") return "B_NEGATIVE";
+  if (s === "AB+" || s === "AB_POSITIVE" || s === "AB POSITIVE" || s === "AB POS" || s === "AB-POSITIVE") return "AB_POSITIVE";
+  if (s === "AB-" || s === "AB_NEGATIVE" || s === "AB NEGATIVE" || s === "AB NEG" || s === "AB-NEGATIVE") return "AB_NEGATIVE";
+  if (s === "O+" || s === "O_POSITIVE" || s === "O POSITIVE" || s === "O POS" || s === "O-POSITIVE") return "O_POSITIVE";
+  if (s === "O-" || s === "O_NEGATIVE" || s === "O NEGATIVE" || s === "O NEG" || s === "O-NEGATIVE") return "O_NEGATIVE";
+  if (s === "UNKNOWN") return "UNKNOWN";
+  return s;
+}
+
+function normalizeMaritalStatus(ms?: unknown): string {
+  if (!ms) return "";
+  const s = String(ms).trim().toUpperCase();
+  if (s.includes("SINGLE") || s.includes("UNMARRIED")) return "SINGLE";
+  if (s.includes("MARRIED")) return "MARRIED";
+  if (s.includes("DIVORCED")) return "DIVORCED";
+  if (s.includes("WIDOW")) return "WIDOWED";
+  if (s.includes("SEPARAT")) return "SEPARATED";
+  return s;
+}
+
+function parseListField(val: unknown): string {
+  if (!val) return "";
+  if (typeof val === "string") return val;
+  if (Array.isArray(val)) {
+    return val
+      .map((item) => {
+        if (typeof item === "string") return item;
+        if (typeof item === "object" && item !== null) {
+          const obj = item as Record<string, unknown>;
+          return (
+            obj.allergyName ||
+            obj.allergy ||
+            obj.diseaseName ||
+            obj.disease ||
+            obj.name ||
+            obj.title ||
+            ""
+          );
+        }
+        return String(item);
+      })
+      .filter(Boolean)
+      .join(", ");
+  }
+  return String(val);
+}
+
+function extractAddressFields(src: unknown): {
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  state: string;
+  pincode: string;
+  country: string;
+} {
+  if (!src) {
+    return {
+      addressLine1: "",
+      addressLine2: "",
+      city: "",
+      state: "",
+      pincode: "",
+      country: "India",
+    };
+  }
+
+  let addrObj: Record<string, unknown> = {};
+  if (typeof src === "object" && src !== null) {
+    const raw = src as Record<string, unknown>;
+    if (typeof raw.address === "object" && raw.address !== null) {
+      addrObj = raw.address as Record<string, unknown>;
+    } else if (typeof raw.address === "string" && raw.address.trim()) {
+      const str = raw.address.trim();
+      const parts = str.split(",").map((p) => p.trim()).filter(Boolean);
+      return {
+        addressLine1: parts[0] || str,
+        addressLine2: parts[1] || "",
+        city: parts[2] || (raw.city as string) || "",
+        state: parts[3] || (raw.state as string) || "",
+        pincode: parts[4] || (raw.pincode as string) || (raw.zipCode as string) || "",
+        country: parts[5] || (raw.country as string) || "India",
+      };
+    } else {
+      addrObj = raw;
+    }
+  } else if (typeof src === "string" && src.trim()) {
+    const str = src.trim();
+    const parts = str.split(",").map((p) => p.trim()).filter(Boolean);
+    return {
+      addressLine1: parts[0] || str,
+      addressLine2: parts[1] || "",
+      city: parts[2] || "",
+      state: parts[3] || "",
+      pincode: parts[4] || "",
+      country: parts[5] || "India",
+    };
+  }
+
+  const line1 = String(
+    addrObj.addressLine1 ||
+      addrObj.address1 ||
+      addrObj.line1 ||
+      addrObj.street ||
+      "",
+  );
+  const line2 = String(
+    addrObj.addressLine2 ||
+      addrObj.address2 ||
+      addrObj.line2 ||
+      addrObj.street2 ||
+      "",
+  );
+  const city = String(
+    addrObj.city ||
+      addrObj.cityName ||
+      addrObj.district ||
+      "",
+  );
+  const state = String(
+    addrObj.state ||
+      addrObj.stateName ||
+      addrObj.province ||
+      "",
+  );
+  const pincode = String(
+    addrObj.pincode ||
+      addrObj.pinCode ||
+      addrObj.zipCode ||
+      addrObj.postalCode ||
+      addrObj.zip ||
+      addrObj.pin ||
+      "",
+  );
+  const country = String(
+    addrObj.country ||
+      addrObj.countryName ||
+      "India",
+  );
+
+  return {
+    addressLine1: line1,
+    addressLine2: line2,
+    city: city,
+    state: state,
+    pincode: pincode,
+    country: country,
+  };
+}
 
 /* ─────────────────── Option Data ─────────────────── */
 const BLOOD_GROUPS = [
@@ -243,6 +402,7 @@ function RegistrationSuccessDialog({
   mrn,
   patientName,
   isFamilyMode = false,
+  isEditMode = false,
   onClose,
   onBookAppointment,
   onViewProfile,
@@ -251,6 +411,7 @@ function RegistrationSuccessDialog({
   mrn: string;
   patientName: string;
   isFamilyMode?: boolean;
+  isEditMode?: boolean;
   onClose: () => void;
   onBookAppointment?: (mrn: string) => void;
   onViewProfile?: (mrn: string) => void;
@@ -266,15 +427,19 @@ function RegistrationSuccessDialog({
           className="text-xl font-bold text-[#111827] mb-2"
           style={{ fontFamily: PP }}
         >
-          {isFamilyMode
-            ? "Family Member Registered!"
-            : "Registration Successful!"}
+          {isEditMode
+            ? "Family Member Updated!"
+            : isFamilyMode
+              ? "Family Member Registered!"
+              : "Registration Successful!"}
         </h3>
         <p className="text-sm text-slate-500 mb-1" style={{ fontFamily: RB }}>
           <span className="font-semibold text-[#111827]">{patientName}</span>{" "}
-          {isFamilyMode
-            ? "has been registered successfully as a family member."
-            : "has been registered."}
+          {isEditMode
+            ? "details have been updated successfully."
+            : isFamilyMode
+              ? "has been registered successfully as a family member."
+              : "has been registered."}
         </p>
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 border border-blue-100 mt-2 mb-6">
           <span className="text-xs text-slate-500" style={{ fontFamily: RB }}>
@@ -286,7 +451,7 @@ function RegistrationSuccessDialog({
         </div>
 
         <div className="flex flex-col gap-2.5">
-          {isFamilyMode ? (
+          {isFamilyMode || isEditMode ? (
             <>
               {onViewProfile && (
                 <button
@@ -368,6 +533,8 @@ export function RegisterPatientScreen({
   registrationMode = "ADMIN",
   isFamilyMode = false,
   primaryPatientMrn,
+  isEditMode = false,
+  editMember = null,
 }: {
   onBack?: () => void;
   onBookAppointment?: (mrn: string) => void;
@@ -383,6 +550,23 @@ export function RegisterPatientScreen({
   registrationMode?: RegistrationMode;
   isFamilyMode?: boolean;
   primaryPatientMrn?: string;
+  isEditMode?: boolean;
+  editMember?: {
+    id?: string | number;
+    mrn?: string;
+    patientName?: string;
+    name?: string;
+    fullName?: string;
+    relationship?: string;
+    gender?: string;
+    dateOfBirth?: string;
+    registeredMobile?: string;
+    mobileNumber?: string;
+    phone?: string;
+    email?: string;
+    bloodGroup?: string;
+    knownAllergies?: string[];
+  } | null;
 }) {
   const effectiveMode = isFamilyMode ? "PATIENT_FAMILY" : registrationMode;
   const showRelationship =
@@ -395,8 +579,17 @@ export function RegisterPatientScreen({
         ? ""
         : "SELF";
 
+  const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const portal = usePatientPortal();
+
+  const handleBack = useCallback(() => {
+    if (onBack) {
+      onBack();
+    } else {
+      navigate(-1);
+    }
+  }, [onBack, navigate]);
 
   // Role-based field gating (RBAC) for staff-facing (ADMIN) registrations.
   const roleKey = String(user?.role ?? "").toUpperCase();
@@ -412,18 +605,45 @@ export function RegisterPatientScreen({
     false;
 
   const isAddingFamilyMember = effectiveMode === "PATIENT_FAMILY";
+  const isPatientUser = String(user?.role || "").toUpperCase() === "PATIENT";
+  const isSelfRegistration =
+    effectiveMode === "PATIENT_SELF" || (isPatientUser && !isAddingFamilyMember);
 
-  const [form, setForm] = useState<RegistrationFormState>(() => ({
-    ...INITIAL_FORM,
-    relationship: initialRelationship,
-    ...(isAddingFamilyMember
-      ? {}
-      : {
-          fullName: user?.fullName || "",
-          email: user?.email || "",
-          mobileNumber: user?.mobile || "",
-        }),
-  }));
+  const [form, setForm] = useState<RegistrationFormState>(() => {
+    let pendingDob = "";
+    let pendingGender = "";
+    try {
+      const userEmail = String(user?.email || "").trim().toLowerCase();
+      const raw1 = userEmail ? localStorage.getItem(`hms-pending-patient:${userEmail}`) : null;
+      const raw2 = localStorage.getItem("hms-pending-patient-last");
+      const raw3 = localStorage.getItem("hms-pending-patient-profile:v1");
+      const storedPending = raw1 || raw2 || raw3;
+      if (storedPending) {
+        const parsed = JSON.parse(storedPending);
+        pendingDob = parsed?.dateOfBirth || parsed?.dob || "";
+        pendingGender = parsed?.gender || "";
+      }
+    } catch {
+      /* ignore */
+    }
+
+    const rawDob = user?.dateOfBirth || user?.dob || pendingDob;
+    const rawGender = user?.gender || pendingGender;
+
+    return {
+      ...INITIAL_FORM,
+      relationship: initialRelationship,
+      ...(isSelfRegistration
+        ? {
+            fullName: user?.fullName || user?.name || "",
+            email: user?.email || "",
+            mobileNumber: user?.mobile || user?.phone || user?.mobileNumber || "",
+            dateOfBirth: rawDob ? String(rawDob).split("T")[0] : "",
+            gender: rawGender ? String(rawGender).toUpperCase() : "",
+          }
+        : {}),
+    };
+  });
 
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [toast, setToast] = useState<{
@@ -438,6 +658,194 @@ export function RegisterPatientScreen({
   const [submitting, setSubmitting] = useState(false);
 
   const createPatient = useCreatePatient();
+
+  // Fetch patient profile details (including dateOfBirth & gender) for PATIENT self-registration
+  useEffect(() => {
+    if (!isSelfRegistration) return;
+    let cancelled = false;
+
+    async function loadSelfPatientData() {
+      try {
+        let pendingDob = "";
+        let pendingGender = "";
+        try {
+          const userEmail = String(user?.email || "").trim().toLowerCase();
+          const raw1 = userEmail ? localStorage.getItem(`hms-pending-patient:${userEmail}`) : null;
+          const raw2 = localStorage.getItem("hms-pending-patient-last");
+          const raw3 = localStorage.getItem("hms-pending-patient-profile:v1");
+          const storedPending = raw1 || raw2 || raw3;
+          if (storedPending) {
+            const parsed = JSON.parse(storedPending);
+            pendingDob = parsed?.dateOfBirth || parsed?.dob || "";
+            pendingGender = parsed?.gender || "";
+          }
+        } catch {
+          /* ignore */
+        }
+
+        const patients = await patientsApi.getMyPatients().catch(() => []);
+        if (cancelled) return;
+
+        const patient =
+          Array.isArray(patients) && patients.length > 0
+            ? patients.find(
+                (entry) => String(entry.relationship).toUpperCase() === "SELF",
+              ) ||
+              patients.find((entry) => entry.mrn === user?.patientId) ||
+              patients[0]
+            : undefined;
+
+        const rawDob =
+          patient?.dateOfBirth ||
+          patient?.dob ||
+          user?.dateOfBirth ||
+          user?.dob ||
+          pendingDob ||
+          "";
+        const cleanDob = rawDob ? String(rawDob).split("T")[0] : "";
+
+        const rawGender =
+          (patient?.gender ? String(patient.gender).toUpperCase() : "") ||
+          (user?.gender ? String(user.gender).toUpperCase() : "") ||
+          (pendingGender ? String(pendingGender).toUpperCase() : "");
+
+        setForm((prev) => ({
+          ...prev,
+          fullName:
+            prev.fullName ||
+            patient?.patientName ||
+            patient?.fullName ||
+            patient?.name ||
+            user?.fullName ||
+            user?.name ||
+            "",
+          email: prev.email || patient?.email || user?.email || "",
+          mobileNumber:
+            prev.mobileNumber ||
+            patient?.registeredMobile ||
+            patient?.mobileNumber ||
+            patient?.phone ||
+            user?.mobile ||
+            "",
+          dateOfBirth: prev.dateOfBirth || cleanDob,
+          gender: prev.gender || rawGender,
+          bloodGroup: prev.bloodGroup || patient?.bloodGroup || "",
+        }));
+      } catch (e) {
+        console.error("Failed to load patient profile details:", e);
+      }
+    }
+
+    void loadSelfPatientData();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    isSelfRegistration,
+    user?.patientId,
+    user?.dateOfBirth,
+    user?.dob,
+    user?.gender,
+    user?.fullName,
+    user?.name,
+    user?.email,
+    user?.mobile,
+  ]);
+
+  // Pre-fill form when editing a family member
+  useEffect(() => {
+    if (!isEditMode || !editMember) return;
+    let cancelled = false;
+
+    // Immediate initial population from editMember prop
+    const emObj = editMember as Record<string, unknown>;
+    const emName = editMember.patientName || (editMember.fullName as string) || (editMember.name as string) || "";
+    const emGender = editMember.gender ? String(editMember.gender).toUpperCase() : "";
+    const emDob = editMember.dateOfBirth ? String(editMember.dateOfBirth).split("T")[0] : "";
+    const emMobile = editMember.registeredMobile || (editMember.mobileNumber as string) || (editMember.phone as string) || "";
+    const emEmail = String(editMember.email || emObj.emailAddress || emObj.contactEmail || emObj.patientEmail || "");
+    const emBlood = normalizeBloodGroup(editMember.bloodGroup || emObj.blood_group || emObj.bloodGroupEnum);
+    const emMarital = normalizeMaritalStatus(emObj.maritalStatus || emObj.marital_status || emObj.maritalStatusEnum);
+    const emAllergies = parseListField(editMember.knownAllergies || emObj.allergies || emObj.known_allergies);
+    const emRel = editMember.relationship ? String(editMember.relationship).toUpperCase() : "";
+    const emAddr = extractAddressFields(emObj.address || emObj);
+
+    setForm((prev) => ({
+      ...prev,
+      fullName: emName || prev.fullName,
+      gender: emGender || prev.gender,
+      dateOfBirth: emDob || prev.dateOfBirth,
+      mobileNumber: emMobile || prev.mobileNumber,
+      email: emEmail || prev.email,
+      bloodGroup: emBlood || prev.bloodGroup,
+      maritalStatus: emMarital || prev.maritalStatus,
+      knownAllergies: emAllergies || prev.knownAllergies,
+      relationship: emRel || prev.relationship,
+      addressLine1: emAddr.addressLine1 || prev.addressLine1,
+      addressLine2: emAddr.addressLine2 || prev.addressLine2,
+      city: emAddr.city || prev.city,
+      state: emAddr.state || prev.state,
+      pincode: emAddr.pincode || prev.pincode,
+      country: emAddr.country || prev.country || "India",
+    }));
+
+    // Fetch full patient record from API
+    const mrn = editMember.mrn;
+    if (!mrn) return;
+
+    async function loadPatientDetails() {
+      try {
+        const res = await apiClient.get(`/api/v1/patients/${encodeURIComponent(mrn!)}`);
+        if (cancelled) return;
+        const rawData = ((res.data as { data?: Record<string, unknown> })?.data || res.data) as Record<string, unknown>;
+        if (rawData) {
+          const em = (rawData.emergencyContact as Record<string, unknown>) || {};
+          const apiAddr = extractAddressFields(rawData.address || rawData);
+
+          const apiEmail = String(rawData.email || rawData.emailAddress || rawData.contactEmail || rawData.patientEmail || emEmail || "");
+          const apiBloodGroup = normalizeBloodGroup(rawData.bloodGroup || rawData.blood_group || rawData.bloodGroupEnum || editMember?.bloodGroup || emObj.blood_group);
+          const apiMaritalStatus = normalizeMaritalStatus(rawData.maritalStatus || rawData.marital_status || rawData.maritalStatusEnum || emObj.maritalStatus || emObj.marital_status);
+          const apiAllergies = parseListField(rawData.knownAllergies || rawData.allergies || rawData.known_allergies || rawData.allergyDetails || editMember?.knownAllergies || emObj.allergies);
+          const apiDiseases = parseListField(rawData.chronicDiseases || rawData.chronicConditions || rawData.diseases || rawData.chronic_diseases || emObj.chronicDiseases);
+
+          setForm((prev) => ({
+            ...prev,
+            fullName: String(rawData.fullName || rawData.patientName || rawData.name || prev.fullName),
+            gender: String(rawData.gender || prev.gender).toUpperCase(),
+            dateOfBirth: rawData.dateOfBirth ? String(rawData.dateOfBirth).split("T")[0] : (rawData.dob ? String(rawData.dob).split("T")[0] : prev.dateOfBirth),
+            mobileNumber: String(rawData.phone || rawData.mobileNumber || rawData.registeredMobile || prev.mobileNumber),
+            email: apiEmail || prev.email,
+            bloodGroup: apiBloodGroup || prev.bloodGroup,
+            maritalStatus: apiMaritalStatus || prev.maritalStatus,
+            nationalId: String(rawData.nationalId || rawData.aadharNumber || rawData.aadhar || prev.nationalId || ""),
+            photoUrl: String(rawData.photoUrl || prev.photoUrl || ""),
+            addressLine1: apiAddr.addressLine1 || emAddr.addressLine1 || prev.addressLine1,
+            addressLine2: apiAddr.addressLine2 || emAddr.addressLine2 || prev.addressLine2,
+            city: apiAddr.city || emAddr.city || prev.city,
+            state: apiAddr.state || emAddr.state || prev.state,
+            pincode: apiAddr.pincode || emAddr.pincode || prev.pincode,
+            country: apiAddr.country || emAddr.country || prev.country || "India",
+            ecName: String(em.name || ""),
+            ecRelationship: String(em.relationship || ""),
+            ecMobile: String(em.mobileNumber || em.phone || ""),
+            ecAltMobile: String(em.alternativeMobileNumber || ""),
+            patientCategory: String(rawData.patientCategory || "GENERAL").toUpperCase(),
+            knownAllergies: apiAllergies || prev.knownAllergies,
+            chronicDiseases: apiDiseases || prev.chronicDiseases,
+            specialNotes: String(rawData.specialNotes || rawData.notes || ""),
+            relationship: String(rawData.relationship || editMember?.relationship || prev.relationship).toUpperCase(),
+          }));
+        }
+      } catch (err) {
+        console.error("Failed to load patient details for edit:", err);
+      }
+    }
+
+    void loadPatientDetails();
+    return () => {
+      cancelled = true;
+    };
+  }, [isEditMode, editMember]);
 
   const set = useCallback(
     (key: keyof RegistrationFormState, value: string) =>
@@ -623,7 +1031,81 @@ export function RegisterPatientScreen({
       );
       let mrn = "";
 
-      if (effectiveMode === "PATIENT_SELF" && primaryMrn) {
+      if (isEditMode) {
+        const targetMrn = editMember?.mrn;
+        if (!targetMrn) {
+          throw new Error("Patient MRN is missing for edit operation.");
+        }
+
+        const updatePayload: Record<string, unknown> = {
+          fullName: payload.fullName,
+          gender: payload.gender || "MALE",
+          dateOfBirth: payload.dateOfBirth || todayStr,
+          bloodGroup: payload.bloodGroup || "A_POSITIVE",
+          mobileNumber: payload.mobileNumber,
+          phone: payload.mobileNumber,
+          maritalStatus: payload.maritalStatus || "SINGLE",
+          patientCategory: payload.patientCategory || "GENERAL",
+          registrationType: payload.registrationType || "WALK_IN",
+          knownAllergies: payload.knownAllergies || [],
+          chronicDiseases: payload.chronicDiseases || [],
+          specialNotes: payload.specialNotes || "",
+          changeReason: "Updated via Patient Portal Family Management",
+        };
+
+        if (payload.email?.trim()) {
+          updatePayload.email = payload.email.trim();
+        }
+        if (payload.nationalId?.trim()) {
+          updatePayload.nationalId = payload.nationalId.trim();
+        }
+        if (payload.photoUrl?.trim()) {
+          updatePayload.photoUrl = payload.photoUrl.trim();
+        }
+        if (payload.address) {
+          updatePayload.address = payload.address;
+        }
+
+        if (payload.emergencyContact) {
+          const ec: Record<string, string> = {
+            name: payload.emergencyContact.name,
+            relationship: payload.emergencyContact.relationship,
+            mobileNumber: payload.emergencyContact.mobileNumber,
+            phone: payload.emergencyContact.mobileNumber,
+          };
+          if (payload.emergencyContact.alternativeMobileNumber?.trim()) {
+            ec.alternativeMobileNumber =
+              payload.emergencyContact.alternativeMobileNumber.trim();
+          }
+          updatePayload.emergencyContact = ec;
+        } else if (form.ecName?.trim() && form.ecMobile?.trim()) {
+          const ec: Record<string, string> = {
+            name: form.ecName.trim(),
+            relationship: form.ecRelationship || "OTHER",
+            mobileNumber: form.ecMobile.trim(),
+            phone: form.ecMobile.trim(),
+          };
+          if (form.ecAltMobile?.trim()) {
+            ec.alternativeMobileNumber = form.ecAltMobile.trim();
+          }
+          updatePayload.emergencyContact = ec;
+        }
+
+        try {
+          await patientsApi.updatePatient(targetMrn, updatePayload);
+        } catch (err: unknown) {
+          console.warn(
+            "[RegisterPatientScreen] patientsApi.updatePatient failed, falling back to direct PUT:",
+            err,
+          );
+          await apiClient.put(
+            `/api/v1/patients/${encodeURIComponent(targetMrn)}`,
+            updatePayload,
+          );
+        }
+
+        mrn = targetMrn;
+      } else if (effectiveMode === "PATIENT_SELF" && primaryMrn) {
         try {
           const updated = await patientsApi.updatePatient(primaryMrn, {
             ...payload,
@@ -708,7 +1190,9 @@ export function RegisterPatientScreen({
         message:
           err instanceof Error
             ? err.message
-            : "Failed to register patient. Please try again.",
+            : isEditMode
+              ? "Failed to update patient details. Please try again."
+              : "Failed to register patient. Please try again.",
         type: "error",
       });
     } finally {
@@ -723,18 +1207,27 @@ export function RegisterPatientScreen({
     primaryPatientMrn,
     portal,
     user,
+    isEditMode,
+    editMember,
   ]);
 
   const handleClear = useCallback(() => {
     setForm({
       ...INITIAL_FORM,
       relationship: initialRelationship,
-      fullName: user?.fullName || "",
-      email: user?.email || "",
-      mobileNumber: user?.mobile || "",
+      ...(isSelfRegistration
+        ? {
+            fullName: user?.fullName || user?.name || "",
+            email: user?.email || "",
+            mobileNumber:
+              user?.mobile || user?.phone || user?.mobileNumber || "",
+            dateOfBirth: user?.dateOfBirth || user?.dob || "",
+            gender: user?.gender || "",
+          }
+        : {}),
     });
     setTouched({});
-  }, [initialRelationship, user]);
+  }, [initialRelationship, isSelfRegistration, user]);
 
   return (
     <div className="flex-1 min-h-screen bg-[#F4F6F9] overflow-y-auto">
@@ -763,18 +1256,31 @@ export function RegisterPatientScreen({
 
       <div className="max-w-350 mx-auto px-6 py-6">
         <div className="mb-7">
+          <button
+            type="button"
+            onClick={handleBack}
+            className="inline-flex items-center gap-2 px-3.5 py-2 mb-4 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-xs transition-all cursor-pointer"
+            style={{ fontFamily: RB }}
+          >
+            <ArrowLeft size={16} />
+            Back
+          </button>
           <h1
             className="text-2xl font-bold text-[#111827] mb-1"
             style={{ fontFamily: PP }}
           >
-            {effectiveMode === "PATIENT_FAMILY"
-              ? "Add Family Member"
-              : "Patient Registration"}
+            {isEditMode
+              ? "Edit Family Member"
+              : effectiveMode === "PATIENT_FAMILY"
+                ? "Add Family Member"
+                : "Patient Registration"}
           </h1>
           <p className="text-sm text-slate-500" style={{ fontFamily: RB }}>
-            {effectiveMode === "PATIENT_FAMILY"
-              ? "Register a new family member under your patient account."
-              : "Create a new patient record for hospital services."}
+            {isEditMode
+              ? "Update family member details under your patient account."
+              : effectiveMode === "PATIENT_FAMILY"
+                ? "Register a new family member under your patient account."
+                : "Create a new patient record for hospital services."}
           </p>
         </div>
 
@@ -1192,11 +1698,12 @@ export function RegisterPatientScreen({
             <div className="flex items-center justify-end gap-3 pt-4">
               <button
                 type="button"
-                onClick={() => onBack?.()}
-                className="px-6 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+                onClick={handleBack}
+                className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
                 style={{ fontFamily: PP }}
               >
-                Cancel
+                <ArrowLeft size={14} />
+                Cancel / Back
               </button>
 
               <button
@@ -1219,12 +1726,16 @@ export function RegisterPatientScreen({
                 {submitting || createPatient.isPending ? (
                   <>
                     <Loader2 size={16} className="animate-spin" />
-                    Registering…
+                    {isEditMode ? "Updating…" : "Registering…"}
                   </>
                 ) : (
                   <>
                     <CheckCircle2 size={16} />
-                    Register Patient & Generate MRN
+                    {isEditMode
+                      ? "Update Family Member"
+                      : effectiveMode === "PATIENT_FAMILY"
+                        ? "Register Family Member"
+                        : "Register Patient & Generate MRN"}
                   </>
                 )}
               </button>

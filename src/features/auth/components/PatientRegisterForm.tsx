@@ -61,6 +61,31 @@ export const PatientRegisterForm: React.FC<PatientRegisterFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    try {
+      const payload = {
+        fullName,
+        email: email.trim() || undefined,
+        mobile,
+        dateOfBirth: dateOfBirth || undefined,
+        gender: gender || undefined,
+      };
+      const cleanEmail = email.trim().toLowerCase();
+      if (cleanEmail) {
+        localStorage.setItem(
+          `hms-pending-patient:${cleanEmail}`,
+          JSON.stringify(payload),
+        );
+      }
+      localStorage.setItem(
+        "hms-pending-patient-last",
+        JSON.stringify(payload),
+      );
+      localStorage.setItem(
+        "hms-pending-patient-profile:v1",
+        JSON.stringify(payload),
+      );
+    } catch {}
+
     register({
       fullName,
       email: email.trim() || undefined,

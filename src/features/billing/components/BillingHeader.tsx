@@ -1,9 +1,11 @@
+import { useNavigate } from "react-router";
 import {
   Plus,
   Download,
   RotateCcw,
   History,
   BarChart2,
+  ArrowLeft,
 } from "lucide-react";
 import { useAuthStore } from "../../auth/store/auth.store";
 import { checkBillingPermission } from "../permissions/billing.permissions";
@@ -12,6 +14,7 @@ import { PP, RB } from "../constants/billing.constants";
 interface HeaderProps {
   title?: string;
   subtitle?: string;
+  onBack?: () => void;
   onGenerateInvoice?: () => void;
   onViewPayments?: () => void;
   onViewDailyReport?: () => void;
@@ -22,12 +25,14 @@ interface HeaderProps {
 export function BillingHeader({
   title = "Billing Dashboard",
   subtitle,
+  onBack,
   onGenerateInvoice,
   onViewPayments,
   onViewDailyReport,
   onExportReport,
   isAdminReadOnly = false,
 }: HeaderProps) {
+  const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const role = user?.role;
   const showGenerate =
@@ -37,6 +42,11 @@ export function BillingHeader({
   const showDailyReport = checkBillingPermission(role, "view_daily_report");
   const showPaymentsLedger = checkBillingPermission(role, "view_history");
 
+  const handleBack = () => {
+    if (onBack) onBack();
+    else navigate(-1);
+  };
+
   const defaultSubtitle = isAdminReadOnly
     ? "Monitor billing operations, invoice status and revenue overview across the hospital."
     : "Manage invoices, payment collections, billing status and daily revenue across outpatient consultations.";
@@ -44,24 +54,35 @@ export function BillingHeader({
   return (
     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm">
       <div>
-        {/* Breadcrumb */}
-        <div
-          className="flex items-center gap-2 text-xs text-[#64748B] mb-1 font-medium"
-          style={{ fontFamily: RB }}
-        >
-          <span className="hover:text-[#0D47A1] cursor-pointer">
-            {isAdminReadOnly ? "Hospital Administration" : "Home"}
-          </span>
-          <span className="text-slate-400">/</span>
-          <span className="text-[#0D47A1] font-semibold">
-            Billing & Payment
-          </span>
-          {isAdminReadOnly && <span className="text-slate-400">/</span>}
-          {isAdminReadOnly && (
-            <span className="text-[#0D47A1] font-semibold">
-              Billing Dashboard
+        {/* Breadcrumb & Back */}
+        <div className="flex items-center gap-3 mb-2">
+          <button
+            type="button"
+            onClick={handleBack}
+            className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition-all cursor-pointer"
+            style={{ fontFamily: RB }}
+          >
+            <ArrowLeft size={14} />
+            Back
+          </button>
+          <div
+            className="flex items-center gap-2 text-xs text-[#64748B] font-medium"
+            style={{ fontFamily: RB }}
+          >
+            <span className="hover:text-[#0D47A1] cursor-pointer">
+              {isAdminReadOnly ? "Hospital Administration" : "Home"}
             </span>
-          )}
+            <span className="text-slate-400">/</span>
+            <span className="text-[#0D47A1] font-semibold">
+              Billing & Payment
+            </span>
+            {isAdminReadOnly && <span className="text-slate-400">/</span>}
+            {isAdminReadOnly && (
+              <span className="text-[#0D47A1] font-semibold">
+                Billing Dashboard
+              </span>
+            )}
+          </div>
         </div>
         {/* Title & Subtitle */}
         <h1

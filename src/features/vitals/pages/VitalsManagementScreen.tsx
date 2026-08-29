@@ -2,34 +2,38 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Activity,
-  Heart,
-  CheckCircle2,
   Search,
   RotateCcw,
   ArrowLeft,
   Clock,
   User,
-  Check,
   AlertCircle,
-  FileText,
-  ShieldAlert,
-  Printer,
   Calendar,
   RefreshCw,
-  Users,
-  CheckSquare,
   Stethoscope,
+  X,
+  Filter,
+  Tag,
 } from "lucide-react";
 import { Pagination } from "../../../common/components/Pagination";
 import type { AppointmentRecord } from "../../appointments";
-import { toDisplayStatus } from "../../appointments/services/appointment.service";
+import {
+  toDisplayStatus,
+  appointmentService,
+} from "../../appointments/services/appointment.service";
 import { vitalsService } from "../services/vitals.service";
+import { vitalsApi } from "../api/vitals.api";
 import { appointmentsApi } from "../../appointments/api/appointments.api";
+import { patientsApi } from "../../patients/api/patient.api";
+import { departmentsApi } from "../../users/api/departments.api";
 import { QUEUE_QUERY_KEY } from "../../opd/hooks/useQueue";
 import type {
   RecordedVitalsData,
   NurseWaitingPatient,
 } from "../types/vitals.types";
+import { VitalsDetailsScreen } from "../components/VitalsDetailsScreen";
+import { RecordPatientVitalsForm } from "../components/RecordPatientVitalsForm";
+import { VitalsKpiSummaryCards } from "../components/VitalsKpiSummaryCards";
 import { Avatar } from "../../../common/components/Avatar";
 import { usePermissions } from "../../../permissions/usePermissions";
 
@@ -41,1110 +45,7 @@ interface Props {
   onPatientSelect?: (id: number | string) => void;
   onViewAppointmentDetails?: (apt: AppointmentRecord) => void;
   initialViewMode?: "center" | "record" | "details";
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   VITALS DETAILS SCREEN (READ ONLY)
-   ───────────────────────────────────────────────────────────────────────────── */
-function VitalsDetailsScreen({
-  activeApt,
-  vitalsData = {
-    height: "",
-    weight: "",
-    bmi: "",
-    temp: "",
-    systolic: "",
-    diastolic: "",
-    pulse: "",
-    resp: "",
-    spo2: "",
-    sugar: "",
-    appearance: "",
-    consciousness: "",
-    observation: "",
-    recordedBy: "",
-    recordedAt: "",
-  },
-  onBack,
-  onPatientSelect,
-  onPrint,
-}: {
-  activeApt: AppointmentRecord | null;
-  vitalsData?: RecordedVitalsData;
-  onBack: () => void;
-  onPatientSelect?: (id: number | string) => void;
-  onPrint?: () => void;
-}) {
-  const patientInfo = useMemo(() => {
-    if (!activeApt) return null;
-    const activeObj = activeApt as unknown as Record<string, unknown>;
-    return (
-      activeApt.patient || {
-        id: activeApt.patientId,
-        mrn: activeApt.mrn,
-        name: activeApt.patientName,
-        age: activeApt.patientAge,
-        gender: activeApt.patientGender,
-        bloodGroup: (activeObj.bloodGroup as string) || "—",
-        phone: activeApt.patientPhone || "—",
-        emergencyContact: (activeObj.emergencyContact as string) || "—",
-      }
-    );
-  }, [activeApt]);
-
-  const handlePrintAction = () => {
-    if (onPrint) {
-      onPrint();
-    } else {
-      window.print();
-    }
-  };
-
-  if (!activeApt) {
-    return (
-      <div
-        className="flex-1 overflow-y-auto bg-[#F1F5F9] p-6 flex flex-col items-center justify-center space-y-4"
-        style={{ fontFamily: RB }}
-      >
-        <div className="bg-white p-8 rounded-2xl border border-[#E5E7EB] shadow-sm max-w-md w-full text-center space-y-3">
-          <div className="w-16 h-16 rounded-2xl bg-amber-50 text-[#F59E0B] flex items-center justify-center mx-auto border border-amber-100">
-            <Activity size={32} />
-          </div>
-          <h2
-            className="text-base font-bold text-[#111827]"
-            style={{ fontFamily: PP }}
-          >
-            No vitals have been recorded for this patient.
-          </h2>
-          <p className="text-xs text-[#64748B]">
-            Please select a patient from the prep queue to record vital signs or
-            view details.
-          </p>
-          <button
-            onClick={onBack}
-            className="px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-colors"
-            style={{ fontFamily: PP }}
-          >
-            Back to Vitals Queue
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className="flex-1 overflow-y-auto bg-[#F1F5F9] p-6 space-y-6"
-      style={{ fontFamily: RB }}
-    >
-      {/* HEADER & BREADCRUMB */}
-      <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm flex items-center justify-between">
-        <div>
-          <div
-            className="text-[10px] font-semibold text-[#64748B] uppercase tracking-wider mb-0.5"
-            style={{ fontFamily: PP }}
-          >
-            Nurse / Vitals Management / Vitals Details
-          </div>
-          <h1
-            className="text-xl font-bold text-[#111827]"
-            style={{ fontFamily: PP }}
-          >
-            Vitals Details
-          </h1>
-          <p className="text-xs text-[#64748B] mt-0.5">
-            Review patient vitals before consultation.
-          </p>
-        </div>
-      </div>
-
-      {/* STICKY PATIENT SUMMARY STRIP */}
-      <div className="bg-linear-to-r from-blue-900 via-[#0D47A1] to-[#009688] rounded-2xl p-5 text-white shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Avatar name={activeApt.patientName} size="lg" />
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-mono text-xs font-bold bg-white/20 px-2 py-0.5 rounded text-white">
-                {activeApt.tokenNo}
-              </span>
-              <span className="text-xs font-bold bg-[#66BB6A] text-white px-2 py-0.5 rounded flex items-center gap-1">
-                <CheckCircle2 size={12} /> Vitals Recorded
-              </span>
-              <span className="text-xs text-blue-100 font-mono">
-                {activeApt.timeSlot}
-              </span>
-            </div>
-            <h2
-              className="text-lg font-bold text-white mt-1"
-              style={{ fontFamily: PP }}
-            >
-              {activeApt.patientName}
-            </h2>
-            <div className="text-xs text-blue-100 mt-0.5">
-              {activeApt.mrn} · {activeApt.patientAge}y /{" "}
-              {activeApt.patientGender} · Blood Group:{" "}
-              <strong className="text-white">
-                {patientInfo?.bloodGroup || "O+"}
-              </strong>{" "}
-              · Doctor:{" "}
-              <strong className="text-white">{activeApt.doctorName}</strong> ·
-              Dept:{" "}
-              <strong className="text-white">
-                {typeof activeApt.department === "string"
-                  ? activeApt.department
-                  : activeApt.department?.departmentName ||
-                    activeApt.department?.name ||
-                    activeApt.department?.departmentCode ||
-                    ""}
-              </strong>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          {onPatientSelect && (
-            <button
-              onClick={() => onPatientSelect(activeApt.patientId)}
-              className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
-              style={{ fontFamily: PP }}
-            >
-              <User size={13} /> View Patient Profile
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* MAIN WORKSPACE */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* MAIN CONTENT AREA */}
-        <div className="lg:col-span-8 space-y-6">
-          {/* SECTION 01 & SECTION 02 Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* SECTION 01: Patient Information */}
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-              <h3
-                className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-1.5"
-                style={{ fontFamily: PP }}
-              >
-                <User size={14} className="text-[#0D47A1]" /> Patient
-                Information
-              </h3>
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Patient Name</span>
-                  <strong className="text-slate-700">
-                    {activeApt.patientName}
-                  </strong>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">MRN</span>
-                  <strong className="text-slate-700 font-mono">
-                    {activeApt.mrn}
-                  </strong>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Age / Gender</span>
-                  <strong className="text-slate-700">
-                    {activeApt.patientAge}y / {activeApt.patientGender}
-                  </strong>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Blood Group</span>
-                  <strong className="text-slate-700">
-                    {patientInfo?.bloodGroup || "—"}
-                  </strong>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Mobile Number</span>
-                  <strong className="text-slate-700 font-mono">
-                    {activeApt.patientPhone || "—"}
-                  </strong>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Emergency Contact</span>
-                  <strong className="text-slate-700">
-                    {patientInfo?.emergencyContact || "—"}
-                  </strong>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Known Allergies</span>
-                  <strong className="text-slate-700">
-                    {((activeApt as unknown as Record<string, unknown>)
-                      .allergies as string) || "None reported"}
-                  </strong>
-                </div>
-              </div>
-            </div>
-
-            {/* SECTION 02: Appointment Information */}
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-              <h3
-                className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-1.5"
-                style={{ fontFamily: PP }}
-              >
-                <Calendar size={14} className="text-[#0D47A1]" /> Appointment
-                Information
-              </h3>
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Appointment ID</span>
-                  <strong className="text-slate-700 font-mono">
-                    {activeApt.id}
-                  </strong>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Appointment Date</span>
-                  <strong className="text-slate-700">
-                    {activeApt.appointmentDate}
-                  </strong>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Appointment Time</span>
-                  <strong className="text-slate-700 font-mono">
-                    {activeApt.timeSlot}
-                  </strong>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Assigned Doctor</span>
-                  <strong className="text-slate-700">
-                    {activeApt.doctorName}
-                  </strong>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Department</span>
-                  <strong className="text-slate-700">
-                    {typeof activeApt.department === "string"
-                      ? activeApt.department
-                      : activeApt.department?.departmentName ||
-                        activeApt.department?.name ||
-                        activeApt.department?.departmentCode ||
-                        ""}
-                  </strong>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Visit Type</span>
-                  <strong className="text-[#009688] font-bold">
-                    {activeApt.visitType}
-                  </strong>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Queue Status</span>
-                  <strong className="text-[#66BB6A] font-bold">
-                    Ready for Consultation
-                  </strong>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 03: Recorded Vitals Cards */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-              <h3
-                className="text-xs font-bold text-[#111827] uppercase tracking-wider flex items-center gap-1.5"
-                style={{ fontFamily: PP }}
-              >
-                <Heart size={15} className="text-[#EF4444]" /> Recorded Clinical
-                Vitals
-              </h3>
-              <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                <Clock size={12} /> Recorded at {vitalsData.recordedAt}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-              <div className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/80 space-y-1">
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  Height
-                </div>
-                <div
-                  className="text-lg font-bold text-[#111827] font-mono"
-                  style={{ fontFamily: PP }}
-                >
-                  {vitalsData.height || "—"}{" "}
-                  <span className="text-xs text-slate-500 font-normal">cm</span>
-                </div>
-                <div className="text-[10px] text-slate-500 font-medium">
-                  Standard
-                </div>
-              </div>
-
-              <div className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/80 space-y-1">
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  Weight
-                </div>
-                <div
-                  className="text-lg font-bold text-[#111827] font-mono"
-                  style={{ fontFamily: PP }}
-                >
-                  {vitalsData.weight || "—"}{" "}
-                  <span className="text-xs text-slate-500 font-normal">kg</span>
-                </div>
-                <div className="text-[10px] text-slate-500 font-medium">
-                  Standard
-                </div>
-              </div>
-
-              <div className="bg-teal-50/60 p-3.5 rounded-xl border border-teal-100 space-y-1">
-                <div className="text-[10px] font-bold text-teal-800 uppercase tracking-wider">
-                  BMI
-                </div>
-                <div
-                  className="text-lg font-bold text-[#009688] font-mono"
-                  style={{ fontFamily: PP }}
-                >
-                  {vitalsData.bmi || "—"}
-                </div>
-                <div className="text-[10px] text-teal-700 font-semibold">
-                  Normal Weight
-                </div>
-              </div>
-
-              <div className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/80 space-y-1">
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  Temperature
-                </div>
-                <div
-                  className="text-lg font-bold text-[#111827] font-mono"
-                  style={{ fontFamily: PP }}
-                >
-                  {vitalsData.temp || "—"}{" "}
-                  <span className="text-xs text-slate-500 font-normal">°C</span>
-                </div>
-                <div className="text-[10px] text-emerald-600 font-medium">
-                  Afebrile / Normal
-                </div>
-              </div>
-
-              <div className="bg-blue-50/60 p-3.5 rounded-xl border border-blue-100 space-y-1">
-                <div className="text-[10px] font-bold text-blue-900 uppercase tracking-wider">
-                  Blood Pressure
-                </div>
-                <div
-                  className="text-lg font-bold text-[#0D47A1] font-mono"
-                  style={{ fontFamily: PP }}
-                >
-                  {vitalsData.systolic && vitalsData.diastolic
-                    ? `${vitalsData.systolic}/${vitalsData.diastolic}`
-                    : "—"}{" "}
-                  <span className="text-xs text-blue-700 font-normal">
-                    mmHg
-                  </span>
-                </div>
-                <div className="text-[10px] text-blue-800 font-semibold">
-                  Optimal Range
-                </div>
-              </div>
-
-              <div className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/80 space-y-1">
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  Pulse Rate
-                </div>
-                <div
-                  className="text-lg font-bold text-[#111827] font-mono"
-                  style={{ fontFamily: PP }}
-                >
-                  {vitalsData.pulse || "—"}{" "}
-                  <span className="text-xs text-slate-500 font-normal">
-                    bpm
-                  </span>
-                </div>
-                <div className="text-[10px] text-emerald-600 font-medium">
-                  Normal Rhythm
-                </div>
-              </div>
-
-              <div className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/80 space-y-1">
-                <div className="text-[10px] font-bold text-[#009688] uppercase tracking-wider">
-                  Blood Sugar
-                </div>
-                <div
-                  className="text-lg font-bold text-[#009688] font-mono"
-                  style={{ fontFamily: PP }}
-                >
-                  {vitalsData.bloodSugar || vitalsData.sugar || "—"}{" "}
-                  <span className="text-xs text-teal-600 font-normal">
-                    mg/dL
-                  </span>
-                </div>
-                <div className="text-[10px] text-teal-700 font-medium">
-                  Random / Fasting
-                </div>
-              </div>
-
-              <div className="bg-emerald-50/60 p-3.5 rounded-xl border border-emerald-100 space-y-1">
-                <div className="text-[10px] font-bold text-emerald-900 uppercase tracking-wider">
-                  SpO₂ Oxygen
-                </div>
-                <div
-                  className="text-lg font-bold text-[#66BB6A] font-mono"
-                  style={{ fontFamily: PP }}
-                >
-                  {vitalsData.spo2 || "—"}{" "}
-                  <span className="text-xs text-emerald-700 font-normal">
-                    %
-                  </span>
-                </div>
-                <div className="text-[10px] text-emerald-800 font-semibold">
-                  Adequate Saturation
-                </div>
-              </div>
-
-              <div className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/80 space-y-1">
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  Blood Sugar
-                </div>
-                <div
-                  className="text-lg font-bold text-[#111827] font-mono"
-                  style={{ fontFamily: PP }}
-                >
-                  {vitalsData.sugar || "—"}{" "}
-                  <span className="text-xs text-slate-500 font-normal">
-                    mg/dL
-                  </span>
-                </div>
-                <div className="text-[10px] text-slate-500 font-medium">
-                  Fasting / Normal
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 04: Clinical Observation */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-            <h3
-              className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-1.5"
-              style={{ fontFamily: PP }}
-            >
-              <FileText size={14} className="text-[#0D47A1]" /> Clinical
-              Observation
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-1">
-                <span className="text-slate-400 block font-medium">
-                  General Appearance
-                </span>
-                <strong className="text-slate-800 text-sm">
-                  {vitalsData.appearance}
-                </strong>
-              </div>
-
-              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-1">
-                <span className="text-slate-400 block font-medium">
-                  Consciousness Level
-                </span>
-                <strong className="text-slate-800 text-sm">
-                  {vitalsData.consciousness}
-                </strong>
-              </div>
-
-              <div className="md:col-span-2 bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-1">
-                <span className="text-slate-400 block font-medium">
-                  Chief Complaint
-                </span>
-                <p className="text-slate-700 font-medium leading-relaxed">
-                  {activeApt.chiefComplaint}
-                </p>
-              </div>
-
-              <div className="md:col-span-2 bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-1">
-                <span className="text-slate-400 block font-medium">
-                  Nursing Observation & Clinical Prep Notes
-                </span>
-                <p className="text-slate-700 font-medium leading-relaxed">
-                  {vitalsData.observation}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 05: Patient Alerts */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-            <h3
-              className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-1.5"
-              style={{ fontFamily: PP }}
-            >
-              <ShieldAlert size={14} className="text-[#0D47A1]" /> Patient
-              Alerts & Clinical Risk Indicators
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-xl space-y-1">
-                <strong
-                  className="text-slate-800 block font-bold"
-                  style={{ fontFamily: PP }}
-                >
-                  Known Allergies
-                </strong>
-                <p className="text-slate-600 font-medium">
-                  {((activeApt as unknown as Record<string, unknown>)
-                    .allergies as string) ||
-                    "No known drug allergies reported."}
-                </p>
-              </div>
-              <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-xl space-y-1">
-                <strong
-                  className="text-slate-800 block font-bold"
-                  style={{ fontFamily: PP }}
-                >
-                  Chronic Conditions / Notes
-                </strong>
-                <p className="text-slate-600 font-medium">
-                  {activeApt.notes ||
-                    ((activeApt as unknown as Record<string, unknown>)
-                      .medicalConditions as string) ||
-                    "No active chronic conditions noted."}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 06: Vitals Activity Timeline */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-            <h3
-              className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-1.5"
-              style={{ fontFamily: PP }}
-            >
-              <Clock size={14} className="text-[#0D47A1]" /> Vitals Activity
-              Timeline
-            </h3>
-
-            <div className="relative pl-6 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
-              <div className="relative flex items-start justify-between gap-4">
-                <div className="absolute -left-5.75 top-0.5 w-4 h-4 rounded-full bg-blue-100 border-2 border-[#0D47A1] flex items-center justify-center">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#0D47A1]" />
-                </div>
-                <div>
-                  <h4
-                    className="text-xs font-bold text-[#111827]"
-                    style={{ fontFamily: PP }}
-                  >
-                    Patient Checked In
-                  </h4>
-                  <p className="text-[11px] text-slate-500 mt-0.5">
-                    {activeApt.appointmentDate} at {activeApt.timeSlot}
-                  </p>
-                </div>
-                <div className="text-right shrink-0 text-[10px] text-slate-400 font-mono">
-                  <div>{activeApt.timeSlot}</div>
-                </div>
-              </div>
-
-              <div className="relative flex items-start justify-between gap-4">
-                <div className="absolute -left-5.75 top-0.5 w-4 h-4 rounded-full bg-teal-100 border-2 border-[#009688] flex items-center justify-center">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#009688]" />
-                </div>
-                <div>
-                  <h4
-                    className="text-xs font-bold text-[#111827]"
-                    style={{ fontFamily: PP }}
-                  >
-                    Vitals Recorded
-                  </h4>
-                  <p className="text-[11px] text-slate-500 mt-0.5">
-                    All core parameters recorded and validated
-                  </p>
-                </div>
-                <div className="text-right shrink-0 text-[10px] text-slate-400 font-mono">
-                  <div>{vitalsData.recordedAt || "—"}</div>
-                  <div className="text-slate-500 font-semibold">
-                    {vitalsData.recordedBy || "—"}
-                  </div>
-                </div>
-              </div>
-
-              <div className="relative flex items-start justify-between gap-4">
-                <div className="absolute -left-5.75 top-0.5 w-4 h-4 rounded-full bg-green-100 border-2 border-[#66BB6A] flex items-center justify-center">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#66BB6A]" />
-                </div>
-                <div>
-                  <h4
-                    className="text-xs font-bold text-[#111827]"
-                    style={{ fontFamily: PP }}
-                  >
-                    Ready for Consultation
-                  </h4>
-                  <p className="text-[11px] text-slate-500 mt-0.5">
-                    Queue status updated — patient ready for doctor review
-                  </p>
-                </div>
-                <div className="text-right shrink-0 text-[10px] text-slate-400 font-mono">
-                  <div>Now</div>
-                  <div className="text-slate-500 font-semibold">
-                    {vitalsData.recordedBy || "—"}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* STICKY FOOTER */}
-        <div className="lg:col-span-12 bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-md flex items-center justify-between gap-3 sticky bottom-4 z-40">
-          <button
-            onClick={onBack}
-            className="px-5 py-2.5 rounded-xl border border-[#E5E7EB] text-xs font-bold text-[#64748B] hover:bg-slate-100 transition-colors flex items-center gap-1.5"
-            style={{ fontFamily: PP }}
-          >
-            <ArrowLeft size={14} /> Back to Queue
-          </button>
-
-          <button
-            onClick={handlePrintAction}
-            className="px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center gap-1.5 shadow-sm"
-            style={{ fontFamily: PP }}
-          >
-            <Printer size={14} /> Print Vitals
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   RECORD PATIENT VITALS WORKSPACE
-   ───────────────────────────────────────────────────────────────────────────── */
-export function RecordPatientVitalsForm({
-  activeApt,
-  onBack,
-  onPatientSelect,
-  onMarkReady,
-}: {
-  activeApt: AppointmentRecord;
-  onBack: () => void;
-  onPatientSelect?: (id: number | string) => void;
-  onMarkReady: () => void | Promise<void>;
-}) {
-  const { can } = usePermissions();
-  const [chiefComplaint, setChiefComplaint] = useState(
-    activeApt.chiefComplaint &&
-      activeApt.chiefComplaint !== "Pre-consultation Vitals Check"
-      ? activeApt.chiefComplaint
-      : "",
-  );
-  const [symptoms, setSymptoms] = useState("");
-  const [diagnosis, setDiagnosis] = useState("");
-  const [clinicalNotes, setClinicalNotes] = useState("");
-
-  const [height, setHeight] = useState("");
-  const [weight, setWeight] = useState("");
-  const [temperature, setTemperature] = useState("");
-  const [bloodPressure, setBloodPressure] = useState("");
-  const [pulse, setPulse] = useState("");
-  const [spo2, setSpo2] = useState("");
-  const [bloodSugar, setBloodSugar] = useState("");
-
-  const [toast, setToast] = useState<{
-    message: string;
-    type: "success" | "info" | "error";
-  } | null>(null);
-
-  const triggerToast = (
-    message: string,
-    type: "success" | "info" | "error" = "success",
-  ) => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
-
-  const handleSaveVitals = async () => {
-    try {
-      const payload = {
-        chiefComplaint,
-        symptoms,
-        diagnosis,
-        clinicalNotes,
-        temperature: Number(temperature),
-        weight: Number(weight),
-        height: Number(height),
-        bloodPressure,
-        pulse: Number(pulse),
-        spo2: Number(spo2),
-        bloodSugar: bloodSugar
-          ? isNaN(Number(bloodSugar))
-            ? bloodSugar
-            : Number(bloodSugar)
-          : undefined,
-      };
-
-      const wasSaved = await vitalsService.submitVitals(
-        activeApt.id,
-        payload,
-        activeApt.status,
-      );
-      if (!wasSaved) throw new Error("Vitals submission was not accepted");
-
-      triggerToast("Vitals recorded successfully!", "success");
-
-      await onMarkReady();
-    } catch (err) {
-      console.log(err);
-      triggerToast("Unable to record vitals.", "error");
-    }
-  };
-
-  return (
-    <div
-      className="flex-1 overflow-y-auto bg-[#F1F5F9] p-6 space-y-6"
-      style={{ fontFamily: RB }}
-    >
-      {/* Toast Alert */}
-      {toast && (
-        <div
-          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg border text-white text-xs font-semibold flex items-center gap-2 transition-opacity duration-200 ${
-            toast.type === "success"
-              ? "bg-[#66BB6A] border-green-300"
-              : toast.type === "error"
-                ? "bg-[#EF4444] border-red-300"
-                : "bg-[#0D47A1] border-blue-300"
-          }`}
-        >
-          <AlertCircle size={16} />
-          {toast.message}
-        </div>
-      )}
-
-      {/* HEADER & BREADCRUMB */}
-      <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm flex items-center justify-between">
-        <div>
-          <button
-            onClick={onBack}
-            className="text-[11px] font-semibold text-[#0D47A1] hover:text-[#0c3d8a] uppercase tracking-wider mb-1 flex items-center gap-1 cursor-pointer transition-colors"
-            style={{ fontFamily: PP }}
-          >
-            <ArrowLeft size={13} /> Back to Vitals Management Queue
-          </button>
-          <h1
-            className="text-xl font-bold text-[#111827]"
-            style={{ fontFamily: PP }}
-          >
-            Record Patient Vitals
-          </h1>
-          <p className="text-xs text-[#64748B] mt-0.5">
-            Record and verify patient vital signs before outpatient
-            consultation.
-          </p>
-        </div>
-        <button
-          onClick={onBack}
-          className="px-4 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 text-slate-700 hover:bg-slate-100 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
-          style={{ fontFamily: PP }}
-        >
-          <ArrowLeft size={14} /> Back
-        </button>
-      </div>
-
-      {/* STICKY PATIENT SUMMARY STRIP */}
-      <div className="bg-linear-to-r from-blue-900 via-[#0D47A1] to-[#009688] rounded-2xl p-5 text-white shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Avatar name={activeApt.patientName} size="lg" />
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-mono text-xs font-bold bg-white/20 px-2 py-0.5 rounded text-white">
-                {activeApt.tokenNo}
-              </span>
-              <span className="text-xs font-bold bg-amber-500 text-white px-2 py-0.5 rounded">
-                Waiting for Vitals
-              </span>
-              <span className="text-xs text-blue-100 font-mono">
-                {activeApt.timeSlot}
-              </span>
-            </div>
-            <h2
-              className="text-lg font-bold text-white mt-1"
-              style={{ fontFamily: PP }}
-            >
-              {activeApt.patientName}
-            </h2>
-            <div className="text-xs text-blue-100 mt-0.5">
-              MRN: {activeApt.mrn} · {activeApt.patientAge}y /{" "}
-              {activeApt.patientGender} · Doctor:{" "}
-              <strong className="text-white">{activeApt.doctorName}</strong> ·
-              Dept:{" "}
-              <strong className="text-white">
-                {typeof activeApt.department === "string"
-                  ? activeApt.department
-                  : activeApt.department?.departmentName ||
-                    activeApt.department?.name ||
-                    activeApt.department?.departmentCode ||
-                    ""}
-              </strong>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          {onPatientSelect && (
-            <button
-              onClick={() => onPatientSelect(activeApt.patientId)}
-              className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
-              style={{ fontFamily: PP }}
-            >
-              <User size={13} /> View Patient Profile
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* FORM WORKSPACE */}
-      <div className="space-y-6">
-        {/* SECTION 01: Patient Information (Read Only) */}
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-          <h3
-            className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-1.5"
-            style={{ fontFamily: PP }}
-          >
-            <User size={14} className="text-[#0D47A1]" /> Patient Information
-            (Read Only)
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 text-xs">
-            <div>
-              <span className="text-slate-400 block text-[11px]">
-                Patient Name
-              </span>
-              <strong className="text-slate-800 text-sm font-semibold">
-                {activeApt.patientName}
-              </strong>
-            </div>
-            <div>
-              <span className="text-slate-400 block text-[11px]">MRN</span>
-              <strong className="text-slate-800 font-mono text-xs">
-                {activeApt.mrn}
-              </strong>
-            </div>
-            <div>
-              <span className="text-slate-400 block text-[11px]">
-                Appointment ID
-              </span>
-              <strong className="text-slate-800 font-mono text-xs">
-                {activeApt.id}
-              </strong>
-            </div>
-            <div>
-              <span className="text-slate-400 block text-[11px]">Doctor</span>
-              <strong className="text-slate-800 font-semibold">
-                {activeApt.doctorName}
-              </strong>
-            </div>
-            <div>
-              <span className="text-slate-400 block text-[11px]">
-                Department
-              </span>
-              <strong className="text-slate-800 font-semibold">
-                {typeof activeApt.department === "string"
-                  ? activeApt.department
-                  : activeApt.department?.departmentName ||
-                    activeApt.department?.name ||
-                    activeApt.department?.departmentCode ||
-                    ""}
-              </strong>
-            </div>
-            <div>
-              <span className="text-slate-400 block text-[11px]">Token</span>
-              <strong className="text-[#0D47A1] font-bold font-mono text-xs bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
-                {activeApt.tokenNo}
-              </strong>
-            </div>
-          </div>
-        </div>
-
-        {/* SECTION 02: Clinical Information */}
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-          <h3
-            className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-1.5"
-            style={{ fontFamily: PP }}
-          >
-            <FileText size={14} className="text-[#0D47A1]" /> Clinical
-            Information
-          </h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold text-[#64748B] block">
-                Chief Complaint
-              </span>
-              <textarea
-                aria-label="Text area"
-                value={chiefComplaint}
-                onChange={(e) => setChiefComplaint(e.target.value)}
-                placeholder="Enter chief complaint"
-                rows={3}
-                className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700 resize-y"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold text-[#64748B] block">
-                Symptoms
-              </span>
-              <textarea
-                aria-label="Text area"
-                value={symptoms}
-                onChange={(e) => setSymptoms(e.target.value)}
-                placeholder="Enter symptoms"
-                rows={3}
-                className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700 resize-y"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold text-[#64748B] block">
-                Diagnosis
-              </span>
-              <textarea
-                aria-label="Text area"
-                value={diagnosis}
-                onChange={(e) => setDiagnosis(e.target.value)}
-                placeholder="Provisional diagnosis"
-                rows={3}
-                className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700 resize-y"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold text-[#64748B] block">
-                Clinical Notes
-              </span>
-              <textarea
-                aria-label="Text area"
-                value={clinicalNotes}
-                onChange={(e) => setClinicalNotes(e.target.value)}
-                placeholder="Clinical observations"
-                rows={3}
-                className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700 resize-y"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* SECTION 03: Vital Signs */}
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-          <h3
-            className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-1.5"
-            style={{ fontFamily: PP }}
-          >
-            <Heart size={14} className="text-[#EF4444]" /> Vital Signs
-          </h3>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold text-[#64748B] block">
-                Height (cm)
-                <input
-                  aria-label="Input field"
-                  type="number"
-                  value={height}
-                  onChange={(e) => setHeight(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
-                />
-              </span>
-            </div>
-
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold text-[#64748B] block">
-                Weight (kg)
-                <input
-                  aria-label="Input field"
-                  type="number"
-                  value={weight}
-                  onChange={(e) => setWeight(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
-                />
-              </span>
-            </div>
-
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold text-[#64748B] block">
-                Temperature
-                <input
-                  aria-label="Input field"
-                  type="number"
-                  step="0.1"
-                  value={temperature}
-                  onChange={(e) => setTemperature(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
-                />
-              </span>
-            </div>
-
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold text-[#64748B] block">
-                Blood Pressure
-                <input
-                  aria-label="120/80"
-                  value={bloodPressure}
-                  placeholder="120/80"
-                  onChange={(e) => setBloodPressure(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700 font-mono"
-                />
-              </span>
-            </div>
-
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold text-[#64748B] block">
-                Pulse
-                <input
-                  aria-label="Input field"
-                  type="number"
-                  value={pulse}
-                  onChange={(e) => setPulse(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
-                />
-              </span>
-            </div>
-
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold text-[#64748B] block">
-                SpO₂
-                <input
-                  aria-label="Input field"
-                  type="number"
-                  value={spo2}
-                  onChange={(e) => setSpo2(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
-                />
-              </span>
-            </div>
-
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold text-[#64748B] block">
-                Blood Sugar (mg/dL)
-                <input
-                  aria-label="Blood Sugar"
-                  type="number"
-                  value={bloodSugar}
-                  onChange={(e) => setBloodSugar(e.target.value)}
-                  placeholder="110"
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700 font-mono"
-                />
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* STICKY FOOTER ACTION BAR */}
-        <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-md flex items-center justify-between gap-3 sticky bottom-4 z-40">
-          <button
-            onClick={onBack}
-            className="px-5 py-2.5 rounded-xl border border-[#E5E7EB] text-xs font-bold text-[#64748B] hover:bg-slate-100 transition-colors flex items-center gap-1.5"
-            style={{ fontFamily: PP }}
-          >
-            <ArrowLeft size={14} /> Back to Queue
-          </button>
-
-          <button
-            onClick={handleSaveVitals}
-            disabled={!can("VITALS_CREATE")}
-            className="px-6 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ fontFamily: PP }}
-          >
-            <Check size={14} /> Save Vitals
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  onBack?: () => void;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -1153,23 +54,21 @@ export function RecordPatientVitalsForm({
 const getVitalsStatus = (apt: AppointmentRecord) => {
   if (
     apt.hasVitals ||
-    apt.vitalsId ||
     apt.vitalsRecorded ||
+    apt.status === "Vitals Recorded" ||
     apt.status === "Completed" ||
-    apt.status === "Vitals Recorded"
-  ) {
-    return "Vitals Recorded";
-  }
-  if (apt.notes?.includes("vitals in progress")) return "Recording In Progress";
-  if (
-    apt.status === "In Consultation" ||
-    apt.status === "In Progress" ||
-    apt.status === "Waiting" ||
+    apt.status === "Ready For Consultation" ||
     apt.status === "Waiting for Doctor" ||
     apt.status === "Called" ||
-    apt.queueStatus === "WAITING_FOR_DOCTOR_CALL"
-  )
+    apt.status === "In Consultation" ||
+    apt.status === "In Progress" ||
+    apt.queueStatus === "WAITING_FOR_DOCTOR_CALL" ||
+    apt.queueStatus === "WAITING_FOR_DOCTOR" ||
+    apt.queueStatus === "COMPLETED"
+  ) {
     return "Ready For Consultation";
+  }
+  if (apt.notes?.includes("vitals in progress")) return "Recording In Progress";
   return "Waiting for Vitals";
 };
 
@@ -1177,177 +76,313 @@ export function RecordPatientVitalsScreen({
   onPatientSelect,
   onViewAppointmentDetails,
   initialViewMode = "center",
+  onBack,
 }: Props) {
   const { can } = usePermissions();
   const queryClient = useQueryClient();
   const [appointments, setAppointments] = useState<AppointmentRecord[]>([]);
   const [selectedAptId, setSelectedAptId] = useState<string | null>(null);
+  const [selectedAptRecord, setSelectedAptRecord] =
+    useState<AppointmentRecord | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [viewMode, setViewMode] = useState<"center" | "record" | "details">(
     initialViewMode,
   );
+  const todayStr = new Date().toISOString().split("T")[0];
+  const [selectedDate, setSelectedDate] = useState<string>(todayStr);
+  // Sorting State
+  const [sortField] = useState<"time" | "token" | "patient">("time");
+  const [sortOrder] = useState<"asc" | "desc">("asc");
 
-  const loadWaitingAppointments = useCallback(async () => {
-    try {
-      const list = await vitalsService.getWaitingPatients();
-      if (Array.isArray(list)) {
-        const mapped: AppointmentRecord[] = list.map(
-          (item: NurseWaitingPatient, idx: number) => {
-            const itemObj = item as unknown as Record<string, unknown>;
-            const hasVitalsByQueue = Boolean(
-              itemObj.vitalsId ||
-              itemObj.hasVitals ||
-              itemObj.vitalsRecorded ||
-              item.status === "COMPLETED" ||
-              item.status === "Vitals Recorded",
-            );
-            const hasVitals = hasVitalsByQueue;
-            const apptIdStr = String(
-              item.appointmentId || item.id || `apt-${idx + 1}`,
+  const loadWaitingAppointments = useCallback(
+    async (dateParam?: string) => {
+      try {
+        const targetDate =
+          dateParam || selectedDate || new Date().toISOString().split("T")[0];
+
+        const queueEnvelope = await vitalsApi.getNurseQueueFull(targetDate);
+        if (queueEnvelope && typeof queueEnvelope === "object") {
+          if (
+            Array.isArray(queueEnvelope.patients) &&
+            queueEnvelope.patients.length > 0
+          ) {
+            const mapped: AppointmentRecord[] = queueEnvelope.patients.map(
+              (item, idx) => {
+                const apptIdStr = String(
+                  item.appointmentId || item.id || `apt-${idx + 1}`,
+                );
+                const hasVitals = item.vitalsStatus === "COMPLETED";
+
+                return {
+                  id: apptIdStr,
+                  appointmentNumber: String(
+                    item.appointmentId || item.token || apptIdStr,
+                  ),
+                  tokenNo: String(item.token || item.appointmentId || "—"),
+                  patientId: String(item.patientId || "—"),
+                  patientName: String(item.patientName || "Patient"),
+                  patientAge: Number(item.age || 30),
+                  patientGender: (item.gender ||
+                    "Male") as AppointmentRecord["patientGender"],
+                  patientPhone: String(item.phone || item.contact || "—"),
+                  mrn: String(item.patientId || item.mrn || "—"),
+                  doctorId: String(item.doctorId || "—"),
+                  doctorName: String(item.doctorName || "Duty Doctor"),
+                  department: String(item.department || "General OPD"),
+                  departmentName: String(item.department || "General OPD"),
+                  specialty: "General OPD",
+                  appointmentDate: item.checkInDate || targetDate,
+                  appointmentTime: String(
+                    item.appointmentTime || item.checkInTime || "—",
+                  ),
+                  time: String(item.appointmentTime || item.checkInTime || "—"),
+                  timeSlot: String(
+                    item.appointmentTime || item.checkInTime || "—",
+                  ),
+                  status: hasVitals
+                    ? "Vitals Recorded"
+                    : item.vitalsStatus === "WAITING"
+                      ? "Waiting for Vitals"
+                      : "Waiting for Vitals",
+                  queueStatus: item.vitalsStatus || "WAITING",
+                  hasVitals,
+                  vitalsRecorded: hasVitals,
+                  vitalsId: undefined,
+                  visitType: "Consultation",
+                  reason: "",
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                };
+              },
             );
 
-            return {
-              id: apptIdStr,
-              appointmentNumber: String(
-                item.appointmentNumber ||
-                  item.tokenNumber ||
+            setAppointments(mapped);
+            return;
+          }
+        }
+
+        const [waitingResult, todayResult] = await Promise.allSettled([
+          vitalsService.getWaitingPatients(targetDate),
+          appointmentService.listAppointments({ date: targetDate }),
+        ]);
+
+        const waitingItems =
+          waitingResult.status === "fulfilled" &&
+          Array.isArray(waitingResult.value)
+            ? waitingResult.value
+            : [];
+
+        const todayItems =
+          todayResult.status === "fulfilled" && Array.isArray(todayResult.value)
+            ? todayResult.value
+            : [];
+
+        const combinedMap = new Map<string, Record<string, unknown>>();
+
+        waitingItems.forEach((item, idx) => {
+          const id = String(item.appointmentId || item.id || `apt-w-${idx}`);
+          combinedMap.set(id, item as unknown as Record<string, unknown>);
+        });
+
+        todayItems.forEach((item, idx) => {
+          const id = String(
+            item.id || item.appointmentNumber || `apt-t-${idx}`,
+          );
+          const existing = combinedMap.get(id);
+          if (existing) {
+            combinedMap.set(id, { ...existing, ...item });
+          } else {
+            combinedMap.set(id, item as unknown as Record<string, unknown>);
+          }
+        });
+
+        const rawCombinedList = Array.from(combinedMap.values());
+
+        if (rawCombinedList.length > 0) {
+          const mapped: AppointmentRecord[] = rawCombinedList.map(
+            (itemObj: Record<string, unknown>, idx: number) => {
+              const item = itemObj as unknown as NurseWaitingPatient;
+              const apptIdStr = String(
+                item.appointmentId || item.id || `apt-${idx + 1}`,
+              );
+
+              const hasVitals = Boolean(
+                item.vitalsStatus === "COMPLETED" ||
+                item.vitalsStatus === "Vitals Recorded" ||
+                itemObj.hasVitals === true ||
+                itemObj.vitalsRecorded === true ||
+                itemObj.vitalsId != null ||
+                itemObj.vitals != null,
+              );
+
+              return {
+                id: apptIdStr,
+                appointmentNumber: String(
+                  item.appointmentNumber ||
+                    item.tokenNumber ||
+                    item.token ||
+                    apptIdStr,
+                ),
+                tokenNo: String(
                   item.token ||
-                  apptIdStr,
-              ),
-              tokenNo: String(
-                item.tokenNumber || item.token || item.appointmentNumber || "—",
-              ),
-              patientId: item.patientId || item.patient?.id || "—",
-              patientName:
-                item.patientName ||
-                item.patient?.name ||
-                item.patient?.fullName ||
-                "Patient",
-              patientAge: Number(item.age || item.patient?.age || 30),
-              patientGender: (item.gender ||
-                item.patient?.gender ||
-                "Male") as AppointmentRecord["patientGender"],
-              patientPhone:
-                item.contact || item.patient?.contact || item.phone || "—",
-              mrn: item.mrn || item.patient?.mrn || "—",
-              doctorId: item.doctorId || item.doctor?.doctorId || "—",
-              doctorName:
-                item.doctorName ||
-                item.doctor?.name ||
-                ((item.doctor as Record<string, unknown> | undefined)
-                  ?.fullName as string) ||
-                "Duty Doctor",
-              department:
-                item.departmentName ||
-                (typeof item.department === "object"
-                  ? item.department?.departmentName ||
-                    item.department?.name ||
-                    item.department?.departmentCode
-                  : undefined) ||
-                (typeof item.department === "string"
-                  ? item.department
-                  : undefined) ||
-                item.doctor?.departmentName ||
-                item.doctor?.department ||
-                "Cardiology",
-              departmentName:
-                item.departmentName ||
-                (typeof item.department === "object"
-                  ? item.department?.departmentName ||
-                    item.department?.name ||
-                    item.department?.departmentCode
-                  : undefined) ||
-                (typeof item.department === "string"
-                  ? item.department
-                  : undefined) ||
-                item.doctor?.departmentName ||
-                item.doctor?.department ||
-                "Cardiology",
-              specialty:
-                item.specialty ||
-                item.doctor?.specialty ||
-                (typeof item.department === "object"
-                  ? item.department?.departmentName ||
-                    item.department?.name ||
-                    item.department?.departmentCode
-                  : undefined) ||
-                (typeof item.department === "string"
-                  ? item.department
-                  : undefined) ||
-                item.doctor?.department ||
-                "General Medicine",
-              appointmentDate:
-                (itemObj.appointmentDate as string) ||
-                (itemObj.date as string) ||
-                new Date().toISOString().split("T")[0],
-              appointmentTime:
-                item.checkInTime ||
-                item.appointmentTime ||
-                (itemObj.startTime as string) ||
-                item.time ||
-                item.timeSlot ||
-                "—",
-              time:
-                item.checkInTime ||
-                item.appointmentTime ||
-                (itemObj.startTime as string) ||
-                item.time ||
-                item.timeSlot ||
-                "—",
-              timeSlot:
-                item.checkInTime ||
-                item.appointmentTime ||
-                (itemObj.startTime as string) ||
-                item.time ||
-                item.timeSlot ||
-                "—",
-              status: hasVitals ? "Completed" : toDisplayStatus(item.status),
-              queueStatus: hasVitals
-                ? "COMPLETED"
-                : item.status || "WAITING_FOR_VITALS",
-              hasVitals,
-              vitalsRecorded: hasVitals,
-              vitalsId: itemObj.vitalsId as number | undefined,
-              visitType:
-                item.visitType ||
-                (itemObj.appointmentType as string) ||
-                "Consultation",
-              reason:
-                (itemObj.reason as string) ||
-                (itemObj.chiefComplaint as string) ||
-                "",
-              createdAt:
-                (itemObj.createdAt as string) || new Date().toISOString(),
-              updatedAt:
-                (itemObj.updatedAt as string) || new Date().toISOString(),
-            };
-          },
-        );
-        setAppointments(mapped);
+                    item.tokenNumber ||
+                    item.appointmentNumber ||
+                    "—",
+                ),
+                patientId: item.patientId || item.patient?.id || "—",
+                patientName:
+                  item.patientName ||
+                  item.patient?.name ||
+                  item.patient?.fullName ||
+                  "Patient",
+                patientAge: Number(item.age || item.patient?.age || 30),
+                patientGender: (item.gender ||
+                  item.patient?.gender ||
+                  "Male") as AppointmentRecord["patientGender"],
+                patientPhone:
+                  item.contact || item.patient?.contact || item.phone || "—",
+                mrn: String(
+                  item.patientId || item.mrn || item.patient?.mrn || "—",
+                ),
+                doctorId: item.doctorId || item.doctor?.doctorId || "—",
+                doctorName:
+                  item.doctorName ||
+                  item.doctor?.name ||
+                  ((item.doctor as Record<string, unknown> | undefined)
+                    ?.fullName as string) ||
+                  "Duty Doctor",
+                department:
+                  item.departmentName ||
+                  (typeof item.department === "object"
+                    ? item.department?.departmentName ||
+                      item.department?.name ||
+                      item.department?.departmentCode
+                    : undefined) ||
+                  (typeof item.department === "string"
+                    ? item.department
+                    : undefined) ||
+                  item.doctor?.departmentName ||
+                  item.doctor?.department ||
+                  "Cardiology",
+                departmentName:
+                  item.departmentName ||
+                  (typeof item.department === "object"
+                    ? item.department?.departmentName ||
+                      item.department?.name ||
+                      item.department?.departmentCode
+                    : undefined) ||
+                  (typeof item.department === "string"
+                    ? item.department
+                    : undefined) ||
+                  item.doctor?.departmentName ||
+                  item.doctor?.department ||
+                  "Cardiology",
+                specialty:
+                  item.specialty ||
+                  item.doctor?.specialty ||
+                  (typeof item.department === "object"
+                    ? item.department?.departmentName ||
+                      item.department?.name ||
+                      item.department?.departmentCode
+                    : undefined) ||
+                  (typeof item.department === "string"
+                    ? item.department
+                    : undefined) ||
+                  item.doctor?.department ||
+                  "General Medicine",
+                appointmentDate:
+                  (itemObj.appointmentDate as string) ||
+                  (itemObj.date as string) ||
+                  new Date().toISOString().split("T")[0],
+                appointmentTime:
+                  item.checkInTime ||
+                  item.appointmentTime ||
+                  (itemObj.startTime as string) ||
+                  item.time ||
+                  item.timeSlot ||
+                  "—",
+                time:
+                  item.checkInTime ||
+                  item.appointmentTime ||
+                  (itemObj.startTime as string) ||
+                  item.time ||
+                  item.timeSlot ||
+                  "—",
+                timeSlot:
+                  item.checkInTime ||
+                  item.appointmentTime ||
+                  (itemObj.startTime as string) ||
+                  item.time ||
+                  item.timeSlot ||
+                  "—",
+                status: hasVitals
+                  ? "Vitals Recorded"
+                  : item.status === "WAITING_FOR_DOCTOR" ||
+                      item.status === "WAITING_FOR_DOCTOR_CALL"
+                    ? "Ready for Consultation"
+                    : toDisplayStatus(item.status),
+                queueStatus: hasVitals
+                  ? "WAITING_FOR_DOCTOR_CALL"
+                  : item.status || "WAITING_FOR_VITALS",
+                hasVitals,
+                vitalsRecorded: hasVitals,
+                vitalsId: itemObj.vitalsId as number | undefined,
+                visitType:
+                  item.visitType ||
+                  (itemObj.appointmentType as string) ||
+                  "Consultation",
+                reason:
+                  (itemObj.reason as string) ||
+                  (itemObj.chiefComplaint as string) ||
+                  "",
+                createdAt: (item as unknown as Record<string, unknown>)
+                  .createdAt
+                  ? String(
+                      (item as unknown as Record<string, unknown>).createdAt,
+                    )
+                  : targetDate,
+                updatedAt: (item as unknown as Record<string, unknown>)
+                  .updatedAt
+                  ? String(
+                      (item as unknown as Record<string, unknown>).updatedAt,
+                    )
+                  : targetDate,
+              };
+            },
+          );
+          setAppointments(mapped);
+        }
+      } catch (err) {
+        console.warn("Waiting list fetch warning:", err);
       }
-    } catch (err) {
-      console.warn("Waiting list fetch warning:", err);
-    }
-  }, []);
+    },
+    [selectedDate],
+  );
 
   useEffect(() => {
-    void Promise.resolve().then(loadWaitingAppointments);
-  }, [loadWaitingAppointments]);
+    let isMounted = true;
+    const fetchWaitingAppointments = async () => {
+      await loadWaitingAppointments(selectedDate);
+      if (!isMounted) return;
+    };
+    void fetchWaitingAppointments();
+    return () => {
+      isMounted = false;
+    };
+  }, [loadWaitingAppointments, selectedDate]);
 
   // Search & Filters
   const [searchQuery, setSearchQuery] = useState("");
   const [doctorFilter, setDoctorFilter] = useState("All");
   const [deptFilter, setDeptFilter] = useState("All");
+
   const [aptStatusFilter, setAptStatusFilter] = useState("All");
   const [vitalsStatusFilter, setVitalsStatusFilter] = useState("All");
   const [visitTypeFilter, setVisitTypeFilter] = useState("All");
 
   // Status Tab selection
   const [activeTab, setActiveTab] = useState<
-    | "All"
-    | "Waiting for Vitals"
-    | "Recording In Progress"
-    | "Vitals Recorded"
-    | "Ready For Consultation"
+    "All" | "Waiting for Vitals" | "Vitals Recorded"
   >("All");
 
   // Toast System
@@ -1373,25 +408,82 @@ export function RecordPatientVitalsScreen({
     return Array.from(new Set(list));
   }, [appointments]);
 
-  // Dynamic Department list from appointments
+  const [masterDepartments, setMasterDepartments] = useState<string[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    const loadMasterDepts = async () => {
+      try {
+        const res = await departmentsApi.getDepartments({ page: 0, size: 100 });
+        if (!active) return;
+        const items =
+          res?.content ||
+          (res as unknown as Record<string, unknown>)?.items ||
+          (Array.isArray(res) ? res : []);
+        const names = (items as Array<Record<string, unknown>>)
+          .map((d) => (d.departmentName || d.name) as string | undefined)
+          .filter((name): name is string =>
+            Boolean(name && typeof name === "string" && name.trim()),
+          );
+        if (names.length > 0) {
+          setMasterDepartments(names);
+        }
+      } catch {
+        // Fallback to appointment depts
+      }
+    };
+    void loadMasterDepts();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Dynamic Department list from master API + appointments
   const dynamicDepartments = useMemo(() => {
-    const list = appointments
+    const aptDepts = appointments
       .map((a) =>
         typeof a.department === "string" ? a.department : a.departmentName,
       )
       .filter((dept): dept is string =>
         Boolean(dept && dept.trim() && dept !== "—"),
       );
-    return Array.from(new Set(list));
-  }, [appointments]);
+
+    const defaultDepts = [
+      "General Medicine",
+      "Cardiology",
+      "Orthopedics",
+      "Pediatrics",
+      "Neurology",
+      "Dermatology",
+      "ENT",
+      "Gynecology",
+      "Ophthalmology",
+      "Urology",
+      "General Surgery",
+      "Pulmonology",
+    ];
+
+    const combined = Array.from(
+      new Set([...masterDepartments, ...aptDepts, ...defaultDepts]),
+    );
+    return combined.sort();
+  }, [appointments, masterDepartments]);
 
   // Active Selected Appointment Record
   const activeApt = useMemo(() => {
     if (!selectedAptId) return null;
-    return (
-      appointments.find((a) => String(a.id) === String(selectedAptId)) || null
+    const found = appointments.find(
+      (a) => String(a.id) === String(selectedAptId),
     );
-  }, [appointments, selectedAptId]);
+    if (found) return found;
+    if (
+      selectedAptRecord &&
+      String(selectedAptRecord.id) === String(selectedAptId)
+    ) {
+      return selectedAptRecord;
+    }
+    return selectedAptRecord;
+  }, [appointments, selectedAptId, selectedAptRecord]);
 
   // Fetched vitals data for details view
   const [detailsVitals, setDetailsVitals] = useState<RecordedVitalsData | null>(
@@ -1410,8 +502,7 @@ export function RecordPatientVitalsScreen({
 
   // Today's Queue list
   const todayQueue = useMemo(() => {
-    const todayStr = new Date().toISOString().split("T")[0];
-    return appointments.filter((a) => a.appointmentDate === todayStr);
+    return appointments;
   }, [appointments]);
 
   // Status map helper to determine vitals status string for an appointment
@@ -1425,12 +516,10 @@ export function RecordPatientVitalsScreen({
     const inProgress = todayQueue.filter(
       (a) => getVitalsStatus(a) === "Recording In Progress",
     ).length;
-    const recorded = todayQueue.filter(
-      (a) => getVitalsStatus(a) === "Vitals Recorded",
-    ).length;
     const ready = todayQueue.filter(
       (a) => getVitalsStatus(a) === "Ready For Consultation",
     ).length;
+    const recorded = ready;
     return {
       total,
       pending,
@@ -1490,15 +579,91 @@ export function RecordPatientVitalsScreen({
     visitTypeFilter,
   ]);
 
+  // Active Filters List for Pill Display
+  const activeFiltersList = useMemo(() => {
+    const list: { key: string; label: string; clear: () => void }[] = [];
+    if (searchQuery.trim()) {
+      list.push({
+        key: "search",
+        label: `Search: "${searchQuery}"`,
+        clear: () => setSearchQuery(""),
+      });
+    }
+    if (doctorFilter !== "All") {
+      list.push({
+        key: "doctor",
+        label: `Doctor: ${doctorFilter}`,
+        clear: () => setDoctorFilter("All"),
+      });
+    }
+    if (deptFilter !== "All") {
+      list.push({
+        key: "dept",
+        label: `Department: ${deptFilter}`,
+        clear: () => setDeptFilter("All"),
+      });
+    }
+    if (aptStatusFilter !== "All") {
+      list.push({
+        key: "aptStatus",
+        label: `Apt Status: ${aptStatusFilter}`,
+        clear: () => setAptStatusFilter("All"),
+      });
+    }
+    if (vitalsStatusFilter !== "All") {
+      list.push({
+        key: "vitalsStatus",
+        label: `Vitals: ${vitalsStatusFilter}`,
+        clear: () => setVitalsStatusFilter("All"),
+      });
+    }
+    if (visitTypeFilter !== "All") {
+      list.push({
+        key: "visitType",
+        label: `Visit: ${visitTypeFilter}`,
+        clear: () => setVisitTypeFilter("All"),
+      });
+    }
+    return list;
+  }, [
+    searchQuery,
+    doctorFilter,
+    deptFilter,
+    aptStatusFilter,
+    vitalsStatusFilter,
+    visitTypeFilter,
+  ]);
+
+  // Sorted Dataset
+  const sortedAppointments = useMemo(() => {
+    return [...filteredAppointments].sort((a, b) => {
+      let valA: string;
+      let valB: string;
+      if (sortField === "token") {
+        valA = String(a.tokenNo || a.appointmentNumber || "");
+        valB = String(b.tokenNo || b.appointmentNumber || "");
+      } else if (sortField === "patient") {
+        valA = String(a.patientName || "").toLowerCase();
+        valB = String(b.patientName || "").toLowerCase();
+      } else {
+        valA = String(a.timeSlot || a.time || "");
+        valB = String(b.timeSlot || b.time || "");
+      }
+      return sortOrder === "asc"
+        ? valA.localeCompare(valB, undefined, { numeric: true })
+        : valB.localeCompare(valA, undefined, { numeric: true });
+    });
+  }, [filteredAppointments, sortField, sortOrder]);
+
   // Pagination for queue table
   const [queuePage, setQueuePage] = useState(1);
   const queuePageSize = 10;
   const queueTotalPages = Math.max(
     1,
-    Math.ceil(filteredAppointments.length / queuePageSize),
+    Math.ceil(sortedAppointments.length / queuePageSize),
   );
   const safeQueuePage = Math.min(queuePage, queueTotalPages);
-  const paginatedAppointments = filteredAppointments.slice(
+  const paginatedAppointments = sortedAppointments.slice(
     (safeQueuePage - 1) * queuePageSize,
     safeQueuePage * queuePageSize,
   );
@@ -1509,30 +674,56 @@ export function RecordPatientVitalsScreen({
   ) => {
     const aptIdStr = String(apt.id);
     setSelectedAptId(aptIdStr);
+    setSelectedAptRecord(apt);
     setViewMode(mode);
-    if (mode === "details") {
+    // Fetch vitals from GET /api/v1/nurse/appointments/{id}/vitals ONLY when viewing details or for completed vitals
+    if (mode === "details" || apt.hasVitals || apt.vitalsRecorded) {
       fetchVitalsForDetails(apt.id);
+    } else {
+      setDetailsVitals(null);
     }
 
+    // Use 4-digit numeric ID for GET /api/v1/appointments/{id} to get patient information & header data
+    const numericId = String(apt.id).replace(/\D+/g, "") || apt.id;
     try {
-      const res = await appointmentsApi.getAppointmentById(apt.id);
+      const res = await appointmentsApi.getAppointmentById(numericId);
       const data = (res?.data || res) as unknown as
         Record<string, unknown> | undefined;
       if (data && typeof data === "object") {
-        const patObj = (data.patient || {}) as Record<string, unknown>;
+        let patObj = (data.patient || {}) as Record<string, unknown>;
         const docObj = (data.doctor || {}) as Record<string, unknown>;
         const deptObj = (data.department || {}) as Record<string, unknown>;
 
-        const primaryId = (data.id || data.appointmentId || apt.id) as
-          string | number;
-        const formattedApptNum = String(
-          data.appointmentNumber || data.tokenNumber || data.token || primaryId,
-        );
+        const targetMrn = String(
+          data.mrn || data.patientMrn || patObj.mrn || apt.mrn || "",
+        ).trim();
+        if (
+          targetMrn &&
+          targetMrn !== "—" &&
+          (!patObj.bloodGroup || !patObj.phone || !patObj.emergencyContact)
+        ) {
+          try {
+            const fullPatient = await patientsApi.getById(targetMrn);
+            if (fullPatient) {
+              patObj = {
+                ...patObj,
+                ...(fullPatient as unknown as Record<string, unknown>),
+              };
+            }
+          } catch {
+            // Ignore patient profile fallback error
+          }
+        }
 
         const updatedApt: AppointmentRecord = {
           ...apt,
-          id: primaryId,
-          appointmentNumber: formattedApptNum,
+          appointmentNumber: String(
+            data.appointmentNumber ||
+              data.tokenNumber ||
+              data.token ||
+              apt.appointmentNumber ||
+              apt.id,
+          ),
           tokenNo: String(
             data.queueToken ||
               data.tokenNumber ||
@@ -1553,6 +744,16 @@ export function RecordPatientVitalsScreen({
           patientAge: Number(data.age || patObj.age || apt.patientAge || 0),
           patientGender: String(
             data.gender || patObj.gender || apt.patientGender || "—",
+          ),
+          patientPhone: String(
+            data.phone ||
+              data.mobile ||
+              patObj.phone ||
+              patObj.contact ||
+              patObj.mobile ||
+              patObj.phoneNumber ||
+              apt.patientPhone ||
+              "—",
           ),
           doctorName: String(
             data.doctorName ||
@@ -1592,41 +793,101 @@ export function RecordPatientVitalsScreen({
                 : "") ||
               "",
           ),
+          patient: {
+            id: (patObj.id || data.patientId || apt.patientId) as
+              string | number,
+            mrn: String(data.mrn || patObj.mrn || apt.mrn || "—"),
+            name: String(
+              data.patientName ||
+                patObj.name ||
+                patObj.fullName ||
+                apt.patientName ||
+                "—",
+            ),
+            age: Number(data.age || patObj.age || apt.patientAge || 0),
+            gender: String(
+              data.gender || patObj.gender || apt.patientGender || "—",
+            ),
+            bloodGroup: String(
+              data.bloodGroup || patObj.bloodGroup || patObj.bloodType || "—",
+            ),
+            phone: String(
+              data.phone ||
+                data.mobile ||
+                patObj.phone ||
+                patObj.contact ||
+                patObj.mobile ||
+                patObj.phoneNumber ||
+                apt.patientPhone ||
+                "—",
+            ),
+            emergencyContact: String(
+              data.emergencyContact ||
+                patObj.emergencyContact ||
+                patObj.emergencyPhone ||
+                patObj.emergencyContactNumber ||
+                "—",
+            ),
+          },
         };
 
+        setSelectedAptRecord(updatedApt);
         setAppointments((prev) =>
           prev.map((a) => (String(a.id) === aptIdStr ? updatedApt : a)),
         );
       }
-    } catch (e) {
-      console.warn("Failed to fetch full appointment details by ID:", e);
+    } catch {
+      // Graceful fallback to existing apt data
     }
 
     triggerToast(`Loaded ${apt.patientName}`, "info");
   };
 
-  const handleMarkPatientReady = async () => {
+  const handleMarkPatientReady = async (
+    submittedData?: RecordedVitalsData,
+    viewDetailsImmediately: boolean = true,
+  ) => {
     if (selectedAptId) {
+      if (submittedData) {
+        setDetailsVitals(submittedData);
+      }
+      try {
+        const freshVitals = await vitalsService.getVitals(selectedAptId);
+        if (freshVitals) {
+          setDetailsVitals(freshVitals);
+        }
+      } catch (e) {
+        console.warn("Failed to fetch fresh vitals after POST:", e);
+      }
+      const updatedStatusApt = {
+        hasVitals: true,
+        vitalsRecorded: true,
+        status: "Vitals Recorded",
+        queueStatus: "WAITING_FOR_DOCTOR_CALL",
+      };
       setAppointments((prev) =>
         prev.map((item) =>
           String(item.id) === String(selectedAptId)
-            ? {
-                ...item,
-                hasVitals: true,
-                vitalsRecorded: true,
-                status: "Completed",
-                queueStatus: "WAITING_FOR_DOCTOR_CALL",
-              }
+            ? { ...item, ...updatedStatusApt }
             : item,
         ),
+      );
+      setSelectedAptRecord((prev) =>
+        prev ? { ...prev, ...updatedStatusApt } : null,
       );
     }
     queryClient.invalidateQueries({ queryKey: QUEUE_QUERY_KEY });
     queryClient.invalidateQueries({ queryKey: ["vitals"] });
     queryClient.invalidateQueries({ queryKey: ["appointments"] });
     await loadWaitingAppointments();
-    setSelectedAptId(null);
-    setViewMode("center");
+
+    if (viewDetailsImmediately && selectedAptId) {
+      setViewMode("details");
+    } else {
+      setSelectedAptId(null);
+      setSelectedAptRecord(null);
+      setViewMode("center");
+    }
   };
 
   const handleResetFilters = () => {
@@ -1650,9 +911,18 @@ export function RecordPatientVitalsScreen({
     return (
       <RecordPatientVitalsForm
         activeApt={activeApt}
-        onBack={() => setViewMode("center")}
+        initialVitalsData={isEditMode ? detailsVitals : null}
+        isEditMode={isEditMode}
+        onBack={() => {
+          setViewMode("center");
+          setSelectedAptId(null);
+          setSelectedAptRecord(null);
+          setIsEditMode(false);
+        }}
         onPatientSelect={onPatientSelect}
-        onMarkReady={handleMarkPatientReady}
+        onMarkReady={(submittedData) =>
+          handleMarkPatientReady(submittedData, true)
+        }
       />
     );
   }
@@ -1665,7 +935,14 @@ export function RecordPatientVitalsScreen({
         vitalsData={detailsVitals || undefined}
         onBack={() => {
           setViewMode("center");
+          setSelectedAptId(null);
+          setSelectedAptRecord(null);
           setDetailsVitals(null);
+          setIsEditMode(false);
+        }}
+        onEditVitals={() => {
+          setIsEditMode(true);
+          setViewMode("record");
         }}
         onPatientSelect={onPatientSelect}
         onPrint={() => triggerToast("Printing Vitals Summary...", "info")}
@@ -1694,30 +971,33 @@ export function RecordPatientVitalsScreen({
         </div>
       )}
 
-      {/* HEADER & BREADCRUMB */}
+      {/* HEADER BAR WITH BACK BUTTON */}
       <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div
-            className="text-[10px] font-semibold text-[#64748B] uppercase tracking-wider mb-0.5"
-            style={{ fontFamily: PP }}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onBack || (() => window.history.back())}
+            className="p-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 hover:bg-slate-100 text-slate-700 transition-colors cursor-pointer shadow-2xs"
+            title="Go Back"
           >
-            Nurse / Vitals Management
+            <ArrowLeft size={18} />
+          </button>
+          <div>
+            <h1
+              className="text-xl font-bold text-[#111827]"
+              style={{ fontFamily: PP }}
+            >
+              Vitals Management Center
+            </h1>
+            <p className="text-xs text-[#64748B] mt-0.5">
+              Manage patient vital recording before OPD consultation.
+            </p>
           </div>
-          <h1
-            className="text-xl font-bold text-[#111827]"
-            style={{ fontFamily: PP }}
-          >
-            Vitals Management Center
-          </h1>
-          <p className="text-xs text-[#64748B] mt-0.5">
-            Manage patient vital recording before OPD consultation.
-          </p>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={handleRefreshQueue}
-            className="px-3.5 py-2 rounded-xl border border-[#E5E7EB] bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors flex items-center gap-1.5"
+            className="px-3.5 py-2 rounded-xl border border-[#E5E7EB] bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
             style={{ fontFamily: PP }}
           >
             <RefreshCw size={14} className="text-[#0D47A1]" /> Refresh Queue
@@ -1725,45 +1005,70 @@ export function RecordPatientVitalsScreen({
         </div>
       </div>
 
-      {/* SEARCH & FILTER BAR */}
-      <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          <div className="relative flex-1">
-            <Search
-              size={14}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-            />
-            <input
-              aria-label="Input field"
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by Patient Name, MRN, Appointment ID, or Token Number..."
-              className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-            />
-          </div>
+      {/* SUMMARY KPI CARDS */}
+      <VitalsKpiSummaryCards kpiStats={kpiStats} />
 
-          <button
-            onClick={handleResetFilters}
-            className="px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 text-slate-600 hover:bg-slate-100 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
-            title="Reset Filters"
-            style={{ fontFamily: PP }}
-          >
-            <RotateCcw size={14} /> Reset
-          </button>
-        </div>
+      {/* UNIFIED QUEUE WORKSPACE CARD (Search + Filters + Data-Grid Table) */}
+      <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-4">
+        {/* SEARCH & FILTERS MINIMAL CONTAINER BOX */}
+        <div className="bg-slate-50/80 border border-[#E5E7EB] rounded-lg p-2 space-y-1.5 shadow-2xs">
+          {/* Single Row: Search Input + Filter Dropdowns + Reset Button */}
+          <div className="flex flex-nowrap items-center gap-2 text-xs overflow-x-auto py-0.5 scrollbar-thin">
+            {/* Search Input */}
+            <div className="relative flex-1 min-w-[160px] shrink-0 sm:shrink">
+              <Search
+                size={13}
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
+              />
+              <input
+                aria-label="Search patient, MRN, token or appointment ID"
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setQueuePage(1);
+                }}
+                placeholder=" Search patient, MRN..."
+                className="w-full pl-7 pr-6 py-1 text-xs bg-white border border-[#E5E7EB] rounded-md outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] shadow-2xs transition-all"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer"
+                  title="Clear search"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
 
-        {/* EXPANDABLE FILTER DROPDOWNS */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1 border-t border-slate-100 text-xs">
-          {/* Doctor */}
-          <div>
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-              Doctor
+            {/* Date Filter */}
+            <div className="shrink-0">
+              <input
+                aria-label="Select date"
+                type="date"
+                value={selectedDate}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val) {
+                    setSelectedDate(val);
+                    loadWaitingAppointments(val);
+                  }
+                }}
+                className="px-2 py-1 bg-white border border-[#E5E7EB] rounded-md outline-none text-slate-700 font-medium text-xs focus:border-[#0D47A1] cursor-pointer"
+              />
+            </div>
+
+            {/* Doctor Filter */}
+            <div className="shrink-0">
               <select
-                aria-label="Select option"
+                aria-label="Select Doctor"
                 value={doctorFilter}
-                onChange={(e) => setDoctorFilter(e.target.value)}
-                className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
+                onChange={(e) => {
+                  setDoctorFilter(e.target.value);
+                  setQueuePage(1);
+                }}
+                className="px-2 py-1 bg-white border border-[#E5E7EB] rounded-md outline-none text-slate-700 font-medium text-xs focus:border-[#0D47A1] cursor-pointer"
               >
                 <option value="All">All Doctors</option>
                 {dynamicDoctors.map((doc) => (
@@ -1772,465 +1077,320 @@ export function RecordPatientVitalsScreen({
                   </option>
                 ))}
               </select>
-            </span>
-          </div>
+            </div>
 
-          {/* Department */}
-          <div>
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-              Department
+            {/* Department Filter (ALL DEPARTMENTS) */}
+            <div className="shrink-0">
               <select
-                aria-label="Select option"
+                aria-label="Select Department"
                 value={deptFilter}
-                onChange={(e) => setDeptFilter(e.target.value)}
-                className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
+                onChange={(e) => {
+                  setDeptFilter(e.target.value);
+                  setQueuePage(1);
+                }}
+                className="px-2 py-1 bg-white border border-[#E5E7EB] rounded-md outline-none text-slate-700 font-medium text-xs focus:border-[#0D47A1] cursor-pointer"
               >
-                <option value="All">All Depts</option>
+                <option value="All">All Departments</option>
                 {dynamicDepartments.map((dept) => (
                   <option key={dept} value={dept}>
                     {dept}
                   </option>
                 ))}
               </select>
-            </span>
-          </div>
+            </div>
 
-          {/* Appointment Status */}
-          <div>
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-              Apt Status
+            {/* Vitals Status Filter */}
+            <div className="shrink-0">
               <select
-                aria-label="Select option"
-                value={aptStatusFilter}
-                onChange={(e) => setAptStatusFilter(e.target.value)}
-                className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
-              >
-                <option value="All">All Apt Status</option>
-                <option value="Waiting">Waiting</option>
-                <option value="Checked-In">Checked-In</option>
-                <option value="In Progress">In Progress</option>
-              </select>
-            </span>
-          </div>
-
-          {/* Vitals Status */}
-          <div>
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-              Vitals Status
-              <select
-                aria-label="Select option"
+                aria-label="Select Vitals Status"
                 value={vitalsStatusFilter}
-                onChange={(e) => setVitalsStatusFilter(e.target.value)}
-                className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
+                onChange={(e) => {
+                  setVitalsStatusFilter(e.target.value);
+                  setQueuePage(1);
+                }}
+                className="px-2 py-1 bg-white border border-[#E5E7EB] rounded-md outline-none text-slate-700 font-medium text-xs focus:border-[#0D47A1] cursor-pointer"
               >
                 <option value="All">All Vitals</option>
                 <option value="Waiting for Vitals">Waiting for Vitals</option>
-                <option value="Recording In Progress">
-                  Recording In Progress
-                </option>
                 <option value="Vitals Recorded">Vitals Recorded</option>
-                <option value="Ready For Consultation">
-                  Ready For Consultation
-                </option>
               </select>
-            </span>
-          </div>
+            </div>
 
-          {/* Visit Type */}
-          <div>
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-              Visit Type
-              <select
-                aria-label="Select option"
-                value={visitTypeFilter}
-                onChange={(e) => setVisitTypeFilter(e.target.value)}
-                className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
-              >
-                <option value="All">All Visits</option>
-                <option value="First Visit">First Visit</option>
-                <option value="Follow-up">Follow-up</option>
-              </select>
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* STATUS TABS */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-        {(
-          [
-            { id: "All", label: "All", count: kpiStats.total },
-            {
-              id: "Waiting for Vitals",
-              label: "Waiting for Vitals",
-              count: kpiStats.pending,
-            },
-            {
-              id: "Recording In Progress",
-              label: "Recording In Progress",
-              count: kpiStats.inProgress,
-            },
-            {
-              id: "Vitals Recorded",
-              label: "Vitals Recorded",
-              count: kpiStats.recorded,
-            },
-            {
-              id: "Ready For Consultation",
-              label: "Ready For Consultation",
-              count: kpiStats.ready,
-            },
-          ] as const
-        ).map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-colors whitespace-nowrap flex items-center gap-2 border ${
-              activeTab === tab.id
-                ? "bg-[#0D47A1] text-white border-[#0D47A1] shadow-xs"
-                : "bg-white text-slate-600 border-[#E5E7EB] hover:bg-slate-50"
-            }`}
-            style={{ fontFamily: PP }}
-          >
-            <span>{tab.label}</span>
-            <span
-              className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-                activeTab === tab.id
-                  ? "bg-white/20 text-white"
-                  : "bg-slate-100 text-slate-600"
-              }`}
-            >
-              {tab.count}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      {/* SUMMARY KPI CARDS (5 Cards) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        {/* Card 01: Today's Patients */}
-        <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-2">
-          <div className="flex items-center justify-between">
-            <span
-              className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider"
+            {/* Reset Button */}
+            <button
+              onClick={handleResetFilters}
+              className="px-2.5 py-1 rounded-md border border-[#E5E7EB] bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-colors flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap shadow-2xs shrink-0"
+              title="Reset Filters"
               style={{ fontFamily: PP }}
             >
-              Today's Patients
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#0D47A1] flex items-center justify-center border border-blue-100">
-              <Users size={16} />
-            </div>
+              <RotateCcw size={12} /> Reset
+            </button>
           </div>
-          <div
-            className="text-2xl font-bold text-[#111827]"
-            style={{ fontFamily: PP }}
-          >
-            {kpiStats.total}
-          </div>
-          <div className="text-[10px] text-slate-400">
-            Total OPD queue today
-          </div>
-        </div>
 
-        {/* Card 02: Vitals Pending */}
-        <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-2">
-          <div className="flex items-center justify-between">
-            <span
-              className="text-[11px] font-bold text-amber-700 uppercase tracking-wider"
-              style={{ fontFamily: PP }}
-            >
-              Vitals Pending
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-amber-50 text-[#F59E0B] flex items-center justify-center border border-amber-100">
-              <Clock size={16} />
-            </div>
-          </div>
-          <div
-            className="text-2xl font-bold text-[#F59E0B]"
-            style={{ fontFamily: PP }}
-          >
-            {kpiStats.pending}
-          </div>
-          <div className="text-[10px] text-amber-600 font-medium">
-            Awaiting prep recording
-          </div>
-        </div>
-
-        {/* Card 03: Vitals Recorded */}
-        <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-2">
-          <div className="flex items-center justify-between">
-            <span
-              className="text-[11px] font-bold text-teal-700 uppercase tracking-wider"
-              style={{ fontFamily: PP }}
-            >
-              Vitals Recorded
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-teal-50 text-[#009688] flex items-center justify-center border border-teal-100">
-              <CheckSquare size={16} />
-            </div>
-          </div>
-          <div
-            className="text-2xl font-bold text-[#009688]"
-            style={{ fontFamily: PP }}
-          >
-            {kpiStats.recorded}
-          </div>
-          <div className="text-[10px] text-teal-600 font-medium">
-            Recorded & verified
-          </div>
-        </div>
-
-        {/* Card 04: Ready For Consultation */}
-        <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-2">
-          <div className="flex items-center justify-between">
-            <span
-              className="text-[11px] font-bold text-green-700 uppercase tracking-wider"
-              style={{ fontFamily: PP }}
-            >
-              Ready For Consultation
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-green-50 text-[#66BB6A] flex items-center justify-center border border-green-100">
-              <Stethoscope size={16} />
-            </div>
-          </div>
-          <div
-            className="text-2xl font-bold text-[#66BB6A]"
-            style={{ fontFamily: PP }}
-          >
-            {kpiStats.ready}
-          </div>
-          <div className="text-[10px] text-green-600 font-medium">
-            In Doctor queue
-          </div>
-        </div>
-
-        {/* Card 05: Average Recording Time */}
-        <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-2">
-          <div className="flex items-center justify-between">
-            <span
-              className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider"
-              style={{ fontFamily: PP }}
-            >
-              Avg Recording Time
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center border border-indigo-100">
-              <Activity size={16} />
-            </div>
-          </div>
-          <div
-            className="text-2xl font-bold text-[#111827]"
-            style={{ fontFamily: PP }}
-          >
-            {kpiStats.avgTime}
-          </div>
-          <div className="text-[10px] text-slate-400">Active queue metrics</div>
-        </div>
-      </div>
-
-      {/* MAIN CONTENT LAYOUT (Two Columns: 8 Cols Table, 4 Cols Right Panel) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* LEFT COLUMN: TABLE & FILTERS (8 COLS) */}
-        <div className="lg:col-span-12 space-y-4">
-          {/* ENTERPRISE DATA TABLE */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-[#E5E7EB] bg-slate-50/50 flex items-center justify-between">
-              <h3
-                className="text-xs font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2"
-                style={{ fontFamily: PP }}
-              >
-                <Clock size={15} className="text-[#0D47A1]" /> Patient Vitals
-                Queue
-              </h3>
-              <span className="text-xs text-[#64748B]">
-                Showing{" "}
-                <strong className="text-[#111827]">
-                  {filteredAppointments.length}
-                </strong>{" "}
-                patients
+          {/* Active Filter Pills Bar */}
+          {activeFiltersList.length > 0 && (
+            <div className="flex items-center flex-wrap gap-1.5 pt-1.5 border-t border-slate-200/70 text-xs">
+              <span className="text-[11px] font-medium text-slate-500 mr-1 flex items-center gap-1">
+                <Filter size={12} /> Active filters:
               </span>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-left text-xs">
-                <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB]">
-                  <tr
-                    className="text-[#64748B] font-bold"
-                    style={{ fontFamily: PP }}
+              {activeFiltersList.map((item) => (
+                <span
+                  key={item.key}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-[#0D47A1] border border-blue-200 text-[11px] font-semibold"
+                >
+                  {item.label}
+                  <button
+                    onClick={item.clear}
+                    className="hover:text-red-600 rounded-full p-0.2 cursor-pointer"
                   >
-                    <th className="px-4 py-3.5">Token Number</th>
-                    <th className="px-4 py-3.5">Patient</th>
-                    <th className="px-4 py-3.5">MRN</th>
-                    <th className="px-4 py-3.5">Doctor</th>
-                    <th className="px-4 py-3.5">Department</th>
-                    <th className="px-4 py-3.5">Appt Time</th>
-                    <th className="px-4 py-3.5">Visit Type</th>
-                    <th className="px-4 py-3.5">Vitals Status</th>
-                    <th className="px-4 py-3.5">Queue Status</th>
-                    <th className="px-4 py-3.5 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 text-[#111827]">
-                  {paginatedAppointments.map((apt) => {
-                    const vStatus = getVitalsStatus(apt);
-                    const hasVitals = Boolean(
-                      apt.hasVitals ||
-                      apt.vitalsId ||
-                      apt.vitalsRecorded ||
-                      vStatus === "Vitals Recorded" ||
-                      vStatus === "Ready For Consultation" ||
-                      apt.status === "Completed",
-                    );
-
-                    return (
-                      <tr
-                        key={apt.id}
-                        className="hover:bg-slate-50/80 transition-colors"
-                      >
-                        <td className="px-4 py-3.5">
-                          <span className="font-mono font-bold text-[#0D47A1] bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
-                            {apt.tokenNo}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3.5 font-bold flex items-center gap-2">
-                          <Avatar name={apt.patientName} size="sm" />
-                          <div>
-                            <div>{apt.patientName}</div>
-                            <div className="text-[10px] text-slate-400 font-mono font-normal">
-                              {apt.patientAge}y / {apt.patientGender}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3.5 font-mono text-slate-600">
-                          {apt.mrn}
-                        </td>
-                        <td className="px-4 py-3.5 font-semibold text-slate-700">
-                          {apt.doctorName}
-                        </td>
-                        <td className="px-4 py-3.5 text-slate-500">
-                          {typeof apt.department === "string"
-                            ? apt.department
-                            : apt.departmentName ||
-                              apt.department?.departmentName ||
-                              apt.department?.name ||
-                              apt.department?.departmentCode ||
-                              "Cardiology"}
-                        </td>
-                        <td className="px-4 py-3.5 font-mono text-[#0D47A1] font-bold">
-                          {apt.timeSlot}
-                        </td>
-                        <td className="px-4 py-3.5">
-                          <span className="text-[#009688] font-bold text-[11px] bg-teal-50 px-2 py-0.5 rounded border border-teal-100">
-                            {apt.visitType}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3.5">
-                          {!hasVitals ? (
-                            <span className="bg-amber-50 text-[#F59E0B] px-2 py-0.5 rounded-full text-[10px] font-bold border border-amber-200">
-                              {vStatus}
-                            </span>
-                          ) : (
-                            <span className="bg-green-50 text-[#66BB6A] px-2 py-0.5 rounded-full text-[10px] font-bold border border-green-200">
-                              {vStatus}
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3.5">
-                          <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[10px] font-semibold border border-slate-200">
-                            {apt.status}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3.5 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            {!hasVitals && can("VITALS_CREATE") && (
-                              <button
-                                onClick={() =>
-                                  handleSelectPatient(apt, "record")
-                                }
-                                className="px-3 py-1.5 rounded-lg bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-[11px] font-bold transition-colors shadow-xs cursor-pointer"
-                                style={{ fontFamily: PP }}
-                              >
-                                Record Vitals
-                              </button>
-                            )}
-                            {hasVitals && can("VITALS_VIEW") && (
-                              <button
-                                onClick={() =>
-                                  handleSelectPatient(apt, "details")
-                                }
-                                className="px-3 py-1.5 rounded-lg bg-[#009688] hover:bg-[#00796b] text-white text-[11px] font-bold transition-colors shadow-xs cursor-pointer"
-                                style={{ fontFamily: PP }}
-                              >
-                                View Vitals
-                              </button>
-                            )}
-
-                            {onViewAppointmentDetails && (
-                              <button
-                                onClick={() => onViewAppointmentDetails(apt)}
-                                className="px-2 py-1.5 rounded-lg border border-[#E5E7EB] bg-white hover:bg-slate-50 text-slate-600 transition-colors"
-                                title="View Appointment Details"
-                              >
-                                <Calendar size={13} />
-                              </button>
-                            )}
-                            {onPatientSelect && (
-                              <button
-                                onClick={() => onPatientSelect(apt.patientId)}
-                                className="px-2 py-1.5 rounded-lg border border-[#E5E7EB] bg-white hover:bg-slate-50 text-slate-600 transition-colors"
-                                title="View Patient Profile"
-                              >
-                                <User size={13} />
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-
-                  {filteredAppointments.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={10}
-                        className="py-12 text-center text-slate-400"
-                      >
-                        <div className="flex flex-col items-center justify-center space-y-2">
-                          <Activity size={36} className="text-slate-300" />
-                          <div
-                            className="text-sm font-bold text-slate-700"
-                            style={{ fontFamily: PP }}
-                          >
-                            No patients are waiting for vital sign recording.
-                          </div>
-                          <p className="text-xs text-slate-400 max-w-sm">
-                            Try adjusting your filters or click Refresh Queue to
-                            check for new check-ins.
-                          </p>
-                          <button
-                            onClick={handleRefreshQueue}
-                            className="mt-2 px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors"
-                            style={{ fontFamily: PP }}
-                          >
-                            Refresh Queue
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                    <X size={12} />
+                  </button>
+                </span>
+              ))}
+              <button
+                onClick={handleResetFilters}
+                className="text-[11px] text-[#0D47A1] hover:underline font-bold ml-2 cursor-pointer"
+              >
+                Clear all
+              </button>
             </div>
-            {filteredAppointments.length > 0 && (
-              <Pagination
-                currentPage={safeQueuePage}
-                totalPages={queueTotalPages}
-                onPageChange={setQueuePage}
-                pageSize={queuePageSize}
-                totalCount={filteredAppointments.length}
-              />
-            )}
-          </div>
+          )}
         </div>
+
+        {/* Data Table Info & Sort Bar */}
+        {/* <div className="flex items-center justify-between pt-2 text-xs text-slate-500">
+         
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                if (sortField === "time") {
+                  setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+                } else {
+                  setSortField("time");
+                  setSortOrder("asc");
+                }
+              }}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg border border-[#E5E7EB] bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium transition-colors"
+            >
+              <ArrowUpDown size={12} />
+              Sort: {sortField === "time" ? "Time" : sortField === "token" ? "Token" : "Patient"}{" "}
+              {sortOrder === "asc" ? "↑" : "↓"}
+            </button>
+          </div>
+        </div> */}
+
+        {/* DATA GRID TABLE */}
+        <div className="border border-[#E5E7EB] rounded-xl overflow-x-auto shadow-2xs">
+          <table className="w-full border-collapse text-left text-xs min-w-[950px]">
+            <thead className="bg-slate-100/90 border-y border-[#E5E7EB] text-slate-700 font-extrabold text-[11px] uppercase tracking-wider">
+              <tr style={{ fontFamily: PP }}>
+                <th className="px-4.5 py-3.5 w-[8%] border-r border-slate-200/70">
+                  <span className="flex items-center gap-1.5">
+                    <Tag size={13} className="text-[#0D47A1]" /> TOKEN
+                  </span>
+                </th>
+                <th className="px-4.5 py-3.5 w-[22%] border-r border-slate-200/70">
+                  <span className="flex items-center gap-1.5">
+                    <User size={13} className="text-[#0D47A1]" /> PATIENT
+                  </span>
+                </th>
+                <th className="px-4.5 py-3.5 w-[16%] border-r border-slate-200/70">
+                  <span className="flex items-center gap-1.5">
+                    <Stethoscope size={13} className="text-[#0D47A1]" /> DOCTOR
+                    & DEPT
+                  </span>
+                </th>
+                <th className="px-4.5 py-3.5 w-[14%] border-r border-slate-200/70">
+                  <span className="flex items-center gap-1.5">
+                    <Clock size={13} className="text-[#0D47A1]" /> APPOINTMENT
+                  </span>
+                </th>
+                <th className="px-4.5 py-3.5 w-[15%] border-r border-slate-200/70">
+                  <span className="flex items-center gap-1.5">
+                    <Activity size={13} className="text-[#0D47A1]" /> VITALS
+                    STATUS
+                  </span>
+                </th>
+                <th className="px-4.5 py-3.5 w-[15%] text-right">ACTION</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-[#111827]">
+              {paginatedAppointments.map((apt) => {
+                const vStatus = getVitalsStatus(apt);
+                const showViewVitals = Boolean(
+                  apt.hasVitals ||
+                  apt.vitalsRecorded ||
+                  vStatus === "Ready For Consultation",
+                );
+
+                const showRecordVitals = !showViewVitals;
+
+                return (
+                  <tr
+                    key={apt.id}
+                    className="hover:bg-blue-50/30 transition-colors group"
+                  >
+                    {/* Token */}
+                    <td className="px-4.5 py-3.5 align-top">
+                      <span className="font-mono font-bold text-[#0D47A1] bg-blue-50 px-2 py-1 rounded border border-blue-100 text-xs inline-block">
+                        {apt.tokenNo}
+                      </span>
+                    </td>
+
+                    {/* Patient Cell (Richer design) */}
+                    <td className="px-4.5 py-3.5 align-top">
+                      <div className="flex items-start gap-2.5">
+                        <Avatar name={apt.patientName} size="sm" />
+                        <div>
+                          <div className="font-bold text-slate-900 text-xs leading-tight">
+                            {apt.patientName}
+                          </div>
+                          <div className="text-[11px] text-slate-500 mt-0.5">
+                            {apt.patientAge} years · {apt.patientGender}
+                          </div>
+                          <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                            MRN: {apt.mrn}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Doctor & Dept */}
+                    <td className="px-4.5 py-3.5 align-top">
+                      <div className="font-semibold text-slate-800">
+                        {apt.doctorName}
+                      </div>
+                      <div className="text-[11px] text-slate-500 mt-0.5">
+                        {typeof apt.department === "string"
+                          ? apt.department
+                          : apt.departmentName ||
+                            apt.department?.departmentName ||
+                            apt.department?.name ||
+                            "General OPD"}
+                      </div>
+                    </td>
+
+                    {/* Appointment & Visit */}
+                    <td className="px-4.5 py-3.5 align-top">
+                      <div className="font-mono text-[#0D47A1] font-bold">
+                        {apt.timeSlot}
+                      </div>
+                      <div className="text-[10px] text-teal-700 font-semibold bg-teal-50 px-1.5 py-0.5 rounded border border-teal-100 inline-block mt-1">
+                        {apt.visitType}
+                      </div>
+                    </td>
+
+                    {/* Vitals Status */}
+                    <td className="px-4.5 py-3.5 align-top">
+                      {vStatus === "Waiting for Vitals" ? (
+                        <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-800 px-2.5 py-1 rounded-full text-[11px] font-bold border border-amber-200">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                          Waiting for Vitals
+                        </span>
+                      ) : vStatus === "Recording In Progress" ? (
+                        <span className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-800 px-2.5 py-1 rounded-full text-[11px] font-bold border border-blue-200">
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                          In Progress
+                        </span>
+                      ) : vStatus === "Ready For Consultation" ? (
+                        <span className="inline-flex items-center gap-1.5 bg-purple-50 text-purple-800 px-2.5 py-1 rounded-full text-[11px] font-bold border border-purple-200">
+                          <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                          Ready For Doctor
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-800 px-2.5 py-1 rounded-full text-[11px] font-bold border border-emerald-200">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          Vitals Recorded
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Actions Column */}
+                    <td className="px-4.5 py-3.5 align-top text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        {showRecordVitals && can("VITALS_CREATE") && (
+                          <button
+                            onClick={() => handleSelectPatient(apt, "record")}
+                            className="px-3 py-1.5 rounded-lg bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-[11px] font-bold transition-colors shadow-xs cursor-pointer whitespace-nowrap"
+                            style={{ fontFamily: PP }}
+                          >
+                            Record Vitals
+                          </button>
+                        )}
+                        {showViewVitals && can("VITALS_VIEW") && (
+                          <button
+                            onClick={() => handleSelectPatient(apt, "details")}
+                            className="px-3 py-1.5 rounded-lg bg-[#009688] hover:bg-[#00796b] text-white text-[11px] font-bold transition-colors shadow-xs cursor-pointer whitespace-nowrap"
+                            style={{ fontFamily: PP }}
+                          >
+                            View Vitals
+                          </button>
+                        )}
+
+                        {onViewAppointmentDetails && (
+                          <button
+                            onClick={() => onViewAppointmentDetails(apt)}
+                            className="px-2 py-1.5 rounded-lg border border-[#E5E7EB] bg-white hover:bg-slate-50 text-slate-600 transition-colors"
+                            title="View Appointment Details"
+                          >
+                            <Calendar size={13} />
+                          </button>
+                        )}
+                        {onPatientSelect && (
+                          <button
+                            onClick={() => onPatientSelect(apt.patientId)}
+                            className="px-2 py-1.5 rounded-lg border border-[#E5E7EB] bg-white hover:bg-slate-50 text-slate-600 transition-colors"
+                            title="View Patient Profile"
+                          >
+                            <User size={13} />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+
+              {sortedAppointments.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                    <div className="flex flex-col items-center justify-center space-y-2">
+                      <Activity size={36} className="text-slate-300" />
+                      <div
+                        className="text-sm font-bold text-slate-700"
+                        style={{ fontFamily: PP }}
+                      >
+                        No patients match the current queue criteria.
+                      </div>
+                      <p className="text-xs text-slate-400 max-w-sm">
+                        Try adjusting your search query, status tabs, or
+                        filters.
+                      </p>
+                      <button
+                        onClick={handleResetFilters}
+                        className="mt-2 px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors"
+                        style={{ fontFamily: PP }}
+                      >
+                        Reset All Filters
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination inside Table Card */}
+        {sortedAppointments.length > 0 && (
+          <Pagination
+            currentPage={safeQueuePage}
+            totalPages={queueTotalPages}
+            onPageChange={setQueuePage}
+            pageSize={queuePageSize}
+            totalCount={sortedAppointments.length}
+          />
+        )}
       </div>
     </div>
   );

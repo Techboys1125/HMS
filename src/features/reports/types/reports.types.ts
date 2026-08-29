@@ -757,6 +757,8 @@ export interface DoctorDailyAppointmentRegisterItem {
   visitType: string;
   appointmentStatus: string;
   consultationStatus: string;
+  chiefComplaint?: string;
+  shift?: string;
 }
 
 export interface DoctorDailyAppointmentRegisterResponse {

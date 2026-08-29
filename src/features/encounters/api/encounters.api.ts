@@ -23,6 +23,126 @@ interface ApiEnvelope<T> {
   errors?: Record<string, unknown>;
 }
 
+export interface UpdateClinicalNotesPayload {
+  subjective?: {
+    chiefComplaint?: string;
+    historyOfPresentIllness?: string;
+    pastMedicalHistory?: string;
+  };
+  objective?: {
+    generalExamination?: string;
+    physicalExamination?: string;
+  };
+  assessment?: {
+    summary?: string;
+  };
+  plan?: {
+    advice?: string;
+    followUpInstructions?: string;
+    followUp?: {
+      type?: string;
+      intervalValue?: number;
+      intervalUnit?: string;
+      followUpDate?: string;
+    };
+  };
+
+  chiefComplaint?: string;
+  historyOfPresentIllness?: string;
+  pastMedicalHistory?: string;
+  generalExamination?: string;
+  physicalExamination?: string;
+  summary?: string;
+  assessmentSummary?: string;
+  advice?: string;
+  followUpInstructions?: string;
+  followUpType?: string;
+  followUpIntervalValue?: number;
+  followUpIntervalUnit?: string;
+  followUpDate?: string;
+  clinicalNotes?: string;
+  version?: number;
+}
+
+export interface UpdateDiagnosisPayload {
+  diagnosisCode: string;
+  diagnosisName: string;
+  codingSystem?: string;
+  diagnosisType: string;
+  certainty?: string;
+  clinicalNotes?: string;
+}
+
+export interface UpdateVitalsPayload {
+  temperature?: {
+    value: number;
+    unit: string;
+  };
+  bloodPressure?: {
+    systolic: number;
+    diastolic: number;
+    unit: string;
+  };
+  pulseRate?: {
+    value: number;
+    unit: string;
+  };
+  respiratoryRate?: {
+    value: number;
+    unit: string;
+  };
+  oxygenSaturation?: {
+    value: number;
+    unit: string;
+  };
+  weight?: {
+    value: number;
+    unit: string;
+  };
+  height?: {
+    value: number;
+    unit: string;
+  };
+
+  tempValue?: number;
+  bloodPressureStr?: string;
+  bpSystolicVal?: number;
+  bpDiastolicVal?: number;
+  pulseVal?: number;
+  respiratoryRateVal?: number;
+  spo2Val?: number;
+  weightVal?: number;
+  heightVal?: number;
+  chiefComplaint?: string;
+  symptoms?: string;
+}
+
+export interface UpdatePrescriptionAdvicePayload {
+  generalAdvice?: string;
+  dietAdvice?: string;
+  precautions?: string;
+  additionalInstructions?: string;
+  followUpRequired?: boolean;
+  followUpDate?: string;
+  followUpTimeFrame?: string;
+  followUpNotes?: string;
+}
+
+export interface UpdateMedicationPayload {
+  strength?: string;
+  form?: string;
+  route?: string;
+  doseValue?: number;
+  doseUnit?: string;
+  frequencyCode?: string;
+  frequencyDisplay?: string;
+  durationValue?: number;
+  durationUnit?: string;
+  quantityValue?: number;
+  quantityUnit?: string;
+  instructions?: string;
+}
+
 const unwrap = <T>(body: ApiEnvelope<T> | T): T => {
   if (
     body !== null &&
@@ -154,7 +274,10 @@ export const encountersApi = {
       console.log("ADD MEDICATION PRIMARY RESPONSE:", res);
       return res;
     } catch (primaryErr) {
-      console.warn("Primary addMedication endpoint failed, attempting fallbacks:", primaryErr);
+      console.warn(
+        "Primary addMedication endpoint failed, attempting fallbacks:",
+        primaryErr,
+      );
       try {
         const fallback1 = await apiClient.post<
           ApiEnvelope<Prescription> | Prescription
@@ -166,12 +289,18 @@ export const encountersApi = {
         try {
           const fallback2 = await apiClient.post<
             ApiEnvelope<Prescription> | Prescription
-          >(`/api/v1/encounters/${prescriptionId}/prescription/medications`, payload);
+          >(
+            `/api/v1/encounters/${prescriptionId}/prescription/medications`,
+            payload,
+          );
           const res2 = unwrap<Prescription>(fallback2.data);
           console.log("ADD MEDICATION FALLBACK 2 RESPONSE:", res2);
           return res2;
         } catch (finalErr) {
-          console.error("All addMedication fallback endpoints failed:", finalErr);
+          console.error(
+            "All addMedication fallback endpoints failed:",
+            finalErr,
+          );
           return null;
         }
       }
@@ -198,7 +327,10 @@ export const encountersApi = {
     try {
       const response = await apiClient.put<
         ApiEnvelope<Prescription> | Prescription
-      >(`/api/v1/prescriptions/${prescriptionId}/medications/${medicationId}`, payload);
+      >(
+        `/api/v1/prescriptions/${prescriptionId}/medications/${medicationId}`,
+        payload,
+      );
       return unwrap<Prescription>(response.data);
     } catch (error) {
       console.error("updateMedication failed:", error);
@@ -380,16 +512,14 @@ export const encountersApi = {
     encounterId: string | number,
   ): Promise<unknown[] | null> => {
     try {
-      const response = await apiClient.get<
-        ApiEnvelope<unknown[]> | unknown[]
-      >(`/api/v1/encounters/${encounterId}/diagnoses`);
+      const response = await apiClient.get<ApiEnvelope<unknown[]> | unknown[]>(
+        `/api/v1/encounters/${encounterId}/diagnoses`,
+      );
       return unwrap<unknown[]>(response.data);
     } catch {
       return null;
     }
   },
-
-
 
   /**
    * POST /api/v1/encounters/{encounterId}/prescription-resolution
@@ -413,7 +543,7 @@ export const encountersApi = {
    */
   updateClinicalNotes: async (
     consultationId: string | number,
-    payload: Record<string, unknown>,
+    payload: UpdateClinicalNotesPayload | Record<string, unknown>,
   ): Promise<Record<string, unknown> | null> => {
     try {
       const response = await apiClient.put<
@@ -422,6 +552,212 @@ export const encountersApi = {
       return unwrap<Record<string, unknown>>(response.data);
     } catch (error: unknown) {
       return handleApiError(error);
+    }
+  },
+
+  /**
+   * PUT /api/v1/encounters/{encounterId}/diagnoses/{diagnosisId}
+   */
+  updateDiagnosis: async (
+    encounterId: string | number,
+    diagnosisId: string | number,
+    payload: UpdateDiagnosisPayload,
+  ): Promise<Diagnosis | Record<string, unknown> | null> => {
+    try {
+      const response = await apiClient.put<
+        ApiEnvelope<Diagnosis> | Diagnosis
+      >(`/api/v1/encounters/${encounterId}/diagnoses/${diagnosisId}`, payload);
+      return unwrap<Diagnosis>(response.data);
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  /**
+   * PUT /api/v1/encounters/{encounterId}/vitals
+   */
+  updateVitals: async (
+    encounterId: string | number,
+    payload: UpdateVitalsPayload,
+  ): Promise<Record<string, unknown> | null> => {
+    try {
+      const response = await apiClient.put<
+        ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
+      >(`/api/v1/encounters/${encounterId}/vitals`, payload);
+      return unwrap<Record<string, unknown>>(response.data);
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  /**
+   * PUT /api/v1/prescriptions/{prescriptionId}/advice
+   */
+  updatePrescriptionAdvice: async (
+    prescriptionId: string | number,
+    payload: UpdatePrescriptionAdvicePayload,
+  ): Promise<Prescription | Record<string, unknown> | null> => {
+    try {
+      const response = await apiClient.put<
+        ApiEnvelope<Prescription> | Prescription
+      >(`/api/v1/prescriptions/${prescriptionId}/advice`, payload);
+      return unwrap<Prescription>(response.data);
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  /**
+   * PUT /api/v1/prescriptions/{prescriptionId}/medications/{medicationId}
+   */
+  updatePrescriptionMedication: async (
+    prescriptionId: string | number,
+    medicationId: string | number,
+    payload: UpdateMedicationPayload,
+  ): Promise<Prescription | null> => {
+    try {
+      const response = await apiClient.put<
+        ApiEnvelope<Prescription> | Prescription
+      >(
+        `/api/v1/prescriptions/${prescriptionId}/medications/${medicationId}`,
+        payload,
+      );
+      return unwrap<Prescription>(response.data);
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  /**
+   * GET /api/v1/encounters/{encounterId}/workspace
+   */
+  getWorkspace: async (
+    encounterId: string | number,
+  ): Promise<Record<string, unknown> | null> => {
+    try {
+      const response = await apiClient.get<
+        ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
+      >(`/api/v1/encounters/${encounterId}/workspace`);
+      return unwrap<Record<string, unknown>>(response.data);
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * GET /api/v1/consultations/{consultationId}
+   */
+  getConsultation: async (
+    consultationId: string | number,
+  ): Promise<Record<string, unknown> | null> => {
+    try {
+      const response = await apiClient.get<
+        ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
+      >(`/api/v1/consultations/${consultationId}`);
+      return unwrap<Record<string, unknown>>(response.data);
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * GET /api/v1/encounters/{encounterId}/consultation
+   */
+  getEncounterConsultation: async (
+    encounterId: string | number,
+  ): Promise<Record<string, unknown> | null> => {
+    try {
+      const response = await apiClient.get<
+        ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
+      >(`/api/v1/encounters/${encounterId}/consultation`);
+      return unwrap<Record<string, unknown>>(response.data);
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * GET /api/v1/patients/{mrn}/encounters
+   */
+  getPatientEncounters: async (
+    mrn: string,
+  ): Promise<Array<Record<string, unknown>>> => {
+    try {
+      const response = await apiClient.get<
+        ApiEnvelope<Array<Record<string, unknown>>> | Array<Record<string, unknown>>
+      >(`/api/v1/patients/${mrn}/encounters`);
+      const data = unwrap<Array<Record<string, unknown>>>(response.data);
+      return Array.isArray(data) ? data : [];
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * PUT /api/v1/encounters/{encounterId}/consultation
+   */
+  initConsultationPut: async (
+    encounterId: string | number,
+    payload: Record<string, unknown>,
+  ): Promise<Record<string, unknown> | null> => {
+    try {
+      const response = await apiClient.put<
+        ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
+      >(`/api/v1/encounters/${encounterId}/consultation`, payload);
+      return unwrap<Record<string, unknown>>(response.data);
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  /**
+   * POST /api/v1/encounters/{encounterId}/consultation
+   */
+  initConsultationPost: async (
+    encounterId: string | number,
+    payload: Record<string, unknown>,
+  ): Promise<Record<string, unknown> | null> => {
+    try {
+      const response = await apiClient.post<
+        ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
+      >(`/api/v1/encounters/${encounterId}/consultation`, payload);
+      return unwrap<Record<string, unknown>>(response.data);
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  /**
+   * GET /api/v1/encounters/{encounterId}/amendments
+   */
+  getAmendments: async (
+    encounterId: string | number,
+  ): Promise<Array<Record<string, unknown>>> => {
+    try {
+      const response = await apiClient.get<
+        ApiEnvelope<Array<Record<string, unknown>>> | Array<Record<string, unknown>>
+      >(`/api/v1/encounters/${encounterId}/amendments`);
+      const data = unwrap<Array<Record<string, unknown>>>(response.data);
+      return Array.isArray(data) ? data : [];
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * POST /api/v1/encounters/{encounterId}/draft
+   */
+  saveDraft: async (
+    encounterId: string | number,
+    payload: Record<string, unknown>,
+  ): Promise<Record<string, unknown> | null> => {
+    try {
+      const response = await apiClient.post<
+        ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
+      >(`/api/v1/encounters/${encounterId}/draft`, payload);
+      return unwrap<Record<string, unknown>>(response.data);
+    } catch {
+      return null;
     }
   },
 };

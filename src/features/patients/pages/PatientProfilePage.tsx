@@ -28,7 +28,6 @@ import { formatCompactCurrency } from "../../billing/utils/billing.utils";
 
 // Tabs
 import { PatientAppointmentsTab } from "../components/tabs/AppointmentsTab";
-import { PatientMedicalRecordsTab } from "../components/tabs/MedicalRecordsTab";
 import { VisitHistoryTab } from "../components/tabs/VisitHistoryTab";
 import { PatientPrescriptionsTab } from "../components/tabs/PrescriptionsTab";
 import { PatientBillingTab } from "../components/tabs/BillingTab";

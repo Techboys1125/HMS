@@ -90,32 +90,6 @@ export const DiagnosisForm: React.FC<DiagnosisFormProps> = ({
 
       {/* ICD-10 Search Bar */}
       <div className="relative">
-        <span
-          className="block text-[11px] font-semibold text-[#64748B] mb-1"
-          style={{ fontFamily: PP }}
-        >
-          Search & Select ICD-10 Code
-        </span>
-        <div className="relative">
-          <Search
-            size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-          />
-          <input
-            aria-label="Input field"
-            type="text"
-            value={icdSearchQuery}
-            onChange={(e) => {
-              setIcdSearchQuery(e.target.value);
-              setShowIcdDropdown(true);
-            }}
-            onFocus={() => setShowIcdDropdown(true)}
-            placeholder="Search ICD-10 by code or description..."
-            className="w-full pl-9 pr-4 py-2 text-sm border border-[#E5E7EB] rounded-xl bg-slate-50 outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-            style={{ fontFamily: RB }}
-          />
-        </div>
-
         {/* Selected Code Indicator */}
         {icdCode && (
           <div className="mt-2 flex items-center gap-2">

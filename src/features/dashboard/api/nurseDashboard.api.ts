@@ -1,4 +1,5 @@
 import { apiClient } from "../../../lib/axios";
+import { vitalsApi } from "../../vitals/api/vitals.api";
 import type {
   DashboardApiResponse,
   NurseDashboardData,
@@ -42,10 +43,24 @@ export const nurseDashboardApi = {
   },
 
   getQueue: async (page = 0, size = 10): Promise<NurseQueue> => {
-    const res = await apiClient.get<DashboardApiResponse<NurseQueue>>(
-      `/api/v1/nurse/queue?page=${page}&size=${size}`,
-    );
-    return unwrap(res);
+    try {
+      const today = new Date().toISOString().split("T")[0];
+      const res = await apiClient.get<DashboardApiResponse<NurseQueue>>(
+        `/api/v1/nurse/queue?date=${today}&page=${page}&size=${size}`,
+      );
+      return unwrap(res);
+    } catch {
+      const fallbackData = await vitalsApi.getNurseQueue(undefined, page, size);
+      return {
+        content: fallbackData as any,
+        patients: fallbackData as any,
+        waitingForVitals: fallbackData.length,
+        page,
+        size,
+        totalElements: fallbackData.length,
+        totalPages: 1,
+      };
+    }
   },
 
   getDoctorAssistance: async (): Promise<NurseDoctorAssistance> => {

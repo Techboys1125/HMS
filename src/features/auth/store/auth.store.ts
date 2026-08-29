@@ -68,14 +68,26 @@ function notify() {
   listeners.forEach((listener) => listener());
 }
 
+function sanitizeUserForStorage(user: User): User {
+  const copy = { ...user };
+  if (copy.photoUrl && copy.photoUrl.startsWith("data:image")) {
+    copy.photoUrl = "";
+  }
+  if (copy.photo && copy.photo.startsWith("data:image")) {
+    copy.photo = "";
+  }
+  return copy;
+}
+
 function saveState(state: AuthState) {
   try {
     if (state.isAuthenticated && state.user && state.tokens) {
+      const sanitizedUser = sanitizeUserForStorage(state.user);
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ user: state.user, tokens: state.tokens }),
+        JSON.stringify({ user: sanitizedUser, tokens: state.tokens }),
       );
-      localStorage.setItem("hms-user:v1", JSON.stringify(state.user));
+      localStorage.setItem("hms-user:v1", JSON.stringify(sanitizedUser));
       setToken("accessToken", state.tokens.accessToken);
       setToken("refreshToken", state.tokens.refreshToken);
     } else {

@@ -61,7 +61,6 @@ const exactPathToNavId: Record<string, NavId> = {
   [ROUTES.DOCTOR_MY_SCHEDULE]: "my-schedule",
   [ROUTES.DOCTOR_MY_QUEUE]: "my-queue",
   [ROUTES.DOCTOR_PATIENTS]: "patients",
-  [ROUTES.DOCTOR_MEDICAL_RECORDS]: "medical-history",
   [ROUTES.DOCTOR_APPOINTMENTS]: "appointments",
   [ROUTES.DOCTOR_CONSULTATION]: "consultation",
   [ROUTES.DOCTOR_PRESCRIPTIONS]: "prescriptions",
@@ -157,7 +156,7 @@ const navIdToPath = (role: Role, navId: NavId): string => {
       case "consultation":
         return ROUTES.DOCTOR_CONSULTATION;
       case "medical-history":
-        return ROUTES.DOCTOR_MEDICAL_RECORDS;
+        return ROUTES.DOCTOR_CONSULTATION;
       case "doctors":
         return ROUTES.DOCTORS;
       case "reports":

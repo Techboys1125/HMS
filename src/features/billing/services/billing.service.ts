@@ -211,7 +211,59 @@ export const billingService = {
     payload: PaymentReceivePayload,
   ): Promise<PaymentReceiveResponse> {
     const targetId = await resolveBillId(billId);
-    const response = await billingApi.receivePayment(targetId, payload);
+
+    const normalizedPayments = (payload.payments || []).map((p) => {
+      const rawMethod = String(p.method || "CASH").trim().toUpperCase();
+      let method = rawMethod;
+      if (
+        rawMethod === "CASH" ||
+        rawMethod === "HAND CASH" ||
+        rawMethod === "HAND_CASH" ||
+        rawMethod === "PHYSICAL CASH" ||
+        rawMethod === "CURRENCY"
+      ) {
+        method = "CASH";
+      } else if (
+        rawMethod.includes("BANK") ||
+        rawMethod.includes("TRANSFER") ||
+        rawMethod.includes("NEFT") ||
+        rawMethod.includes("IMPS")
+      ) {
+        method = "BANK_TRANSFER";
+      } else if (
+        rawMethod.includes("CARD") ||
+        rawMethod.includes("CREDIT") ||
+        rawMethod.includes("DEBIT")
+      ) {
+        method = "CARD";
+      } else if (
+        rawMethod.includes("UPI") ||
+        rawMethod.includes("GPAY") ||
+        rawMethod.includes("PHONEPE") ||
+        rawMethod.includes("PAYTM")
+      ) {
+        method = "UPI";
+      }
+
+      // For CASH (hand cash) payments, reference number is not needed
+      const refNum =
+        method === "CASH"
+          ? undefined
+          : p.referenceNumber && p.referenceNumber.trim()
+            ? p.referenceNumber.trim()
+            : undefined;
+
+      return {
+        ...p,
+        method,
+        referenceNumber: refNum,
+      };
+    });
+
+    const response = await billingApi.receivePayment(targetId, {
+      ...payload,
+      payments: normalizedPayments,
+    });
     return response.data;
   },
 

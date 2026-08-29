@@ -26,7 +26,9 @@ const unwrap = <T>(body: ApiEnvelope<T> | T): T => {
   return body as T;
 };
 
-export function extractNumericAppointmentId(id: string | number): number | string {
+export function extractNumericAppointmentId(
+  id: string | number,
+): number | string {
   if (typeof id === "number") return id;
   const str = String(id).trim();
   if (/^\d+$/.test(str)) return Number(str);
@@ -45,6 +47,72 @@ export function extractNumericAppointmentId(id: string | number): number | strin
 }
 
 export const vitalsApi = {
+  /**
+   * GET /api/v1/nurse/queue
+   * Fetch nurse queue with date, page, size parameters
+   */
+  async getNurseQueue(
+    date?: string,
+    page = 0,
+    size = 50,
+  ): Promise<NurseWaitingPatient[]> {
+    try {
+      const today = date || new Date().toISOString().split("T")[0];
+      const response = await apiClient.get<
+        NurseVitalsApiResponse<
+          | {
+              waitingForVitals?: number;
+              patients?: NurseWaitingPatient[];
+              page?: number;
+              size?: number;
+              totalElements?: number;
+              totalPages?: number;
+            }
+          | NurseWaitingPatient[]
+        >
+      >(`/api/v1/nurse/queue?date=${today}&page=${page}&size=${size}`);
+
+      const data = response.data?.data;
+      if (
+        data &&
+        typeof data === "object" &&
+        "patients" in data &&
+        Array.isArray((data as { patients?: NurseWaitingPatient[] }).patients)
+      ) {
+        return (data as { patients: NurseWaitingPatient[] }).patients;
+      }
+      if (Array.isArray(data)) {
+        return data;
+      }
+      return [];
+    } catch {
+      return this.getWaitingPatients();
+    }
+  },
+
+  /**
+   * GET /api/v1/nurse/queue (Full Envelope)
+   */
+  async getNurseQueueFull(date?: string, page = 0, size = 50) {
+    try {
+      const today = date || new Date().toISOString().split("T")[0];
+      const response = await apiClient.get<
+        NurseVitalsApiResponse<{
+          waitingForVitals?: number;
+          patients?: NurseWaitingPatient[];
+          page?: number;
+          size?: number;
+          totalElements?: number;
+          totalPages?: number;
+        }>
+      >(`/api/v1/nurse/queue?date=${today}&page=${page}&size=${size}`);
+
+      return response.data?.data || null;
+    } catch {
+      return null;
+    }
+  },
+
   /**
    * GET /api/v1/nurse/vitals/waiting
    * Fetch list of patients waiting for vitals recording
@@ -106,8 +174,8 @@ export const vitalsApi = {
       lastReviewedAt?: string;
     } | null>
   > {
+    const numericTargetId = extractNumericAppointmentId(appointmentId);
     try {
-      const targetId = extractNumericAppointmentId(appointmentId);
       const response = await apiClient.get<
         NurseVitalsApiResponse<{
           vitalsId?: number;
@@ -141,9 +209,9 @@ export const vitalsApi = {
           lastReviewedBy?: { employeeId?: string; name?: string };
           lastReviewedAt?: string;
         } | null>
-      >(`/api/v1/nurse/appointments/${targetId}/vitals`);
+      >(`/api/v1/nurse/appointments/${numericTargetId}/vitals`);
       return response.data;
-    } catch (error) {
+    } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const status = error.response?.status;
         const code = (error.response?.data as { code?: string })?.code;
@@ -157,15 +225,12 @@ export const vitalsApi = {
             errors: {},
           };
         }
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          throw new Error(data.message, { cause: error });
+        }
       }
-      return {
-        success: false,
-        code: "ERROR",
-        message: "Failed to fetch vitals",
-        timestamp: new Date().toISOString(),
-        data: null,
-        errors: {},
-      };
+      throw error;
     }
   },
 
@@ -232,9 +297,9 @@ export const vitalsApi = {
    */
   async getVitalsByEncounterId(encounterId: string | number) {
     try {
-      const response = await apiClient.get<NurseVitalsApiResponse<unknown> | Record<string, unknown>>(
-        `/api/v1/encounters/${encounterId}/vitals`,
-      );
+      const response = await apiClient.get<
+        NurseVitalsApiResponse<unknown> | Record<string, unknown>
+      >(`/api/v1/encounters/${encounterId}/vitals`);
       return response.data;
     } catch {
       return null;
@@ -249,10 +314,10 @@ export const vitalsApi = {
     appointmentId: string | number,
     payload: NurseVitalsPayload,
   ): Promise<NurseVitalsApiResponse<unknown>> {
-    const targetId = extractNumericAppointmentId(appointmentId);
+    const numericTargetId = extractNumericAppointmentId(appointmentId);
     try {
       const response = await apiClient.post<NurseVitalsApiResponse<unknown>>(
-        `/api/v1/nurse/appointments/${targetId}/vitals`,
+        `/api/v1/nurse/appointments/${numericTargetId}/vitals`,
         payload,
       );
       return response.data;
@@ -265,5 +330,21 @@ export const vitalsApi = {
       }
       throw error;
     }
+  },
+
+  /**
+   * PUT /api/v1/nurse/appointments/{appointmentId}/vitals
+   * Update/amend recorded patient vitals
+   */
+  async updateVitals(
+    appointmentId: string | number,
+    payload: NurseVitalsPayload,
+  ): Promise<NurseVitalsApiResponse<unknown>> {
+    const numericTargetId = extractNumericAppointmentId(appointmentId);
+    const response = await apiClient.put<NurseVitalsApiResponse<unknown>>(
+      `/api/v1/nurse/appointments/${numericTargetId}/vitals`,
+      payload,
+    );
+    return response.data;
   },
 };

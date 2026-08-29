@@ -1,6 +1,5 @@
-import React, { useState, useMemo, useTransition } from "react";
+import { useState, useMemo, useTransition } from "react";
 import {
-  Calendar,
   Download,
   RefreshCw,
   Filter,
@@ -17,7 +16,8 @@ import {
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
   AlertCircle,
-  Shield,
+  ArrowLeft,
+  TrendingUp,
 } from "lucide-react";
 import { useDoctorSelfPatientRegister } from "../hooks/useReports";
 
@@ -86,6 +86,7 @@ function CircularProgress({
     </div>
   );
 }
+
 export interface DoctorPatientRecord {
   mrn: string;
   patientName: string;
@@ -99,17 +100,103 @@ export interface DoctorPatientRecord {
   status: string;
 }
 
+const getOffsetDateStr = (daysAgo: number): string => {
+  const d = new Date();
+  d.setDate(d.getDate() - daysAgo);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const SAMPLE_DOCTOR_PATIENTS: DoctorPatientRecord[] = [
+  {
+    mrn: "MRN-2026111086",
+    patientName: "Eleanor Vance",
+    age: 34,
+    gender: "Female",
+    mobileNumber: "9876543210",
+    lastConsultationDate: getOffsetDateStr(0),
+    visitType: "Follow-up",
+    diagnosis: "Refractive Error",
+    followUpDate: getOffsetDateStr(-7),
+    status: "Completed",
+  },
+  {
+    mrn: "MRN-2026925825",
+    patientName: "Marcus Brody",
+    age: 48,
+    gender: "Male",
+    mobileNumber: "9876543211",
+    lastConsultationDate: getOffsetDateStr(0),
+    visitType: "New Patient",
+    diagnosis: "Hypertension",
+    followUpDate: getOffsetDateStr(-14),
+    status: "Active",
+  },
+  {
+    mrn: "MRN-2026338491",
+    patientName: "Sophia Martinez",
+    age: 29,
+    gender: "Female",
+    mobileNumber: "9876543212",
+    lastConsultationDate: getOffsetDateStr(1),
+    visitType: "Routine Checkup",
+    diagnosis: "General Checkup",
+    followUpDate: getOffsetDateStr(-30),
+    status: "Completed",
+  },
+  {
+    mrn: "MRN-2026447219",
+    patientName: "James Harrison",
+    age: 52,
+    gender: "Male",
+    mobileNumber: "9876543213",
+    lastConsultationDate: getOffsetDateStr(2),
+    visitType: "Follow-up",
+    diagnosis: "Type 2 Diabetes",
+    followUpDate: getOffsetDateStr(-5),
+    status: "In Progress",
+  },
+  {
+    mrn: "MRN-2026559102",
+    patientName: "Amara Okafor",
+    age: 41,
+    gender: "Female",
+    mobileNumber: "9876543214",
+    lastConsultationDate: getOffsetDateStr(4),
+    visitType: "New Patient",
+    diagnosis: "Migraine",
+    followUpDate: getOffsetDateStr(-10),
+    status: "Active",
+  },
+  {
+    mrn: "MRN-2026771823",
+    patientName: "David Chen",
+    age: 63,
+    gender: "Male",
+    mobileNumber: "9876543215",
+    lastConsultationDate: getOffsetDateStr(6),
+    visitType: "Walk-In",
+    diagnosis: "Acute Bronchitis",
+    followUpDate: getOffsetDateStr(-3),
+    status: "Completed",
+  },
+];
+
 export function DoctorPatientReportScreen({
   onBack,
-  onOpenAppointmentReport,
-  onOpenDoctorReport,
 }: {
   onBack?: () => void;
   onOpenAppointmentReport?: () => void;
   onOpenDoctorReport?: () => void;
 }) {
+  const todayStr = getOffsetDateStr(0);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [dateRange, setDateRange] = useState("Today");
+  const [startDate, setStartDate] = useState(todayStr);
+  const [endDate, setEndDate] = useState(todayStr);
   const [visitTypeFilter, setVisitTypeFilter] = useState("All Visit Types");
   const [consultStatusFilter, setConsultStatusFilter] =
     useState("All Statuses");
@@ -128,7 +215,24 @@ export function DoctorPatientReportScreen({
 
   // React Query Hooks for Doctor Personal Patient Reports
   const { data: registerData, refetch: refetchRegister } =
-    useDoctorSelfPatientRegister({ size: 20 });
+    useDoctorSelfPatientRegister({ size: 50 });
+
+  const handlePresetDateChange = (preset: string) => {
+    setDateRange(preset);
+    if (preset === "Today") {
+      setStartDate(getOffsetDateStr(0));
+      setEndDate(getOffsetDateStr(0));
+    } else if (preset === "Yesterday") {
+      setStartDate(getOffsetDateStr(1));
+      setEndDate(getOffsetDateStr(1));
+    } else if (preset === "Last 7 Days") {
+      setStartDate(getOffsetDateStr(6));
+      setEndDate(getOffsetDateStr(0));
+    } else if (preset === "This Month") {
+      setStartDate(getOffsetDateStr(29));
+      setEndDate(getOffsetDateStr(0));
+    }
+  };
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -137,81 +241,129 @@ export function DoctorPatientReportScreen({
   };
 
   const handleResetFilters = () => {
+    const tStr = getOffsetDateStr(0);
     setSearchQuery("");
     setDateRange("Today");
+    setStartDate(tStr);
+    setEndDate(tStr);
     setVisitTypeFilter("All Visit Types");
     setConsultStatusFilter("All Statuses");
     setFollowUpStatusFilter("All Follow-up Statuses");
   };
 
-  const today = new Date().toISOString().slice(0, 10);
   const doctorPatientSource = useMemo(() => {
     const rawList = registerData?.content || [];
-    const list = rawList.map((item) => ({
-      mrn: item.mrn ? (String(item.mrn).startsWith("MRN-") ? String(item.mrn) : `MRN-${item.mrn}`) : "MRN-1001",
-      patientName: item.patientName || "N/A",
-      age: 30,
-      gender: "Male",
-      mobileNumber: "9876543210",
-      lastConsultationDate: item.lastConsultationDate || today,
-      visitType: item.lastVisitType || "New Visit",
-      diagnosis: "Routine OPD",
-      followUpDate: item.nextFollowUpDate || today,
-      status: item.followUpStatus || "Completed",
-    }));
-    if (list.length === 0) {
-      return [
-        {
-          mrn: "MRN-1001",
-          patientName: "Kavisan R",
-          age: 24,
-          gender: "Male",
-          mobileNumber: "9876543210",
-          lastConsultationDate: today,
-          visitType: "New Visit",
-          diagnosis: "Refractive Error",
-          followUpDate: today,
-          status: "Completed",
-        },
-        {
-          mrn: "MRN-1002",
-          patientName: "Pradeep Kumar",
-          age: 32,
-          gender: "Male",
-          mobileNumber: "9876543211",
-          lastConsultationDate: today,
-          visitType: "Follow-up",
-          diagnosis: "Hypertension",
-          followUpDate: today,
-          status: "Scheduled",
-        },
-      ];
+    if (rawList.length > 0) {
+      return rawList.map((item, idx) => ({
+        mrn: item.mrn
+          ? String(item.mrn).startsWith("MRN-")
+            ? String(item.mrn)
+            : `MRN-${item.mrn}`
+          : `MRN-100${idx + 1}`,
+        patientName: item.patientName || "Unknown Patient",
+        age: 30 + (idx % 25),
+        gender: idx % 2 === 0 ? "Female" : "Male",
+        mobileNumber: `98765432${10 + idx}`,
+        lastConsultationDate: item.lastConsultationDate || todayStr,
+        visitType: item.lastVisitType || "New Patient",
+        diagnosis: "Routine OPD",
+        followUpDate: item.nextFollowUpDate || getOffsetDateStr(-7),
+        status: item.followUpStatus || "Completed",
+      }));
     }
-    return list;
-  }, [registerData?.content, today]);
+    return SAMPLE_DOCTOR_PATIENTS;
+  }, [registerData?.content, todayStr]);
 
   const filteredPatients = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     return doctorPatientSource.filter((mapped) => {
+      // 1. Search filter
       const matchesSearch =
         !query ||
         mapped.patientName.toLowerCase().includes(query) ||
         mapped.mrn.toLowerCase().includes(query) ||
         mapped.mobileNumber.includes(query);
+
+      // 2. Visit Type filter
       const matchesVisit =
         visitTypeFilter === "All Visit Types" ||
         mapped.visitType.toLowerCase() === visitTypeFilter.toLowerCase();
-      return matchesSearch && matchesVisit;
+
+      // 3. Consult Status filter
+      const matchesStatus =
+        consultStatusFilter === "All Statuses" ||
+        mapped.status.toLowerCase() === consultStatusFilter.toLowerCase();
+
+      // 4. Date Range filter
+      const extractDateStr = (rec: DoctorPatientRecord): string | null => {
+        if (rec.lastConsultationDate && rec.lastConsultationDate.length >= 10) {
+          const match = rec.lastConsultationDate.match(/\d{4}-\d{2}-\d{2}/);
+          if (match) return match[0];
+        }
+        return null;
+      };
+
+      const itemDateStr = extractDateStr(mapped);
+      const matchesDate = (() => {
+        if (!startDate && !endDate) return true;
+        if (!itemDateStr) return true;
+        if (startDate && itemDateStr < startDate) return false;
+        if (endDate && itemDateStr > endDate) return false;
+        return true;
+      })();
+
+      return matchesSearch && matchesVisit && matchesStatus && matchesDate;
     });
-  }, [doctorPatientSource, searchQuery, visitTypeFilter]);
+  }, [
+    doctorPatientSource,
+    searchQuery,
+    visitTypeFilter,
+    consultStatusFilter,
+    startDate,
+    endDate,
+  ]);
+
+  const kpi = useMemo(() => {
+    const totalPatients = filteredPatients.length;
+    const newPatients = filteredPatients.filter((p) =>
+      p.visitType.toLowerCase().includes("new"),
+    ).length;
+    const returningPatients = filteredPatients.filter(
+      (p) =>
+        p.visitType.toLowerCase().includes("follow") ||
+        p.visitType.toLowerCase().includes("routine") ||
+        p.visitType.toLowerCase().includes("walk"),
+    ).length;
+    const completedConsults = filteredPatients.filter(
+      (p) => p.status === "Completed" || p.status === "Active",
+    ).length;
+    const scheduledFollowUps = filteredPatients.filter(
+      (p) => p.followUpDate && p.followUpDate !== "N/A",
+    ).length;
+    const avgDailyPatients =
+      totalPatients > 0 ? (totalPatients / 3).toFixed(1) : "0.0";
+
+    return {
+      totalPatients,
+      newPatients,
+      returningPatients,
+      completedConsults,
+      scheduledFollowUps,
+      avgDailyPatients,
+    };
+  }, [filteredPatients]);
 
   const trendData = useMemo(() => {
-    const daysCount = trendDays === "7 Days" ? 7 : trendDays === "30 Days" ? 30 : 90;
+    const daysCount =
+      trendDays === "7 Days" ? 7 : trendDays === "30 Days" ? 30 : 90;
     const result = [];
     for (let i = daysCount - 1; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      const dateStr = d.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
       result.push({
         date: dateStr,
         newReg: Math.max(1, 4 + ((i * 2) % 5)),
@@ -222,7 +374,9 @@ export function DoctorPatientReportScreen({
   }, [trendDays]);
 
   const genderData = useMemo(() => {
-    let male = 0, female = 0, other = 0;
+    let male = 0,
+      female = 0,
+      other = 0;
     filteredPatients.forEach((p) => {
       const g = (p.gender || "").toLowerCase();
       if (g === "male") male++;
@@ -230,20 +384,54 @@ export function DoctorPatientReportScreen({
       else other++;
     });
     return [
-      { name: "Male", value: male || 10, color: "#0D47A1" },
+      { name: "Male", value: male || 4, color: "#0D47A1" },
       { name: "Female", value: female || 6, color: "#009688" },
       { name: "Other", value: other || 1, color: "#4DB6AC" },
     ];
   }, [filteredPatients]);
 
-  const ageData = useMemo(() => {
+  const visitTypeDistData = useMemo(() => {
+    const newCount = filteredPatients.filter((p) =>
+      p.visitType.toLowerCase().includes("new"),
+    ).length;
+    const followCount = filteredPatients.filter((p) =>
+      p.visitType.toLowerCase().includes("follow"),
+    ).length;
+    const checkupCount = filteredPatients.filter((p) =>
+      p.visitType.toLowerCase().includes("check"),
+    ).length;
+    const walkInCount = filteredPatients.filter((p) =>
+      p.visitType.toLowerCase().includes("walk"),
+    ).length;
+
     return [
-      { ageGroup: "0-18 yrs", count: 4 },
-      { ageGroup: "19-35 yrs", count: 12 },
-      { ageGroup: "36-60 yrs", count: 9 },
-      { ageGroup: "60+ yrs", count: 5 },
+      { visitCategory: "New Patient", count: newCount || 4 },
+      { visitCategory: "Follow-up", count: followCount || 12 },
+      { visitCategory: "Routine Checkup", count: checkupCount || 9 },
+      { visitCategory: "Walk-In", count: walkInCount || 5 },
     ];
-  }, []);
+  }, [filteredPatients]);
+
+  const consultStatusData = useMemo(() => {
+    const completed = filteredPatients.filter(
+      (p) => p.status === "Completed",
+    ).length;
+    const inProgress = filteredPatients.filter(
+      (p) => p.status === "In Progress",
+    ).length;
+    const active = filteredPatients.filter((p) => p.status === "Active").length;
+    const scheduled = Math.max(
+      0,
+      filteredPatients.length - completed - inProgress - active,
+    );
+
+    return [
+      { status: "Completed", count: completed || 18 },
+      { status: "Active", count: active || 10 },
+      { status: "In-Progress", count: inProgress || 4 },
+      { status: "Scheduled", count: scheduled || 6 },
+    ];
+  }, [filteredPatients]);
 
   return (
     <div
@@ -288,12 +476,23 @@ export function DoctorPatientReportScreen({
                 </span>
               </div>
               <p className="text-xs text-[#64748B] mt-0.5">
-                Analyze your patients, consultations and follow-up activities.
+                Analyze your patient demographics, consultations, and follow-up
+                activities.
               </p>
             </div>
 
             {/* Header Actions */}
             <div className="flex items-center gap-3 flex-wrap">
+              <button
+                type="button"
+                onClick={() => (onBack ? onBack() : window.history.back())}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#E5E7EB] bg-white text-xs font-semibold text-[#111827] hover:bg-slate-50 transition shadow-sm cursor-pointer mr-1"
+                style={{ fontFamily: PP }}
+              >
+                <ArrowLeft size={14} />
+                Back
+              </button>
+
               <div className="hidden lg:flex items-center gap-2 text-xs text-[#64748B] bg-slate-50 border border-[#E5E7EB] px-3 py-2 rounded-xl">
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
@@ -339,67 +538,319 @@ export function DoctorPatientReportScreen({
         </div>
       </div>
 
-      {/* Main Container */}
-      <div className="w-full px-4 sm:px-6 lg:px-8 mt-6">
-        {/* Global Search Bar */}
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
-            <input
-              aria-label="Input field"
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search Patient Name, MRN, Mobile Number..."
-              className="w-full pl-10 pr-4 py-2.5 bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs text-[#111827] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#64748B] hover:text-[#111827]"
+      {/* Main Container Full Width */}
+      <div className="w-full px-4 sm:px-6 lg:px-8 mt-6 space-y-6">
+        {/* 1. TOP 6 DOCTOR PATIENT KPI CARDS */}
+        {!isLoading && !hasError && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {/* Card 1: My Patients */}
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-[#64748B]">
+                  My Patients
+                </span>
+                <div className="p-2 rounded-xl bg-blue-50 text-[#0D47A1]">
+                  <Users className="w-4 h-4" />
+                </div>
+              </div>
+              <div
+                className="text-2xl font-bold text-[#111827] mb-1"
+                style={{ fontFamily: PP }}
               >
-                Clear
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Doctor Filter Bar */}
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <div
-              className="flex items-center gap-2 text-xs font-semibold text-[#111827]"
-              style={{ fontFamily: PP }}
-            >
-              <Filter className="w-4 h-4 text-[#009688]" />
-              <span>Filter Consulted Patients</span>
+                {kpi.totalPatients}
+              </div>
+              <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
+                <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5">
+                  <TrendingUp className="w-3 h-3" /> Assigned Patients
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+                <div>
+                  <div className="text-[#0D47A1] font-bold">
+                    {kpi.totalPatients}
+                  </div>
+                  <div className="text-[#64748B]">Total</div>
+                </div>
+                <div>
+                  <div className="text-[#66BB6A] font-bold">
+                    {kpi.newPatients}
+                  </div>
+                  <div className="text-[#64748B]">New</div>
+                </div>
+              </div>
             </div>
-            <span className="text-[11px] text-[#64748B] bg-slate-100 px-2.5 py-0.5 rounded-full font-semibold">
-              Filter: Logged-in Doctor (Dr. Sarah Jenkins)
-            </span>
+
+            {/* Card 2: New Patients */}
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-[#64748B]">
+                  New Patients
+                </span>
+                <div className="p-2 rounded-xl bg-teal-50 text-[#009688]">
+                  <Users className="w-4 h-4" />
+                </div>
+              </div>
+              <div
+                className="text-2xl font-bold text-[#111827] mb-1"
+                style={{ fontFamily: PP }}
+              >
+                {kpi.newPatients}
+              </div>
+              <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
+                <span className="text-[#009688] font-semibold">
+                  First Consultation
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+                <div>
+                  <div className="text-[#009688] font-bold">
+                    {kpi.newPatients}
+                  </div>
+                  <div className="text-[#64748B]">New Vis</div>
+                </div>
+                <div>
+                  <div className="text-[#66BB6A] font-bold">
+                    {Math.max(1, Math.floor(kpi.newPatients / 2))}
+                  </div>
+                  <div className="text-[#64748B]">Recent</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3: Returning Patients */}
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-[#64748B]">
+                  Returning Patients
+                </span>
+                <div className="p-2 rounded-xl bg-indigo-50 text-[#0D47A1]">
+                  <UserCheck className="w-4 h-4" />
+                </div>
+              </div>
+              <div
+                className="text-2xl font-bold text-[#111827] mb-1"
+                style={{ fontFamily: PP }}
+              >
+                {kpi.returningPatients}
+              </div>
+              <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
+                <span className="text-[#0D47A1] font-semibold">
+                  Follow-up Visits
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+                <div>
+                  <div className="text-[#0D47A1] font-bold">
+                    {kpi.returningPatients}
+                  </div>
+                  <div className="text-[#64748B]">Follow-ups</div>
+                </div>
+                <div>
+                  <div className="text-[#66BB6A] font-bold">
+                    {Math.max(1, Math.floor(kpi.returningPatients / 2))}
+                  </div>
+                  <div className="text-[#64748B]">Repeat</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 4: Completed Consultations */}
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-[#64748B]">
+                  Completed Consults
+                </span>
+                <div className="p-2 rounded-xl bg-emerald-50 text-[#66BB6A]">
+                  <CheckCircle2 className="w-4 h-4" />
+                </div>
+              </div>
+              <div
+                className="text-2xl font-bold text-[#111827] mb-1"
+                style={{ fontFamily: PP }}
+              >
+                {kpi.completedConsults}
+              </div>
+              <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
+                <span className="text-[#66BB6A] font-semibold">
+                  Completed Patients
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+                <div>
+                  <div className="text-[#66BB6A] font-bold">
+                    {kpi.completedConsults}
+                  </div>
+                  <div className="text-[#64748B]">Done</div>
+                </div>
+                <div>
+                  <div className="text-[#0D47A1] font-bold">
+                    {kpi.completedConsults * 4}
+                  </div>
+                  <div className="text-[#64748B]">Monthly</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 5: Scheduled Follow-ups */}
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-[#64748B]">
+                  Scheduled Follow-ups
+                </span>
+                <div className="p-2 rounded-xl bg-amber-50 text-[#F59E0B]">
+                  <Activity className="w-4 h-4" />
+                </div>
+              </div>
+              <div
+                className="text-2xl font-bold text-[#111827] mb-1"
+                style={{ fontFamily: PP }}
+              >
+                {kpi.scheduledFollowUps}
+              </div>
+              <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
+                <span className="text-[#F59E0B] font-semibold">
+                  Upcoming Reviews
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+                <div>
+                  <div className="text-[#F59E0B] font-bold">
+                    {kpi.scheduledFollowUps}
+                  </div>
+                  <div className="text-[#64748B]">Active</div>
+                </div>
+                <div>
+                  <div className="text-[#009688] font-bold">
+                    {kpi.scheduledFollowUps + 10}
+                  </div>
+                  <div className="text-[#64748B]">Upcoming</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 6: Average Patients Per Day */}
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
+              <div>
+                <span className="text-xs font-semibold text-[#64748B]">
+                  Avg Patients / Day
+                </span>
+                <div
+                  className="text-2xl font-bold text-[#111827] mt-1"
+                  style={{ fontFamily: PP }}
+                >
+                  {kpi.avgDailyPatients}
+                </div>
+                <p className="text-[11px] text-[#64748B] mt-1">
+                  Daily patient load
+                </p>
+                <div className="mt-2 text-[11px] font-semibold text-[#009688]">
+                  ✓ Optimal Load
+                </div>
+              </div>
+              <CircularProgress percentage={92} size={54} strokeWidth={6} />
+            </div>
+          </div>
+        )}
+
+        {/* 2. SEARCH & FILTERS BAR */}
+        <div className="space-y-4">
+          {/* Global Search Bar */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm">
+            <div className="relative">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
+              <input
+                aria-label="Input field"
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search Patient Name, MRN, Mobile Number..."
+                className="w-full pl-10 pr-16 py-2.5 bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs text-[#111827] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-medium text-[#64748B] hover:text-[#111827]"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <div>
-              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
-                Date Range
+          {/* Doctor Filter Bar */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <div
+                className="flex items-center gap-2 text-xs font-semibold text-[#111827]"
+                style={{ fontFamily: PP }}
+              >
+                <Filter className="w-4 h-4 text-[#009688]" />
+                <span>Filter Consulted Patients & Demographics</span>
+              </div>
+              <span className="text-[11px] text-[#64748B] bg-slate-100 px-2.5 py-0.5 rounded-full font-semibold">
+                Filter: Active Doctor Practice
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+              {/* Date Preset */}
+              <div>
+                <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+                  Date Preset
+                </label>
                 <select
                   aria-label="Select option"
                   value={dateRange}
-                  onChange={(e) => setDateRange(e.target.value)}
+                  onChange={(e) => handlePresetDateChange(e.target.value)}
                   className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
                 >
                   <option>Today</option>
                   <option>Yesterday</option>
                   <option>Last 7 Days</option>
                   <option>This Month</option>
+                  <option>Custom Date</option>
                 </select>
-              </span>
-            </div>
+              </div>
 
-            <div>
-              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
-                Visit Type
+              {/* Start Date */}
+              <div>
+                <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+                  From Date
+                </label>
+                <input
+                  aria-label="From Date"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => {
+                    setStartDate(e.target.value);
+                    handlePresetDateChange("Custom Date");
+                  }}
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                />
+              </div>
+
+              {/* End Date */}
+              <div>
+                <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+                  To Date
+                </label>
+                <input
+                  aria-label="To Date"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => {
+                    setEndDate(e.target.value);
+                    handlePresetDateChange("Custom Date");
+                  }}
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                />
+              </div>
+
+              {/* Visit Type */}
+              <div>
+                <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+                  Visit Type
+                </label>
                 <select
                   aria-label="Select option"
                   value={visitTypeFilter}
@@ -412,12 +863,13 @@ export function DoctorPatientReportScreen({
                   <option>Routine Checkup</option>
                   <option>Walk-In</option>
                 </select>
-              </span>
-            </div>
+              </div>
 
-            <div>
-              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
-                Consultation Status
+              {/* Consultation Status */}
+              <div>
+                <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+                  Consultation Status
+                </label>
                 <select
                   aria-label="Select option"
                   value={consultStatusFilter}
@@ -429,12 +881,13 @@ export function DoctorPatientReportScreen({
                   <option>Completed</option>
                   <option>In Progress</option>
                 </select>
-              </span>
-            </div>
+              </div>
 
-            <div>
-              <span className="block text-[11px] font-medium text-[#64748B] mb-1">
-                Follow-up Status
+              {/* Follow-up Status */}
+              <div>
+                <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+                  Follow-up Status
+                </label>
                 <select
                   aria-label="Select option"
                   value={followUpStatusFilter}
@@ -447,23 +900,23 @@ export function DoctorPatientReportScreen({
                   <option>Pending</option>
                   <option>Missed</option>
                 </select>
-              </span>
+              </div>
             </div>
-          </div>
 
-          <div className="flex items-center justify-end gap-3 mt-4 pt-3 border-t border-[#E5E7EB]">
-            <button
-              onClick={handleResetFilters}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-medium text-[#64748B] hover:text-[#111827] hover:bg-slate-100 transition"
-            >
-              Reset Filters
-            </button>
-            <button
-              onClick={handleRefresh}
-              className="px-4 py-1.5 rounded-xl text-xs font-medium text-white bg-[#009688] hover:bg-teal-700 transition shadow-sm"
-            >
-              Apply Filters
-            </button>
+            <div className="flex items-center justify-end gap-3 mt-4 pt-3 border-t border-[#E5E7EB]">
+              <button
+                onClick={handleResetFilters}
+                className="px-3.5 py-1.5 rounded-xl text-xs font-medium text-[#64748B] hover:text-[#111827] hover:bg-slate-100 transition"
+              >
+                Reset Filters
+              </button>
+              <button
+                onClick={handleRefresh}
+                className="px-4 py-1.5 rounded-xl text-xs font-medium text-white bg-[#009688] hover:bg-teal-700 transition shadow-sm"
+              >
+                Apply Filters
+              </button>
+            </div>
           </div>
         </div>
 
@@ -525,7 +978,7 @@ export function DoctorPatientReportScreen({
         {/* LOADING SKELETON STATE */}
         {isLoading && (
           <div className="space-y-6 mb-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <div
                   key={i}
@@ -537,800 +990,472 @@ export function DoctorPatientReportScreen({
           </div>
         )}
 
+        {/* MAIN DASHBOARD CONTENT (FULL SCREEN WIDTH) */}
         {!isLoading && !hasError && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* LEFT MAIN CONTENT AREA (3 Cols) */}
-            <div className="lg:col-span-3 space-y-6">
-              {/* TOP 6 DOCTOR PATIENT KPI CARDS */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Card 1: My Patients */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      My Patients
-                    </span>
-                    <div className="p-2 rounded-xl bg-blue-50 text-[#0D47A1]">
-                      <Users className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    58
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#0D47A1] font-semibold">
-                      Total Assigned Patients
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-                    <div>
-                      <div className="text-[#0D47A1] font-bold">58</div>
-                      <div className="text-[#64748B]">Total</div>
-                    </div>
-                    <div>
-                      <div className="text-[#66BB6A] font-bold">32</div>
-                      <div className="text-[#64748B]">Today</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 2: New Patients */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      New Patients
-                    </span>
-                    <div className="p-2 rounded-xl bg-teal-50 text-[#009688]">
-                      <Users className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    18
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#009688] font-semibold">
-                      First Consultation
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-                    <div>
-                      <div className="text-[#009688] font-bold">18</div>
-                      <div className="text-[#64748B]">Total New</div>
-                    </div>
-                    <div>
-                      <div className="text-[#66BB6A] font-bold">4</div>
-                      <div className="text-[#64748B]">Today New</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 3: Returning Patients */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Returning Patients
-                    </span>
-                    <div className="p-2 rounded-xl bg-indigo-50 text-[#0D47A1]">
-                      <UserCheck className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    10
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#0D47A1] font-semibold">
-                      Follow-up Visits
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-                    <div>
-                      <div className="text-[#0D47A1] font-bold">10</div>
-                      <div className="text-[#64748B]">Follow-ups</div>
-                    </div>
-                    <div>
-                      <div className="text-[#66BB6A] font-bold">6</div>
-                      <div className="text-[#64748B]">Repeat</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 4: Completed Consultations */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Completed Consultations
-                    </span>
-                    <div className="p-2 rounded-xl bg-emerald-50 text-[#66BB6A]">
-                      <CheckCircle2 className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    28
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#66BB6A] font-semibold">
-                      Completed Today
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-                    <div>
-                      <div className="text-[#66BB6A] font-bold">28</div>
-                      <div className="text-[#64748B]">Today</div>
-                    </div>
-                    <div>
-                      <div className="text-[#0D47A1] font-bold">134</div>
-                      <div className="text-[#64748B]">Monthly</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 5: Scheduled Follow-ups */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Scheduled Follow-ups
-                    </span>
-                    <div className="p-2 rounded-xl bg-amber-50 text-[#F59E0B]">
-                      <Activity className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    8
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#F59E0B] font-semibold">
-                      Today's Scheduled
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-                    <div>
-                      <div className="text-[#F59E0B] font-bold">8</div>
-                      <div className="text-[#64748B]">Today</div>
-                    </div>
-                    <div>
-                      <div className="text-[#009688] font-bold">24</div>
-                      <div className="text-[#64748B]">Upcoming</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 6: Average Patients Per Day */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Avg Patients / Day
-                    </span>
-                    <div
-                      className="text-2xl font-bold text-[#111827] mt-1"
-                      style={{ fontFamily: PP }}
-                    >
-                      18.4
-                    </div>
-                    <p className="text-[11px] text-[#64748B] mt-1">
-                      Daily consultation load
-                    </p>
-                    <div className="mt-2 text-[11px] font-semibold text-[#009688]">
-                      âœ“ Optimal Intake
-                    </div>
-                  </div>
-                  <CircularProgress percentage={92} size={64} strokeWidth={7} />
-                </div>
-              </div>
-
-              {/* PATIENT CONSULTATION TREND & FOLLOW-UP ANALYSIS */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Patient Consultation Trend Area Chart */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-                    <div>
-                      <h3
-                        className="text-sm font-bold text-[#111827]"
-                        style={{ fontFamily: PP }}
-                      >
-                        Patient Consultation Trend
-                      </h3>
-                      <p className="text-[11px] text-[#64748B]">
-                        Consulted patients vs completed consults over time
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-1 bg-[#F1F5F9] p-1 rounded-xl border border-[#E5E7EB] text-[10px]">
-                      {(["7 Days", "30 Days", "90 Days"] as const).map((t) => (
-                        <button
-                          key={t}
-                          onClick={() => setTrendDays(t)}
-                          className={`px-2 py-0.5 rounded-lg font-medium transition ${trendDays === t ? "bg-[#0D47A1] text-white shadow-sm" : "text-[#64748B]"}`}
-                        >
-                          {t}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="h-60">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart
-                        data={trendData}
-                        margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
-                      >
-                        <defs>
-                          <linearGradient
-                            id="docPatTrendGrad"
-                            x1="0"
-                            y1="0"
-                            x2="0"
-                            y2="1"
-                          >
-                            <stop
-                              offset="5%"
-                              stopColor="#0D47A1"
-                              stopOpacity={0.4}
-                            />
-                            <stop
-                              offset="95%"
-                              stopColor="#0D47A1"
-                              stopOpacity={0}
-                            />
-                          </linearGradient>
-                          <linearGradient
-                            id="docCompTrendGrad"
-                            x1="0"
-                            y1="0"
-                            x2="0"
-                            y2="1"
-                          >
-                            <stop
-                              offset="5%"
-                              stopColor="#009688"
-                              stopOpacity={0.4}
-                            />
-                            <stop
-                              offset="95%"
-                              stopColor="#009688"
-                              stopOpacity={0}
-                            />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                        <XAxis
-                          dataKey="date"
-                          tick={{ fontSize: 10, fill: "#64748B" }}
-                        />
-                        <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#FFFFFF",
-                            borderRadius: "12px",
-                            borderColor: "#E5E7EB",
-                            fontSize: "11px",
-                          }}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="newReg"
-                          name="Consulted Patients"
-                          stroke="#0D47A1"
-                          fillOpacity={1}
-                          fill="url(#docPatTrendGrad)"
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="returning"
-                          name="Completed Consults"
-                          stroke="#009688"
-                          fillOpacity={1}
-                          fill="url(#docCompTrendGrad)"
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* Follow-up Analysis Donut Chart */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3
-                        className="text-sm font-bold text-[#111827]"
-                        style={{ fontFamily: PP }}
-                      >
-                        Follow-up Compliance Analysis
-                      </h3>
-                      <p className="text-[11px] text-[#64748B]">
-                        Status of follow-up reviews scheduled for my patients
-                      </p>
-                    </div>
-                    <PieChartIcon className="w-4 h-4 text-[#009688]" />
-                  </div>
-                  <div className="h-60">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RechartsPie>
-                        <Pie
-                          data={genderData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={45}
-                          outerRadius={75}
-                          paddingAngle={3}
-                          dataKey="value"
-                        >
-                          {genderData.map(
-                            (entry) => (
-                              <Cell key={entry.name} fill={entry.color} />
-                            ),
-                          )}
-                        </Pie>
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#FFFFFF",
-                            borderRadius: "12px",
-                            borderColor: "#E5E7EB",
-                            fontSize: "11px",
-                          }}
-                        />
-                        <Legend
-                          layout="horizontal"
-                          verticalAlign="bottom"
-                          align="center"
-                          wrapperStyle={{
-                            fontSize: "10px",
-                            paddingTop: "10px",
-                          }}
-                        />
-                      </RechartsPie>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
-
-              {/* VISIT TYPE DISTRIBUTION & CONSULTATION STATUS CHARTS */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Visit Type Distribution Vertical Bar */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3
-                        className="text-sm font-bold text-[#111827]"
-                        style={{ fontFamily: PP }}
-                      >
-                        Visit Type Distribution
-                      </h3>
-                      <p className="text-[11px] text-[#64748B]">
-                        Patient volume grouped by visit category
-                      </p>
-                    </div>
-                    <Users className="w-4 h-4 text-[#009688]" />
-                  </div>
-                  <div className="h-56">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={ageData}
-                        margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                        <XAxis
-                          dataKey="ageGroup"
-                          tick={{ fontSize: 9, fill: "#64748B" }}
-                        />
-                        <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#FFFFFF",
-                            borderRadius: "12px",
-                            borderColor: "#E5E7EB",
-                            fontSize: "11px",
-                          }}
-                        />
-                        <Bar
-                          dataKey="count"
-                          name="Patient Count"
-                          fill="#0D47A1"
-                          radius={[4, 4, 0, 0]}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* Consultation Status Horizontal Bar */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3
-                        className="text-sm font-bold text-[#111827]"
-                        style={{ fontFamily: PP }}
-                      >
-                        Consultation Status Breakdown
-                      </h3>
-                      <p className="text-[11px] text-[#64748B]">
-                        Volume of completed, pending & follow-up consultations
-                      </p>
-                    </div>
-                    <UserCheck className="w-4 h-4 text-[#0D47A1]" />
-                  </div>
-                  <div className="h-56">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        layout="vertical"
-                        data={[
-                          { status: "Completed", count: 18 },
-                          { status: "In-Progress", count: 4 },
-                          { status: "Scheduled", count: 8 },
-                          { status: "Follow-up", count: 6 },
-                        ]}
-                        margin={{ top: 5, right: 10, left: 30, bottom: 5 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                        <XAxis
-                          type="number"
-                          tick={{ fontSize: 10, fill: "#64748B" }}
-                        />
-                        <YAxis
-                          type="category"
-                          dataKey="status"
-                          tick={{ fontSize: 9, fill: "#111827" }}
-                          width={90}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#FFFFFF",
-                            borderRadius: "12px",
-                            borderColor: "#E5E7EB",
-                            fontSize: "11px",
-                          }}
-                        />
-                        <Bar
-                          dataKey="count"
-                          name="Consultation Count"
-                          fill="#009688"
-                          radius={[0, 4, 4, 0]}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
-
-              {/* MY PATIENT REPORT ENTERPRISE DATA TABLE */}
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
-                <div className="p-5 border-b border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="w-full space-y-6">
+            {/* 3. PATIENT CONSULTATION TREND & FOLLOW-UP ANALYSIS */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Patient Consultation Trend Area Chart */}
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                   <div>
                     <h3
-                      className="text-base font-bold text-[#111827]"
+                      className="text-sm font-bold text-[#111827]"
                       style={{ fontFamily: PP }}
                     >
-                      My Patient Register
+                      Patient Consultation Trend
                     </h3>
-                    <p className="text-xs text-[#64748B]">
-                      Logged-in Doctor active patient register
+                    <p className="text-[11px] text-[#64748B]">
+                      Consulted patients vs completed consults over time
                     </p>
                   </div>
-                  <button
-                    onClick={() => alert("Exporting Patient Register (CSV)...")}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] text-xs font-semibold text-[#111827] rounded-xl hover:bg-slate-100 transition"
-                  >
-                    <Download className="w-3.5 h-3.5 text-[#0D47A1]" />
-                    <span>Export Register</span>
-                  </button>
-                </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-[#F1F5F9] text-[11px] font-bold text-[#64748B] uppercase tracking-wider border-b border-[#E5E7EB]">
-                        <th className="py-3.5 px-4">MRN</th>
-                        <th className="py-3.5 px-4">Patient Name</th>
-                        <th className="py-3.5 px-4">Age / Gender</th>
-                        <th className="py-3.5 px-4">Mobile Number</th>
-                        <th className="py-3.5 px-4">Last Consult Date</th>
-                        <th className="py-3.5 px-4">Visit Type</th>
-                        <th className="py-3.5 px-4">Diagnosis</th>
-                        <th className="py-3.5 px-4">Follow-up Date</th>
-                        <th className="py-3.5 px-4 text-center">Status</th>
-                        <th className="py-3.5 px-4 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#E5E7EB] text-xs">
-                      {filteredPatients.length === 0 ? (
-                        <tr>
-                          <td
-                            colSpan={10}
-                            className="py-8 text-center text-[#64748B]"
-                          >
-                            No patient records match your search or filter
-                            criteria.
-                          </td>
-                        </tr>
-                      ) : (
-                        filteredPatients.map((item) => (
-                          <tr
-                            key={item.mrn}
-                            className="hover:bg-slate-50 transition-colors"
-                          >
-                            <td className="py-3.5 px-4 font-mono font-bold text-[#0D47A1]">
-                              {item.mrn}
-                            </td>
-                            <td className="py-3.5 px-4 font-bold text-[#111827]">
-                              {item.patientName}
-                            </td>
-                            <td className="py-3.5 px-4 text-[#64748B]">
-                              {item.age} yrs / {item.gender}
-                            </td>
-                            <td className="py-3.5 px-4 text-[#111827] font-medium">
-                              {item.mobileNumber}
-                            </td>
-                            <td className="py-3.5 px-4 text-[#64748B]">
-                              {item.lastConsultationDate}
-                            </td>
-                            <td className="py-3.5 px-4 font-semibold text-[#111827]">
-                              {item.visitType}
-                            </td>
-                            <td className="py-3.5 px-4 text-[#009688] font-medium">
-                              {item.diagnosis}
-                            </td>
-                            <td className="py-3.5 px-4 text-[#64748B]">
-                              {item.followUpDate}
-                            </td>
-                            <td className="py-3.5 px-4 text-center">
-                              <span
-                                className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${item.status === "Active" ? "bg-teal-50 text-[#009688] border border-teal-200" : item.status === "In Progress" ? "bg-amber-50 text-[#F59E0B] border border-amber-200" : "bg-slate-100 text-[#64748B]"}`}
-                              >
-                                {item.status}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4 text-right">
-                              <div className="flex items-center justify-end gap-1">
-                                <button
-                                  onClick={() =>
-                                    alert(
-                                      `Viewing patient profile for ${item.patientName}`,
-                                    )
-                                  }
-                                  className="p-1.5 text-[#0D47A1] hover:bg-blue-50 rounded-lg transition"
-                                  title="View Patient Profile"
-                                >
-                                  <Users className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    alert(
-                                      `Viewing consultation for ${item.patientName}`,
-                                    )
-                                  }
-                                  className="p-1.5 text-[#009688] hover:bg-teal-50 rounded-lg transition"
-                                  title="View Consultation"
-                                >
-                                  <Eye className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    alert(`Printing summary for ${item.mrn}`)
-                                  }
-                                  className="p-1.5 text-[#64748B] hover:bg-slate-100 rounded-lg transition"
-                                  title="Print Summary"
-                                >
-                                  <Printer className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Table Pagination */}
-                <div className="p-4 bg-[#F1F5F9] border-t border-[#E5E7EB] flex items-center justify-between text-xs text-[#64748B]">
-                  <span>
-                    Showing 1 to {filteredPatients.length} of{" "}
-                    {filteredPatients.length} entries
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      aria-label="Previous"
-                      disabled
-                      className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <span className="font-semibold text-[#111827]">
-                      Page 1 of 1
-                    </span>
-                    <button
-                      aria-label="Next"
-                      disabled
-                      className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
-                    >
-                      <ChevronRightIcon className="w-4 h-4" />
-                    </button>
+                  <div className="flex items-center gap-1 bg-[#F1F5F9] p-1 rounded-xl border border-[#E5E7EB] text-[10px]">
+                    {(["7 Days", "30 Days", "90 Days"] as const).map((t) => (
+                      <button
+                        key={t}
+                        onClick={() => setTrendDays(t)}
+                        className={`px-2 py-0.5 rounded-lg font-medium transition ${trendDays === t ? "bg-[#0D47A1] text-white shadow-sm" : "text-[#64748B]"}`}
+                      >
+                        {t}
+                      </button>
+                    ))}
                   </div>
+                </div>
+
+                <div className="h-60">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={trendData}
+                      margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
+                    >
+                      <defs>
+                        <linearGradient
+                          id="docPatTrendGrad"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="5%"
+                            stopColor="#0D47A1"
+                            stopOpacity={0.4}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor="#0D47A1"
+                            stopOpacity={0}
+                          />
+                        </linearGradient>
+                        <linearGradient
+                          id="docCompTrendGrad"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="5%"
+                            stopColor="#009688"
+                            stopOpacity={0.4}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor="#009688"
+                            stopOpacity={0}
+                          />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                      <XAxis
+                        dataKey="date"
+                        tick={{ fontSize: 10, fill: "#64748B" }}
+                      />
+                      <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "#FFFFFF",
+                          borderRadius: "12px",
+                          borderColor: "#E5E7EB",
+                          fontSize: "11px",
+                        }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="newReg"
+                        name="Consulted Patients"
+                        stroke="#0D47A1"
+                        fillOpacity={1}
+                        fill="url(#docPatTrendGrad)"
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="returning"
+                        name="Completed Consults"
+                        stroke="#009688"
+                        fillOpacity={1}
+                        fill="url(#docCompTrendGrad)"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
 
-              {/* RECENT PATIENT ACTIVITIES TIMELINE */}
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
-                <h3
-                  className="text-base font-bold text-[#111827] mb-4"
-                  style={{ fontFamily: PP }}
-                >
-                  Recent Patient Activity Timeline
-                </h3>
-                <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {(
-                    [] as Array<{
-                      id: string;
-                      title: string;
-                      time: string;
-                      action?: string;
-                      date?: string;
-                      detail?: string;
-                    }>
-                  ).map((act) => (
-                    <div
-                      key={act.id}
-                      className="flex items-start gap-4 relative z-10"
+              {/* Patient Gender / Compliance Donut Chart */}
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3
+                      className="text-sm font-bold text-[#111827]"
+                      style={{ fontFamily: PP }}
                     >
-                      <div className="w-7 h-7 rounded-full bg-white border-2 border-[#009688] flex items-center justify-center text-[#009688] shrink-0">
-                        <Activity className="w-3.5 h-3.5" />
-                      </div>
-                      <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] flex-1 text-xs">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="font-bold text-[#111827]">
-                            {act.action}
-                          </span>
-                          <span className="text-[11px] text-[#64748B]">
-                            {act.date} â€¢ {act.time}
-                          </span>
-                        </div>
-                        <p className="text-[#64748B]">{act.detail}</p>
-                      </div>
-                    </div>
-                  ))}
+                      Patient Demographics Breakdown
+                    </h3>
+                    <p className="text-[11px] text-[#64748B]">
+                      Gender distribution across my assigned patients
+                    </p>
+                  </div>
+                  <PieChartIcon className="w-4 h-4 text-[#009688]" />
+                </div>
+                <div className="h-60">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RechartsPie>
+                      <Pie
+                        data={genderData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={45}
+                        outerRadius={75}
+                        paddingAngle={3}
+                        dataKey="value"
+                      >
+                        {genderData.map((entry) => (
+                          <Cell key={entry.name} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "#FFFFFF",
+                          borderRadius: "12px",
+                          borderColor: "#E5E7EB",
+                          fontSize: "11px",
+                        }}
+                      />
+                      <Legend
+                        layout="horizontal"
+                        verticalAlign="bottom"
+                        align="center"
+                        wrapperStyle={{
+                          fontSize: "10px",
+                          paddingTop: "10px",
+                        }}
+                      />
+                    </RechartsPie>
+                  </ResponsiveContainer>
                 </div>
               </div>
             </div>
 
-            {/* RIGHT STICKY SUMMARY PANEL (1 Col) */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm sticky top-20 space-y-6">
-                {/* Header */}
+            {/* 4. VISIT TYPE DISTRIBUTION & CONSULTATION STATUS CHARTS */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Visit Type Distribution Vertical Bar */}
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3
+                      className="text-sm font-bold text-[#111827]"
+                      style={{ fontFamily: PP }}
+                    >
+                      Visit Type Distribution
+                    </h3>
+                    <p className="text-[11px] text-[#64748B]">
+                      Patient volume grouped by visit category
+                    </p>
+                  </div>
+                  <Users className="w-4 h-4 text-[#009688]" />
+                </div>
+                <div className="h-56">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={visitTypeDistData}
+                      margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                      <XAxis
+                        dataKey="visitCategory"
+                        tick={{ fontSize: 9, fill: "#64748B" }}
+                      />
+                      <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "#FFFFFF",
+                          borderRadius: "12px",
+                          borderColor: "#E5E7EB",
+                          fontSize: "11px",
+                        }}
+                      />
+                      <Bar
+                        dataKey="count"
+                        name="Patient Count"
+                        fill="#0D47A1"
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Consultation Status Horizontal Bar */}
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3
+                      className="text-sm font-bold text-[#111827]"
+                      style={{ fontFamily: PP }}
+                    >
+                      Consultation Status Breakdown
+                    </h3>
+                    <p className="text-[11px] text-[#64748B]">
+                      Volume of completed, active & in-progress consultations
+                    </p>
+                  </div>
+                  <UserCheck className="w-4 h-4 text-[#0D47A1]" />
+                </div>
+                <div className="h-56">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      layout="vertical"
+                      data={consultStatusData}
+                      margin={{ top: 5, right: 10, left: 30, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                      <XAxis
+                        type="number"
+                        tick={{ fontSize: 10, fill: "#64748B" }}
+                      />
+                      <YAxis
+                        type="category"
+                        dataKey="status"
+                        tick={{ fontSize: 9, fill: "#111827" }}
+                        width={90}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "#FFFFFF",
+                          borderRadius: "12px",
+                          borderColor: "#E5E7EB",
+                          fontSize: "11px",
+                        }}
+                      />
+                      <Bar
+                        dataKey="count"
+                        name="Consultation Count"
+                        fill="#009688"
+                        radius={[0, 4, 4, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* 5. MY PATIENT REPORT ENTERPRISE DATA TABLE */}
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
+              <div className="p-5 border-b border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                   <h3
-                    className="text-base font-bold text-[#111827] flex items-center gap-2"
+                    className="text-base font-bold text-[#111827]"
                     style={{ fontFamily: PP }}
                   >
-                    <Shield className="w-4 h-4 text-[#0D47A1]" />
-                    <span>Patient Summary</span>
+                    My Patient Register
                   </h3>
-                  <p className="text-[11px] text-[#64748B]">
-                    Live patient consultation overview
+                  <p className="text-xs text-[#64748B]">
+                    Logged-in Doctor active patient register
                   </p>
                 </div>
+                <button
+                  onClick={() => alert("Exporting Patient Register (CSV)...")}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] text-xs font-semibold text-[#111827] rounded-xl hover:bg-slate-100 transition"
+                >
+                  <Download className="w-3.5 h-3.5 text-[#0D47A1]" />
+                  <span>Export Register</span>
+                </button>
+              </div>
 
-                {/* Metrics Overview */}
-                <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] text-xs space-y-2">
-                  <div className="text-[11px] font-bold text-[#64748B] uppercase">
-                    My Patient Metrics
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">My Patients:</span>
-                    <span className="font-bold text-[#111827]">58 Total</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">
-                      Today's Consultations:
-                    </span>
-                    <span className="font-bold text-[#66BB6A]">
-                      32 Consulted
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Returning Patients:</span>
-                    <span className="font-bold text-[#0D47A1]">
-                      10 Patients
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">
-                      Scheduled Follow-ups:
-                    </span>
-                    <span className="font-bold text-[#009688]">
-                      8 Follow-ups
-                    </span>
-                  </div>
-                  <div className="border-t border-[#E5E7EB] pt-2 flex justify-between">
-                    <span className="text-[#64748B]">Avg Daily Patients:</span>
-                    <span className="font-semibold text-[#0D47A1]">
-                      18.4 / day
-                    </span>
-                  </div>
-                </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-[#F1F5F9] text-[11px] font-bold text-[#64748B] uppercase tracking-wider border-b border-[#E5E7EB]">
+                      <th className="py-3.5 px-4">MRN</th>
+                      <th className="py-3.5 px-4">Patient Name</th>
+                      <th className="py-3.5 px-4">Age / Gender</th>
+                      <th className="py-3.5 px-4">Mobile Number</th>
+                      <th className="py-3.5 px-4">Last Consult Date</th>
+                      <th className="py-3.5 px-4">Visit Type</th>
+                      <th className="py-3.5 px-4">Diagnosis</th>
+                      <th className="py-3.5 px-4">Follow-up Date</th>
+                      <th className="py-3.5 px-4 text-center">Status</th>
+                      <th className="py-3.5 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E5E7EB] text-xs">
+                    {filteredPatients.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={10}
+                          className="py-8 text-center text-[#64748B]"
+                        >
+                          No patient records match your search or filter
+                          criteria.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredPatients.map((item, idx) => (
+                        <tr
+                          key={`${item.mrn}-${idx}`}
+                          className="hover:bg-slate-50 transition-colors"
+                        >
+                          <td className="py-3.5 px-4 font-mono font-bold text-[#0D47A1]">
+                            {item.mrn}
+                          </td>
+                          <td className="py-3.5 px-4 font-bold text-[#111827]">
+                            {item.patientName}
+                          </td>
+                          <td className="py-3.5 px-4 text-[#64748B]">
+                            {item.age} yrs / {item.gender}
+                          </td>
+                          <td className="py-3.5 px-4 text-[#111827] font-medium">
+                            {item.mobileNumber}
+                          </td>
+                          <td className="py-3.5 px-4 text-[#64748B]">
+                            {item.lastConsultationDate}
+                          </td>
+                          <td className="py-3.5 px-4 font-semibold text-[#111827]">
+                            {item.visitType}
+                          </td>
+                          <td className="py-3.5 px-4 text-[#009688] font-medium">
+                            {item.diagnosis}
+                          </td>
+                          <td className="py-3.5 px-4 text-[#64748B]">
+                            {item.followUpDate}
+                          </td>
+                          <td className="py-3.5 px-4 text-center">
+                            <span
+                              className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${item.status === "Active" || item.status === "Completed" ? "bg-teal-50 text-[#009688] border border-teal-200" : item.status === "In Progress" ? "bg-amber-50 text-[#F59E0B] border border-amber-200" : "bg-slate-100 text-[#64748B]"}`}
+                            >
+                              {item.status}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                onClick={() =>
+                                  alert(
+                                    `Viewing patient profile for ${item.patientName}`,
+                                  )
+                                }
+                                className="p-1.5 text-[#0D47A1] hover:bg-blue-50 rounded-lg transition"
+                                title="View Patient Profile"
+                              >
+                                <Users className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() =>
+                                  alert(
+                                    `Viewing consultation for ${item.patientName}`,
+                                  )
+                                }
+                                className="p-1.5 text-[#009688] hover:bg-teal-50 rounded-lg transition"
+                                title="View Consultation"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() =>
+                                  alert(`Printing summary for ${item.mrn}`)
+                                }
+                                className="p-1.5 text-[#64748B] hover:bg-slate-100 rounded-lg transition"
+                                title="Print Summary"
+                              >
+                                <Printer className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
 
-                {/* Quick Actions */}
-                <div>
-                  <h4
-                    className="text-xs font-bold text-[#111827] uppercase tracking-wider mb-2"
-                    style={{ fontFamily: PP }}
+              {/* Table Pagination */}
+              <div className="p-4 bg-[#F1F5F9] border-t border-[#E5E7EB] flex items-center justify-between text-xs text-[#64748B]">
+                <span>
+                  Showing 1 to {filteredPatients.length} of{" "}
+                  {filteredPatients.length} entries
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    aria-label="Previous"
+                    disabled
+                    className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
                   >
-                    Quick Actions
-                  </h4>
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => alert("Exporting PDF...")}
-                      className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-semibold text-[#0D47A1]"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Download className="w-3.5 h-3.5 text-[#0D47A1]" />
-                        <span>Export PDF Report</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                    </button>
-
-                    <button
-                      onClick={() => window.print()}
-                      className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#111827]"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Printer className="w-3.5 h-3.5 text-[#64748B]" />
-                        <span>Print Report</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                    </button>
-
-                    {onOpenAppointmentReport && (
-                      <button
-                        onClick={onOpenAppointmentReport}
-                        className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#0D47A1]"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-3.5 h-3.5 text-[#0D47A1]" />
-                          <span>Open Appointment Report</span>
-                        </div>
-                        <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                      </button>
-                    )}
-
-                    {onOpenDoctorReport && (
-                      <button
-                        onClick={onOpenDoctorReport}
-                        className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#009688]"
-                      >
-                        <div className="flex items-center gap-2">
-                          <UserCheck className="w-3.5 h-3.5 text-[#009688]" />
-                          <span>Open Doctor Report</span>
-                        </div>
-                        <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Compliance Note */}
-                <div className="p-3 bg-slate-50 rounded-xl border border-[#E5E7EB] text-[11px] text-[#64748B]">
-                  <div className="flex items-center gap-1 text-[#009688] font-bold mb-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Doctor Patient Scope Verified</span>
-                  </div>
-                  <span>
-                    Read-only patient analytics for logged-in doctor
-                    consultation oversight.
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <span className="font-semibold text-[#111827]">
+                    Page 1 of 1
                   </span>
+                  <button
+                    aria-label="Next"
+                    disabled
+                    className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
+                  >
+                    <ChevronRightIcon className="w-4 h-4" />
+                  </button>
                 </div>
+              </div>
+            </div>
+
+            {/* 6. RECENT PATIENT ACTIVITIES TIMELINE */}
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
+              <h3
+                className="text-base font-bold text-[#111827] mb-4"
+                style={{ fontFamily: PP }}
+              >
+                Recent Patient Activity Timeline
+              </h3>
+              <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
+                {(
+                  [] as Array<{
+                    id: string;
+                    title: string;
+                    time: string;
+                    action?: string;
+                    date?: string;
+                    detail?: string;
+                  }>
+                ).map((act) => (
+                  <div
+                    key={act.id}
+                    className="flex items-start gap-4 relative z-10"
+                  >
+                    <div className="w-7 h-7 rounded-full bg-white border-2 border-[#009688] flex items-center justify-center text-[#009688] shrink-0">
+                      <Activity className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] flex-1 text-xs">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-bold text-[#111827]">
+                          {act.action}
+                        </span>
+                        <span className="text-[11px] text-[#64748B]">
+                          {act.date} • {act.time}
+                        </span>
+                      </div>
+                      <p className="text-[#64748B]">{act.detail}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -1344,7 +1469,7 @@ export function DoctorPatientReportScreen({
               {filteredPatients.length} Patient Results
             </strong>
           </div>
-          <div>Hospital Management System â€¢ Doctor Patient Report v1.0</div>
+          <div>Hospital Management System • Doctor Patient Report v1.0</div>
           <div>
             Last Refreshed:{" "}
             <strong className="text-[#111827]">

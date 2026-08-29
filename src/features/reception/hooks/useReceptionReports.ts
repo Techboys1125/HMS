@@ -13,7 +13,7 @@ export const receptionReportKeys = {
     [...receptionReportKeys.all, "dashboard-summary", date] as const,
   queuePerformance: (date?: string) =>
     [...receptionReportKeys.all, "queue-performance", date] as const,
-  register: (params?: { date?: string; page?: number; size?: number }) =>
+  register: (params?: { date?: string; from?: string; to?: string; page?: number; size?: number }) =>
     [...receptionReportKeys.all, "register", params] as const,
   registrationTrend: (params?: { from?: string; to?: string }) =>
     [...receptionReportKeys.all, "registration-trend", params] as const,
@@ -73,6 +73,8 @@ export function useReceptionQueuePerformance(date?: string) {
 // 6. Recent Reception Register Hook
 export function useReceptionRegister(params?: {
   date?: string;
+  from?: string;
+  to?: string;
   page?: number;
   size?: number;
 }) {

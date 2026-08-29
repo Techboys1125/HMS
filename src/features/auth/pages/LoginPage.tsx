@@ -51,8 +51,30 @@ export const LoginPage: React.FC = () => {
       const docId =
         rawUser.doctorId ??
         (rawUser.doctorProfile as { doctorId?: number })?.doctorId;
+      
+      let pendingDob = "";
+      let pendingGender = "";
+      try {
+        const userEmail = String(rawUser.email || "").trim().toLowerCase();
+        const raw1 = userEmail ? localStorage.getItem(`hms-pending-patient:${userEmail}`) : null;
+        const raw2 = localStorage.getItem("hms-pending-patient-last");
+        const raw3 = localStorage.getItem("hms-pending-patient-profile:v1");
+        const stored = raw1 || raw2 || raw3;
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          pendingDob = parsed?.dateOfBirth || parsed?.dob || "";
+          pendingGender = parsed?.gender || "";
+        }
+      } catch {}
+
+      const userDob = rawUser.dateOfBirth || rawUser.dob || pendingDob;
+      const userGender = rawUser.gender || pendingGender;
+
       loggedInUser = {
         ...rawUser,
+        dateOfBirth: userDob ? String(userDob) : "",
+        dob: userDob ? String(userDob) : "",
+        gender: userGender ? String(userGender) : "",
         doctorId: docId ? Number(docId) : undefined,
         doctorProfile:
           (rawUser.doctorProfile as { doctorId?: number }) ||
@@ -63,8 +85,7 @@ export const LoginPage: React.FC = () => {
     }
 
     if (loggedInUser) {
-      pendingUserRef.current = loggedInUser;
-      pendingTokensRef.current = {
+      const tokens: AuthTokens = {
         accessToken: String(authData.accessToken || resAny.accessToken || ""),
         refreshToken: String(
           authData.refreshToken || resAny.refreshToken || "",
@@ -72,24 +93,22 @@ export const LoginPage: React.FC = () => {
         tokenType: String(authData.tokenType || resAny.tokenType || "Bearer"),
         expiresIn: Number(authData.expiresIn || resAny.expiresIn || 86400),
       };
-    }
 
-    if (!loggedInUser) {
-      setCurrentScreen("success");
+      // Endpoint 11 Check: Forced Password Change required
+      if (loggedInUser.mustChangePassword) {
+        pendingUserRef.current = loggedInUser;
+        pendingTokensRef.current = tokens;
+        setCurrentScreen("change-password");
+        return;
+      }
+
+      // Complete login directly and navigate to dashboard for all roles
+      useAuthStore.login(loggedInUser, tokens);
+      navigate(ROUTES.DASHBOARD);
       return;
     }
 
-    // Endpoint 11 Check: Forced Password Change required
-    if (loggedInUser.mustChangePassword) {
-      setCurrentScreen("change-password");
-      return;
-    }
-
-    setSuccessInfo({
-      title: `Welcome back, ${loggedInUser.fullName}!`,
-      message: `Signed in successfully as ${loggedInUser.role} (${loggedInUser.email}).`,
-    });
-    setCurrentScreen("success");
+    navigate(ROUTES.DASHBOARD);
   };
 
   const handlePatientRegisterSuccess = (
@@ -181,12 +200,15 @@ export const LoginPage: React.FC = () => {
           {currentScreen === "change-password" && (
             <ChangePasswordPage
               onSuccess={() => {
-                setSuccessInfo({
-                  title: "Password Activated!",
-                  message:
-                    "Your account password has been updated successfully. You are now fully logged in.",
-                });
-                setCurrentScreen("success");
+                if (pendingUserRef.current && pendingTokensRef.current) {
+                  useAuthStore.login(
+                    pendingUserRef.current,
+                    pendingTokensRef.current,
+                  );
+                  pendingUserRef.current = null;
+                  pendingTokensRef.current = null;
+                }
+                navigate(ROUTES.DASHBOARD);
               }}
             />
           )}

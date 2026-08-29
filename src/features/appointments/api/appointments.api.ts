@@ -164,12 +164,25 @@ export const appointmentsApi = {
   getAppointmentById: async (
     appointmentId: string | number,
   ): Promise<ApiResponse<AppointmentRecord>> => {
+    const rawStr = String(appointmentId).trim();
+    const numericStr = rawStr.replace(/\D+/g, "");
+
     try {
       const response = await apiClient.get<ApiResponse<AppointmentRecord>>(
-        `/api/v1/appointments/${appointmentId}`,
+        `/api/v1/appointments/${encodeURIComponent(rawStr)}`,
       );
       return response.data;
     } catch (error: unknown) {
+      if (numericStr && numericStr !== rawStr) {
+        try {
+          const fallbackRes = await apiClient.get<ApiResponse<AppointmentRecord>>(
+            `/api/v1/appointments/${numericStr}`,
+          );
+          return fallbackRes.data;
+        } catch {
+          // Ignore fallback error
+        }
+      }
       return handleApiError(error);
     }
   },

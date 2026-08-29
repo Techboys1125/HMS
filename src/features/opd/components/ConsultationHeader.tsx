@@ -1,5 +1,6 @@
 import React from "react";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router";
 
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
@@ -17,6 +18,8 @@ interface ConsultationHeaderProps {
   statusBadge?: React.ReactNode;
   breadcrumbs: BreadcrumbItem[];
   actions?: React.ReactNode;
+  onBack?: () => void;
+  showBackButton?: boolean;
 }
 
 export const ConsultationHeader: React.FC<ConsultationHeaderProps> = ({
@@ -27,7 +30,23 @@ export const ConsultationHeader: React.FC<ConsultationHeaderProps> = ({
   statusBadge,
   breadcrumbs,
   actions,
+  onBack,
+  showBackButton = true,
 }) => {
+  const navigate = useNavigate();
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      try {
+        navigate(-1);
+      } catch {
+        window.history.back();
+      }
+    }
+  };
+
   return (
     <div className="bg-white border-b border-[#E5E7EB] px-6 py-4">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -69,7 +88,19 @@ export const ConsultationHeader: React.FC<ConsultationHeaderProps> = ({
           )}
         </div>
 
-        {actions && <div className="flex items-center gap-2">{actions}</div>}
+        <div className="flex items-center gap-2">
+          {showBackButton && (
+            <button
+              onClick={handleBack}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-xs font-semibold transition-all shadow-sm cursor-pointer"
+              style={{ fontFamily: PP }}
+            >
+              <ArrowLeft size={14} />
+              Back
+            </button>
+          )}
+          {actions}
+        </div>
       </div>
     </div>
   );

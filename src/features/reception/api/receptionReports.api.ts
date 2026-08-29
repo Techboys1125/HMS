@@ -103,11 +103,15 @@ export const receptionReportsApi = {
   // 6. Recent Reception Register
   getRegister: async (params?: {
     date?: string;
+    from?: string;
+    to?: string;
     page?: number;
     size?: number;
   }): Promise<ReceptionRegisterResponse> => {
     const qs = buildQuery({
       date: params?.date,
+      from: params?.from,
+      to: params?.to,
       page: params?.page ?? 0,
       size: params?.size ?? 20,
     });

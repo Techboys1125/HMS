@@ -150,7 +150,7 @@ export function QuickDetailsDrawer({
                   className="font-bold text-[#0D47A1] text-sm"
                   style={{ fontFamily: PP }}
                 >
-                  ${doctor.consultationFee}
+                  ₹{doctor.consultationFee}
                 </span>
               </div>
 

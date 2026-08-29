@@ -9,7 +9,6 @@ import { mapApiPatientToPatientRecord } from "../api/mapApiPatientToPatientRecor
 import { can } from "../utils/patientPermissions";
 import type { Role } from "../utils/patientPermissions";
 import { PatientTable } from "../components/PatientTable";
-import { PatientFilters } from "../components/PatientFilters";
 import type { PatientFilterValues } from "../components/PatientFilters";
 import { PatientProfilePage } from "./PatientProfilePage";
 import { RegisterPatientScreen } from "./RegisterPatientScreen";
@@ -344,45 +343,29 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
           </div>
         </div>
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm">
-          <div className="text-xs text-[#64748B] font-medium">Active</div>
+          <div className="text-xs text-[#64748B] font-medium">Active Patients</div>
           <div className="text-2xl font-bold text-[#009688] mt-0.5">
             {activePatients}
           </div>
         </div>
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm">
-          <div className="text-xs text-[#64748B] font-medium">Search</div>
-          <div className="mt-1">
-            <input
-              aria-label="Search MRN, name, phone..."
-              type="text"
-              placeholder="Search MRN, name, phone..."
-              value={filters.searchQuery}
-              onChange={(e) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  searchQuery: e.target.value,
-                }))
-              }
-              className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-            />
+          <div className="text-xs text-[#64748B] font-medium">Inactive Patients</div>
+          <div className="text-2xl font-bold text-[#F59E0B] mt-0.5">
+            {Math.max(0, totalPatients - activePatients)}
           </div>
         </div>
       </div>
-
-      <PatientFilters
-        values={filters}
-        onChange={(patch) => setFilters((prev) => ({ ...prev, ...patch }))}
-        onReset={() => setFilters(DEFAULT_FILTERS)}
-        hasActiveFilters={hasActiveFilters}
-      />
 
       <PatientTable
         patients={filteredPatients}
         totalCount={patients.length}
         isLoading={loading}
+        filterValues={filters}
+        onFilterChange={(patch) => setFilters((prev) => ({ ...prev, ...patch }))}
+        onResetFilters={() => setFilters(DEFAULT_FILTERS)}
+        hasActiveFilters={hasActiveFilters}
         selectedPatientId={selectedPatientId}
         activeActionMenuId={activeActionMenuId}
-        hasActiveFilters={hasActiveFilters}
         onSelectRow={(p) => setSelectedPatientId(p.mrn || String(p.id))}
         onToggleActionMenu={(id) => setActiveActionMenuId(id)}
         onViewProfile={canView ? openPatientProfile : () => {}}
@@ -401,7 +384,6 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
         onDeactivatePatient={
           canEdit ? (p) => setDeactivatePatient(p) : undefined
         }
-        onResetFilters={() => setFilters(DEFAULT_FILTERS)}
         userRole={currentRole}
       />
 

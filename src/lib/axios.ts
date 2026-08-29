@@ -278,7 +278,9 @@ async function customFetch<T = unknown>(
 
     const isIgnored404 =
       response.status === 404 &&
-      (url.includes("/patients/me/queue") || url.includes("/prescription"));
+      (url.includes("/patients/me/queue") ||
+        url.includes("/prescription") ||
+        url.includes("/vitals"));
 
     if (!isIgnored404) {
       console.error(`[API Error ${response.status}] ${url}:`, responseData);

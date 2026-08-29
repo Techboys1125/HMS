@@ -11,7 +11,6 @@ import {
   UserCheck,
   BarChart2,
   Activity,
-  ClipboardList,
   Receipt,
   MessageSquare,
   User,
@@ -68,6 +67,11 @@ export const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
         { id: "audit-logs", Icon: FileText, label: "Audit Logs" },
       ],
     },
+    {
+      id: "account",
+      label: "Account",
+      items: [{ id: "profile", Icon: User, label: "My Profile" }],
+    },
   ],
   admin: [
     {
@@ -103,6 +107,11 @@ export const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
         { id: "user-management", Icon: Users, label: "User & Role Management" },
         { id: "audit-logs", Icon: FileText, label: "Audit Logs" },
       ],
+    },
+    {
+      id: "account",
+      label: "Account",
+      items: [{ id: "profile", Icon: User, label: "My Profile" }],
     },
   ],
   doctor: [

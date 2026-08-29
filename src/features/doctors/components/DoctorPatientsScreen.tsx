@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, User, ChevronRight, RefreshCw, Phone } from "lucide-react";
+import { Search, User, ChevronRight, RefreshCw, Phone, ArrowLeft } from "lucide-react";
 import { useAuthStore } from "../../auth/store/auth.store";
 import { patientsApi } from "../../patients/api/patient.api";
 import { mapApiPatientToPatientRecord } from "../../patients/api/mapApiPatientToPatientRecord";
@@ -185,16 +185,25 @@ export function DoctorPatientsScreen() {
 
   return (
     <div className="w-full min-h-screen flex flex-col p-6 space-y-6 bg-[#F1F5F9]">
-      <div>
-        <h1
-          className="text-2xl font-bold text-[#111827]"
-          style={{ fontFamily: PP }}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => window.history.back()}
+          className="p-2.5 rounded-xl border border-[#E5E7EB] bg-white hover:bg-slate-50 text-slate-700 transition-colors cursor-pointer shadow-2xs"
+          title="Go Back"
         >
-          My Patients
-        </h1>
-        <p className="text-sm text-[#64748B] mt-0.5" style={{ fontFamily: RB }}>
-          View and manage patients under your care.
-        </p>
+          <ArrowLeft size={18} />
+        </button>
+        <div>
+          <h1
+            className="text-2xl font-bold text-[#111827]"
+            style={{ fontFamily: PP }}
+          >
+            My Patients
+          </h1>
+          <p className="text-sm text-[#64748B] mt-0.5" style={{ fontFamily: RB }}>
+            View and manage patients under your care.
+          </p>
+        </div>
       </div>
 
       {computedError && (

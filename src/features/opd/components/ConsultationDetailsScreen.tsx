@@ -5,16 +5,16 @@ import {
   AlertCircle,
   ChevronDown,
   Printer,
-  Download,
   Edit3,
   Loader2,
+  ArrowLeft,
 } from "lucide-react";
 import { encountersApi } from "../../encounters/api/encounters.api";
 import { consultationApi } from "../api/consultationApi";
 import { patientsApi } from "../../patients/api/patient.api";
 import { doctorsApi } from "../../doctors/api/doctors.api";
 import { vitalsApi } from "../../vitals/api/vitals.api";
-import { downloadConsultationPdf } from "../../../utils/consultationPdf.utils";
+import { EditConsultationScreen } from "./EditConsultationScreen";
 
 // --- Design System Tokens ---
 const PP = "'Poppins', system-ui, sans-serif";
@@ -72,6 +72,7 @@ export interface ConsultationRecordData {
   followupRequired: string;
   nextVisitDate: string;
   followupNotes: string;
+  followUpType?: string;
   consultationFee: string;
   status: string;
   tokenNo: string;
@@ -117,14 +118,53 @@ const formatDateTime = (value?: string | null) => {
   if (Number.isNaN(date.getTime())) {
     return value;
   }
-  return date.toLocaleString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
+  const day = date.getDate().toString().padStart(2, "0");
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+  let hours = date.getHours();
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12;
+  return `${day} ${month} ${year}, ${hours.toString().padStart(2, "0")}:${minutes} ${ampm}`;
+};
+
+const formatDateOnly = (value?: string | null) => {
+  if (!value || value === "—" || value === "None" || value === "") return "—";
+  const trimmed = String(value).split("T")[0].split(" ")[0].trim();
+  const match = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (match) {
+    const [, year, month, day] = match;
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    return `${day} ${months[Number(month) - 1]} ${year}`;
+  }
+  return trimmed || "—";
 };
 
 const handlePrint = () => {
@@ -145,18 +185,18 @@ export function ConsultationDetailsScreen({
     return {
       id: consultationId || String(encounterId || ""),
       appointmentId: initialRecord?.appointmentId || "",
-      createdDate: initialRecord?.createdDate || "",
+      createdDate:
+        initialRecord?.createdDate ||
+        initialRecord?.visitDate ||
+        new Date().toISOString(),
       completedDate: initialRecord?.completedDate || "",
       duration: initialRecord?.duration || "",
-      status: initialRecord?.status || "Completed",
+      status: initialRecord?.status || "",
       tokenNo: initialRecord?.tokenNo || "",
       visitDate:
         initialRecord?.visitDate ||
-        new Date().toLocaleDateString("en-GB", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        }),
+        initialRecord?.createdDate ||
+        new Date().toISOString().split("T")[0],
       completionTime: initialRecord?.completionTime || "",
       patientName: initialRecord?.patientName || "",
       mrn: initialRecord?.mrn || "",
@@ -167,7 +207,7 @@ export function ConsultationDetailsScreen({
       doctorName: initialRecord?.doctorName || "",
       doctorSpecialty: initialRecord?.doctorSpecialty || "",
       department: initialRecord?.department || "",
-      visitType: initialRecord?.visitType || "First Visit",
+      visitType: initialRecord?.visitType || "",
       chiefComplaint: initialRecord?.chiefComplaint || "",
       durationOfSymptoms: initialRecord?.durationOfSymptoms || "—",
       vitals: {
@@ -219,12 +259,20 @@ export function ConsultationDetailsScreen({
     summary: false,
   });
 
+  const [isEditing, setIsEditing] = useState(false);
+  const [reloadCounter, setReloadCounter] = useState(0);
+
+  const handleStartEdit = () => {
+    if (onEditConsultation) {
+      onEditConsultation(record.id || String(encounterId || consultationId || ""));
+    }
+    setIsEditing(true);
+  };
+
   const toggleSection = (key: string) => {
     setCollapsedSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // Fetch real API data if encounterId or consultationId is provided
-  // Fetch real API data if encounterId or consultationId is provided
   // Fetch real API data if encounterId or consultationId is provided
   useEffect(() => {
     let isMounted = true;
@@ -234,8 +282,11 @@ export function ConsultationDetailsScreen({
     async function loadRealEncounterData() {
       try {
         setLoading(true);
-        const encIdNum = Number(targetEncId) || 0;
+        const rawEncIdStr = String(targetEncId).trim();
+        const encIdNum = Number(rawEncIdStr.replace(/\D+/g, "")) || Number(targetEncId) || 0;
         if (encIdNum <= 0) return;
+
+        console.log("Encounter ID:", encIdNum);
 
         // 1. Load workspace context (patient, appointment, vitals, consultation notes, diagnoses)
         const workspaceResponse = await consultationApi
@@ -452,49 +503,68 @@ export function ConsultationDetailsScreen({
               workspaceData.prescriptions,
           );
           const rxAdvice = asRecord(rxRoot.advice || rxRoot.adviceDto);
-          const rawMedsFromWorkspace = workspaceData.prescription
-            ? asRecord(workspaceData.prescription).medications ||
-              asRecord(workspaceData.prescription).medicines ||
-              asRecord(workspaceData.prescription).items
-            : null;
-          let cachedMeds: unknown[] = [];
-          try {
-            const rawCached =
-              localStorage.getItem(`hms-completed-meds:${realEncounterId}`) ||
-              localStorage.getItem(`hms-completed-meds:${realAppointmentId}`) ||
-              localStorage.getItem(`hms-completed-meds:${targetEncId}`);
-            if (rawCached) {
-              cachedMeds = JSON.parse(rawCached);
-            }
-          } catch {
-            cachedMeds = [];
-          }
-
-          const medicationList = asArray(
+          let medicationList = asArray(
             rxRoot.medications ||
               rxRoot.medicines ||
               rxRoot.items ||
               rxRoot.prescriptionItems ||
-              rawMedsFromWorkspace ||
               workspaceData.medications ||
               workspaceData.medicines ||
-              workspaceData.prescriptionItems ||
-              (cachedMeds.length > 0 ? cachedMeds : null) ||
-              initialRecord?.medicines,
+              workspaceData.prescriptionItems,
           );
+
+          if (medicationList.length === 0) {
+            try {
+              const savedMedsStr =
+                localStorage.getItem(`hms-completed-meds:${realEncounterId}`) ||
+                localStorage.getItem(`hms-completed-meds:${targetEncId}`);
+              if (savedMedsStr) {
+                const parsed = JSON.parse(savedMedsStr);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  medicationList = parsed;
+                }
+              }
+            } catch {
+              // ignore
+            }
+          }
+
+          if (
+            medicationList.length === 0 &&
+            initialRecord?.medicines &&
+            initialRecord.medicines.length > 0
+          ) {
+            medicationList = initialRecord.medicines;
+          }
 
           console.log("MEDICATION LIST:", medicationList);
 
           const meds = medicationList.map((item: unknown, idx: number) => {
             const m = asRecord(item);
-            const doseObj = m.dose as
-              { value?: unknown; unit?: unknown } | undefined;
-            const doseVal =
-              m.dose && typeof m.dose === "object"
-                ? `${doseObj?.value ?? ""} ${doseObj?.unit ?? ""}`.trim()
-                : m.doseValue
-                  ? `${m.doseValue} ${m.doseUnit || ""}`.trim()
-                  : null;
+            const doseVal = (() => {
+              const d = m.dose as Record<string, unknown> | undefined;
+              if (d && typeof d === "object") {
+                const val = d.value != null ? String(d.value) : "";
+                const unit = d.unit != null ? String(d.unit) : "";
+                const text = `${val} ${unit}`.trim();
+                if (text) return text;
+              }
+              if (m.doseValue != null || m.doseUnit != null) {
+                const val = m.doseValue != null ? String(m.doseValue) : "";
+                const unit = m.doseUnit != null ? String(m.doseUnit) : "";
+                const text = `${val} ${unit}`.trim();
+                if (text) return text;
+              }
+              if (typeof m.dosage === "string" && m.dosage.trim())
+                return m.dosage.trim();
+              if (typeof m.dose === "string" && m.dose.trim())
+                return m.dose.trim();
+              if (typeof m.strength === "string" && m.strength.trim())
+                return m.strength.trim();
+              if (typeof m.doseQuantity === "string" && m.doseQuantity.trim())
+                return m.doseQuantity.trim();
+              return "—";
+            })();
 
             const freqObj = m.frequency as
               { display?: unknown; code?: unknown } | undefined;
@@ -535,7 +605,7 @@ export function ConsultationDetailsScreen({
                   "Medication",
               ),
               dosage: String(
-                doseVal || m.dosage || m.dose || m.strength || "—",
+                doseVal || m.dosage || m.strength || "—",
               ),
               frequency: String(freqVal || "—"),
               duration: String(durVal || m.duration || "—"),
@@ -552,7 +622,7 @@ export function ConsultationDetailsScreen({
             workspaceData.labOrders ||
             workspaceData.radiologyOrders ||
             [];
-          const investigations: string[] = asArray(rawInvestigations)
+          let investigations: string[] = asArray(rawInvestigations)
             .map((item: unknown): string => {
               if (typeof item === "string") return item;
               const itemObj = item as
@@ -568,6 +638,14 @@ export function ConsultationDetailsScreen({
             })
             .filter(Boolean);
 
+          if (
+            investigations.length === 0 &&
+            initialRecord?.investigations &&
+            initialRecord.investigations.length > 0
+          ) {
+            investigations = initialRecord.investigations;
+          }
+
           const clinicalExamText =
             [
               consultationData.generalExamination,
@@ -577,41 +655,91 @@ export function ConsultationDetailsScreen({
               .join("\n") || String(consultationData.examinationNotes || "");
 
           setRecord((prev) => {
+            const docSub = asRecord(
+              workspaceData.doctor ||
+                (typeof encSub.doctor === "object" ? encSub.doctor : null) ||
+                (typeof apptSub.doctor === "object" ? apptSub.doctor : null),
+            );
+
             const realDoctorName = String(
-              encSub.doctorName ||
-                encSub.doctor ||
-                apptSub.doctorName ||
-                apptSub.doctor ||
+              (typeof encSub.doctorName === "string" ? encSub.doctorName : "") ||
+                (typeof encSub.doctor === "string" ? encSub.doctor : "") ||
+                (typeof apptSub.doctorName === "string" ? apptSub.doctorName : "") ||
+                (typeof apptSub.doctor === "string" ? apptSub.doctor : "") ||
                 docSub.name ||
                 docSub.fullName ||
+                docSub.doctorName ||
                 fetchedDoctor?.name ||
                 fetchedDoctor?.fullName ||
+                initialRecord?.doctorName ||
                 prev.doctorName ||
                 "",
             );
+
             const realDepartment = String(
-              encSub.department ||
-                apptSub.department ||
+              (typeof encSub.department === "string"
+                ? encSub.department
+                : (encSub.department as Record<string, unknown>)?.name ||
+                  (encSub.department as Record<string, unknown>)?.departmentName ||
+                  "") ||
+                (typeof apptSub.department === "string"
+                  ? apptSub.department
+                  : (apptSub.department as Record<string, unknown>)?.name ||
+                    (apptSub.department as Record<string, unknown>)?.departmentName ||
+                    "") ||
                 docSub.department ||
                 docSub.departmentName ||
+                docSub.specialty ||
+                docSub.doctorSpecialty ||
                 fetchedDoctor?.department ||
                 fetchedDoctor?.departmentName ||
+                initialRecord?.department ||
                 prev.department ||
                 "",
             );
+
+            const realAge = (() => {
+              if (patSub.age != null && patSub.age !== "" && patSub.age !== "—") {
+                const n = Number(patSub.age);
+                if (!Number.isNaN(n) && n >= 0) return n;
+                if (typeof patSub.age === "string" && patSub.age.trim())
+                  return patSub.age.trim();
+              }
+              if (patSub.dob && typeof patSub.dob === "string") {
+                try {
+                  const birth = new Date(patSub.dob);
+                  if (!Number.isNaN(birth.getTime())) {
+                    const ageDifMs = Date.now() - birth.getTime();
+                    const ageDate = new Date(ageDifMs);
+                    const calc = Math.abs(ageDate.getUTCFullYear() - 1970);
+                    if (!Number.isNaN(calc) && calc >= 0) return calc;
+                  }
+                } catch {
+                  // ignore
+                }
+              }
+              if (apptSub.patientAge != null) {
+                const n = Number(apptSub.patientAge);
+                if (!Number.isNaN(n) && n >= 0) return n;
+              }
+              if (apptSub.age != null) {
+                const n = Number(apptSub.age);
+                if (!Number.isNaN(n) && n >= 0) return n;
+              }
+              return initialRecord?.age || prev.age || "—";
+            })();
             const realDoctorSpecialty = String(
-              encSub.doctorSpecialty ||
+              (typeof encSub.doctorSpecialty === "string"
+                ? encSub.doctorSpecialty
+                : "") ||
                 docSub.specialty ||
                 fetchedDoctor?.specialty ||
                 fetchedDoctor?.specialization ||
+                initialRecord?.doctorSpecialty ||
                 prev.doctorSpecialty ||
                 "",
             );
 
-            const followUpReq =
-              rxAdvice.followUpRequired ??
-              consultationData.followUpRequired ??
-              consultationData.followupRequired;
             const followUpDt =
               rxAdvice.followUpDate ??
               consultationData.followUpDate ??
@@ -620,6 +748,34 @@ export function ConsultationDetailsScreen({
               rxAdvice.followUpNotes ??
               consultationData.followUpNotes ??
               consultationData.followUpInstructions;
+            const followUpTp =
+              consultationData.followUpType ||
+              rxAdvice.followUpType ||
+              "ROUTINE";
+
+            const rawFollowUpReq =
+              rxAdvice.followUpRequired ??
+              consultationData.followUpRequired ??
+              consultationData.followupRequired ??
+              initialRecord?.followupRequired;
+
+            const hasFollowUpDateOrNotes = Boolean(
+              (followUpDt &&
+                followUpDt !== "—" &&
+                followUpDt !== "None" &&
+                followUpDt !== "") ||
+                (followUpNt &&
+                  followUpNt !== "—" &&
+                  followUpNt !== "None" &&
+                  followUpNt !== "None recorded" &&
+                  followUpNt !== ""),
+            );
+
+            const isFollowUpRequiredYes =
+              rawFollowUpReq === true ||
+              String(rawFollowUpReq).toLowerCase() === "yes" ||
+              String(rawFollowUpReq).toLowerCase() === "true" ||
+              hasFollowUpDateOrNotes;
 
             return {
               ...prev,
@@ -641,10 +797,10 @@ export function ConsultationDetailsScreen({
                 patSub.fullName || patSub.name || prev.patientName || "",
               ),
               mrn: String(patSub.mrn || prev.mrn || ""),
-              age: patSub.age != null ? Number(patSub.age) : prev.age,
+              age: realAge,
               gender: String(patSub.gender || prev.gender || ""),
               status: String(
-                apptSub.status || encSub.status || prev.status || "Completed",
+                apptSub.status || encSub.status || prev.status || "—",
               ),
               tokenNo: String(
                 apptSub.queueNumber ||
@@ -655,15 +811,38 @@ export function ConsultationDetailsScreen({
               ),
               visitDate: String(
                 apptSub.appointmentDate ||
+                  apptSub.date ||
+                  apptSub.visitDate ||
                   encSub.visitDate ||
+                  encSub.encounterDate ||
+                  encSub.createdAt ||
+                  encSub.createdDate ||
+                  consultationData.visitDate ||
+                  consultationData.createdDate ||
+                  consultationData.finalizedAt ||
+                  initialRecord?.visitDate ||
+                  initialRecord?.createdDate ||
                   prev.visitDate ||
-                  "",
+                  prev.createdDate ||
+                  new Date().toISOString().split("T")[0],
               ),
               createdDate: String(
                 encSub.createdAt ||
                   encSub.createdDate ||
+                  consultationData.createdAt ||
+                  consultationData.createdDate ||
+                  consultationData.finalizedAt ||
+                  encSub.finalizedAt ||
+                  encSub.completedAt ||
+                  apptSub.createdDate ||
+                  apptSub.createdAt ||
+                  apptSub.appointmentDate ||
+                  encSub.visitDate ||
+                  initialRecord?.createdDate ||
+                  initialRecord?.visitDate ||
                   prev.createdDate ||
-                  "",
+                  prev.visitDate ||
+                  new Date().toISOString(),
               ),
               completedDate: String(
                 encSub.completedAt ||
@@ -695,30 +874,66 @@ export function ConsultationDetailsScreen({
                 ? (patSub.allergies as string[])
                 : prev.allergies,
 
-              medicines: meds,
+              medicines:
+                meds.length > 0
+                  ? meds
+                  : initialRecord?.medicines && initialRecord.medicines.length > 0
+                    ? initialRecord.medicines
+                    : prev.medicines,
               vitals: {
-                height: formatVitalValue(h, "cm"),
-                weight: formatVitalValue(w, "kg"),
-                bmi: formatVitalValue(bmiCalc, "kg/m²"),
-                temperature:
-                  temp != null
-                    ? formatVitalValue(
-                        temp,
-                        temperatureUnit === "CELSIUS" ? "°C" : "°F",
-                      )
-                    : "—",
-                bp: formatVitalValue(bp, "mmHg"),
-                pulse: formatVitalValue(pulse, "bpm"),
-                respiratoryRate: formatVitalValue(resp, "/min"),
-                spo2: formatVitalValue(spo2, "%"),
-                bloodSugar: formatVitalValue(sugar, "mg/dL"),
+                height: formatVitalValue(
+                  h || initialRecord?.vitals?.height || prev.vitals?.height,
+                  "cm",
+                ),
+                weight: formatVitalValue(
+                  w || initialRecord?.vitals?.weight || prev.vitals?.weight,
+                  "kg",
+                ),
+                bmi: formatVitalValue(
+                  bmiCalc || initialRecord?.vitals?.bmi || prev.vitals?.bmi,
+                  "kg/m²",
+                ),
+                temperature: formatVitalValue(
+                  temp ||
+                    initialRecord?.vitals?.temperature ||
+                    prev.vitals?.temperature,
+                  temperatureUnit === "CELSIUS" ? "°C" : "°F",
+                ),
+                bp: formatVitalValue(
+                  bp || initialRecord?.vitals?.bp || prev.vitals?.bp,
+                  "mmHg",
+                ),
+                pulse: formatVitalValue(
+                  pulse || initialRecord?.vitals?.pulse || prev.vitals?.pulse,
+                  "bpm",
+                ),
+                respiratoryRate: formatVitalValue(
+                  resp ||
+                    initialRecord?.vitals?.respiratoryRate ||
+                    prev.vitals?.respiratoryRate,
+                  "/min",
+                ),
+                spo2: formatVitalValue(
+                  spo2 || initialRecord?.vitals?.spo2 || prev.vitals?.spo2,
+                  "%",
+                ),
+                bloodSugar: formatVitalValue(
+                  sugar ||
+                    initialRecord?.vitals?.bloodSugar ||
+                    prev.vitals?.bloodSugar,
+                  "mg/dL",
+                ),
               },
 
               clinicalExamination:
-                clinicalExamText || prev.clinicalExamination || "",
+                clinicalExamText ||
+                initialRecord?.clinicalExamination ||
+                prev.clinicalExamination ||
+                "",
               provisionalDiagnosis: String(
                 consultationData.provisionalDiagnosis ||
                   primaryDiag?.diagnosisName ||
+                  initialRecord?.provisionalDiagnosis ||
                   prev.provisionalDiagnosis ||
                   "",
               ),
@@ -726,20 +941,29 @@ export function ConsultationDetailsScreen({
                 consultationData.finalDiagnosis ||
                   primaryDiag?.diagnosisName ||
                   consultationData.assessmentSummary ||
+                  initialRecord?.finalDiagnosis ||
                   prev.finalDiagnosis ||
                   "",
               ),
               icdCode: String(
                 primaryDiag?.diagnosisCode ||
                   consultationData.icdCode ||
+                  initialRecord?.icdCode ||
                   prev.icdCode ||
                   "",
               ),
 
-              investigations,
+              investigations:
+                investigations.length > 0
+                  ? investigations
+                  : initialRecord?.investigations &&
+                      initialRecord.investigations.length > 0
+                    ? initialRecord.investigations
+                    : prev.investigations,
               investigationRemarks: String(
                 workspaceData.investigationRemarks ||
                   consultationData.investigationRemarks ||
+                  initialRecord?.investigationRemarks ||
                   prev.investigationRemarks ||
                   "",
               ),
@@ -747,31 +971,41 @@ export function ConsultationDetailsScreen({
               symptoms: String(
                 consultationData.historyOfPresentIllness ||
                   consultationData.subjective ||
+                  initialRecord?.symptoms ||
                   prev.symptoms ||
                   "",
               ),
               assessment: String(
                 consultationData.assessmentSummary ||
                   consultationData.assessment ||
+                  initialRecord?.assessment ||
                   prev.assessment ||
                   "",
               ),
-              advice: String(consultationData.advice || prev.advice || ""),
+              advice: String(
+                consultationData.advice ||
+                  initialRecord?.advice ||
+                  prev.advice ||
+                  "",
+              ),
               lifestyleRecommendations: String(
                 rxAdvice.diet ||
                   consultationData.lifestyleRecommendations ||
+                  initialRecord?.lifestyleRecommendations ||
                   prev.lifestyleRecommendations ||
                   "",
               ),
 
-              followupRequired:
-                followUpReq === true
-                  ? "Yes"
-                  : followUpReq === false
-                    ? "No"
-                    : String(followUpReq || ""),
-              nextVisitDate: String(followUpDt || ""),
-              followupNotes: String(followUpNt || ""),
+              followupRequired: isFollowUpRequiredYes ? "Yes" : "No",
+              nextVisitDate: String(
+                followUpDt || initialRecord?.nextVisitDate || prev.nextVisitDate || "",
+              ),
+              followupNotes: String(
+                followUpNt || initialRecord?.followupNotes || prev.followupNotes || "",
+              ),
+              followUpType: String(
+                followUpTp || initialRecord?.followUpType || prev.followUpType || "ROUTINE",
+              ),
             };
           });
         }
@@ -786,7 +1020,7 @@ export function ConsultationDetailsScreen({
     return () => {
       isMounted = false;
     };
-  }, [encounterId, consultationId, initialRecord?.mrn]);
+  }, [encounterId, consultationId, initialRecord, reloadCounter]);
 
   const patientInitials = (record.patientName || "PT")
     .split(" ")
@@ -797,16 +1031,28 @@ export function ConsultationDetailsScreen({
 
   const navigate = useNavigate();
 
-  const handleDownloadPdf = () => {
-    downloadConsultationPdf(record);
-  };
-
   const handleViewPatientProfile = () => {
     if (onViewPatientProfile) {
       onViewPatientProfile(record.mrn);
     }
     navigate(`/patients?search=${encodeURIComponent(record.mrn)}`);
   };
+
+  if (isEditing) {
+    return (
+      <EditConsultationScreen
+        consultationId={record.id || String(encounterId || consultationId || "")}
+        encounterId={encounterId || record.id}
+        initialRecord={record as unknown as Record<string, unknown>}
+        onBack={() => setIsEditing(false)}
+        onUpdateSuccess={() => {
+          setIsEditing(false);
+          setReloadCounter((c) => c + 1);
+        }}
+        onViewHistory={onViewHistory}
+      />
+    );
+  }
 
   if (loading) {
     return (
@@ -848,6 +1094,17 @@ export function ConsultationDetailsScreen({
             >
               Review completed consultation records.
             </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onBack ? onBack : () => navigate(-1)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-xs font-semibold transition-all shadow-sm cursor-pointer"
+              style={{ fontFamily: PP }}
+            >
+              <ArrowLeft size={14} />
+              Back
+            </button>
           </div>
         </div>
       </div>
@@ -918,7 +1175,9 @@ export function ConsultationDetailsScreen({
                 <span>•</span>
                 <span>
                   Date:{" "}
-                  <strong className="text-[#111827]">{record.visitDate}</strong>
+                  <strong className="text-[#111827]">
+                    {formatDateOnly(record.visitDate || record.createdDate)}
+                  </strong>
                 </span>
               </div>
             </div>
@@ -937,9 +1196,10 @@ export function ConsultationDetailsScreen({
 
           {/* Quick Buttons */}
           <div className="flex items-center gap-2 shrink-0">
+           
             <button
               onClick={handleViewPatientProfile}
-              className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-xs font-semibold text-[#111827] hover:bg-slate-50 transition-colors"
+              className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-xs font-semibold text-[#111827] hover:bg-slate-50 transition-colors cursor-pointer"
               style={{ fontFamily: PP }}
             >
               View Patient Profile
@@ -979,7 +1239,7 @@ export function ConsultationDetailsScreen({
             </div>
 
             <div
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-9 gap-4 text-xs pt-1"
+              className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-4 text-xs pt-1"
               style={{ fontFamily: RB }}
             >
               <div>
@@ -1004,9 +1264,13 @@ export function ConsultationDetailsScreen({
                   Appointment ID
                 </span>
                 <p className="font-mono font-bold text-slate-700 text-xs">
-                  {String(record.appointmentId || record.id).startsWith("APT-")
-                    ? record.appointmentId || record.id
-                    : `APT-${record.appointmentId || record.id}`}
+                  {record.appointmentId &&
+                  String(record.appointmentId) !== "0" &&
+                  String(record.appointmentId) !== ""
+                    ? (String(record.appointmentId).startsWith("APT-")
+                      ? record.appointmentId
+                      : `APT-${record.appointmentId}`)
+                    : "—"}
                 </p>
               </div>
 
@@ -1083,18 +1347,6 @@ export function ConsultationDetailsScreen({
                   )}
                 </p>
               </div>
-
-              <div>
-                <span
-                  className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1"
-                  style={{ fontFamily: PP }}
-                >
-                  Duration
-                </span>
-                <p className="font-bold text-blue-900 text-xs">
-                  {record.duration || "—"}
-                </p>
-              </div>
             </div>
           </div>
 
@@ -1115,15 +1367,15 @@ export function ConsultationDetailsScreen({
                   Visit Information
                 </h3>
               </div>
-                <ChevronDown
-                  size={18}
-                  className={`text-slate-400 transition-transform ${collapsedSections.visitInfo ? "-rotate-90" : ""}`}
-                />
+              <ChevronDown
+                size={18}
+                className={`text-slate-400 transition-transform ${collapsedSections.visitInfo ? "-rotate-90" : ""}`}
+              />
             </button>
 
             {!collapsedSections.visitInfo && (
               <div
-                className="p-5 grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs"
+                className="p-5 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs"
                 style={{ fontFamily: RB }}
               >
                 <div>
@@ -1145,7 +1397,7 @@ export function ConsultationDetailsScreen({
                     Visit Date
                   </span>
                   <p className="font-semibold text-slate-800 text-sm mt-0.5">
-                    {record.visitDate}
+                    {formatDateOnly(record.visitDate || record.createdDate)}
                   </p>
                 </div>
                 <div>
@@ -1156,7 +1408,7 @@ export function ConsultationDetailsScreen({
                     Doctor
                   </span>
                   <p className="font-semibold text-slate-800 text-sm mt-0.5">
-                    {record.doctorName}
+                    {record.doctorName || "—"}
                   </p>
                 </div>
                 <div>
@@ -1167,37 +1419,12 @@ export function ConsultationDetailsScreen({
                     Department
                   </span>
                   <p className="font-medium text-slate-700 mt-0.5">
-                    {record.department}
+                    {record.department || record.doctorSpecialty || "—"}
                   </p>
                 </div>
-                <div>
-                  <span
-                    className="text-[10px] font-bold text-slate-400 uppercase"
-                    style={{ fontFamily: PP }}
-                  >
-                    Visit Type
-                  </span>
-                  <p className="mt-0.5">
-                    <span
-                      className="px-2 py-0.5 bg-blue-50 text-[#0D47A1] font-semibold text-[11px] rounded"
-                      style={{ fontFamily: PP }}
-                    >
-                      {record.visitType}
-                    </span>
-                  </p>
-                </div>
-                <div>
-                  <span
-                    className="text-[10px] font-bold text-slate-400 uppercase"
-                    style={{ fontFamily: PP }}
-                  >
-                    Duration of Symptoms
-                  </span>
-                  <p className="font-medium text-slate-700 mt-0.5">
-                    {record.durationOfSymptoms}
-                  </p>
-                </div>
-                <div className="col-span-2 sm:col-span-3 pt-2 border-t border-gray-100">
+               
+                
+                <div className="col-span-2 sm:col-span-4 pt-2 border-t border-gray-100">
                   <span
                     className="text-[10px] font-bold text-slate-400 uppercase"
                     style={{ fontFamily: PP }}
@@ -1229,10 +1456,10 @@ export function ConsultationDetailsScreen({
                   Patient Vitals
                 </h3>
               </div>
-                <ChevronDown
-                  size={18}
-                  className={`text-slate-400 transition-transform ${collapsedSections.vitals ? "-rotate-90" : ""}`}
-                />
+              <ChevronDown
+                size={18}
+                className={`text-slate-400 transition-transform ${collapsedSections.vitals ? "-rotate-90" : ""}`}
+              />
             </button>
 
             {!collapsedSections.vitals && (
@@ -1349,10 +1576,10 @@ export function ConsultationDetailsScreen({
                   Clinical Examination & Diagnosis
                 </h3>
               </div>
-                <ChevronDown
-                  size={18}
-                  className={`text-slate-400 transition-transform ${collapsedSections.examination ? "-rotate-90" : ""}`}
-                />
+              <ChevronDown
+                size={18}
+                className={`text-slate-400 transition-transform ${collapsedSections.examination ? "-rotate-90" : ""}`}
+              />
             </button>
 
             {!collapsedSections.examination && (
@@ -1502,10 +1729,10 @@ export function ConsultationDetailsScreen({
                   Investigation Recommendation
                 </h3>
               </div>
-                <ChevronDown
-                  size={18}
-                  className={`text-slate-400 transition-transform ${collapsedSections.investigation ? "-rotate-90" : ""}`}
-                />
+              <ChevronDown
+                size={18}
+                className={`text-slate-400 transition-transform ${collapsedSections.investigation ? "-rotate-90" : ""}`}
+              />
             </button>
 
             {!collapsedSections.investigation && (
@@ -1571,15 +1798,15 @@ export function ConsultationDetailsScreen({
                   Clinical Notes
                 </h3>
               </div>
-                <ChevronDown
-                  size={18}
-                  className={`text-slate-400 transition-transform ${collapsedSections.clinicalNotes ? "-rotate-90" : ""}`}
-                />
+              <ChevronDown
+                size={18}
+                className={`text-slate-400 transition-transform ${collapsedSections.clinicalNotes ? "-rotate-90" : ""}`}
+              />
             </button>
 
             {!collapsedSections.clinicalNotes && (
               <div
-                className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs"
+                className="p-5 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs"
                 style={{ fontFamily: RB }}
               >
                 <div>
@@ -1615,17 +1842,6 @@ export function ConsultationDetailsScreen({
                     {record.advice}
                   </p>
                 </div>
-                <div>
-                  <span
-                    className="text-[10px] font-bold text-slate-400 uppercase"
-                    style={{ fontFamily: PP }}
-                  >
-                    Lifestyle Recommendations
-                  </span>
-                  <p className="font-medium text-slate-700 mt-1 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                    {record.lifestyleRecommendations}
-                  </p>
-                </div>
               </div>
             )}
           </div>
@@ -1647,10 +1863,10 @@ export function ConsultationDetailsScreen({
                   Follow-up
                 </h3>
               </div>
-                <ChevronDown
-                  size={18}
-                  className={`text-slate-400 transition-transform ${collapsedSections.followup ? "-rotate-90" : ""}`}
-                />
+              <ChevronDown
+                size={18}
+                className={`text-slate-400 transition-transform ${collapsedSections.followup ? "-rotate-90" : ""}`}
+              />
             </button>
 
             {!collapsedSections.followup && (
@@ -1660,13 +1876,39 @@ export function ConsultationDetailsScreen({
               >
                 <div>
                   <span
-                    className="text-[10px] font-bold text-slate-400 uppercase"
+                    className="text-[10px] font-bold text-slate-400 uppercase block mb-1"
                     style={{ fontFamily: PP }}
                   >
                     Follow-up Required
                   </span>
-                  <p className="font-bold text-slate-800 mt-1">
-                    {record.followupRequired}
+                  {record.followupRequired === "Yes" ||
+                  (record.followupRequired as unknown) === true ||
+                  String(record.followupRequired).toLowerCase() === "yes" ||
+                  String(record.followupRequired).toLowerCase() === "true" ? (
+                    <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 text-xs">
+                      <CheckCircle2 size={15} className="text-emerald-600" /> Yes (Follow-up Scheduled)
+                    </span>
+                  ) : (
+                    <span className="font-semibold text-slate-500 text-xs">No</span>
+                  )}
+                </div>
+                <div>
+                  <span
+                    className="text-[10px] font-bold text-slate-400 uppercase"
+                    style={{ fontFamily: PP }}
+                  >
+                    Follow-up Type
+                  </span>
+                  <p className="font-semibold text-slate-800 mt-1">
+                    {record.followUpType === "ROUTINE"
+                      ? "Routine Follow-up"
+                      : record.followUpType === "SPECIALIST"
+                        ? "Specialist Referral"
+                        : record.followUpType === "TELECONSULT"
+                          ? "Teleconsultation"
+                          : record.followUpType === "EMERGENCY"
+                            ? "Urgent / Emergency"
+                            : record.followUpType || "Routine Follow-up"}
                   </p>
                 </div>
                 {record.nextVisitDate &&
@@ -1681,7 +1923,7 @@ export function ConsultationDetailsScreen({
                         Next Visit Date
                       </span>
                       <p className="font-bold text-[#0D47A1] text-sm mt-1">
-                        {formatDateTime(record.nextVisitDate)}
+                        {formatDateOnly(record.nextVisitDate)}
                       </p>
                     </div>
                   )}
@@ -1778,14 +2020,19 @@ export function ConsultationDetailsScreen({
                     <span>
                       Follow-up Date:{" "}
                       <strong className="text-[#111827]">
-                        {record.nextVisitDate}
+                        {formatDateOnly(record.nextVisitDate)}
                       </strong>
                     </span>
                   )}
                 <span>
                   Completed Time:{" "}
                   <strong className="text-slate-700">
-                    {record.completionTime || "—"}
+                    {formatDateTime(
+                      record.completedDate ||
+                        record.completionTime ||
+                        record.createdDate ||
+                        record.visitDate,
+                    )}
                   </strong>
                 </span>
               </div>
@@ -1823,6 +2070,14 @@ export function ConsultationDetailsScreen({
           >
             <Printer size={15} className="text-[#009688]" />
             Print Prescription
+          </button>
+          <button
+            onClick={handleStartEdit}
+            className="px-4 py-2 bg-[#0D47A1] hover:bg-[#0a3880] text-white text-xs font-semibold rounded-xl transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+            style={{ fontFamily: PP }}
+          >
+            <Edit3 size={15} />
+            Edit Consultation
           </button>
         </div>
       </div>

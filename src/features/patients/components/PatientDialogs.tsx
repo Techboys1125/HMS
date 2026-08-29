@@ -1,10 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   RefreshCw,
-  ChevronLeft,
-  ChevronRight,
   X,
-  Calendar,
   AlertTriangle,
   CheckCircle2,
   XCircle,
@@ -17,7 +14,6 @@ import type {
   PatientRescheduleAppointmentDialogProps,
 } from "../types/patient.types";
 import { PP, RB } from "../constants/patient.fonts";
-import { useAppointmentSlots } from "../../appointments/hooks/useAppointmentSlots";
 import { RescheduleAppointmentConfirmationDialog } from "../../appointments/components/RescheduleAppointmentConfirmationDialog";
 import type { AppointmentRecord } from "../../appointments/types/appointment.types";
 
@@ -338,20 +334,6 @@ export function PatientCancelAppointmentDialog({
   );
 }
 
-const parseSlotHour = (timeStr: string): number => {
-  if (!timeStr) return 0;
-  const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
-  if (!match) {
-    const raw = parseInt(timeStr, 10);
-    return isNaN(raw) ? 0 : raw;
-  }
-  let h = parseInt(match[1], 10);
-  const p = match[3]?.toUpperCase();
-  if (p === "PM" && h < 12) h += 12;
-  if (p === "AM" && h === 12) h = 0;
-  return h;
-};
-
 export function PatientRescheduleAppointmentDialog({
   appointment,
   isOpen,
@@ -383,7 +365,13 @@ export function PatientRescheduleAppointmentDialog({
       apt={aptRecord}
       isOpen={isOpen}
       onClose={onClose}
-      onConfirmReschedule={async (id, newDate, newTimeSlot, reason, remarks) => {
+      onConfirmReschedule={async (
+        id,
+        newDate,
+        newTimeSlot,
+        reason,
+        remarks,
+      ) => {
         if (onConfirmReschedule) {
           await onConfirmReschedule(
             String(id),

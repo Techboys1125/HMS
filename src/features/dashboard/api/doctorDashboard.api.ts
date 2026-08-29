@@ -39,11 +39,24 @@ export const doctorDashboardApi = {
     return unwrap(res);
   },
 
-  getTodayAppointments: async (): Promise<DoctorTodayAppointments> => {
-    const res = await apiClient.get<
-      DashboardApiResponse<DoctorTodayAppointments>
-    >("/api/v1/doctor/dashboard/today-appointments");
-    return unwrap(res);
+  getTodayAppointments: async (
+    doctorId?: string | number,
+    date?: string,
+  ): Promise<DoctorTodayAppointments> => {
+    try {
+      const url = doctorId
+        ? `/api/v1/doctor/${doctorId}/dashboard/today-appointments${date ? `?date=${date}` : ""}`
+        : `/api/v1/doctor/dashboard/today-appointments${date ? `?date=${date}` : ""}`;
+      const res = await apiClient.get<
+        DashboardApiResponse<DoctorTodayAppointments>
+      >(url);
+      return unwrap(res);
+    } catch {
+      const res = await apiClient.get<
+        DashboardApiResponse<DoctorTodayAppointments>
+      >("/api/v1/doctor/dashboard/today-appointments");
+      return unwrap(res);
+    }
   },
 
   getMeAppointments: async (): Promise<DoctorMeAppointments> => {

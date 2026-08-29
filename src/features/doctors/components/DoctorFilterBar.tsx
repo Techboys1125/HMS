@@ -56,30 +56,7 @@ export function DoctorFilterBar({
 }: DoctorFilterBarProps) {
   return (
     <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="relative">
-          <Search
-            size={14}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-          />
-          <input
-            aria-label="Input field"
-            type="text"
-            value={searchDoctorQuery}
-            onChange={(e) => setSearchDoctorQuery(e.target.value)}
-            placeholder="Search Doctor Name or ID..."
-            className="w-full pl-9 pr-8 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-          />
-          {searchDoctorQuery && (
-            <button
-              aria-label="Close"
-              onClick={() => setSearchDoctorQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-            >
-              <X size={13} />
-            </button>
-          )}
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 
         <div className="relative">
           <Hash

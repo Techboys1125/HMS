@@ -398,13 +398,12 @@ export function DoctorManagementPage() {
         isLoading={loading}
       />
 
-      <DoctorFilterBar
-        searchDoctorQuery={searchDoctorQuery}
-        setSearchDoctorQuery={setSearchDoctorQuery}
-        searchEmpIdQuery={searchEmpIdQuery}
-        setSearchEmpIdQuery={setSearchEmpIdQuery}
-        searchRegNoQuery={searchRegNoQuery}
-        setSearchRegNoQuery={setSearchRegNoQuery}
+      <DoctorTable
+        doctors={doctors}
+        filteredDoctors={filteredDoctors}
+        isLoading={loading}
+        searchQuery={searchDoctorQuery}
+        onSearchChange={setSearchDoctorQuery}
         deptFilter={deptFilter}
         setDeptFilter={setDeptFilter}
         specialtyFilter={specialtyFilter}
@@ -415,14 +414,7 @@ export function DoctorManagementPage() {
         setStatusFilter={setStatusFilter}
         experienceFilter={experienceFilter}
         setExperienceFilter={setExperienceFilter}
-        onResetFilters={handleResetAllFilters}
         departments={departments}
-      />
-
-      <DoctorTable
-        doctors={doctors}
-        filteredDoctors={filteredDoctors}
-        isLoading={loading}
         sortColumn={sortColumn}
         sortDirection={sortDirection}
         onSort={handleSort}

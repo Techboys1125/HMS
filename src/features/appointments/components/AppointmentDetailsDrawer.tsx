@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import {
   Eye,
-  Edit,
   Printer,
   X,
   User,
@@ -23,7 +22,6 @@ import {
   appointmentToPatientSummary,
 } from "../constants/appointment.constants";
 import { appointmentService } from "../services/appointment.service";
-import { downloadAppointmentSlipPdf } from "../../../utils/appointmentPdf.utils";
 
 type DrawerHeaderProps = {
   isNurse: boolean;
@@ -525,7 +523,6 @@ const DrawerFooter = ({
   onStartConsultation,
   handleCheckIn,
   isCheckingIn,
-  onEditClick,
 }: DrawerFooterProps) => (
   <div className="px-6 py-4 bg-white border-t border-gray-200 flex items-center justify-between gap-3 shrink-0">
     <button

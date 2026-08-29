@@ -1,4 +1,9 @@
-import { Phone, Stethoscope, FolderOpen, FileText, XCircle } from "lucide-react";
+import {
+  Phone,
+  Stethoscope,
+  FolderOpen,
+  FileText,
+} from "lucide-react";
 import type { ConsultationRecord, OauthRole } from "../types/consultation";
 
 const PP = "'Poppins', system-ui, sans-serif";
@@ -12,6 +17,7 @@ export interface ConsultationActionMenuProps {
   onCancelConsultation?: (item: ConsultationRecord) => void;
   onViewDetails?: (id: string) => void;
   canStartConsultation?: boolean;
+  calledPatientIds?: Set<string>;
 }
 
 export const ConsultationActionMenu: React.FC<ConsultationActionMenuProps> = ({
@@ -20,9 +26,9 @@ export const ConsultationActionMenu: React.FC<ConsultationActionMenuProps> = ({
   onStartConsultation,
   onOpenConsultation,
   onCallPatient,
-  onCancelConsultation,
   onViewDetails,
   canStartConsultation = true,
+  calledPatientIds,
 }) => {
   const handleDetailsClick = () => {
     onViewDetails?.(item.id);
@@ -32,11 +38,24 @@ export const ConsultationActionMenu: React.FC<ConsultationActionMenuProps> = ({
     .toUpperCase()
     .replace(/[\s-]/g, "_");
 
-  const isCalled = statusUpper === "CALLED";
+  const isLocallyCalled = Boolean(
+    calledPatientIds &&
+      (calledPatientIds.has(String(item.id)) ||
+        (item.appointmentId != null &&
+          calledPatientIds.has(String(item.appointmentId))) ||
+        (item.tokenNo && calledPatientIds.has(String(item.tokenNo)))),
+  );
+
+  const isCalled =
+    statusUpper === "CALLED" ||
+    statusUpper === "PATIENT_CALLED" ||
+    statusUpper === "CALLED_PATIENT" ||
+    statusUpper === "CALL" ||
+    isLocallyCalled;
+
   const isInConsultation =
     statusUpper === "IN_CONSULTATION" || statusUpper === "IN_PROGRESS";
-  const isCancelled =
-    statusUpper === "CANCELLED" || statusUpper === "CANCELED";
+  const isCancelled = statusUpper === "CANCELLED" || statusUpper === "CANCELED";
   const isCompleted =
     statusUpper === "COMPLETED" ||
     statusUpper === "CONSULTATION_COMPLETED" ||
@@ -44,10 +63,9 @@ export const ConsultationActionMenu: React.FC<ConsultationActionMenuProps> = ({
     statusUpper === "BILLING_PENDING" ||
     statusUpper === "PAYMENT_COMPLETED" ||
     statusUpper === "FINALIZED";
+
   const isWaitingForDoctorCall =
-    statusUpper === "WAITING_FOR_DOCTOR_CALL" ||
-    statusUpper === "WAITING_FOR_DOCTOR" ||
-    statusUpper === "WAITING";
+    !isCalled && !isInConsultation && !isCompleted && !isCancelled;
 
   const isDoctorRole = String(role).toLowerCase() === "doctor";
 
@@ -77,7 +95,7 @@ export const ConsultationActionMenu: React.FC<ConsultationActionMenuProps> = ({
           onStartConsultation && (
             <button
               onClick={() => onStartConsultation(item.id)}
-              className="px-2.5 py-1.5 bg-[#009688] hover:bg-[#00796B] text-white rounded-lg text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer"
+              className="px-2.5 py-1.5 bg-[#009688] hover:bg-[#00796B] text-white rounded-lg text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer shadow-sm"
               style={{ fontFamily: PP }}
             >
               <Stethoscope size={13} /> Start Consultation
@@ -98,16 +116,7 @@ export const ConsultationActionMenu: React.FC<ConsultationActionMenuProps> = ({
           </button>
         )}
 
-        {isDoctorRole && !isCompleted && !isCancelled && onCancelConsultation && (
-          <button
-            onClick={() => onCancelConsultation(item)}
-            className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer"
-            title="Cancel Consultation"
-            style={{ fontFamily: PP }}
-          >
-            <XCircle size={13} /> Cancel
-          </button>
-        )}
+
 
         {isCompleted && (
           <button

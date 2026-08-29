@@ -11,6 +11,7 @@ import {
   RotateCcw,
   DollarSign,
   Eye,
+  ArrowLeft,
 } from "lucide-react";
 import { PP, RB } from "../../billing/constants/billing.constants";
 import {
@@ -122,7 +123,7 @@ export function DailyBillingReportPage() {
   };
 
   return (
-    <div className="w-full bg-[#F1F5F9] min-h-screen p-4 md:p-6 pb-28 space-y-6">
+    <div className="w-full max-w-none bg-[#F1F5F9] min-h-screen px-4 sm:px-6 lg:px-8 xl:px-10 py-6 pb-28 space-y-6">
       {/* 1. PAGE HEADER */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm">
         <div>
@@ -165,6 +166,15 @@ export function DailyBillingReportPage() {
           </p>
         </div>
         <div className="flex items-center gap-2.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-[#E5E7EB] text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors shadow-sm cursor-pointer"
+            style={{ fontFamily: RB }}
+          >
+            <ArrowLeft size={14} />
+            <span>Back</span>
+          </button>
           <button
             onClick={() => window.print()}
             className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-[#E5E7EB] text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors shadow-sm"

@@ -8,6 +8,7 @@ import {
   Users,
   PlayCircle,
   Flag,
+  ArrowLeft,
 } from "lucide-react";
 import { useAuthStore } from "../../auth/store/auth.store";
 import { doctorsApi } from "../api/doctors.api";
@@ -254,20 +255,29 @@ export function DoctorQueueScreen() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1
-            className="text-2xl font-bold text-[#111827]"
-            style={{ fontFamily: PP }}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => window.history.back()}
+            className="p-2.5 rounded-xl border border-[#E5E7EB] bg-white hover:bg-slate-50 text-slate-700 transition-colors cursor-pointer shadow-2xs"
+            title="Go Back"
           >
-            My Queue
-          </h1>
-          <p
-            className="text-sm text-[#64748B] mt-0.5"
-            style={{ fontFamily: RB }}
-          >
-            Call the next patient, start the consultation, and complete the
-            visit.
-          </p>
+            <ArrowLeft size={18} />
+          </button>
+          <div>
+            <h1
+              className="text-2xl font-bold text-[#111827]"
+              style={{ fontFamily: PP }}
+            >
+              My Queue
+            </h1>
+            <p
+              className="text-sm text-[#64748B] mt-0.5"
+              style={{ fontFamily: RB }}
+            >
+              Call the next patient, start the consultation, and complete the
+              visit.
+            </p>
+          </div>
         </div>
         <button
           onClick={handleCallNext}

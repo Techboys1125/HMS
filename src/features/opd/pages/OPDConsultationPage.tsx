@@ -17,7 +17,7 @@ import {
   appointmentStatusMap,
   isDoctorConsultationStatus,
 } from "../types/consultation";
-import type { QueueItem } from "../types/queue.types";
+import type { QueueItem, QueueStatus } from "../types/queue.types";
 import type { AppointmentStatus } from "../../appointments/types/appointment.types";
 import { useAuthStore } from "../../auth/store/auth.store";
 import { normalizeStatus } from "../../../lib/status-utils";
@@ -25,8 +25,10 @@ import { getTodayDateString } from "../../../lib/time-utils";
 import { EncounterPrescriptionViewModal } from "../../prescriptions/components/EncounterPrescriptionViewModal";
 import { ConsultationDetailsScreen } from "../components/ConsultationDetailsScreen";
 import { ConsultationHistoryScreen } from "../components/ConsultationHistoryScreen";
+import { EditConsultationScreen } from "../components/EditConsultationScreen";
 
 import { appointmentsApi } from "../../appointments/api/appointments.api";
+import { vitalsApi } from "../../vitals/api/vitals.api";
 import { ConsultationHeader } from "../components/ConsultationHeader";
 import { ConsultationKPICards } from "../components/ConsultationKPICards";
 import { ConsultationFilters } from "../components/ConsultationFilters";
@@ -41,6 +43,7 @@ export interface OPDConsultationPageProps {
   onStartConsultation?: (consultationId?: string) => void;
   onOpenConsultation?: (consultationId?: string) => void;
   onViewDetails?: (consultationId: string) => void;
+  onEditConsultation?: (consultationId: string) => void;
   onViewHistory?: (patientId?: string) => void;
   onPatientSelect?: (patientId: string) => void;
   onNavigateAppointments?: () => void;
@@ -67,14 +70,122 @@ function normalizeGender(gender?: string): "Male" | "Female" | "Other" {
   if (g === "FEMALE" || g === "F") return "Female";
   return "Other";
 }
+function parseDoctorAppointmentsResponse(
+  payload: unknown,
+  defaultDoctorName?: string,
+  defaultDept?: string,
+): QueueItem[] {
+  const root = (
+    payload && typeof payload === "object" && "data" in payload
+      ? (payload as { data: unknown }).data
+      : payload
+  ) as Record<string, unknown>;
+
+  if (!root) return [];
+
+  const rawAppointments = Array.isArray(root.appointments)
+    ? root.appointments
+    : Array.isArray(root.content)
+      ? root.content
+      : Array.isArray(root)
+        ? root
+        : [];
+
+  const docNameFromRoot =
+    (root.doctorName as string) || defaultDoctorName || "";
+
+  return rawAppointments.map((aptRaw, idx) => {
+    const apt = aptRaw as Record<string, unknown>;
+    const patientObj = (apt.patient || {}) as Record<string, unknown>;
+    const aptId = Number(apt.appointmentId || apt.id) || idx + 1;
+    const tokenVal =
+      (apt.queueToken as string) ||
+      (apt.token as string) ||
+      (apt.appointmentNumber as string) ||
+      `T-${idx + 1}`;
+    const rawStatus =
+      (apt.status as string) || (apt.queueStatus as string) || "WAITING";
+    const patientName =
+      (patientObj.fullName as string) ||
+      (patientObj.name as string) ||
+      (apt.patientName as string) ||
+      "Patient";
+    const mrn = (patientObj.mrn as string) || (apt.mrn as string) || "—";
+    const phone =
+      (patientObj.phone as string) ||
+      (patientObj.contact as string) ||
+      (apt.phone as string) ||
+      "—";
+
+    const hasVitalsRecorded =
+      rawStatus === "WAITING_FOR_DOCTOR_CALL" ||
+      rawStatus === "WAITING_FOR_DOCTOR" ||
+      rawStatus === "CALLED" ||
+      rawStatus === "IN_CONSULTATION" ||
+      rawStatus === "COMPLETED";
+
+    return {
+      queueId: (apt.queueId as number) ?? aptId,
+      appointmentId: aptId,
+      appointmentNumber: (apt.appointmentNumber as string) || `APT-${aptId}`,
+      token: tokenVal,
+      queueNumber: (apt.queueNumber as number) ?? idx + 1,
+      position: (apt.queueNumber as number) ?? idx + 1,
+      priority: (apt.priority as string) || "NORMAL",
+      status: rawStatus as QueueStatus,
+      queueStatus: ((apt.queueStatus as string) || rawStatus) as QueueStatus,
+      checkInTime: (apt.appointmentTime as string) || "—",
+      appointmentTime: (apt.appointmentTime as string) || "—",
+      visitType: (apt.visitType as string) || "First Visit",
+      vitalsStatus: hasVitalsRecorded ? "COMPLETED" : "WAITING",
+      vitalsRecorded: hasVitalsRecorded,
+      hasVitals: hasVitalsRecorded,
+      patient: {
+        name: patientName,
+        mrn: mrn,
+        age: Number(patientObj.age || 0),
+        gender: String(patientObj.gender || "Male"),
+        contact: phone,
+      },
+      doctor: {
+        doctorId: (root.doctorId as number) || 0,
+        name: docNameFromRoot,
+        doctorCode: (root.doctorCode as string) || "",
+        department: defaultDept || "General OPD",
+        specialty: defaultDept || "General OPD",
+      },
+    } as unknown as QueueItem;
+  });
+}
 
 function mapQueueItemToConsultation(
   item: QueueItem,
   defaultDoctorName?: string,
   defaultDepartment?: string,
 ): ConsultationRecord {
+  const rawItem = item as unknown as Record<string, unknown>;
+  const hasVitalsRecorded = Boolean(
+    item.queueStatus === "WAITING_FOR_DOCTOR_CALL" ||
+    item.queueStatus === "WAITING_FOR_DOCTOR" ||
+    rawItem.vitalsStatus === "COMPLETED" ||
+    rawItem.vitalsStatus === "Vitals Recorded" ||
+    rawItem.vitalsStatus === "VITALS_RECORDED" ||
+    rawItem.vitalsRecorded === true ||
+    rawItem.hasVitals === true ||
+    rawItem.vitalsId != null ||
+    rawItem.vitals != null ||
+    (item.status as string) === "WAITING_FOR_DOCTOR_CALL" ||
+    (item.status as string) === "WAITING_FOR_DOCTOR" ||
+    (item.status as string) === "CALLED" ||
+    (item.status as string) === "IN_CONSULTATION" ||
+    (item.status as string) === "COMPLETED" ||
+    (item.status as string) === "CONSULTATION_COMPLETED" ||
+    (item.status as string) === "Vitals Recorded" ||
+    (item.status as string) === "VITALS_RECORDED",
+  );
+
   const statusMap: Record<string, ConsultationStatus> = {
-    WAITING: "WAITING_FOR_DOCTOR",
+    WAITING: hasVitalsRecorded ? "WAITING_FOR_DOCTOR" : "WAITING_FOR_VITALS",
     WAITING_FOR_VITALS: "WAITING_FOR_VITALS",
     WAITING_FOR_DOCTOR: "WAITING_FOR_DOCTOR",
     WAITING_FOR_DOCTOR_CALL: "WAITING_FOR_DOCTOR",
@@ -99,7 +210,6 @@ function mapQueueItemToConsultation(
     "";
   const normalizedStatus = normalizeStatus(rawStatus);
 
-  const rawItem = item as unknown as Record<string, unknown>;
   const patientObj = (item.patient ||
     rawItem.patient ||
     {}) as unknown as Record<string, unknown>;
@@ -205,7 +315,8 @@ function mapQueueItemToConsultation(
     encounterId:
       (rawItem.encounterId as number | string) ||
       ((rawItem.encounter as Record<string, unknown>)?.id as number | string) ||
-      ((rawItem.encounter as Record<string, unknown>)?.encounterId as number | string) ||
+      ((rawItem.encounter as Record<string, unknown>)?.encounterId as
+        number | string) ||
       (rawItem.encounter_id as number | string) ||
       (item as unknown as { encounterId?: number | string })?.encounterId,
     patientId:
@@ -285,9 +396,9 @@ export function OPDConsultationPage({
   onStartConsultation,
   onOpenConsultation,
   onViewDetails,
+  onEditConsultation,
   onViewHistory,
   onPatientSelect,
-  onNavigateAppointments,
   onExportReport,
 }: OPDConsultationPageProps) {
   const navigate = useNavigate();
@@ -323,44 +434,9 @@ export function OPDConsultationPage({
       ? Number(parsedDocId)
       : undefined;
 
-  const {
-    items: queueItems,
-    refetch,
-    error: queueError,
-  } = useQueue({
-    doctorId: numericDocId,
-  });
-
-  useEffect(() => {
-    void refetch();
-  }, [refetch]);
-
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<string>("All");
   const [isLoading, setIsLoading] = useState(false);
-
-  const currentDoctorName = isDoctor
-    ? user?.fullName || user?.name
-      ? `Dr. ${user?.fullName || user?.name}`
-      : ""
-    : "";
-  const currentDepartment = isDoctor
-    ? String(user?.doctorProfile?.department || user?.department || "")
-    : "";
-
-  const mappedConsultations = useMemo(() => {
-    return queueItems.map((item) =>
-      mapQueueItemToConsultation(item, currentDoctorName, currentDepartment),
-    );
-  }, [queueItems, currentDoctorName, currentDepartment]);
-
-  // On the OPD Consultation page, show only queue items that have completed
-  // the nurse vitals checking stage (or completed history), excluding pre-vitals statuses.
-  const consultations = useMemo(() => {
-    return mappedConsultations.filter((item) =>
-      isDoctorConsultationStatus(item.status),
-    );
-  }, [mappedConsultations]);
 
   const [filters, dispatch] = useReducer(filterReducer, {
     filterDate: getTodayDateString(),
@@ -371,11 +447,209 @@ export function OPDConsultationPage({
   });
   const setFilter = (field: keyof FilterState, value: string) =>
     dispatch({ type: "SET_FIELD", field, value });
+
+  const {
+    items: queueItems,
+    refetch,
+    error: queueError,
+  } = useQueue({
+    doctorId: numericDocId,
+    date: filters.filterDate,
+  });
+
+  useEffect(() => {
+    void refetch();
+  }, [refetch]);
+
+  const [nurseQueueItems, setNurseQueueItems] = useState<QueueItem[]>([]);
+  const [doctorApptItems, setDoctorApptItems] = useState<QueueItem[]>([]);
+
+  const currentDoctorName = isDoctor
+    ? user?.fullName || user?.name
+      ? `Dr. ${user?.fullName || user?.name}`
+      : ""
+    : "";
+  const currentDepartment = isDoctor
+    ? String(user?.doctorProfile?.department || user?.department || "")
+    : "";
+
+  useEffect(() => {
+    if (!isDoctor || !numericDocId) return;
+
+    let active = true;
+    const fetchDoctorAppts = async () => {
+      try {
+        const resPayload = await appointmentsApi.getDoctorAppointments(
+          numericDocId,
+          filters.filterDate,
+        );
+        if (!active) return;
+        const parsedItems = parseDoctorAppointmentsResponse(
+          resPayload,
+          currentDoctorName,
+          currentDepartment,
+        );
+        setDoctorApptItems(parsedItems);
+      } catch (err) {
+        console.warn(
+          "Failed to fetch doctor appointments for OPD consultation page:",
+          err,
+        );
+      }
+    };
+
+    void fetchDoctorAppts();
+    const timer = setInterval(fetchDoctorAppts, 15000);
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
+  }, [
+    isDoctor,
+    numericDocId,
+    filters.filterDate,
+    currentDoctorName,
+    currentDepartment,
+  ]);
+
+  useEffect(() => {
+    if (isDoctor) return;
+
+    let active = true;
+    const fetchNurseQueue = async () => {
+      try {
+        const patients = await vitalsApi.getNurseQueue(filters.filterDate);
+        if (!active || !Array.isArray(patients)) return;
+
+        const mappedNurseItems: QueueItem[] = patients
+          .filter((p) => {
+            const vStat = String(p.vitalsStatus || "").toUpperCase();
+            const cStat = String(p.consultationStatus || "").toUpperCase();
+            return (
+              vStat === "COMPLETED" ||
+              vStat === "VITALS_RECORDED" ||
+              vStat === "VITALS RECORDED" ||
+              cStat === "WAITING_FOR_DOCTOR" ||
+              cStat === "WAITING_FOR_DOCTOR_CALL" ||
+              cStat === "READY_FOR_CONSULTATION"
+            );
+          })
+          .map((p, idx) => {
+            const aptId =
+              Number(String(p.appointmentId || "").replace(/\D+/g, "")) ||
+              idx + 1000;
+            return {
+              queueId: aptId,
+              appointmentId: aptId,
+              appointmentNumber: String(
+                p.token || p.appointmentId || `TK-${idx + 1}`,
+              ),
+              token: String(p.token || "—"),
+              queueNumber: idx + 1,
+              position: idx + 1,
+              priority: p.priority || "NORMAL",
+              status: (p.consultationStatus ||
+                "WAITING_FOR_DOCTOR_CALL") as QueueStatus,
+              queueStatus: (p.consultationStatus ||
+                "WAITING_FOR_DOCTOR_CALL") as QueueStatus,
+              checkInTime: p.checkInTime || p.appointmentTime || "—",
+              appointmentTime: p.appointmentTime || p.checkInTime || "—",
+              visitType: "First Visit",
+              vitalsStatus: p.vitalsStatus,
+              vitalsRecorded: true,
+              hasVitals: true,
+              patient: {
+                name: p.patientName || "Patient",
+                mrn: String(p.patientId || p.mrn || "—"),
+                age: Number(p.age || 0),
+                gender: String(p.gender || "Male"),
+                contact: String(p.phone || p.contact || "—"),
+              },
+              doctor: {
+                doctorId: 0,
+                name: p.doctorName || "Duty Doctor",
+                doctorCode: "",
+                department: p.department || "General OPD",
+                specialty: p.department || "General OPD",
+              },
+            } as unknown as QueueItem;
+          });
+
+        setNurseQueueItems(mappedNurseItems);
+      } catch (err) {
+        console.warn(
+          "Failed to fetch nurse queue for OPD consultation page:",
+          err,
+        );
+      }
+    };
+
+    void fetchNurseQueue();
+    const interval = setInterval(fetchNurseQueue, 15000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [isDoctor, filters.filterDate]);
+
+  const allQueueItems = useMemo(() => {
+    if (isDoctor) {
+      if (doctorApptItems.length > 0) {
+        return doctorApptItems;
+      }
+      return queueItems;
+    }
+    const map = new Map<string, QueueItem>();
+    nurseQueueItems.forEach((item) => {
+      const key = String(item.appointmentId || item.queueId);
+      map.set(key, item);
+    });
+    queueItems.forEach((item) => {
+      const key = String(item.appointmentId || item.queueId);
+      const existing = map.get(key);
+      if (existing) {
+        map.set(key, { ...existing, ...item });
+      } else {
+        map.set(key, item);
+      }
+    });
+    return Array.from(map.values());
+  }, [isDoctor, doctorApptItems, queueItems, nurseQueueItems]);
+
+  const mappedConsultations = useMemo(() => {
+    return allQueueItems.map((item) =>
+      mapQueueItemToConsultation(item, currentDoctorName, currentDepartment),
+    );
+  }, [allQueueItems, currentDoctorName, currentDepartment]);
+
+  // On the OPD Consultation page, show ONLY patients who have completed vitals and are ready/waiting for doctor
+  const consultations = useMemo(() => {
+    return mappedConsultations.filter(
+      (item) =>
+        item.status !== "WAITING_FOR_VITALS" &&
+        item.status !== "BOOKED" &&
+        item.status !== "CONFIRMED" &&
+        item.status !== "SCHEDULED" &&
+        isDoctorConsultationStatus(item.status),
+    );
+  }, [mappedConsultations]);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
   const [selectedPrescriptionRecord, setSelectedPrescriptionRecord] =
     useState<ConsultationRecord | null>(null);
   const [viewPrescriptionEncounterId, setViewPrescriptionEncounterId] =
     useState<string | number | null>(null);
+  const [editingConsultationId, setEditingConsultationId] = useState<
+    string | null
+  >(null);
+  const [calledPatientIds, setCalledPatientIds] = useState<Set<string>>(
+    new Set(),
+  );
+
+  const handleEditConsultation = (id: string | number) => {
+    const idStr = String(id);
+    setEditingConsultationId(idStr);
+    onEditConsultation?.(idStr);
+  };
 
   const handleViewPrescriptionDetails = (id: string) => {
     const localRecord = consultations.find((c) => c.id === id);
@@ -612,16 +886,24 @@ export function OPDConsultationPage({
   });
 
   const handleCallPatient = async (record: ConsultationRecord) => {
-    const statusUpper = String(record.status || "")
-      .toUpperCase()
-      .replace(/[\s-]/g, "_");
-    if (!waitingStatuses.has(statusUpper as ConsultationStatus)) {
-      return;
+    setCalledPatientIds((prev) => {
+      const next = new Set(prev);
+      if (record.id) next.add(String(record.id));
+      if (record.appointmentId != null) next.add(String(record.appointmentId));
+      if (record.tokenNo) next.add(String(record.tokenNo));
+      return next;
+    });
+
+    try {
+      const primaryId = record.appointmentId || record.id;
+      const secondaryId = record.tokenNo || record.id;
+      await apiCallPatient(primaryId, secondaryId);
+      triggerToast(`Called patient ${record.patientName || ""}`);
+    } catch {
+      // non-blocking
+    } finally {
+      await refetch();
     }
-    const primaryId = record.appointmentId || record.id;
-    const secondaryId = record.tokenNo || record.id;
-    await apiCallPatient(primaryId, secondaryId);
-    await refetch();
   };
 
   const handleStartConsultation = async (
@@ -817,26 +1099,19 @@ export function OPDConsultationPage({
     );
   }
 
-  const handleCancelConsultation = async (item: ConsultationRecord) => {
-    if (
-      !window.confirm(
-        `Are you sure you want to cancel the consultation for ${item.patientName || "this patient"}?`,
-      )
-    ) {
-      return;
-    }
-    try {
-      if (item.appointmentId) {
-        await appointmentsApi.cancelAppointment(item.appointmentId, {
-          reason: "Cancelled by Doctor",
-        });
-      }
-      setToastMsg(`Consultation for ${item.patientName || item.id} cancelled.`);
-      handleRefresh();
-    } catch {
-      setToastMsg(`Failed to cancel consultation for ${item.patientName || item.id}.`);
-    }
-  };
+  if (editingConsultationId) {
+    return (
+      <EditConsultationScreen
+        consultationId={editingConsultationId}
+        onBack={() => setEditingConsultationId(null)}
+        onUpdateSuccess={() => {
+          setEditingConsultationId(null);
+          void handleRefresh();
+        }}
+        onViewHistory={onViewHistory}
+      />
+    );
+  }
 
   return (
     <div className="flex-1 bg-[#F1F5F9] overflow-y-auto flex flex-col font-sans">
@@ -855,10 +1130,12 @@ export function OPDConsultationPage({
             : "Manage outpatient consultations and patient visits efficiently."
         }
         breadcrumbs={[]}
+        onBack={() => navigate(-1)}
         actions={
           resolvedRole === "admin" ? (
             <>
-              <button
+
+             <button
                 onClick={() => setShowSummaryModal(true)}
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-sm font-semibold transition-colors shadow-sm"
                 style={{ fontFamily: PP }}
@@ -877,14 +1154,6 @@ export function OPDConsultationPage({
             </>
           ) : (
             <>
-              <button
-                onClick={onNavigateAppointments}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-sm font-semibold transition-colors shadow-sm"
-                style={{ fontFamily: PP }}
-              >
-                <Clock size={16} className="text-[#0D47A1]" />
-                Today's Queue
-              </button>
               {can("CONSULTATION_START") && hasCalledPatient && (
                 <button
                   onClick={() => handleStartConsultation(calledPatient)}
@@ -942,8 +1211,18 @@ export function OPDConsultationPage({
 
         {/* LEFT & CENTER CONTENT */}
         <div className="lg:col-span-8 xl:col-span-9 space-y-6">
-          {/* SEARCH AND FILTER BAR */}
-          <ConsultationFilters
+          {/* CONSULTATION STATUS TABS */}
+          <ConsultationTabs
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            tabs={tabs}
+          />
+
+          {/* ENTERPRISE DATA TABLE WITH EMBEDDED SEARCH & FILTERS */}
+          <ConsultationTable
+            role={resolvedRole}
+            filteredConsultations={filteredConsultations}
+            isLoading={isLoading}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             filterDate={filters.filterDate}
@@ -956,35 +1235,13 @@ export function OPDConsultationPage({
             onStatusChange={(value) => setFilter("filterStatus", value)}
             filterVisitType={filters.filterVisitType}
             onVisitTypeChange={(value) => setFilter("filterVisitType", value)}
-            onReset={handleResetFilters}
-            onApply={handleRefresh}
-            resultCount={filteredConsultations.length}
-            placeholder={
-              resolvedRole === "doctor"
-                ? "Search by Patient Name, MRN, Consultation ID or Mobile Number..."
-                : "Search by Patient Name, MRN, Consultation ID or Doctor Name..."
-            }
+            doctorOptions={doctorOptions}
+            departmentOptions={departmentOptions}
             visibleFilters={
               resolvedRole !== "doctor"
                 ? ["status", "visitType", "doctor", "department"]
                 : ["status", "visitType"]
             }
-            doctorOptions={doctorOptions}
-            departmentOptions={departmentOptions}
-          />
-
-          {/* CONSULTATION STATUS TABS */}
-          <ConsultationTabs
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            tabs={tabs}
-          />
-
-          {/* ENTERPRISE DATA TABLE */}
-          <ConsultationTable
-            role={resolvedRole}
-            filteredConsultations={filteredConsultations}
-            isLoading={isLoading}
             onStartConsultation={
               resolvedRole === "doctor"
                 ? (id) => {
@@ -999,9 +1256,7 @@ export function OPDConsultationPage({
             onCallPatient={
               resolvedRole === "doctor" ? handleCallPatient : undefined
             }
-            onCancelConsultation={
-              resolvedRole === "doctor" ? handleCancelConsultation : undefined
-            }
+            onCancelConsultation={undefined}
             onViewDetails={handleViewPrescriptionDetails}
             onViewHistory={onViewHistory}
             onPatientSelect={onPatientSelect}
@@ -1011,6 +1266,7 @@ export function OPDConsultationPage({
             onResetFilters={handleResetFilters}
             canStartConsultation={resolvedRole === "doctor"}
             canPrint={can("CONSULTATION_PRINT")}
+            calledPatientIds={calledPatientIds}
           />
         </div>
       </div>
@@ -1027,9 +1283,14 @@ export function OPDConsultationPage({
         encounterId={viewPrescriptionEncounterId}
         isOpen={Boolean(viewPrescriptionEncounterId)}
         onClose={() => setViewPrescriptionEncounterId(null)}
+        onEditConsultation={(id) => {
+          setViewPrescriptionEncounterId(null);
+          handleEditConsultation(id);
+        }}
       />
     </div>
   );
 }
 
-export const OpdConsultationCenterScreen: React.FC<OPDConsultationPageProps> = OPDConsultationPage;
+export const OpdConsultationCenterScreen: React.FC<OPDConsultationPageProps> =
+  OPDConsultationPage;

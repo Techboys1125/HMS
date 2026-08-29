@@ -14,6 +14,17 @@ const AVATAR_SIZES = {
 
 import { useState } from "react";
 
+const BASE_URL = "http://192.168.1.44:8888";
+
+function formatAvatarUrl(url?: string | null): string | null {
+  if (!url) return null;
+  if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
+    return url;
+  }
+  const cleanBase = BASE_URL.replace(/\/+$/, "");
+  return url.startsWith("/") ? `${cleanBase}${url}` : `${cleanBase}/${url}`;
+}
+
 export function Avatar({
   name,
   size = "sm",
@@ -26,7 +37,8 @@ export function Avatar({
   photoUrl?: string | null;
 }) {
   const [failedSource, setFailedSource] = useState<string | null>(null);
-  const imageSource = src || photoUrl;
+  const rawSource = src || photoUrl;
+  const imageSource = formatAvatarUrl(rawSource);
   const imageError = failedSource === imageSource;
 
   const initials = name

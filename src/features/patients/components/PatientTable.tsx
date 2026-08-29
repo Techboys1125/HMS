@@ -1,5 +1,8 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import {
+  X,
+  Filter,
+  RotateCcw,
   Edit,
   Eye,
   CheckCircle2,
@@ -7,31 +10,27 @@ import {
   Calendar,
   Users,
   UserCheck,
-  ArrowUpDown,
+  Phone,
 } from "lucide-react";
 import type { Patient } from "../types/patient.types";
+import type { PatientFilterValues } from "./PatientFilters";
 import { usePermissions } from "../../../permissions/usePermissions";
 import { extractDoctorName } from "../api/mapApiPatientToPatientRecord";
+import { DataTable, type Column } from "../../../common/components/DataTable";
 
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
 
 function calculateAge(dateOfBirth?: string): number {
   if (!dateOfBirth) return 0;
-
   const dob = new Date(dateOfBirth);
   if (Number.isNaN(dob.getTime())) return 0;
-
   const today = new Date();
-
   let age = today.getFullYear() - dob.getFullYear();
-
   const monthDiff = today.getMonth() - dob.getMonth();
-
   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
     age--;
   }
-
   return age >= 0 ? age : 0;
 }
 
@@ -44,9 +43,9 @@ const PATIENT_TABLE_COLORS = [
 ];
 
 const PATIENT_TABLE_SIZES = {
-  sm: "w-7 h-7 text-xs",
-  md: "w-9 h-9 text-sm",
-  lg: "w-11 h-11 text-base",
+  sm: "w-8 h-8 text-xs",
+  md: "w-10 h-10 text-sm",
+  lg: "w-12 h-12 text-base",
 };
 
 function Avatar({
@@ -66,7 +65,7 @@ function Avatar({
     PATIENT_TABLE_COLORS[name.charCodeAt(0) % PATIENT_TABLE_COLORS.length];
   return (
     <div
-      className={`${PATIENT_TABLE_SIZES[size]} ${color} rounded-full flex items-center justify-center text-white font-semibold shrink-0`}
+      className={`${PATIENT_TABLE_SIZES[size]} ${color} rounded-full flex items-center justify-center text-white font-semibold shrink-0 shadow-2xs`}
     >
       {initials}
     </div>
@@ -74,14 +73,17 @@ function Avatar({
 }
 
 /**
- * Single common Patient list table with RBAC system controls.
- * Column visibility, available actions, and accessibility change dynamically based on user permissions/role.
+ * Integrated Patient Workspace Container built on top of the shared common DataTable.
  */
 export function PatientTable({
   patients,
   totalCount,
   isLoading,
+  selectedPatientId,
   activeActionMenuId,
+  filterValues,
+  onFilterChange,
+  onResetFilters,
   hasActiveFilters,
   onSelectRow,
   onToggleActionMenu,
@@ -90,7 +92,6 @@ export function PatientTable({
   onBookAppointment,
   onActivatePatient,
   onDeactivatePatient,
-  onResetFilters,
   userRole,
   doctorMap,
 }: {
@@ -99,7 +100,10 @@ export function PatientTable({
   isLoading: boolean;
   selectedPatientId: string | null;
   activeActionMenuId: string | null;
-  hasActiveFilters: boolean;
+  filterValues?: PatientFilterValues;
+  onFilterChange?: (patch: Partial<PatientFilterValues>) => void;
+  onResetFilters?: () => void;
+  hasActiveFilters?: boolean;
   doctorMap?: Record<string | number, string>;
   onSelectRow: (p: Patient) => void;
   onOpenQuickView?: (p: Patient) => void;
@@ -112,7 +116,6 @@ export function PatientTable({
   onViewMedicalHistory?: (id: string) => void;
   onViewAppointments?: (id: string) => void;
   onGenerateBill?: (id: string) => void;
-  onResetFilters: () => void;
   userRole?: string;
 }) {
   const permissions = usePermissions();
@@ -122,157 +125,495 @@ export function PatientTable({
     "RECEPTIONIST"
   ).toUpperCase();
 
-  // Sorting state
-  const [sortColumn, setSortColumn] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-
-  const handleSort = (key: string) => {
-    if (key === "actions") return;
-    if (sortColumn === key) {
-      if (sortDirection === "asc") {
-        setSortDirection("desc");
-      } else {
-        setSortColumn(null);
-        setSortDirection("asc");
-      }
-    } else {
-      setSortColumn(key);
-      setSortDirection("asc");
-    }
-  };
-
-  // Sorted Patients
-  const sortedPatients = useMemo(() => {
-    if (!sortColumn) return patients;
-
-    return patients.toSorted((a, b) => {
-      let valA: string | number;
-      let valB: string | number;
-
-      switch (sortColumn) {
-        case "mrn":
-          valA = a.mrn || String(a.id);
-          valB = b.mrn || String(b.id);
-          break;
-        case "name":
-          valA = (a.patientName || a.name || "").toLowerCase();
-          valB = (b.patientName || b.name || "").toLowerCase();
-          break;
-        case "age_gender":
-          valA =
-            Number(a.age) > 0
-              ? Number(a.age)
-              : calculateAge(a.dateOfBirth || a.dob);
-          valB =
-            Number(b.age) > 0
-              ? Number(b.age)
-              : calculateAge(b.dateOfBirth || b.dob);
-          break;
-        case "phone":
-          valA = a.phone || "";
-          valB = b.phone || "";
-          break;
-        case "email":
-          valA = (a.email || "").toLowerCase();
-          valB = (b.email || "").toLowerCase();
-          break;
-        case "blood_group":
-          valA = a.bloodGroup || "";
-          valB = b.bloodGroup || "";
-          break;
-        case "category":
-          valA = (a.patientCategory || "").toLowerCase();
-          valB = (b.patientCategory || "").toLowerCase();
-          break;
-        case "reg_type":
-          valA = (a.registrationType || "").toLowerCase();
-          valB = (b.registrationType || "").toLowerCase();
-          break;
-        case "assigned_doctor":
-          valA = (
-            extractDoctorName(a, doctorMap) ||
-            a.assignedDoctor ||
-            "N/A"
-          ).toLowerCase();
-          valB = (
-            extractDoctorName(b, doctorMap) ||
-            b.assignedDoctor ||
-            "N/A"
-          ).toLowerCase();
-          break;
-        case "reg_date":
-          valA = a.registrationDate || "";
-          valB = b.registrationDate || "";
-          break;
-        case "visit_count":
-          valA = a.visitCount || 0;
-          valB = b.visitCount || 0;
-          break;
-        case "last_visit":
-          valA = a.lastVisitDate || "";
-          valB = b.lastVisitDate || "";
-          break;
-        case "next_appointment":
-          valA = a.nextAppointmentDate || "";
-          valB = b.nextAppointmentDate || "";
-          break;
-        case "status":
-          valA = (a.status || "").toLowerCase();
-          valB = (b.status || "").toLowerCase();
-          break;
-        default:
-          return 0;
-      }
-
-      if (valA < valB) return sortDirection === "asc" ? -1 : 1;
-      if (valA > valB) return sortDirection === "asc" ? 1 : -1;
-      return 0;
-    });
-  }, [patients, sortColumn, sortDirection, doctorMap]);
-
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-
-  const totalPages = Math.ceil(sortedPatients.length / pageSize);
-  const safeCurrentPage = currentPage > totalPages ? 1 : currentPage;
-  const paginatedPatients = sortedPatients.slice(
-    (safeCurrentPage - 1) * pageSize,
-    safeCurrentPage * pageSize,
-  );
-
-  // Column definitions & role-based visibility
   const isDoctor = activeRole === "DOCTOR";
   const isReceptionist = activeRole === "RECEPTIONIST";
-
-  const columns = [
-    { key: "mrn", label: "MRN", visible: true },
-    { key: "name", label: "Patient Name", visible: true },
-    { key: "age_gender", label: "Age/Gender", visible: true },
-    { key: "phone", label: "Mobile", visible: true },
-    { key: "email", label: "Email", visible: !isDoctor && !isReceptionist },
-    { key: "blood_group", label: "Blood Group", visible: isDoctor },
-    {
-      key: "category",
-      label: "Category",
-      visible: !isDoctor && !isReceptionist,
-    },
-    { key: "reg_type", label: "Reg. Type", visible: !isDoctor },
-    { key: "assigned_doctor", label: "Assigned Doctor", visible: false },
-    { key: "reg_date", label: "Registration Date", visible: !isDoctor },
-    { key: "visit_count", label: "Visit Count", visible: isDoctor },
-    { key: "last_visit", label: "Last Visit", visible: isDoctor },
-    { key: "next_appointment", label: "Next Appointment", visible: isDoctor },
-    { key: "status", label: "Status", visible: !isDoctor },
-    { key: "actions", label: "Actions", visible: true },
-  ].filter((c) => c.visible);
-
-  // RBAC Permission checks for Row Actions
   const canEdit = permissions.can("PATIENT_EDIT");
 
+  // Active filter chips
+  const activeFiltersChips = useMemo(() => {
+    if (!filterValues) return [];
+    const chips: { label: string; clear: () => void }[] = [];
+    if (filterValues.searchQuery.trim()) {
+      chips.push({
+        label: `Search: "${filterValues.searchQuery}"`,
+        clear: () => onFilterChange?.({ searchQuery: "" }),
+      });
+    }
+    if (filterValues.genderFilter && filterValues.genderFilter !== "All") {
+      chips.push({
+        label: `Gender: ${filterValues.genderFilter}`,
+        clear: () => onFilterChange?.({ genderFilter: "All" }),
+      });
+    }
+    if (filterValues.statusFilter && filterValues.statusFilter !== "All") {
+      chips.push({
+        label: `Status: ${filterValues.statusFilter}`,
+        clear: () => onFilterChange?.({ statusFilter: "All" }),
+      });
+    }
+    if (
+      filterValues.registrationTypeFilter &&
+      filterValues.registrationTypeFilter !== "All"
+    ) {
+      chips.push({
+        label: `Type: ${filterValues.registrationTypeFilter}`,
+        clear: () => onFilterChange?.({ registrationTypeFilter: "All" }),
+      });
+    }
+    return chips;
+  }, [filterValues, onFilterChange]);
+
+  // Column definitions for Patient Management with dynamic role-based visibility
+  const columns: Column<Patient>[] = useMemo(
+    () => [
+      {
+        key: "mrn",
+        label: "MRN",
+        sortable: true,
+        getValue: (p) => p.mrn || String(p.id),
+        render: (p) => {
+          const mrn = p.mrn || String(p.id);
+          return (
+            <span className="font-mono text-xs font-bold text-[#0D47A1] bg-blue-50 px-2 py-1 rounded border border-blue-100 inline-block shadow-2xs">
+              {mrn}
+            </span>
+          );
+        },
+      },
+      {
+        key: "name",
+        label: "PATIENT",
+        sortable: true,
+        getValue: (p) => (p.patientName || p.name || "").toLowerCase(),
+        render: (p) => {
+          const name = (p.patientName || p.name || "Patient").trim();
+          return (
+            <div className="flex items-center gap-3">
+              <Avatar name={name} size="sm" />
+              <span
+                className="font-bold text-[#111827] text-xs group-hover:text-[#0D47A1] transition-colors"
+                style={{ fontFamily: PP }}
+              >
+                {name}
+              </span>
+            </div>
+          );
+        },
+      },
+      {
+        key: "age_gender",
+        label: "AGE/GENDER",
+        sortable: true,
+        getValue: (p) => {
+          const rawP = p as unknown as Record<string, unknown>;
+          const dobStr =
+            p.dateOfBirth ||
+            p.dob ||
+            (rawP.birthDate as string) ||
+            (rawP.date_of_birth as string) ||
+            "";
+          return Number(p.age) > 0 ? Number(p.age) : calculateAge(dobStr);
+        },
+        render: (p) => {
+          const rawP = p as unknown as Record<string, unknown>;
+          const dobStr =
+            p.dateOfBirth ||
+            p.dob ||
+            (rawP.birthDate as string) ||
+            (rawP.date_of_birth as string) ||
+            "";
+          const calculatedAge = calculateAge(dobStr);
+          const age =
+            p.age !== undefined && p.age !== null && Number(p.age) > 0
+              ? Number(p.age)
+              : rawP.patientAge !== undefined && Number(rawP.patientAge) > 0
+                ? Number(rawP.patientAge)
+                : calculatedAge;
+          const gender =
+            p.gender === "FEMALE" || p.gender === "F"
+              ? "Female"
+              : p.gender === "MALE" || p.gender === "M"
+                ? "Male"
+                : "Other";
+
+          return (
+            <span className="text-xs text-slate-700 font-medium">
+              {age > 0 ? `${age} Y · ${gender}` : gender}
+            </span>
+          );
+        },
+      },
+      {
+        key: "phone",
+        label: "MOBILE",
+        sortable: true,
+        getValue: (p) => p.phone || "",
+        render: (p) => (
+          <div className="flex items-center gap-1.5 text-xs text-slate-700 font-mono">
+            <Phone size={12} className="text-slate-400" />
+            {p.phone || "-"}
+          </div>
+        ),
+      },
+      {
+        key: "email",
+        label: "EMAIL",
+        sortable: true,
+        visible: !isDoctor && !isReceptionist,
+        getValue: (p) => p.email || "",
+        render: (p) => (
+          <span className="text-xs text-slate-700">{p.email || "-"}</span>
+        ),
+      },
+      {
+        key: "blood_group",
+        label: "BLOOD GROUP",
+        sortable: true,
+        visible: isDoctor,
+        getValue: (p) => p.bloodGroup || "",
+        render: (p) => (
+          <span className="text-xs font-bold text-[#009688]">
+            {p.bloodGroup
+              ? p.bloodGroup
+                  .replace("_POSITIVE", "+")
+                  .replace("_NEGATIVE", "-")
+                  .replace("UNKNOWN", "N/A")
+              : "-"}
+          </span>
+        ),
+      },
+      {
+        key: "category",
+        label: "CATEGORY",
+        sortable: true,
+        visible: !isDoctor && !isReceptionist,
+        getValue: (p) => p.patientCategory || "",
+        render: (p) => (
+          <span className="text-xs text-slate-700 capitalize font-medium">
+            {(p.patientCategory || "GENERAL").toLowerCase().replace(/_/g, " ")}
+          </span>
+        ),
+      },
+      {
+        key: "reg_type",
+        label: "REG. TYPE",
+        sortable: true,
+        visible: !isDoctor,
+        getValue: (p) => p.registrationType || "",
+        render: (p) => {
+          const regType = (p.registrationType || "WALK_IN")
+            .replace(/_/g, " ")
+            .replace(/\b\w/g, (c) => c.toUpperCase());
+          return (
+            <span
+              className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+                regType.toUpperCase().includes("ONLINE")
+                  ? "bg-blue-50 text-[#0D47A1] border-blue-200"
+                  : "bg-teal-50 text-teal-700 border-teal-200"
+              }`}
+            >
+              {regType}
+            </span>
+          );
+        },
+      },
+      {
+        key: "assigned_doctor",
+        label: "ASSIGNED DOCTOR",
+        sortable: true,
+        visible: false,
+        getValue: (p) =>
+          extractDoctorName(p, doctorMap) || p.assignedDoctor || "N/A",
+        render: (p) => (
+          <div className="flex items-center gap-1.5 text-xs text-slate-700">
+            <UserCheck size={14} className="text-[#009688]" />
+            <span className="font-medium text-[#111827]">
+              {extractDoctorName(p, doctorMap) || p.assignedDoctor || "-"}
+            </span>
+          </div>
+        ),
+      },
+      {
+        key: "reg_date",
+        label: "REGISTRATION DATE",
+        sortable: true,
+        visible: !isDoctor,
+        getValue: (p) => {
+          const rawDate =
+            p.registrationDate ||
+            (p as unknown as Record<string, unknown>).registeredDate ||
+            (p as unknown as Record<string, unknown>).createdAt;
+          return rawDate ? String(rawDate) : "";
+        },
+        render: (p) => {
+          const rawDate =
+            p.registrationDate ||
+            (p as unknown as Record<string, unknown>).registeredDate ||
+            (p as unknown as Record<string, unknown>).createdAt;
+          const regDate = rawDate
+            ? typeof rawDate === "string"
+              ? rawDate.split("T")[0]
+              : String(rawDate).split("T")[0]
+            : "-";
+          return (
+            <span className="text-xs text-slate-600 font-mono">{regDate}</span>
+          );
+        },
+      },
+      {
+        key: "visit_count",
+        label: "VISIT COUNT",
+        sortable: true,
+        visible: isDoctor,
+        getValue: (p) => p.visitCount ?? 0,
+        render: (p) => (
+          <span className="text-xs text-slate-700 font-medium">
+            {p.visitCount ?? 0}
+          </span>
+        ),
+      },
+      {
+        key: "last_visit",
+        label: "LAST VISIT",
+        sortable: true,
+        visible: isDoctor,
+        getValue: (p) => p.lastVisitDate || "",
+        render: (p) => (
+          <span className="text-xs text-slate-700 font-medium">
+            {p.lastVisitDate || "-"}
+          </span>
+        ),
+      },
+      {
+        key: "next_appointment",
+        label: "NEXT APPOINTMENT",
+        sortable: true,
+        visible: isDoctor,
+        getValue: (p) => p.nextAppointmentDate || "",
+        render: (p) => (
+          <span className="text-xs text-slate-700">
+            {p.nextAppointmentDate || "-"}
+          </span>
+        ),
+      },
+      {
+        key: "status",
+        label: "STATUS",
+        sortable: true,
+        visible: !isDoctor,
+        getValue: (p) => p.status || "",
+        render: (p) => {
+          const statusStr = (p.status || "ACTIVE").toUpperCase();
+          if (statusStr === "ACTIVE") {
+            return (
+              <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-800 px-2.5 py-1 rounded-full text-[11px] font-bold border border-emerald-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Active
+              </span>
+            );
+          }
+          if (statusStr === "ADMITTED") {
+            return (
+              <span className="inline-flex items-center gap-1.5 bg-purple-50 text-purple-800 px-2.5 py-1 rounded-full text-[11px] font-bold border border-purple-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                Admitted
+              </span>
+            );
+          }
+          return (
+            <span className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full text-[11px] font-semibold border border-slate-200">
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+              {statusStr.charAt(0) + statusStr.slice(1).toLowerCase()}
+            </span>
+          );
+        },
+      },
+      {
+        key: "actions",
+        label: "ACTIONS",
+        sortable: false,
+        align: "right",
+        visible: true,
+        render: (p) => {
+          const mrn = p.mrn || String(p.id);
+          const statusStr = (p.status || "ACTIVE").toUpperCase();
+
+          return (
+            <div
+              className="flex items-center justify-end gap-1.5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => onViewProfile(mrn)}
+                className="px-2.5 py-1.5 rounded-lg bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-[11px] font-bold transition-colors shadow-2xs cursor-pointer flex items-center gap-1"
+                style={{ fontFamily: PP }}
+              >
+                <Eye size={12} /> Profile
+              </button>
+
+              {onBookAppointment && !isDoctor && (
+                <button
+                  onClick={() => onBookAppointment(p)}
+                  className="px-2.5 py-1.5 rounded-lg bg-[#009688] hover:bg-teal-700 text-white text-[11px] font-bold transition-colors shadow-2xs cursor-pointer flex items-center gap-1"
+                  style={{ fontFamily: PP }}
+                  title="Book Appointment"
+                >
+                  <Calendar size={12} /> Book
+                </button>
+              )}
+
+              {canEdit && onEditPatient && (
+                <button
+                  onClick={() => onEditPatient(p)}
+                  className="p-1.5 rounded-lg border border-[#E5E7EB] bg-white hover:bg-slate-50 text-slate-600 transition-colors cursor-pointer"
+                  title="Edit Patient Details"
+                >
+                  <Edit size={13} />
+                </button>
+              )}
+
+              {statusStr === "INACTIVE"
+                ? onActivatePatient && (
+                    <button
+                      onClick={() => onActivatePatient(p)}
+                      className="p-1.5 rounded-lg border border-teal-200 bg-teal-50 hover:bg-teal-100 text-teal-700 transition-colors cursor-pointer"
+                      title="Activate Patient"
+                    >
+                      <CheckCircle2 size={13} />
+                    </button>
+                  )
+                : onDeactivatePatient && (
+                    <button
+                      onClick={() => onDeactivatePatient(p)}
+                      className="p-1.5 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 transition-colors cursor-pointer"
+                      title="Deactivate Patient"
+                    >
+                      <AlertTriangle size={13} />
+                    </button>
+                  )}
+            </div>
+          );
+        },
+      },
+    ],
+    [
+      isDoctor,
+      isReceptionist,
+      doctorMap,
+      canEdit,
+      onViewProfile,
+      onBookAppointment,
+      onEditPatient,
+      onActivatePatient,
+      onDeactivatePatient,
+    ],
+  );
+
+  // Filter selectors row JSX
+  const filterToolbar = filterValues && onFilterChange && (
+    <div className="bg-slate-50/80 border border-[#E5E7EB] rounded-xl p-2.5 shadow-2xs">
+      {/* Compact Filter Selectors Row */}
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Gender Filter */}
+          <div className="flex items-center gap-1 px-2.5 py-1 bg-white border border-[#E5E7EB] rounded-lg text-slate-700 font-medium">
+            <span className="text-slate-400 text-[11px]">Gender:</span>
+            <select
+              aria-label="Gender filter"
+              value={filterValues.genderFilter}
+              onChange={(e) => onFilterChange({ genderFilter: e.target.value })}
+              className="bg-transparent font-semibold outline-none cursor-pointer text-[#0D47A1] text-xs"
+            >
+              <option value="All">All Genders</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          {/* Status Filter */}
+          <div className="flex items-center gap-1 px-2.5 py-1 bg-white border border-[#E5E7EB] rounded-lg text-slate-700 font-medium">
+            <span className="text-slate-400 text-[11px]">Status:</span>
+            <select
+              aria-label="Status filter"
+              value={filterValues.statusFilter}
+              onChange={(e) => onFilterChange({ statusFilter: e.target.value })}
+              className="bg-transparent font-semibold outline-none cursor-pointer text-[#0D47A1] text-xs"
+            >
+              <option value="All">All Statuses</option>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+              <option value="Admitted">Admitted</option>
+              <option value="Discharged">Discharged</option>
+            </select>
+          </div>
+
+          {/* Registration Type Filter */}
+          <div className="flex items-center gap-1 px-2.5 py-1 bg-white border border-[#E5E7EB] rounded-lg text-slate-700 font-medium">
+            <span className="text-slate-400 text-[11px]">Type:</span>
+            <select
+              aria-label="Registration type filter"
+              value={filterValues.registrationTypeFilter}
+              onChange={(e) =>
+                onFilterChange({ registrationTypeFilter: e.target.value })
+              }
+              className="bg-transparent font-semibold outline-none cursor-pointer text-[#0D47A1] text-xs"
+            >
+              <option value="All">All Reg Types</option>
+              <option value="ONLINE">Online</option>
+              <option value="WALK_IN">Walk-In</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Clear All Filters Button */}
+        {hasActiveFilters && onResetFilters && (
+          <button
+            onClick={onResetFilters}
+            className="px-2.5 py-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer shadow-2xs shrink-0"
+            style={{ fontFamily: PP }}
+          >
+            <RotateCcw size={12} /> Clear Filters
+          </button>
+        )}
+      </div>
+
+      {/* Active Filter Chips Strip */}
+      {activeFiltersChips.length > 0 && (
+        <div className="flex items-center flex-wrap gap-1.5 pt-1.5 mt-1.5 border-t border-slate-200/70 text-xs">
+          <span className="text-[11px] font-medium text-slate-500 mr-1 flex items-center gap-1">
+            <Filter size={11} /> Active filters:
+          </span>
+          {activeFiltersChips.map((chip, idx) => (
+            <span
+              key={idx}
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-[#0D47A1] border border-blue-200 text-[11px] font-semibold"
+            >
+              {chip.label}
+              <button
+                onClick={chip.clear}
+                className="hover:text-red-600 rounded-full p-0.2 cursor-pointer"
+              >
+                <X size={11} />
+              </button>
+            </span>
+          ))}
+          {onResetFilters && (
+            <button
+              onClick={onResetFilters}
+              className="text-[11px] text-[#0D47A1] hover:underline font-bold ml-2 cursor-pointer"
+            >
+              Clear all
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+
   return (
-    <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
-      {/* Click-outside Backdrop for Actions Dropdown */}
+    <>
+      {/* Backdrop for action popup menus */}
       {activeActionMenuId && (
         <div
           role="presentation"
@@ -281,426 +622,50 @@ export function PatientTable({
         />
       )}
 
-      {/* Table Header Section */}
-      <div className="px-6 py-4 border-b border-[#E5E7EB] flex items-center justify-between bg-slate-50/50">
-        <h2
-          className="text-sm font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2"
-          style={{ fontFamily: PP }}
-        >
-          <Users size={18} className="text-[#0D47A1]" /> All Patients
-        </h2>
-        <div className="text-xs font-semibold text-[#64748B] bg-white px-2.5 py-1 rounded-lg border border-[#E5E7EB] shadow-sm">
-          Showing {sortedPatients.length} of {totalCount}{" "}
-          {totalCount === 1 ? "entity" : "entities"}
-        </div>
-      </div>
-      {isLoading ? (
-        /* SKELETON TABLE LOADING STATE */
-        <div className="p-6 space-y-4 animate-pulse">
-          <div className="h-10 bg-slate-100 rounded-xl w-full" />
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div
-              key={i}
-              className="h-12 bg-slate-50 rounded-xl w-full flex items-center justify-between px-4"
-            >
-              <div className="w-20 h-4 bg-slate-200 rounded" />
-              <div className="w-32 h-4 bg-slate-200 rounded" />
-              <div className="w-16 h-4 bg-slate-200 rounded" />
-              <div className="w-28 h-4 bg-slate-200 rounded" />
-              <div className="w-24 h-4 bg-slate-200 rounded" />
-              <div className="w-16 h-6 bg-slate-200 rounded-full" />
-            </div>
-          ))}
-        </div>
-      ) : sortedPatients.length === 0 ? (
-        /* EMPTY STATE */
-        <div className="flex-1 p-12 flex flex-col items-center justify-center text-center">
-          <div className="w-16 h-16 rounded-full bg-blue-50 text-[#0D47A1] flex items-center justify-center mb-4 shadow-inner">
-            <Users size={32} />
-          </div>
-          <h3
-            className="text-lg font-bold text-[#111827] mb-1"
-            style={{ fontFamily: PP }}
-          >
-            No patients found.
-          </h3>
-          <p
-            className="text-xs text-[#64748B] max-w-sm mb-6"
+      {/* Common Shared DataTable Component */}
+      <DataTable
+        data={patients}
+        columns={columns}
+        loading={isLoading}
+        getRowId={(p) => p.mrn || String(p.id)}
+        selectedRowId={selectedPatientId}
+        onRowClick={onSelectRow}
+        title={
+          <>
+            <Users size={18} className="text-[#0D47A1]" /> Patient Queue
+            Workspace
+          </>
+        }
+        subtitle="Real-time patient registry, identity details, and clinical actions."
+        headerBadge={
+          <span
+            className="text-xs font-semibold text-[#0D47A1] bg-blue-50 px-3 py-1 rounded-xl border border-blue-100"
             style={{ fontFamily: RB }}
           >
-            We couldn&apos;t find any patient records matching your current
-            search query or applied filters.
-          </p>
-          <div className="flex items-center gap-3">
-            {hasActiveFilters && (
-              <button
-                onClick={onResetFilters}
-                className="px-4 py-2 rounded-xl border border-[#E5E7EB] text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
-              >
-                Reset Search &amp; Filters
-              </button>
-            )}
-          </div>
-        </div>
-      ) : (
-        /* COMMON PATIENT TABLE */
-        <div className="overflow-x-auto max-h-150 overflow-y-auto">
-          <table className="w-full border-collapse text-left text-xs">
-            <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB] z-10">
-              <tr
-                className="text-[#64748B] font-bold"
-                style={{ fontFamily: PP }}
-              >
-                {columns.map((col) => {
-                  const isActions = col.key === "actions";
-
-                  return (
-                    <th
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          (e.currentTarget as HTMLElement).click();
-                        }
-                      }}
-                      key={col.key}
-                      onClick={() => handleSort(col.key)}
-                      className={`px-4 py-3.5 ${
-                        isActions
-                          ? "text-right cursor-default"
-                          : "cursor-pointer hover:text-[#0D47A1] transition-colors"
-                      }`}
-                      style={{ fontFamily: PP }}
-                    >
-                      <div
-                        className={`flex items-center gap-1 ${isActions ? "justify-end" : ""}`}
-                      >
-                        <span>{col.label}</span>
-                        {!isActions && (
-                          <ArrowUpDown size={12} className="text-slate-400" />
-                        )}
-                      </div>
-                    </th>
-                  );
-                })}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {paginatedPatients.map((p) => {
-                const mrn = p.mrn || String(p.id);
-                const name = (p.patientName || p.name || "").trim();
-                const rawP = p as unknown as Record<string, unknown>;
-                const dobStr =
-                  p.dateOfBirth ||
-                  p.dob ||
-                  (rawP.birthDate as string) ||
-                  (rawP.date_of_birth as string) ||
-                  "";
-                const calculatedAge = calculateAge(dobStr);
-                const age =
-                  p.age !== undefined && p.age !== null && Number(p.age) > 0
-                    ? Number(p.age)
-                    : rawP.patientAge !== undefined &&
-                        Number(rawP.patientAge) > 0
-                      ? Number(rawP.patientAge)
-                      : calculatedAge;
-                const gender =
-                  p.gender === "FEMALE" || p.gender === "F"
-                    ? "Female"
-                    : p.gender === "MALE" || p.gender === "M"
-                      ? "Male"
-                      : "-";
-                const phone = p.phone || "-";
-                const email = p.email || "-";
-                const category = (p.patientCategory || "GENERAL")
-                  .toLowerCase()
-                  .replace(/_/g, " ");
-                const regType = (p.registrationType || "WALK_IN")
-                  .replace(/_/g, " ")
-                  .replace(/\b\w/g, (c) => c.toUpperCase());
-                const rawDate =
-                  p.registrationDate ||
-                  (p as unknown as Record<string, unknown>).registeredDate ||
-                  (p as unknown as Record<string, unknown>).createdAt;
-                const regDate = rawDate
-                  ? typeof rawDate === "string"
-                    ? rawDate.split("T")[0]
-                    : String(rawDate).split("T")[0]
-                  : "-";
-                const status = p.status || "Active";
-
-                return (
-                  <tr
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        (e.currentTarget as HTMLElement).click();
-                      }
-                    }}
-                    key={mrn}
-                    className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
-                    onClick={() => onSelectRow(p)}
-                  >
-                    {columns.some((c) => c.key === "mrn") && (
-                      <td className="px-4 py-3.5 whitespace-nowrap">
-                        <span className="font-mono text-xs font-semibold text-[#0D47A1] bg-blue-50 px-2 py-1 rounded-lg border border-blue-100">
-                          {mrn}
-                        </span>
-                      </td>
-                    )}
-
-                    {columns.some((c) => c.key === "name") && (
-                      <td className="px-4 py-3.5 whitespace-nowrap">
-                        <div className="flex items-center gap-3">
-                          <Avatar name={name} size="sm" />
-                          <div>
-                            <span
-                              className="text-xs font-bold text-[#111827] block"
-                              style={{ fontFamily: PP }}
-                            >
-                              {name}
-                            </span>
-                          </div>
-                        </div>
-                      </td>
-                    )}
-
-                    {columns.some((c) => c.key === "age_gender") && (
-                      <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700 font-medium">
-                        {age > 0 ? `${age} Y · ${gender}` : gender}
-                      </td>
-                    )}
-
-                    {columns.some((c) => c.key === "phone") && (
-                      <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700 font-mono">
-                        {phone}
-                      </td>
-                    )}
-
-                    {columns.some((c) => c.key === "email") && (
-                      <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
-                        {email}
-                      </td>
-                    )}
-
-                    {columns.some((c) => c.key === "blood_group") && (
-                      <td className="px-4 py-3.5 whitespace-nowrap text-xs font-bold text-[#009688]">
-                        {p.bloodGroup
-                          ? p.bloodGroup
-                              .replace("_POSITIVE", "+")
-                              .replace("_NEGATIVE", "-")
-                              .replace("UNKNOWN", "N/A")
-                              .replace("N/A", "N/A")
-                          : "-"}
-                      </td>
-                    )}
-
-                    {columns.some((c) => c.key === "category") && (
-                      <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
-                        <span className="font-medium capitalize">
-                          {category}
-                        </span>
-                      </td>
-                    )}
-
-                    {columns.some((c) => c.key === "reg_type") && (
-                      <td className="px-4 py-3.5 whitespace-nowrap">
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
-                            regType.toUpperCase().includes("ONLINE")
-                              ? "bg-blue-50 text-[#0D47A1] border-blue-200"
-                              : "bg-purple-50 text-purple-700 border-purple-200"
-                          }`}
-                        >
-                          {regType}
-                        </span>
-                      </td>
-                    )}
-
-                    {columns.some((c) => c.key === "assigned_doctor") && (
-                      <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
-                        <div className="flex items-center gap-1.5">
-                          <UserCheck size={14} className="text-[#009688]" />
-                          <span className="font-medium text-[#111827]">
-                            {extractDoctorName(p, doctorMap) ||
-                              p.assignedDoctor ||
-                              "-"}
-                          </span>
-                        </div>
-                      </td>
-                    )}
-                    {columns.some((c) => c.key === "reg_date") && (
-                      <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-600">
-                        {regDate}
-                      </td>
-                    )}
-
-                    {columns.some((c) => c.key === "visit_count") && (
-                      <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700 font-medium">
-                        {p.visitCount ?? 0}
-                      </td>
-                    )}
-
-                    {columns.some((c) => c.key === "last_visit") && (
-                      <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700 font-medium">
-                        {p.lastVisitDate || "-"}
-                      </td>
-                    )}
-
-                    {columns.some((c) => c.key === "next_appointment") && (
-                      <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
-                        {p.nextAppointmentDate || "-"}
-                      </td>
-                    )}
-
-                    {columns.some((c) => c.key === "status") && (
-                      <td className="px-4 py-3.5 whitespace-nowrap">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 capitalize">
-                          {status.toLowerCase().replace(/_/g, " ")}
-                        </span>
-                      </td>
-                    )}
-
-                    {columns.some((c) => c.key === "actions") && (
-                      <td
-                        className="px-4 py-3.5 whitespace-nowrap text-right relative z-30"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div className="flex items-center justify-end gap-1">
-                          <button
-                            onClick={() => onViewProfile(mrn)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors"
-                            title="View Patient Profile"
-                          >
-                            <Eye size={15} />
-                          </button>
-
-                          {canEdit && onEditPatient && (
-                            <button
-                              onClick={() => onEditPatient(p)}
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-colors"
-                              title="Edit Patient Profile"
-                            >
-                              <Edit size={15} />
-                            </button>
-                          )}
-
-                          {onBookAppointment && !isDoctor && (
-                            <button
-                              onClick={() => onBookAppointment(p)}
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-purple-600 hover:bg-purple-50 transition-colors"
-                              title="Book Appointment"
-                            >
-                              <Calendar size={15} />
-                            </button>
-                          )}
-
-                          {status.toUpperCase() === "INACTIVE"
-                            ? onActivatePatient && (
-                                <button
-                                  onClick={() => onActivatePatient(p)}
-                                  className="p-1.5 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-colors"
-                                  title="Activate Patient"
-                                >
-                                  <CheckCircle2 size={15} />
-                                </button>
-                              )
-                            : onDeactivatePatient && (
-                                <button
-                                  onClick={() => onDeactivatePatient(p)}
-                                  className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                                  title="Deactivate Patient"
-                                >
-                                  <AlertTriangle size={15} />
-                                </button>
-                              )}
-                        </div>
-                      </td>
-                    )}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* TABLE FOOTER / PAGINATION */}
-      {!isLoading && patients.length > 0 && (
-        <div className="px-4 py-3 bg-slate-50 border-t border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#64748B]">
-          <div className="flex items-center gap-3">
-            <span>
-              Showing{" "}
-              <span className="font-bold text-[#111827]">
-                {sortedPatients.length > 0
-                  ? (safeCurrentPage - 1) * pageSize + 1
-                  : 0}
-              </span>{" "}
-              to{" "}
-              <span className="font-bold text-[#111827]">
-                {Math.min(safeCurrentPage * pageSize, sortedPatients.length)}
-              </span>{" "}
-              of{" "}
-              <span className="font-bold text-[#111827]">
-                {sortedPatients.length}
-              </span>{" "}
-              patients (total {totalCount})
-            </span>
-            <div className="flex items-center gap-1.5 ml-2 border-l border-slate-200 pl-3">
-              <span>Rows:</span>
-              <select
-                aria-label="Select option"
-                value={pageSize}
-                onChange={(e) => {
-                  setPageSize(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                className="bg-white border border-[#E5E7EB] rounded-lg px-2 py-1 font-semibold text-[#111827] outline-none"
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
+            Showing {patients.length} of {totalCount} Patients
+          </span>
+        }
+        searchable={true}
+        searchPlaceholder=" Search patient by Name, MRN, Phone number, or Email..."
+        searchValue={filterValues?.searchQuery}
+        onSearchChange={(val) => onFilterChange?.({ searchQuery: val })}
+        toolbar={filterToolbar}
+        emptyTitle="No patient records match criteria."
+        emptySubtitle="Try adjusting your search query or clear applied filters to view all hospital patients."
+        emptyAction={
+          hasActiveFilters && onResetFilters ? (
             <button
-              disabled={safeCurrentPage === 1}
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              className="px-3 py-1.5 text-xs text-slate-700 bg-white border border-[#E5E7EB] rounded-lg font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              onClick={onResetFilters}
+              className="px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-colors cursor-pointer"
+              style={{ fontFamily: PP }}
             >
-              Previous
+              Reset All Filters
             </button>
-            <div className="flex items-center gap-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setCurrentPage(p)}
-                  className={`w-7 h-7 rounded-lg text-xs font-bold transition-colors ${
-                    safeCurrentPage === p
-                      ? "bg-[#0D47A1] text-white"
-                      : "bg-white border border-[#E5E7EB] text-slate-700 hover:bg-slate-50"
-                  }`}
-                >
-                  {p}
-                </button>
-              ))}
-            </div>
-            <button
-              disabled={safeCurrentPage >= totalPages}
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              className="px-3 py-1.5 text-xs text-slate-700 bg-white border border-[#E5E7EB] rounded-lg font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              Next
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+          ) : undefined
+        }
+        pagination={true}
+        totalCount={totalCount}
+      />
+    </>
   );
 }

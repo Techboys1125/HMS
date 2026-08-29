@@ -203,6 +203,9 @@ export interface ConsultationFormData {
   followupRequired: boolean;
   nextVisitDate: string;
   followupNotes: string;
+  followUpType?: string;
+  followUpIntervalValue?: number | string;
+  followUpIntervalUnit?: string;
 }
 
 export interface TimelineConsultationItem {

@@ -16,6 +16,7 @@ import {
   AlertCircle,
   Shield,
   BarChartIcon,
+  ArrowLeft,
 } from "lucide-react";
 
 import {
@@ -133,7 +134,7 @@ export function ReceptionistDashboardKpiDetailScreen({
     >
       {/* Top Header Section */}
       <div className="bg-white border-b border-[#E5E7EB] sticky top-0 z-20 shadow-sm">
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 xl:px-10 py-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
@@ -176,6 +177,15 @@ export function ReceptionistDashboardKpiDetailScreen({
 
             {/* Header Actions */}
             <div className="flex items-center gap-3 flex-wrap">
+              <button
+                type="button"
+                onClick={() => (onBack ? onBack() : window.history.back())}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#E5E7EB] bg-white text-xs font-semibold text-[#111827] hover:bg-slate-50 transition-all shadow-2xs cursor-pointer mr-1"
+                style={{ fontFamily: PP }}
+              >
+                <ArrowLeft size={14} />
+                Back
+              </button>
               <div className="hidden lg:flex items-center gap-2 text-xs text-[#64748B] bg-slate-50 border border-[#E5E7EB] px-3 py-2 rounded-xl">
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
@@ -222,7 +232,7 @@ export function ReceptionistDashboardKpiDetailScreen({
       </div>
 
       {/* Main Container */}
-      <div className="w-full px-4 sm:px-6 lg:px-8 mt-6">
+      <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 xl:px-10 mt-6">
         {/* SELECTED KPI LARGE HIGHLIGHT CARD & SWITCHER */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm mb-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-[#E5E7EB] pb-4 mb-4">

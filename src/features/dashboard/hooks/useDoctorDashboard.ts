@@ -35,10 +35,10 @@ export function useDoctorNextPatient() {
   });
 }
 
-export function useDoctorTodayAppointments() {
+export function useDoctorTodayAppointments(doctorId?: string | number, date?: string) {
   return useQuery({
-    queryKey: doctorKeys.todayAppointments(),
-    queryFn: doctorDashboardApi.getTodayAppointments,
+    queryKey: [...doctorKeys.todayAppointments(), doctorId, date] as const,
+    queryFn: () => doctorDashboardApi.getTodayAppointments(doctorId, date),
     refetchInterval: 30000,
   });
 }

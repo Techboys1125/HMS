@@ -31,7 +31,7 @@ import { RescheduleAppointmentConfirmationDialog } from "../../appointments/comp
 import { BookAppointmentScreen } from "../../appointments/pages/BookAppointmentScreen";
 import { appointmentService } from "../../appointments/services/appointment.service";
 import { appointmentsApi } from "../../appointments/api/appointments.api";
-import { Pagination } from "../../../common/components/Pagination";
+import { DataTable} from "../../../common/components/DataTable";
 import type { ApiResponse } from "../../auth/types/auth.types";
 import { to24Hour } from "../../../lib/time-utils";
 import { downloadAppointmentSlipPdf } from "../../../utils/appointmentPdf.utils";
@@ -859,7 +859,6 @@ export function PatientAppointmentsScreen({
 
   // Pagination
   const pageSize = 10;
-  const totalPages = Math.ceil(filteredAppointments.length / pageSize);
   const paginatedAppointments = filteredAppointments.slice(
     (booking.currentPage - 1) * pageSize,
     booking.currentPage * pageSize,
@@ -1147,120 +1146,9 @@ export function PatientAppointmentsScreen({
       )}
 
       {/* ── 3. MAIN CONTENT LAYOUT (8 COLS LEFT, 4 COLS RIGHT) ── */}
-      <div className="grid grid-cols-1  gap-6">
-        {/* Left Column (8 cols): Search, Filters, Tabs & List */}
+      <div className="grid grid-cols-1 gap-6">
+        {/* Left Column (8 cols): Tabs & List */}
         <div className="lg:col-span-8 space-y-4">
-          {/* Search & Filter Bar */}
-          <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
-            {/* Search Input (Full Width Row) */}
-            <div className="relative w-full">
-              <Search
-                size={15}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-              />
-              <input
-                aria-label="Input field"
-                type="text"
-                value={filterState.searchQuery}
-                onChange={(e) =>
-                  filterDispatch({
-                    type: "SET_FILTER",
-                    field: "searchQuery",
-                    value: e.target.value,
-                  })
-                }
-                placeholder="Search by Doctor Name, Appointment ID, Department..."
-                className="w-full pl-9 pr-3.5 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-              />
-            </div>
-
-            {/* Filter Dropdowns & Controls */}
-            <div className="flex items-center gap-2 flex-wrap pt-1 border-t border-slate-100">
-              <div className="flex items-center gap-1 text-xs text-[#64748B] font-medium">
-                <Filter size={13} />
-                <span>Filters:</span>
-              </div>
-
-              {/* Status Filter */}
-              <select
-                aria-label="Select option"
-                value={filterState.statusFilter}
-                onChange={(e) =>
-                  filterDispatch({
-                    type: "SET_FILTER",
-                    field: "statusFilter",
-                    value: e.target.value,
-                  })
-                }
-                className="px-2.5 py-1.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-              >
-                <option value="All">All Statuses</option>
-                <option value="Confirmed">Confirmed</option>
-                <option value="Scheduled">Scheduled</option>
-                <option value="Pending">Pending</option>
-                <option value="Completed">Completed</option>
-                <option value="Cancelled">Cancelled</option>
-                <option value="No Show">No Show</option>
-              </select>
-
-              {/* Department Filter */}
-              <select
-                aria-label="Select option"
-                value={filterState.deptFilter}
-                onChange={(e) =>
-                  filterDispatch({
-                    type: "SET_FILTER",
-                    field: "deptFilter",
-                    value: e.target.value,
-                  })
-                }
-                className="px-2.5 py-1.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-              >
-                <option value="All">All Departments</option>
-                <option value="Cardiology">Cardiology</option>
-                <option value="General Medicine">General Medicine</option>
-                <option value="Neurology">Neurology</option>
-                <option value="Gynecology">Gynecology</option>
-                <option value="Pediatrics">Pediatrics</option>
-              </select>
-
-              {/* Date Range Filter */}
-              <select
-                aria-label="Select option"
-                value={filterState.dateRangeFilter}
-                onChange={(e) =>
-                  filterDispatch({
-                    type: "SET_FILTER",
-                    field: "dateRangeFilter",
-                    value: e.target.value,
-                  })
-                }
-                className="px-2.5 py-1.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-              >
-                <option value="All">All Date Ranges</option>
-                <option value="Today">Today</option>
-                <option value="This Week">This Week</option>
-                <option value="This Month">This Month</option>
-              </select>
-
-              {/* Reset Filters Action */}
-              {(filterState.deptFilter !== "All" ||
-                filterState.doctorFilter !== "All" ||
-                filterState.statusFilter !== "All" ||
-                filterState.visitTypeFilter !== "All" ||
-                filterState.dateRangeFilter !== "All" ||
-                filterState.searchQuery ||
-                filterState.activeTab !== "all") && (
-                <button
-                  onClick={handleResetFilters}
-                  className="text-xs text-[#0D47A1] font-semibold hover:underline px-2 py-1 flex items-center gap-1"
-                >
-                  <RefreshCw size={12} /> Reset Filters
-                </button>
-              )}
-            </div>
-          </div>
-
           {/* Status Tabs Navigation */}
           <div className="flex items-center gap-2 border-b border-[#E5E7EB] pb-0.5 overflow-x-auto">
             {[
@@ -1277,7 +1165,10 @@ export function PatientAppointmentsScreen({
                     filterDispatch({
                       type: "SET_ACTIVE_TAB",
                       tab: tab.id as
-                        "all" | "upcoming" | "completed" | "cancelled",
+                        | "all"
+                        | "upcoming"
+                        | "completed"
+                        | "cancelled",
                     })
                   }
                   className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold transition-colors border-b-2 -mb-0.5 whitespace-nowrap ${
@@ -1303,50 +1194,225 @@ export function PatientAppointmentsScreen({
           </div>
 
           {/* Main Appointment Workspace */}
-          {filteredAppointments.length === 0 ? (
-            /* Empty State */
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-12 text-center shadow-sm">
-              <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-4 text-[#0D47A1]">
-                <Calendar size={32} />
-              </div>
-              <h3
-                className="text-base font-bold text-[#111827]"
-                style={{ fontFamily: PP }}
-              >
-                No appointments found
-              </h3>
-              <p className="text-xs text-[#64748B] mt-1 max-w-sm mx-auto">
-                No appointments found. You don't have any appointments matching
-                your search criteria.
-              </p>
-            </div>
-          ) : (
-            <>
-              {/* Desktop Table (Hidden on mobile/tablet) */}
-              <div className="hidden md:block bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table
-                    className="w-full text-left text-xs"
-                    style={{ fontFamily: RB }}
+          <div className="hidden md:block">
+            <DataTable<PatientAppointment>
+              data={filteredAppointments}
+              title="My Appointments"
+              subtitle="Manage your upcoming and previous outpatient appointments."
+              headerBadge={
+                <span className="text-xs font-semibold text-[#0D47A1] bg-blue-50 px-3 py-1 rounded-xl border border-blue-100 font-mono">
+                  {filteredAppointments.length} Appointments
+                </span>
+              }
+              searchable={true}
+              searchPlaceholder="🔍 Search by Doctor Name, Appointment ID, Department..."
+              searchValue={filterState.searchQuery}
+              onSearchChange={(val) =>
+                filterDispatch({
+                  type: "SET_FILTER",
+                  field: "searchQuery",
+                  value: val,
+                })
+              }
+              emptyTitle="No appointments found"
+              emptySubtitle="You don't have any appointments matching your search criteria."
+              emptyIcon={<Calendar size={28} />}
+              emptyAction={
+                (filterState.deptFilter !== "All" ||
+                  filterState.statusFilter !== "All" ||
+                  filterState.dateRangeFilter !== "All" ||
+                  filterState.searchQuery) ? (
+                  <button
+                    onClick={handleResetFilters}
+                    className="px-4 py-2 bg-[#0D47A1] text-white text-xs font-semibold rounded-xl hover:bg-blue-900 cursor-pointer"
+                    style={{ fontFamily: PP }}
                   >
-                    <thead>
-                      <tr className="bg-slate-50 border-b border-[#E5E7EB] text-[#64748B] uppercase tracking-wider text-[10px]">
-                        <th className="px-4 py-3.5 font-bold">
-                          Appointment ID
-                        </th>
-                        <th className="px-4 py-3.5 font-bold">Patient Name</th>
-                        <th className="px-4 py-3.5 font-bold">Doctor</th>
-                        <th className="px-4 py-3.5 font-bold">Department</th>
-                        <th className="px-4 py-3.5 font-bold">Date</th>
-                        <th className="px-4 py-3.5 font-bold">Time</th>
-                        <th className="px-4 py-3.5 font-bold">Status</th>
-                        <th className="px-4 py-3.5 font-bold text-right">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#E5E7EB] text-[#111827]">
-                      {paginatedAppointments.map((appt) => {
+                    Clear Filters
+                  </button>
+                ) : undefined
+              }
+                  toolbar={
+                    <div className="bg-slate-50/80 border border-[#E5E7EB] rounded-xl p-2.5 space-y-2 shadow-2xs text-xs">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-2.5 py-1 rounded-lg text-slate-700 font-medium">
+                          <Calendar size={13} className="text-slate-400" />
+                          <span className="text-slate-400 text-[11px]">Date:</span>
+                          <select
+                            value={filterState.dateRangeFilter}
+                            onChange={(e) =>
+                              filterDispatch({
+                                type: "SET_FILTER",
+                                field: "dateRangeFilter",
+                                value: e.target.value,
+                              })
+                            }
+                            className="bg-transparent font-semibold text-[#0D47A1] outline-none cursor-pointer text-xs"
+                          >
+                            <option value="All">All Dates</option>
+                            <option value="Today">Today</option>
+                            <option value="This Week">This Week</option>
+                            <option value="This Month">This Month</option>
+                          </select>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-2.5 py-1 rounded-lg text-slate-700 font-medium">
+                          <Filter size={13} className="text-slate-400" />
+                          <span className="text-slate-400 text-[11px]">Status:</span>
+                          <select
+                            value={filterState.statusFilter}
+                            onChange={(e) =>
+                              filterDispatch({
+                                type: "SET_FILTER",
+                                field: "statusFilter",
+                                value: e.target.value,
+                              })
+                            }
+                            className="bg-transparent font-semibold text-[#0D47A1] outline-none cursor-pointer text-xs"
+                          >
+                            <option value="All">All Statuses</option>
+                            <option value="Confirmed">Confirmed</option>
+                            <option value="Scheduled">Scheduled</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Cancelled">Cancelled</option>
+                            <option value="No Show">No Show</option>
+                          </select>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-2.5 py-1 rounded-lg text-slate-700 font-medium">
+                          <span className="text-slate-400 text-[11px]">Department:</span>
+                          <select
+                            value={filterState.deptFilter}
+                            onChange={(e) =>
+                              filterDispatch({
+                                type: "SET_FILTER",
+                                field: "deptFilter",
+                                value: e.target.value,
+                              })
+                            }
+                            className="bg-transparent font-semibold text-[#0D47A1] outline-none cursor-pointer text-xs"
+                          >
+                            <option value="All">All Departments</option>
+                            <option value="Cardiology">Cardiology</option>
+                            <option value="General Medicine">General Medicine</option>
+                            <option value="Neurology">Neurology</option>
+                            <option value="Gynecology">Gynecology</option>
+                            <option value="Pediatrics">Pediatrics</option>
+                          </select>
+                        </div>
+
+                        {(filterState.deptFilter !== "All" ||
+                          filterState.statusFilter !== "All" ||
+                          filterState.dateRangeFilter !== "All" ||
+                          filterState.searchQuery) && (
+                          <button
+                            onClick={handleResetFilters}
+                            className="px-2.5 py-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer shadow-2xs shrink-0 ml-auto"
+                            style={{ fontFamily: PP }}
+                          >
+                            <RefreshCw size={12} /> Clear Filters
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  }
+                  columns={[
+                    {
+                      key: "id",
+                      label: "APPOINTMENT ID",
+                      sortable: true,
+                      getValue: (appt) => appt.id,
+                      render: (appt) => (
+                        <span className="font-mono font-bold text-[#0D47A1]">
+                          {appt.id}
+                        </span>
+                      ),
+                    },
+                    {
+                      key: "patientName",
+                      label: "PATIENT NAME",
+                      sortable: true,
+                      getValue: (appt) => appt.patientName || activePatient?.name || "Patient",
+                      render: (appt) => (
+                        <span className="font-bold text-[#111827]">
+                          {appt.patientName || activePatient?.name || "Patient"}
+                        </span>
+                      ),
+                    },
+                    {
+                      key: "doctor",
+                      label: "DOCTOR",
+                      sortable: true,
+                      getValue: (appt) => appt.doctor,
+                      render: (appt) => (
+                        <div>
+                          <div className="font-bold text-[#111827]">
+                            {appt.doctor}
+                          </div>
+                          <div className="text-[11px] text-[#64748B]">
+                            {appt.specialty}
+                          </div>
+                        </div>
+                      ),
+                    },
+                    {
+                      key: "department",
+                      label: "DEPARTMENT",
+                      sortable: true,
+                      getValue: (appt) => appt.department,
+                      render: (appt) => (
+                        <span className="text-slate-700 font-medium">
+                          {appt.department}
+                        </span>
+                      ),
+                    },
+                    {
+                      key: "date",
+                      label: "DATE",
+                      sortable: true,
+                      getValue: (appt) => appt.date,
+                      render: (appt) => (
+                        <span className="font-medium text-[#111827]">
+                          {appt.date}
+                        </span>
+                      ),
+                    },
+                    {
+                      key: "time",
+                      label: "TIME",
+                      sortable: true,
+                      getValue: (appt) => appt.time,
+                      render: (appt) => (
+                        <span className="text-[#0D47A1] font-semibold">
+                          {formatDisplayTime(appt.time)}
+                        </span>
+                      ),
+                    },
+                    {
+                      key: "status",
+                      label: "STATUS",
+                      sortable: true,
+                      getValue: (appt) => appt.status,
+                      render: (appt) => {
+                        const st = getAppointmentStatusStyle(appt.status);
+                        return (
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${st.badgeClass}`}
+                          >
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full ${st.dotClass}`}
+                            />
+                            {st.label}
+                          </span>
+                        );
+                      },
+                    },
+                    {
+                      key: "actions",
+                      label: "ACTIONS",
+                      sortable: false,
+                      align: "right",
+                      render: (appt) => {
                         const isUpcoming = [
                           "Confirmed",
                           "Scheduled",
@@ -1354,108 +1420,30 @@ export function PatientAppointmentsScreen({
                           "Pending",
                         ].includes(appt.status);
                         return (
-                          <tr
-                            key={appt.id}
-                            className="hover:bg-slate-50 transition-colors"
-                          >
-                            {/* Appointment ID */}
-                            <td className="px-4 py-4 font-mono font-bold text-[#0D47A1]">
-                              {appt.id}
-                            </td>
-
-                            {/* Patient Name */}
-                            <td className="px-4 py-4 font-bold text-[#111827]">
-                              {appt.patientName ||
-                                activePatient?.name ||
-                                "Patient"}
-                            </td>
-
-                            {/* Doctor */}
-                            <td className="px-4 py-4">
-                              <div>
-                                <div className="font-bold text-[#111827]">
-                                  {appt.doctor}
-                                </div>
-                                <div className="text-[11px] text-[#64748B]">
-                                  {appt.specialty}
-                                </div>
-                              </div>
-                            </td>
-
-                            {/* Department */}
-                            <td className="px-4 py-4 text-slate-700 font-medium">
-                              {appt.department}
-                            </td>
-
-                            {/* Appointment Date */}
-                            <td className="px-4 py-4 font-medium text-[#111827]">
-                              {appt.date}
-                            </td>
-
-                            {/* Appointment Time */}
-                            <td className="px-4 py-4 text-[#0D47A1] font-semibold">
-                              {formatDisplayTime(appt.time)}
-                            </td>
-
-                            {/* Status */}
-                            <td className="px-4 py-4">
-                              {(() => {
-                                const st = getAppointmentStatusStyle(
-                                  appt.status,
-                                );
-                                return (
-                                  <span
-                                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${st.badgeClass}`}
-                                  >
-                                    <span
-                                      className={`w-1.5 h-1.5 rounded-full ${st.dotClass}`}
-                                    />
-                                    {st.label}
-                                  </span>
-                                );
-                              })()}
-                            </td>
-
-                            {/* Actions */}
-                            <td className="px-4 py-4 text-right">
-                              <div className="flex items-center justify-end gap-1.5">
-                                {/* Cancel */}
-                                {isUpcoming && appt.status !== "No Show" && (
-                                  <button
-                                    onClick={() => setCancellingAppt(appt)}
-                                    className="px-2 py-1 text-[11px] font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors flex items-center gap-1 cursor-pointer shrink-0"
-                                    title="Cancel Appointment"
-                                  >
-                                    <XCircle size={13} /> Cancel
-                                  </button>
-                                )}
-
-                                {/* View Details (LAST POSITION) */}
-                                <button
-                                  onClick={() => setSelectedDetails(appt)}
-                                  className="px-2.5 py-1 text-[11px] font-bold text-[#0D47A1] bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors flex items-center gap-1 cursor-pointer shrink-0"
-                                  title="View Details"
-                                >
-                                  <Eye size={13} /> View
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
+                          <div className="flex items-center justify-end gap-1.5">
+                            {isUpcoming && appt.status !== "No Show" && (
+                              <button
+                                onClick={() => setCancellingAppt(appt)}
+                                className="px-2 py-1 text-[11px] font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors flex items-center gap-1 cursor-pointer shrink-0"
+                                title="Cancel Appointment"
+                              >
+                                <XCircle size={13} /> Cancel
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setSelectedDetails(appt)}
+                              className="px-2.5 py-1 text-[11px] font-bold text-[#0D47A1] bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors flex items-center gap-1 cursor-pointer shrink-0"
+                              title="View Details"
+                            >
+                              <Eye size={13} /> View
+                            </button>
+                          </div>
                         );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Pagination */}
-                <Pagination
-                  currentPage={booking.currentPage}
-                  totalPages={totalPages}
-                  onPageChange={(page) =>
-                    bookingDispatch({ type: "SET_CURRENT_PAGE", page })
-                  }
-                  pageSize={pageSize}
-                  totalCount={filteredAppointments.length}
+                      },
+                    },
+                  ]}
+                  getRowId={(appt) => appt.id}
+                  pagination={true}
                 />
               </div>
 
@@ -1557,8 +1545,6 @@ export function PatientAppointmentsScreen({
                   );
                 })}
               </div>
-            </>
-          )}
         </div>
       </div>
 

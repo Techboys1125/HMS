@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   DollarSign,
   Printer,
@@ -7,204 +7,71 @@ import {
   Ban,
   FileText,
   Zap,
+  RotateCcw,
+  CreditCard,
+  Building2,
+  Filter,
+  Calendar,
 } from "lucide-react";
 import { PP, RB } from "../constants/billing.constants";
 import type { InvoiceRecord } from "../types/billing.types";
 import { BillingStatusBadge } from "./BillingStatusBadge";
+import { DataTable, type Column } from "../../../common/components/DataTable";
 
 interface BillingTableProps {
   invoices: InvoiceRecord[];
   isAdminReadOnly?: boolean;
+  searchQuery?: string;
+  onSearchChange?: (val: string) => void;
+  statusFilter?: string;
+  onStatusChange?: (val: string) => void;
+  methodFilter?: string;
+  onMethodChange?: (val: string) => void;
+  deptFilter?: string;
+  onDeptChange?: (val: string) => void;
+  dateFilter?: string;
+  onDateChange?: (val: string) => void;
+  startDate?: string;
+  onStartDateChange?: (val: string) => void;
+  endDate?: string;
+  onEndDateChange?: (val: string) => void;
+  onResetFilters?: () => void;
+  departmentOptions?: Array<{ value: string; label: string }>;
+  title?: React.ReactNode;
+  subtitle?: string;
+  headerBadge?: React.ReactNode;
+  loading?: boolean;
   onViewInvoiceDetailsClick?: (invoice: InvoiceRecord) => void;
   onCollectPaymentClick?: (invoice: InvoiceRecord) => void;
   onGenerateInvoiceClick?: (invoice: InvoiceRecord) => void;
   onCancelInvoice?: (invoiceId: string) => void;
   onViewPaymentHistory?: (invoice: InvoiceRecord) => void;
   onPrintInvoice?: (invoice: InvoiceRecord) => void;
-}
-
-function InvoiceRow({
-  invoice,
-  isAdminReadOnly,
-  activeMenuId,
-  setActiveMenuId,
-  onViewInvoiceDetailsClick,
-  onCollectPaymentClick,
-  onGenerateInvoiceClick,
-  onCancelInvoice,
-  onViewPaymentHistory,
-  onPrintInvoice,
-}: {
-  invoice: InvoiceRecord;
-  isAdminReadOnly: boolean;
-  activeMenuId: string | null;
-  setActiveMenuId: (id: string | null) => void;
-  onViewInvoiceDetailsClick?: (invoice: InvoiceRecord) => void;
-  onCollectPaymentClick?: (invoice: InvoiceRecord) => void;
-  onGenerateInvoiceClick?: (invoice: InvoiceRecord) => void;
-  onCancelInvoice?: (invoiceId: string) => void;
-  onViewPaymentHistory?: (invoice: InvoiceRecord) => void;
-  onPrintInvoice?: (invoice: InvoiceRecord) => void;
-}) {
-  return (
-    <tr className="hover:bg-slate-50/80 transition-colors group cursor-pointer">
-      {/* Invoice ID */}
-      <td
-        className="px-4 py-3.5 font-bold text-[#0D47A1]"
-        style={{ fontFamily: PP }}
-      >
-        {invoice.billNumber || invoice.id}
-      </td>
-      {/* Date */}
-      <td className="px-4 py-3.5 text-slate-500 whitespace-nowrap">
-        {invoice.invoiceDate}
-      </td>
-      {/* Patient */}
-      <td className="px-4 py-3.5">
-        <div className="font-semibold text-[#111827]">
-          {invoice.patientName}
-        </div>
-        <div className="text-[11px] text-slate-400 font-mono">
-          {invoice.mrn}
-        </div>
-      </td>
-      {/* Doctor & Department */}
-      <td className="px-4 py-3.5">
-        <div className="font-semibold text-[#111827]">
-          {invoice.doctorName || "—"}
-        </div>
-        {invoice.department && (
-          <div className="text-[11px] text-[#009688] font-medium">
-            {invoice.department}
-          </div>
-        )}
-      </td>
-      {/* Amounts */}
-      <td className="px-4 py-3.5 text-right font-semibold text-[#111827]">
-        ₹{invoice.invoiceAmount.toLocaleString()}
-      </td>
-      <td className="px-4 py-3.5 text-right font-medium text-[#66BB6A]">
-        ₹{invoice.paidAmount.toLocaleString()}
-      </td>
-      <td className="px-4 py-3.5 text-right font-bold text-[#EF4444]">
-        ₹{invoice.balance.toLocaleString()}
-      </td>
-      {/* Status Chip */}
-      <td className="px-4 py-3.5 text-center whitespace-nowrap">
-        <BillingStatusBadge status={invoice.paymentStatus} />
-      </td>
-      {/* Actions */}
-      <td className="px-4 py-3.5 text-right relative">
-        <div className="flex items-center justify-center gap-2">
-          {/* Contextual Principal Button */}
-          {invoice.status?.toUpperCase() === "READY_FOR_BILLING" ||
-          invoice.status?.toUpperCase() === "PENDING_BILLING" ? (
-            <button
-              onClick={() => onGenerateInvoiceClick?.(invoice)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0D47A1] text-white text-[11px] font-semibold hover:bg-blue-900 transition-colors shadow-xs whitespace-nowrap cursor-pointer"
-              title="Generate Invoice"
-            >
-              <Zap size={12} />
-              Generate Invoice
-            </button>
-          ) : invoice.status?.toUpperCase() === "DRAFT" ? (
-            <button
-              onClick={() => onGenerateInvoiceClick?.(invoice)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0D47A1] text-white text-[11px] font-semibold hover:bg-blue-900 transition-colors shadow-xs whitespace-nowrap cursor-pointer"
-              title="Edit Invoice"
-            >
-              <FileText size={12} />
-              Edit Invoice
-            </button>
-          ) : (
-            <button
-              onClick={() => onViewInvoiceDetailsClick?.(invoice)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-[11px] font-semibold hover:bg-slate-50 transition-colors shadow-xs whitespace-nowrap cursor-pointer"
-              title="View Invoice"
-            >
-              <FileText size={12} className="text-slate-400" />
-              View Invoice
-            </button>
-          )}
-
-          {/* More Actions Dropdown */}
-          <div className="relative">
-            <button
-              aria-label="Action"
-              onClick={() =>
-                setActiveMenuId(activeMenuId === invoice.id ? null : invoice.id)
-              }
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
-            >
-              <MoreVertical size={14} />
-            </button>
-
-            {activeMenuId === invoice.id && (
-              <div className="absolute right-0 mt-1 w-44 bg-white rounded-xl border border-[#E5E7EB] shadow-lg py-1 z-20 text-left">
-                <button
-                  onClick={() => {
-                    onViewPaymentHistory?.(invoice);
-                    setActiveMenuId(null);
-                  }}
-                  className="w-full px-3 py-2 text-xs text-[#111827] hover:bg-slate-50 flex items-center gap-2"
-                >
-                  <History size={13} className="text-slate-400" />
-                  View Payment History
-                </button>
-                {!isAdminReadOnly &&
-                  invoice.status?.toUpperCase() !== "READY_FOR_BILLING" &&
-                  invoice.status?.toUpperCase() !== "PENDING_BILLING" &&
-                  invoice.status?.toUpperCase() !== "PENDING" &&
-                  invoice.balance > 0 &&
-                  invoice.paymentStatus !== "Cancelled" && (
-                    <button
-                      onClick={() => {
-                        onCollectPaymentClick?.(invoice);
-                        setActiveMenuId(null);
-                      }}
-                      className="w-full px-3 py-2 text-xs text-[#009688] hover:bg-teal-50 flex items-center gap-2"
-                    >
-                      <DollarSign size={13} className="text-[#009688]" />
-                      Collect Payment
-                    </button>
-                  )}
-                <button
-                  onClick={() => {
-                    if (onPrintInvoice) onPrintInvoice(invoice);
-                    else onViewInvoiceDetailsClick?.(invoice);
-                    setActiveMenuId(null);
-                  }}
-                  className="w-full px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                >
-                  <Printer size={13} className="text-slate-400" />
-                  Print Invoice
-                </button>
-                {!isAdminReadOnly &&
-                  invoice.paymentStatus !== "Cancelled" &&
-                  invoice.paymentStatus !== "Refunded" && (
-                    <button
-                      onClick={() => {
-                        if (onCancelInvoice) onCancelInvoice(invoice.id);
-                        setActiveMenuId(null);
-                      }}
-                      className="w-full px-3 py-2 text-xs text-[#EF4444] hover:bg-red-50 flex items-center gap-2"
-                    >
-                      <Ban size={13} className="text-slate-400" />
-                      Cancel Invoice
-                    </button>
-                  )}
-              </div>
-            )}
-          </div>
-        </div>
-      </td>
-    </tr>
-  );
 }
 
 export function BillingTable({
   invoices,
   isAdminReadOnly = false,
+  searchQuery,
+  onSearchChange,
+  statusFilter = "All",
+  onStatusChange,
+  methodFilter = "All",
+  onMethodChange,
+  deptFilter = "All",
+  onDeptChange,
+  dateFilter = "All",
+  onDateChange,
+  startDate = "",
+  onStartDateChange,
+  endDate = "",
+  onEndDateChange,
+  onResetFilters,
+  departmentOptions = [],
+  title,
+  subtitle,
+  headerBadge,
+  loading = false,
   onViewInvoiceDetailsClick,
   onCollectPaymentClick,
   onGenerateInvoiceClick,
@@ -214,69 +81,383 @@ export function BillingTable({
 }: BillingTableProps) {
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
-  return (
-    <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
-      <div className="overflow-x-auto max-h-150 overflow-y-auto">
-        <table className="w-full border-collapse text-left text-xs">
-          <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB] z-10">
-            <tr className="text-[#64748B] font-bold" style={{ fontFamily: PP }}>
-              <th className="px-4 py-3.5">Invoice ID</th>
-              <th className="px-4 py-3.5">Date</th>
-              <th className="px-4 py-3.5">Patient / MRN</th>
-              <th className="px-4 py-3.5">Doctor & Dept</th>
-              <th className="px-4 py-3.5 text-right">Invoice Amt</th>
-              <th className="px-4 py-3.5 text-right">Paid</th>
-              <th className="px-4 py-3.5 text-right">Balance</th>
-              <th className="px-4 py-3.5 text-center">Status</th>
-              <th className="px-4 py-3.5 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 text-[#111827]">
-            {invoices.length > 0 ? (
-              invoices.map((inv) => (
-                <InvoiceRow
-                  key={inv.id}
-                  invoice={inv}
-                  isAdminReadOnly={isAdminReadOnly}
-                  activeMenuId={activeMenuId}
-                  setActiveMenuId={setActiveMenuId}
-                  onViewInvoiceDetailsClick={onViewInvoiceDetailsClick}
-                  onCollectPaymentClick={onCollectPaymentClick}
-                  onGenerateInvoiceClick={onGenerateInvoiceClick}
-                  onCancelInvoice={onCancelInvoice}
-                  onViewPaymentHistory={onViewPaymentHistory}
-                  onPrintInvoice={onPrintInvoice}
-                />
-              ))
+  const columns: Column<InvoiceRecord>[] = useMemo(
+    () => [
+      {
+        key: "billNumber",
+        label: "INVOICE ID",
+        sortable: true,
+        getValue: (inv) => inv.billNumber || inv.id,
+        render: (inv) => (
+          <span className="font-bold text-[#0D47A1]" style={{ fontFamily: PP }}>
+            {inv.billNumber || inv.id}
+          </span>
+        ),
+      },
+      {
+        key: "patientName",
+        label: "PATIENT NAME",
+        sortable: true,
+        getValue: (inv) => inv.patientName,
+        render: (inv) => (
+          <div>
+            <span
+              className="font-bold text-[#111827] block text-xs"
+              style={{ fontFamily: PP }}
+            >
+              {inv.patientName}
+            </span>
+            <span className="text-[10px] text-slate-500 font-mono">
+              MRN: {inv.mrn}
+            </span>
+          </div>
+        ),
+      },
+      {
+        key: "doctorName",
+        label: "DOCTOR / DEPT",
+        sortable: true,
+        getValue: (inv) => inv.doctorName,
+        render: (inv) => (
+          <div>
+            <span className="font-semibold text-slate-800 text-xs block">
+              {inv.doctorName}
+            </span>
+            <span className="text-[10px] text-slate-500">
+              {inv.department || "General OPD"}
+            </span>
+          </div>
+        ),
+      },
+      {
+        key: "invoiceDate",
+        label: "DATE",
+        sortable: true,
+        getValue: (inv) => inv.invoiceDate,
+        render: (inv) => (
+          <span className="text-slate-600 font-medium text-xs font-mono">
+            {inv.invoiceDate}
+          </span>
+        ),
+      },
+      {
+        key: "invoiceAmount",
+        label: "TOTAL",
+        sortable: true,
+        align: "right",
+        getValue: (inv) => inv.invoiceAmount,
+        render: (inv) => (
+          <span className="font-bold text-slate-900" style={{ fontFamily: PP }}>
+            ${inv.invoiceAmount.toFixed(2)}
+          </span>
+        ),
+      },
+      {
+        key: "paidAmount",
+        label: "PAID",
+        sortable: true,
+        align: "right",
+        getValue: (inv) => inv.paidAmount,
+        render: (inv) => (
+          <span className="font-semibold text-[#009688]">
+            ${inv.paidAmount.toFixed(2)}
+          </span>
+        ),
+      },
+      {
+        key: "balance",
+        label: "BALANCE",
+        sortable: true,
+        align: "right",
+        getValue: (inv) => inv.balance,
+        render: (inv) => (
+          <span
+            className={`font-bold ${
+              inv.balance > 0 ? "text-[#EF4444]" : "text-slate-400"
+            }`}
+            style={{ fontFamily: PP }}
+          >
+            ${inv.balance.toFixed(2)}
+          </span>
+        ),
+      },
+      {
+        key: "paymentStatus",
+        label: "STATUS",
+        sortable: true,
+        getValue: (inv) => inv.paymentStatus || inv.status,
+        render: (inv) => (
+          <BillingStatusBadge status={inv.paymentStatus || inv.status} />
+        ),
+      },
+      {
+        key: "actions",
+        label: "ACTIONS",
+        sortable: false,
+        align: "right",
+        render: (inv) => (
+          <div
+            className="flex items-center justify-end gap-1.5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {inv.status?.toUpperCase() === "READY_FOR_BILLING" ||
+            inv.status?.toUpperCase() === "PENDING_BILLING" ||
+            inv.status?.toUpperCase() === "PENDING" ? (
+              !isAdminReadOnly && (
+                <button
+                  onClick={() => onGenerateInvoiceClick?.(inv)}
+                  className="px-3 py-1.5 bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-xs font-semibold rounded-xl transition-colors flex items-center gap-1 cursor-pointer shadow-xs"
+                  style={{ fontFamily: PP }}
+                  title="Generate Invoice for this completed visit"
+                >
+                  <Zap size={13} /> Generate Invoice
+                </button>
+              )
             ) : (
-              /* EMPTY STATE */
-              <tr>
-                <td colSpan={9} className="py-12 text-center bg-slate-50/50">
-                  <div className="flex flex-col items-center justify-center max-w-sm mx-auto space-y-3">
-                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
-                      <FileText size={24} />
-                    </div>
-                    <h3
-                      className="text-sm font-bold text-[#111827]"
-                      style={{ fontFamily: PP }}
-                    >
-                      No invoices available
-                    </h3>
-                    <p
-                      className="text-xs text-slate-500"
-                      style={{ fontFamily: RB }}
-                    >
-                      There are no billing records matching your search query or
-                      filter selection.
-                    </p>
-                  </div>
-                </td>
-              </tr>
+              <button
+                onClick={() => onViewInvoiceDetailsClick?.(inv)}
+                className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+                style={{ fontFamily: PP }}
+              >
+                View
+              </button>
             )}
-          </tbody>
-        </table>
+
+            <div className="relative">
+              <button
+                aria-label="Action"
+                onClick={() =>
+                  setActiveMenuId(activeMenuId === inv.id ? null : inv.id)
+                }
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <MoreVertical size={14} />
+              </button>
+
+              {activeMenuId === inv.id && (
+                <div className="absolute right-0 mt-1 w-44 bg-white rounded-xl border border-[#E5E7EB] shadow-lg py-1 z-20 text-left">
+                  <button
+                    onClick={() => {
+                      onViewPaymentHistory?.(inv);
+                      setActiveMenuId(null);
+                    }}
+                    className="w-full px-3 py-2 text-xs text-[#111827] hover:bg-slate-50 flex items-center gap-2 cursor-pointer font-medium"
+                  >
+                    <History size={13} className="text-slate-400" />
+                    View Payment History
+                  </button>
+                  {!isAdminReadOnly &&
+                    inv.status?.toUpperCase() !== "READY_FOR_BILLING" &&
+                    inv.status?.toUpperCase() !== "PENDING_BILLING" &&
+                    inv.status?.toUpperCase() !== "PENDING" &&
+                    inv.balance > 0 &&
+                    inv.paymentStatus !== "Cancelled" && (
+                      <button
+                        onClick={() => {
+                          onCollectPaymentClick?.(inv);
+                          setActiveMenuId(null);
+                        }}
+                        className="w-full px-3 py-2 text-xs text-[#009688] hover:bg-teal-50 flex items-center gap-2 cursor-pointer font-medium"
+                      >
+                        <DollarSign size={13} className="text-[#009688]" />
+                        Collect Payment
+                      </button>
+                    )}
+                  <button
+                    onClick={() => {
+                      if (onPrintInvoice) onPrintInvoice(inv);
+                      else onViewInvoiceDetailsClick?.(inv);
+                      setActiveMenuId(null);
+                    }}
+                    className="w-full px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer font-medium"
+                  >
+                    <Printer size={13} className="text-slate-400" />
+                    Print Invoice
+                  </button>
+                  {!isAdminReadOnly &&
+                    inv.paymentStatus !== "Cancelled" &&
+                    inv.paymentStatus !== "Refunded" && (
+                      <button
+                        onClick={() => {
+                          if (onCancelInvoice) onCancelInvoice(inv.id);
+                          setActiveMenuId(null);
+                        }}
+                        className="w-full px-3 py-2 text-xs text-[#EF4444] hover:bg-red-50 flex items-center gap-2 cursor-pointer font-medium"
+                      >
+                        <Ban size={13} className="text-slate-400" />
+                        Cancel Invoice
+                      </button>
+                    )}
+                </div>
+              )}
+            </div>
+          </div>
+        ),
+      },
+    ],
+    [
+      activeMenuId,
+      isAdminReadOnly,
+      onGenerateInvoiceClick,
+      onViewInvoiceDetailsClick,
+      onViewPaymentHistory,
+      onCollectPaymentClick,
+      onPrintInvoice,
+      onCancelInvoice,
+    ],
+  );
+
+  const hasActiveFilters =
+    (statusFilter && statusFilter !== "All") ||
+    (methodFilter && methodFilter !== "All") ||
+    (deptFilter && deptFilter !== "All") ||
+    (dateFilter && dateFilter !== "All") ||
+    Boolean(startDate || endDate);
+
+  const filterToolbar =
+    onStatusChange || onMethodChange || onDeptChange || onDateChange ? (
+      <div className="bg-slate-50/80 border border-[#E5E7EB] rounded-xl p-2.5 space-y-2 shadow-2xs text-xs">
+        <div className="flex items-center gap-2 flex-wrap">
+          {onDateChange && (
+            <div className="flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-2.5 py-1 rounded-lg text-slate-700 font-medium">
+              <Calendar size={13} className="text-slate-400" />
+              <span className="text-slate-400 text-[11px]">Date:</span>
+              <select
+                aria-label="Date range filter"
+                value={dateFilter}
+                onChange={(e) => onDateChange(e.target.value)}
+                className="bg-transparent font-semibold text-[#0D47A1] outline-none cursor-pointer text-xs"
+              >
+                <option value="All">All Dates</option>
+                <option value="Today">Today</option>
+                <option value="Yesterday">Yesterday</option>
+                <option value="This Week">This Week</option>
+                <option value="This Month">This Month</option>
+                <option value="Custom">Custom Range</option>
+              </select>
+            </div>
+          )}
+
+          {dateFilter === "Custom" && onStartDateChange && onEndDateChange && (
+            <div className="flex items-center gap-1.5">
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => onStartDateChange(e.target.value)}
+                className="px-2 py-1 bg-white border border-[#E5E7EB] rounded-lg text-xs font-medium text-[#111827] outline-none focus:border-[#0D47A1]"
+              />
+              <span className="text-slate-400 text-xs">to</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => onEndDateChange(e.target.value)}
+                className="px-2 py-1 bg-white border border-[#E5E7EB] rounded-lg text-xs font-medium text-[#111827] outline-none focus:border-[#0D47A1]"
+              />
+            </div>
+          )}
+
+          {onStatusChange && (
+            <div className="flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-2.5 py-1 rounded-lg text-slate-700 font-medium">
+              <Filter size={13} className="text-slate-400" />
+              <span className="text-slate-400 text-[11px]">
+                Payment Status:
+              </span>
+              <select
+                aria-label="Status filter"
+                value={statusFilter}
+                onChange={(e) => onStatusChange(e.target.value)}
+                className="bg-transparent font-semibold text-[#0D47A1] outline-none cursor-pointer text-xs"
+              >
+                <option value="All">All Statuses</option>
+                <option value="Pending">Pending</option>
+                <option value="Partially Paid">Partially Paid</option>
+                <option value="Paid">Paid</option>
+                <option value="Cancelled">Cancelled</option>
+                <option value="Refunded">Refunded</option>
+              </select>
+            </div>
+          )}
+
+          {onMethodChange && (
+            <div className="flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-2.5 py-1 rounded-lg text-slate-700 font-medium">
+              <CreditCard size={13} className="text-slate-400" />
+              <span className="text-slate-400 text-[11px]">Method:</span>
+              <select
+                aria-label="Payment method filter"
+                value={methodFilter}
+                onChange={(e) => onMethodChange(e.target.value)}
+                className="bg-transparent font-semibold text-[#0D47A1] outline-none cursor-pointer text-xs"
+              >
+                <option value="All">All Methods</option>
+                <option value="Cash">Cash</option>
+                <option value="Card">Card</option>
+                <option value="UPI">UPI</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+              </select>
+            </div>
+          )}
+
+          {onDeptChange && (
+            <div className="flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-2.5 py-1 rounded-lg text-slate-700 font-medium">
+              <Building2 size={13} className="text-slate-400" />
+              <span className="text-slate-400 text-[11px]">Dept:</span>
+              <select
+                aria-label="Department filter"
+                value={deptFilter}
+                onChange={(e) => onDeptChange(e.target.value)}
+                className="bg-transparent font-semibold text-[#0D47A1] outline-none cursor-pointer text-xs"
+              >
+                <option value="All">All Departments</option>
+                {departmentOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {hasActiveFilters && onResetFilters && (
+            <button
+              onClick={onResetFilters}
+              className="px-2.5 py-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer shadow-2xs shrink-0 ml-auto"
+              style={{ fontFamily: PP }}
+            >
+              <RotateCcw size={12} /> Clear Filters
+            </button>
+          )}
+        </div>
       </div>
-    </div>
+    ) : undefined;
+
+  return (
+    <>
+      {activeMenuId && (
+        <div
+          role="presentation"
+          className="fixed inset-0 z-10 bg-transparent"
+          onClick={() => setActiveMenuId(null)}
+        />
+      )}
+      <DataTable<InvoiceRecord>
+        data={invoices}
+        columns={columns}
+        loading={loading}
+        getRowId={(inv) => inv.id}
+        title={title}
+        subtitle={subtitle}
+        headerBadge={headerBadge}
+        searchable={true}
+        searchPlaceholder="🔍 Search invoice number, patient name, doctor..."
+        searchValue={searchQuery}
+        onSearchChange={onSearchChange}
+        toolbar={filterToolbar}
+        emptyTitle="No invoices available"
+        emptySubtitle="There are no billing records matching your search query or filter selection."
+        emptyIcon={<FileText size={28} />}
+        pagination={true}
+      />
+    </>
   );
 }
 

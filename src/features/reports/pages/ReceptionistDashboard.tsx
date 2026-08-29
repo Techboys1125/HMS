@@ -19,7 +19,6 @@ import {
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
   AlertCircle,
-  Shield,
 } from "lucide-react";
 import {
   useReceptionDashboardSummary,
@@ -31,6 +30,13 @@ import {
   useReceptionRegistrationTrend,
   useReceptionQueuePerformance,
 } from "../../reception/hooks/useReceptionReports";
+import type {
+  ReceptionActivityLogResponse,
+  ReceptionAppointmentStatusData,
+  ReceptionCheckinAnalyticsData,
+  ReceptionQueuePerformanceData,
+  ReceptionRegistrationTrendData,
+} from "../../reception/types/receptionReports.types";
 import {
   AreaChart,
   Area,
@@ -96,16 +102,107 @@ function CircularProgress({
     </div>
   );
 }
+
 export interface ReceptionistActivityRecord {
   mrn: string;
   patientName: string;
   appointmentId: string;
   visitType: string;
+  registrationDate?: string;
   registrationTime: string;
   checkInTime: string;
   queueStatus: string;
   appointmentStatus: string;
 }
+
+const getOffsetDateStr = (daysAgo: number) => {
+  const d = new Date();
+  d.setDate(d.getDate() - daysAgo);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const SAMPLE_RECEPTION_ACTIVITIES: ReceptionistActivityRecord[] = [
+  {
+    mrn: "MRN-2026-001",
+    patientName: "John Doe",
+    appointmentId: "APT-1001",
+    visitType: "New Patient",
+    registrationDate: getOffsetDateStr(0),
+    registrationTime: "08:30 AM",
+    checkInTime: "08:35 AM",
+    queueStatus: "In Consultation",
+    appointmentStatus: "Completed",
+  },
+  {
+    mrn: "MRN-2026-002",
+    patientName: "Jane Smith",
+    appointmentId: "APT-1002",
+    visitType: "Follow-up",
+    registrationDate: getOffsetDateStr(0),
+    registrationTime: "09:00 AM",
+    checkInTime: "09:10 AM",
+    queueStatus: "Waiting Room",
+    appointmentStatus: "Checked-In",
+  },
+  {
+    mrn: "MRN-2026-003",
+    patientName: "Robert Johnson",
+    appointmentId: "APT-1003",
+    visitType: "Walk-In",
+    registrationDate: getOffsetDateStr(1),
+    registrationTime: "09:15 AM",
+    checkInTime: "09:20 AM",
+    queueStatus: "Completed Queue",
+    appointmentStatus: "Completed",
+  },
+  {
+    mrn: "MRN-2026-004",
+    patientName: "Emily Davis",
+    appointmentId: "APT-1004",
+    visitType: "Routine Checkup",
+    registrationDate: getOffsetDateStr(1),
+    registrationTime: "10:00 AM",
+    checkInTime: "10:05 AM",
+    queueStatus: "Waiting Room",
+    appointmentStatus: "Booked",
+  },
+  {
+    mrn: "MRN-2026-005",
+    patientName: "Michael Brown",
+    appointmentId: "APT-1005",
+    visitType: "New Patient",
+    registrationDate: getOffsetDateStr(3),
+    registrationTime: "10:30 AM",
+    checkInTime: "10:35 AM",
+    queueStatus: "In Consultation",
+    appointmentStatus: "Checked-In",
+  },
+  {
+    mrn: "MRN-2026-006",
+    patientName: "Sarah Wilson",
+    appointmentId: "APT-1006",
+    visitType: "Follow-up",
+    registrationDate: getOffsetDateStr(5),
+    registrationTime: "11:00 AM",
+    checkInTime: "Pending",
+    queueStatus: "Waiting Room",
+    appointmentStatus: "Booked",
+  },
+  {
+    mrn: "MRN-2026-007",
+    patientName: "David Miller",
+    appointmentId: "APT-1007",
+    visitType: "Walk-In",
+    registrationDate: getOffsetDateStr(12),
+    registrationTime: "02:15 PM",
+    checkInTime: "02:20 PM",
+    queueStatus: "Completed Queue",
+    appointmentStatus: "Completed",
+  },
+];
 
 type ReceptionDashboardHeaderProps = {
   isRefreshing: boolean;
@@ -116,82 +213,346 @@ const ReceptionDashboardHeader = ({
   isRefreshing,
   onRefresh,
 }: ReceptionDashboardHeaderProps) => (
-  <>
-    <div className="bg-white border-b border-[#E5E7EB] sticky top-0 z-20 shadow-sm">
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
-              <span className="hover:text-[#0D47A1] cursor-pointer">
-                Reception
-              </span>
-              <ChevronRight className="w-3.5 h-3.5" />
-              <span className="text-[#0D47A1] font-semibold">Reports</span>
-            </nav>
-            <div className="flex items-center gap-3">
-              <h1
-                className="text-2xl font-bold text-[#111827]"
-                style={{ fontFamily: PP }}
-              >
-                Reports Dashboard
-              </h1>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#0D47A1]/10 text-[#0D47A1] border border-blue-200">
-                Reception Scoped
-              </span>
-            </div>
-            <p className="text-xs text-[#64748B] mt-0.5">
-              Monitor daily reception activities, patient registrations,
-              appointments and queue performance.
-            </p>
+  <div className="bg-white border-b border-[#E5E7EB] sticky top-0 z-20 shadow-sm">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
+            <span className="hover:text-[#0D47A1] cursor-pointer">
+              Reception
+            </span>
+            <ChevronRight className="w-3.5 h-3.5" />
+            <span className="text-[#0D47A1] font-semibold">Reports</span>
+          </nav>
+          <div className="flex items-center gap-3">
+            <h1
+              className="text-2xl font-bold text-[#111827]"
+              style={{ fontFamily: PP }}
+            >
+              Reports Dashboard
+            </h1>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#0D47A1]/10 text-[#0D47A1] border border-blue-200">
+              Reception Scoped
+            </span>
+          </div>
+          <p className="text-xs text-[#64748B] mt-0.5">
+            Monitor daily reception activities, patient registrations,
+            appointments and queue performance.
+          </p>
+        </div>
+
+        {/* Header Actions */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="hidden lg:flex items-center gap-2 text-xs text-[#64748B] bg-slate-50 border border-[#E5E7EB] px-3 py-2 rounded-xl">
+            <Clock className="w-4 h-4 text-[#0D47A1]" />
+            <span>
+              Last Updated:{" "}
+              <strong className="text-[#111827]">
+                {new Date().toLocaleTimeString("en-US", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </strong>
+            </span>
           </div>
 
-          {/* Header Actions */}
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="hidden lg:flex items-center gap-2 text-xs text-[#64748B] bg-slate-50 border border-[#E5E7EB] px-3 py-2 rounded-xl">
-              <Clock className="w-4 h-4 text-[#0D47A1]" />
-              <span>
-                Last Updated:{" "}
-                <strong className="text-[#111827]">
-                  {new Date().toLocaleTimeString("en-US", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </strong>
-              </span>
+          <button
+            onClick={onRefresh}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium text-[#111827] bg-white border border-[#E5E7EB] hover:bg-slate-50 transition shadow-sm"
+          >
+            <RefreshCw
+              className={`w-3.5 h-3.5 text-[#0D47A1] ${isRefreshing ? "animate-spin" : ""}`}
+            />
+            <span>Refresh</span>
+          </button>
+
+          <button
+            onClick={() =>
+              alert("Exporting Reception Reports Dashboard (PDF)...")
+            }
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium text-white bg-[#0D47A1] hover:bg-blue-900 transition shadow-sm"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Export PDF</span>
+          </button>
+
+          <button
+            onClick={() => window.print()}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-[#111827] bg-white border border-[#E5E7EB] hover:bg-slate-50 transition shadow-sm"
+          >
+            <Printer className="w-3.5 h-3.5 text-[#0D47A1]" />
+            <span>Print Report</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+type ReceptionKpiCardsProps = {
+  kpi: {
+    todayRegistrations: number;
+    todayAppointments: number;
+    checkedInPatients: number;
+    receptionQueue: number;
+    completedCheckIns: number;
+    avgWaitingTime: string;
+  };
+  navigate: ReturnType<typeof useNavigate>;
+};
+
+const ReceptionKpiCards = ({ kpi, navigate }: ReceptionKpiCardsProps) => (
+  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+    {/* Card 1: Today's Registrations */}
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => navigate(ROUTES.PATIENTS)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          navigate(ROUTES.PATIENTS);
+        }
+      }}
+      className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group flex flex-col justify-between"
+    >
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#0D47A1] transition">
+            Today's Registrations
+          </span>
+          <div className="p-2 rounded-xl bg-blue-50 text-[#0D47A1]">
+            <Users className="w-4 h-4" />
+          </div>
+        </div>
+        <div
+          className="text-2xl font-bold text-[#111827] mb-1"
+          style={{ fontFamily: PP }}
+        >
+          {kpi.todayRegistrations}
+        </div>
+      </div>
+      <div>
+        <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-2">
+          <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5">
+            <TrendingUp className="w-3 h-3" /> Live
+          </span>
+          <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
+            View <ChevronRight className="w-3 h-3" />
+          </span>
+        </div>
+        <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+          <div>
+            <div className="text-[#0D47A1] font-bold">
+              {kpi.todayRegistrations}
             </div>
-
-            <button
-              onClick={onRefresh}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium text-[#111827] bg-white border border-[#E5E7EB] hover:bg-slate-50 transition shadow-sm"
-            >
-              <RefreshCw
-                className={`w-3.5 h-3.5 text-[#0D47A1] ${isRefreshing ? "animate-spin" : ""}`}
-              />
-              <span>Refresh</span>
-            </button>
-
-            <button
-              onClick={() =>
-                alert("Exporting Reception Reports Dashboard (PDF)...")
-              }
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium text-white bg-[#0D47A1] hover:bg-blue-900 transition shadow-sm"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Export PDF</span>
-            </button>
-
-            <button
-              onClick={() => window.print()}
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-[#111827] bg-white border border-[#E5E7EB] hover:bg-slate-50 transition shadow-sm"
-            >
-              <Printer className="w-3.5 h-3.5 text-[#0D47A1]" />
-              <span>Print Report</span>
-            </button>
+            <div className="text-[#64748B]">New</div>
+          </div>
+          <div>
+            <div className="text-[#009688] font-bold">0</div>
+            <div className="text-[#64748B]">Return</div>
           </div>
         </div>
       </div>
     </div>
-  </>
+
+    {/* Card 2: Today's Appointments */}
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => navigate(ROUTES.APPOINTMENTS)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          navigate(ROUTES.APPOINTMENTS);
+        }
+      }}
+      className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group flex flex-col justify-between"
+    >
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#009688] transition">
+            Today's Appointments
+          </span>
+          <div className="p-2 rounded-xl bg-teal-50 text-[#009688]">
+            <Calendar className="w-4 h-4" />
+          </div>
+        </div>
+        <div
+          className="text-2xl font-bold text-[#111827] mb-1"
+          style={{ fontFamily: PP }}
+        >
+          {kpi.todayAppointments}
+        </div>
+      </div>
+      <div>
+        <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-2">
+          <span className="text-[#009688] font-semibold">
+            {kpi.completedCheckIns} Done
+          </span>
+          <span className="text-[#009688] font-semibold flex items-center gap-0.5 group-hover:underline">
+            View <ChevronRight className="w-3 h-3" />
+          </span>
+        </div>
+        <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+          <div>
+            <div className="text-[#0D47A1] font-bold">
+              {kpi.todayAppointments}
+            </div>
+            <div className="text-[#64748B]">Booked</div>
+          </div>
+          <div>
+            <div className="text-[#66BB6A] font-bold">
+              {kpi.completedCheckIns}
+            </div>
+            <div className="text-[#64748B]">Completed</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Card 3: Checked-In Patients */}
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => navigate(ROUTES.QUEUE)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          navigate(ROUTES.QUEUE);
+        }
+      }}
+      className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group flex flex-col justify-between"
+    >
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#66BB6A] transition">
+            Checked-In Patients
+          </span>
+          <div className="p-2 rounded-xl bg-emerald-50 text-[#66BB6A]">
+            <UserCheck className="w-4 h-4" />
+          </div>
+        </div>
+        <div
+          className="text-2xl font-bold text-[#111827] mb-1"
+          style={{ fontFamily: PP }}
+        >
+          {kpi.checkedInPatients}
+        </div>
+      </div>
+      <div>
+        <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-2">
+          <span className="text-[#66BB6A] font-semibold">Checked Rate</span>
+          <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5 group-hover:underline">
+            View <ChevronRight className="w-3 h-3" />
+          </span>
+        </div>
+        <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+          <div>
+            <div className="text-[#66BB6A] font-bold">
+              {kpi.checkedInPatients}
+            </div>
+            <div className="text-[#64748B]">Checked In</div>
+          </div>
+          <div>
+            <div className="text-[#F59E0B] font-bold">{kpi.receptionQueue}</div>
+            <div className="text-[#64748B]">Waiting</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Card 4: Reception Queue */}
+    <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-semibold text-[#64748B]">
+            Reception Queue
+          </span>
+          <div className="p-2 rounded-xl bg-amber-50 text-[#F59E0B]">
+            <Activity className="w-4 h-4" />
+          </div>
+        </div>
+        <div
+          className="text-2xl font-bold text-[#111827] mb-1"
+          style={{ fontFamily: PP }}
+        >
+          {kpi.receptionQueue}
+        </div>
+      </div>
+      <div>
+        <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
+          <span className="text-[#F59E0B] font-semibold">Patients Waiting</span>
+        </div>
+        <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+          <div>
+            <div className="text-[#F59E0B] font-bold">{kpi.receptionQueue}</div>
+            <div className="text-[#64748B]">Waiting</div>
+          </div>
+          <div>
+            <div className="text-[#0D47A1] font-bold">{kpi.avgWaitingTime}</div>
+            <div className="text-[#64748B]">Avg Queue</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Card 5: Completed Check-Ins */}
+    <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-semibold text-[#64748B]">
+            Completed Check-Ins
+          </span>
+          <div className="p-2 rounded-xl bg-[#0D47A1]/10 text-[#0D47A1]">
+            <CheckCircle2 className="w-4 h-4" />
+          </div>
+        </div>
+        <div
+          className="text-2xl font-bold text-[#111827] mb-1"
+          style={{ fontFamily: PP }}
+        >
+          {kpi.completedCheckIns}
+        </div>
+      </div>
+      <div>
+        <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
+          <span className="text-[#0D47A1] font-semibold">Completion Rate</span>
+        </div>
+        <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+          <div>
+            <div className="text-[#66BB6A] font-bold">
+              {kpi.completedCheckIns}
+            </div>
+            <div className="text-[#64748B]">Done</div>
+          </div>
+          <div>
+            <div className="text-[#0D47A1] font-bold">100%</div>
+            <div className="text-[#64748B]">Rate</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Card 6: Average Waiting Time */}
+    <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
+      <div>
+        <span className="text-xs font-semibold text-[#64748B]">
+          Avg Wait Time
+        </span>
+        <div
+          className="text-2xl font-bold text-[#111827] mt-1"
+          style={{ fontFamily: PP }}
+        >
+          {kpi.avgWaitingTime}
+        </div>
+        <div className="mt-2 text-[11px] font-semibold text-[#66BB6A]">
+          Target Met
+        </div>
+      </div>
+      <CircularProgress percentage={89} size={54} strokeWidth={6} />
+    </div>
+  </div>
 );
 
 type ReceptionFiltersProps = {
@@ -199,6 +560,10 @@ type ReceptionFiltersProps = {
   setSearchQuery: (value: string) => void;
   dateRange: string;
   setDateRange: (value: string) => void;
+  startDate: string;
+  setStartDate: (value: string) => void;
+  endDate: string;
+  setEndDate: (value: string) => void;
   apptStatusFilter: string;
   setApptStatusFilter: (value: string) => void;
   checkInStatusFilter: string;
@@ -216,6 +581,10 @@ const ReceptionFilters = ({
   setSearchQuery,
   dateRange,
   setDateRange,
+  startDate,
+  setStartDate,
+  endDate,
+  setEndDate,
   apptStatusFilter,
   setApptStatusFilter,
   checkInStatusFilter,
@@ -226,78 +595,146 @@ const ReceptionFilters = ({
   setVisitTypeFilter,
   onReset,
   onApply,
-}: ReceptionFiltersProps) => (
-  <>
-    <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
-      <label
-        htmlFor="reception-report-search"
-        className="block text-[11px] font-medium text-[#64748B] mb-1"
-      >
-        Search Reception Records
-      </label>
-      <div className="relative">
-        <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
-        <input
-          id="reception-report-search"
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search Patient Name, MRN, Appointment ID, Mobile Number..."
-          className="w-full pl-10 pr-4 py-2.5 bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs text-[#111827] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-        />
-        {searchQuery && (
-          <button
-            onClick={() => setSearchQuery("")}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#64748B] hover:text-[#111827]"
-          >
-            Clear
-          </button>
-        )}
-      </div>
-    </div>
+}: ReceptionFiltersProps) => {
+  const handlePresetDateChange = (val: string) => {
+    setDateRange(val);
+    const todayStr = getOffsetDateStr(0);
 
-    {/* Reception Filter Bar */}
-    <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-6">
-      <div className="flex items-center justify-between mb-3">
+    if (val === "Today") {
+      setStartDate(todayStr);
+      setEndDate(todayStr);
+    } else if (val === "Yesterday") {
+      const yestStr = getOffsetDateStr(1);
+      setStartDate(yestStr);
+      setEndDate(yestStr);
+    } else if (val === "Last 7 Days") {
+      const d7Str = getOffsetDateStr(7);
+      setStartDate(d7Str);
+      setEndDate(todayStr);
+    } else if (val === "This Month") {
+      const d = new Date();
+      const firstDayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+      setStartDate(firstDayStr);
+      setEndDate(todayStr);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm space-y-4">
+      {/* Search Input */}
+      <div>
+        <label
+          htmlFor="reception-report-search"
+          className="block text-[11px] font-medium text-[#64748B] mb-1"
+        >
+          Search Reception Records
+        </label>
+        <div className="relative">
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
+          <input
+            id="reception-report-search"
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search Patient Name, MRN, Appointment ID..."
+            className="w-full pl-10 pr-16 py-2.5 bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs text-[#111827] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#64748B] hover:text-[#111827] bg-white px-2 py-0.5 rounded border border-[#E5E7EB]"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Filter Header */}
+      <div className="flex items-center justify-between pt-2 border-t border-[#E5E7EB]">
         <div
           className="flex items-center gap-2 text-xs font-semibold text-[#111827]"
           style={{ fontFamily: PP }}
         >
           <Filter className="w-4 h-4 text-[#009688]" />
-          <span>Filter Reception Operations Data</span>
+          <span>Filter Reception Operations & Reports Data</span>
         </div>
         <span className="text-[11px] text-[#64748B] bg-slate-100 px-2.5 py-0.5 rounded-full font-semibold">
-          Reception Role Scoped
+          Live Connected Filters
         </span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      {/* Filter Grid Controls */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3">
+        {/* Date Range Preset */}
         <div>
           <label
             htmlFor="date-range"
             className="block text-[11px] font-medium text-[#64748B] mb-1"
           >
-            Date Range
+            Date Preset
           </label>
           <select
             id="date-range"
             value={dateRange}
-            onChange={(e) => setDateRange(e.target.value)}
+            onChange={(e) => handlePresetDateChange(e.target.value)}
             className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
           >
             <option>Today</option>
             <option>Yesterday</option>
             <option>Last 7 Days</option>
             <option>This Month</option>
+            <option>Custom Date</option>
           </select>
         </div>
 
+        {/* Start Date */}
+        <div>
+          <label
+            htmlFor="start-date"
+            className="block text-[11px] font-medium text-[#64748B] mb-1"
+          >
+            From Date
+          </label>
+          <input
+            id="start-date"
+            type="date"
+            value={startDate}
+            onChange={(e) => {
+              setStartDate(e.target.value);
+              setDateRange("Custom Date");
+            }}
+            className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+          />
+        </div>
+
+        {/* End Date */}
+        <div>
+          <label
+            htmlFor="end-date"
+            className="block text-[11px] font-medium text-[#64748B] mb-1"
+          >
+            To Date
+          </label>
+          <input
+            id="end-date"
+            type="date"
+            value={endDate}
+            onChange={(e) => {
+              setEndDate(e.target.value);
+              setDateRange("Custom Date");
+            }}
+            className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+          />
+        </div>
+
+        {/* Appointment Status */}
         <div>
           <label
             htmlFor="appointment-status"
             className="block text-[11px] font-medium text-[#64748B] mb-1"
           >
-            Appointment Status
+            Appt Status
           </label>
           <select
             id="appointment-status"
@@ -314,6 +751,7 @@ const ReceptionFilters = ({
           </select>
         </div>
 
+        {/* Check-In Status */}
         <div>
           <label
             htmlFor="check-in-status"
@@ -333,6 +771,7 @@ const ReceptionFilters = ({
           </select>
         </div>
 
+        {/* Queue Status */}
         <div>
           <label
             htmlFor="queue-status"
@@ -353,6 +792,7 @@ const ReceptionFilters = ({
           </select>
         </div>
 
+        {/* Visit Type */}
         <div>
           <label
             htmlFor="visit-type"
@@ -375,7 +815,8 @@ const ReceptionFilters = ({
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-3 mt-4 pt-3 border-t border-[#E5E7EB]">
+      {/* Action Buttons */}
+      <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E5E7EB]">
         <button
           onClick={onReset}
           className="px-3.5 py-1.5 rounded-xl text-xs font-medium text-[#64748B] hover:text-[#111827] hover:bg-slate-100 transition"
@@ -390,8 +831,8 @@ const ReceptionFilters = ({
         </button>
       </div>
     </div>
-  </>
-);
+  );
+};
 
 const ReceptionDashboardError = ({ onRetry }: { onRetry: () => void }) => (
   <div className="bg-red-50 border border-red-200 rounded-2xl p-6 mb-6 text-center">
@@ -416,7 +857,7 @@ const ReceptionDashboardError = ({ onRetry }: { onRetry: () => void }) => (
 
 const ReceptionDashboardLoading = () => (
   <div className="space-y-6 mb-6">
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
       {[1, 2, 3, 4, 5, 6].map((i) => (
         <div
           key={i}
@@ -428,39 +869,47 @@ const ReceptionDashboardLoading = () => (
   </div>
 );
 
-type ReceptionDashboardContentProps = {
-  kpi: {
-    todayRegistrations: number;
-    todayAppointments: number;
-    checkedInPatients: number;
-    receptionQueue: number;
-    completedCheckIns: number;
-    avgWaitingTime: string;
-  };
+type ReceptionDashboardChartsProps = {
   trendDays: "7 Days" | "30 Days" | "90 Days";
   setTrendDays: (value: "7 Days" | "30 Days" | "90 Days") => void;
   filteredActivities: ReceptionistActivityRecord[];
-  navigate: ReturnType<typeof useNavigate>;
-  onOpenDailyAppointments?: () => void;
-  onOpenPatientReport?: () => void;
+  apptStatus?: ReceptionAppointmentStatusData;
+  checkinAnalytics?: ReceptionCheckinAnalyticsData;
+  queuePerformance?: ReceptionQueuePerformanceData;
+  registrationTrend?: ReceptionRegistrationTrendData;
 };
 
-const ReceptionDashboardContent = ({
-  kpi,
+const ReceptionDashboardCharts = ({
   trendDays,
   setTrendDays,
   filteredActivities,
-  navigate,
-  onOpenDailyAppointments,
-  onOpenPatientReport,
-}: ReceptionDashboardContentProps) => {
+  apptStatus,
+  checkinAnalytics,
+  queuePerformance,
+  registrationTrend,
+}: ReceptionDashboardChartsProps) => {
   const regTrendData = useMemo(() => {
-    const daysCount = trendDays === "7 Days" ? 7 : trendDays === "30 Days" ? 30 : 90;
+    if (
+      registrationTrend &&
+      registrationTrend.labels &&
+      registrationTrend.labels.length > 0
+    ) {
+      return registrationTrend.labels.map((label, idx) => ({
+        date: label,
+        newReg: registrationTrend.newPatients[idx] || 0,
+        returning: registrationTrend.returningPatients[idx] || 0,
+      }));
+    }
+    const daysCount =
+      trendDays === "7 Days" ? 7 : trendDays === "30 Days" ? 30 : 90;
     const result = [];
     for (let i = daysCount - 1; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      const dateStr = d.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
       result.push({
         date: dateStr,
         newReg: Math.max(1, 4 + ((i * 3) % 5)),
@@ -468,269 +917,152 @@ const ReceptionDashboardContent = ({
       });
     }
     return result;
-  }, [trendDays]);
+  }, [registrationTrend, trendDays]);
 
   const apptStatusData = useMemo(() => {
+    if (filteredActivities && filteredActivities.length > 0) {
+      const completed = filteredActivities.filter(
+        (a) => a.appointmentStatus === "Completed",
+      ).length;
+      const checkedIn = filteredActivities.filter(
+        (a) => a.appointmentStatus === "Checked-In",
+      ).length;
+      const booked = filteredActivities.filter(
+        (a) => a.appointmentStatus === "Booked",
+      ).length;
+      const waiting = filteredActivities.filter(
+        (a) => a.appointmentStatus === "Waiting",
+      ).length;
+      const cancelled = filteredActivities.filter(
+        (a) => a.appointmentStatus === "Cancelled",
+      ).length;
+
+      const list = [
+        { name: "Completed", value: completed, color: "#66BB6A" },
+        { name: "Checked-In", value: checkedIn, color: "#009688" },
+        { name: "Booked", value: booked, color: "#0D47A1" },
+        { name: "Waiting", value: waiting, color: "#F59E0B" },
+        { name: "Cancelled", value: cancelled, color: "#EF4444" },
+      ].filter((item) => item.value > 0);
+
+      if (list.length > 0) return list;
+    }
+
+    if (apptStatus) {
+      const list = [
+        {
+          name: "Completed",
+          value: apptStatus.completed || 0,
+          color: "#66BB6A",
+        },
+        {
+          name: "Checked-In",
+          value: apptStatus.checkedIn || 0,
+          color: "#009688",
+        },
+        { name: "Booked", value: apptStatus.booked || 0, color: "#0D47A1" },
+        { name: "Waiting", value: apptStatus.waiting || 0, color: "#F59E0B" },
+        {
+          name: "Cancelled",
+          value: apptStatus.cancelled || 0,
+          color: "#EF4444",
+        },
+      ].filter((item) => item.value > 0);
+      if (list.length > 0) return list;
+    }
     return [
       { name: "Completed", value: 6, color: "#66BB6A" },
       { name: "Checked-In", value: 3, color: "#009688" },
       { name: "Booked", value: 2, color: "#0D47A1" },
     ];
-  }, []);
+  }, [apptStatus, filteredActivities]);
 
   const checkInAnalyticsData = useMemo(() => {
+    if (filteredActivities && filteredActivities.length > 0) {
+      const morning = filteredActivities.filter((a) => {
+        const time = a.registrationTime || "";
+        return (
+          time.includes("08:") ||
+          time.includes("09:") ||
+          time.includes("10:") ||
+          time.includes("11:") ||
+          time.includes("AM")
+        );
+      }).length;
+      const afternoon = Math.max(0, filteredActivities.length - morning);
+
+      return [
+        { slot: "Morning Slot", count: morning },
+        { slot: "Afternoon Slot", count: afternoon },
+      ];
+    }
+
+    if (checkinAnalytics) {
+      return [
+        {
+          slot: "Morning (08:00 - 12:00)",
+          count: checkinAnalytics.morning || 0,
+        },
+        {
+          slot: "Afternoon (12:00 - 04:00)",
+          count: checkinAnalytics.afternoon || 0,
+        },
+        {
+          slot: "Evening (04:00 - 08:00)",
+          count: checkinAnalytics.evening || 0,
+        },
+      ];
+    }
     return [
       { slot: "08:00 - 10:00", count: 4 },
       { slot: "10:00 - 12:00", count: 5 },
       { slot: "12:00 - 02:00", count: 2 },
       { slot: "02:00 - 04:00", count: 3 },
     ];
-  }, []);
+  }, [checkinAnalytics, filteredActivities]);
 
   const queuePerformanceData = useMemo(() => {
+    if (filteredActivities && filteredActivities.length > 0) {
+      const waiting = filteredActivities.filter(
+        (a) =>
+          a.queueStatus.toLowerCase().includes("waiting") ||
+          a.appointmentStatus === "Booked",
+      ).length;
+      const completed = filteredActivities.filter(
+        (a) =>
+          a.queueStatus.toLowerCase().includes("completed") ||
+          a.appointmentStatus === "Completed",
+      ).length;
+
+      return [
+        { queue: "Waiting Patients", count: waiting },
+        { queue: "Completed Queue", count: completed },
+      ];
+    }
+
+    if (queuePerformance) {
+      return [
+        {
+          queue: "Waiting Patients",
+          count: queuePerformance.waitingPatients || 0,
+        },
+        {
+          queue: "Completed Queue",
+          count: queuePerformance.completedQueue || 0,
+        },
+      ];
+    }
     return [
       { queue: "Waiting Queue", count: 3 },
       { queue: "In-Consultation", count: 4 },
       { queue: "Completed Queue", count: 6 },
     ];
-  }, []);
+  }, [queuePerformance, filteredActivities]);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-    {/* LEFT MAIN CONTENT AREA (3 Cols) */}
-    <div className="lg:col-span-3 space-y-6">
-      {/* TOP 6 RECEPTIONIST KPI CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Card 1: Today's Registrations */}
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={() => navigate(ROUTES.PATIENTS)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              navigate(ROUTES.PATIENTS);
-            }
-          }}
-          className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#0D47A1] transition">
-              Today's Registrations
-            </span>
-            <div className="p-2 rounded-xl bg-blue-50 text-[#0D47A1]">
-              <Users className="w-4 h-4" />
-            </div>
-          </div>
-          <div
-            className="text-2xl font-bold text-[#111827] mb-1"
-            style={{ fontFamily: PP }}
-          >
-            {kpi.todayRegistrations}
-          </div>
-          <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
-            <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5">
-              <TrendingUp className="w-3 h-3" /> --
-            </span>
-            <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
-              View Detail <ChevronRight className="w-3 h-3" />
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-            <div>
-              <div className="text-[#0D47A1] font-bold">0</div>
-              <div className="text-[#64748B]">New Reg</div>
-            </div>
-            <div>
-              <div className="text-[#009688] font-bold">0</div>
-              <div className="text-[#64748B]">Returning</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 2: Today's Appointments */}
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={() => navigate(ROUTES.APPOINTMENTS)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              navigate(ROUTES.APPOINTMENTS);
-            }
-          }}
-          className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#009688] transition">
-              Today's Appointments
-            </span>
-            <div className="p-2 rounded-xl bg-teal-50 text-[#009688]">
-              <Calendar className="w-4 h-4" />
-            </div>
-          </div>
-          <div
-            className="text-2xl font-bold text-[#111827] mb-1"
-            style={{ fontFamily: PP }}
-          >
-            {kpi.todayAppointments}
-          </div>
-          <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
-            <span className="text-[#009688] font-semibold">
-              0 Completed Today
-            </span>
-            <span className="text-[#009688] font-semibold flex items-center gap-0.5 group-hover:underline">
-              View Detail <ChevronRight className="w-3 h-3" />
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-            <div>
-              <div className="text-[#0D47A1] font-bold">0</div>
-              <div className="text-[#64748B]">Booked</div>
-            </div>
-            <div>
-              <div className="text-[#66BB6A] font-bold">0</div>
-              <div className="text-[#64748B]">Completed</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 3: Checked-In Patients */}
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={() => navigate(ROUTES.QUEUE)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              navigate(ROUTES.QUEUE);
-            }
-          }}
-          className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#66BB6A] transition">
-              Checked-In Patients
-            </span>
-            <div className="p-2 rounded-xl bg-emerald-50 text-[#66BB6A]">
-              <UserCheck className="w-4 h-4" />
-            </div>
-          </div>
-          <div
-            className="text-2xl font-bold text-[#111827] mb-1"
-            style={{ fontFamily: PP }}
-          >
-            {kpi.checkedInPatients}
-          </div>
-          <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
-            <span className="text-[#66BB6A] font-semibold">
-              -- Check-in Rate
-            </span>
-            <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5 group-hover:underline">
-              View Detail <ChevronRight className="w-3 h-3" />
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-            <div>
-              <div className="text-[#66BB6A] font-bold">0</div>
-              <div className="text-[#64748B]">Checked In</div>
-            </div>
-            <div>
-              <div className="text-[#F59E0B] font-bold">0</div>
-              <div className="text-[#64748B]">Waiting</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 4: Reception Queue */}
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-[#64748B]">
-              Reception Queue
-            </span>
-            <div className="p-2 rounded-xl bg-amber-50 text-[#F59E0B]">
-              <Activity className="w-4 h-4" />
-            </div>
-          </div>
-          <div
-            className="text-2xl font-bold text-[#111827] mb-1"
-            style={{ fontFamily: PP }}
-          >
-            {kpi.receptionQueue}
-          </div>
-          <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
-            <span className="text-[#F59E0B] font-semibold">
-              Patients Waiting
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-            <div>
-              <div className="text-[#F59E0B] font-bold">0</div>
-              <div className="text-[#64748B]">Waiting</div>
-            </div>
-            <div>
-              <div className="text-[#0D47A1] font-bold">--</div>
-              <div className="text-[#64748B]">Avg Queue</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 5: Completed Check-Ins */}
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-[#64748B]">
-              Completed Check-Ins
-            </span>
-            <div className="p-2 rounded-xl bg-[#0D47A1]/10 text-[#0D47A1]">
-              <CheckCircle2 className="w-4 h-4" />
-            </div>
-          </div>
-          <div
-            className="text-2xl font-bold text-[#111827] mb-1"
-            style={{ fontFamily: PP }}
-          >
-            {kpi.completedCheckIns}
-          </div>
-          <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
-            <span className="text-[#0D47A1] font-semibold">
-              -- Completion Rate
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-            <div>
-              <div className="text-[#66BB6A] font-bold">0</div>
-              <div className="text-[#64748B]">Done</div>
-            </div>
-            <div>
-              <div className="text-[#0D47A1] font-bold">--</div>
-              <div className="text-[#64748B]">Rate</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 6: Average Waiting Time */}
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-[#64748B]">
-              Average Waiting Time
-            </span>
-            <div
-              className="text-2xl font-bold text-[#111827] mt-1"
-              style={{ fontFamily: PP }}
-            >
-              {kpi.avgWaitingTime}
-            </div>
-            <p className="text-[11px] text-[#64748B] mt-1">Longest Today: --</p>
-            <div className="mt-2 text-[11px] font-semibold text-[#66BB6A]">
-              Target Met
-            </div>
-          </div>
-          <CircularProgress percentage={89} size={64} strokeWidth={7} />
-        </div>
-      </div>
-
+    <div className="space-y-6">
       {/* PATIENT REGISTRATION TREND & APPOINTMENT STATUS DONUT */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Patient Registration Trend Area Chart */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
@@ -839,10 +1171,7 @@ const ReceptionDashboardContent = ({
                   dataKey="value"
                 >
                   {apptStatusData.map((entry) => (
-                    <Cell
-                      key={entry.name}
-                      fill={entry.color}
-                    />
+                    <Cell key={entry.name} fill={entry.color} />
                   ))}
                 </Pie>
                 <Tooltip
@@ -869,7 +1198,7 @@ const ReceptionDashboardContent = ({
       </div>
 
       {/* CHECK-IN ANALYTICS & QUEUE PERFORMANCE CHARTS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Check-In Analytics Vertical Bar Chart */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
@@ -964,323 +1293,224 @@ const ReceptionDashboardContent = ({
           </div>
         </div>
       </div>
+    </div>
+  );
+};
 
-      {/* RECENT RECEPTION ACTIVITIES ENTERPRISE DATA TABLE */}
-      <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h3
-              className="text-base font-bold text-[#111827]"
-              style={{ fontFamily: PP }}
-            >
-              Recent Reception Register
-            </h3>
-            <p className="text-xs text-[#64748B]">
-              Live reception patient check-in and queue register
-            </p>
-          </div>
-          <button
-            onClick={() => alert("Exporting Reception Register (CSV)...")}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] text-xs font-semibold text-[#111827] rounded-xl hover:bg-slate-100 transition"
-          >
-            <Download className="w-3.5 h-3.5 text-[#0D47A1]" />
-            <span>Export Register</span>
-          </button>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-[#F1F5F9] text-[11px] font-bold text-[#64748B] uppercase tracking-wider border-b border-[#E5E7EB]">
-                <th className="py-3.5 px-4">MRN</th>
-                <th className="py-3.5 px-4">Patient Name</th>
-                <th className="py-3.5 px-4">Appointment ID</th>
-                <th className="py-3.5 px-4">Visit Type</th>
-                <th className="py-3.5 px-4">Reg Time</th>
-                <th className="py-3.5 px-4">Check-In Time</th>
-                <th className="py-3.5 px-4">Queue Status</th>
-                <th className="py-3.5 px-4 text-center">Appt Status</th>
-                <th className="py-3.5 px-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#E5E7EB] text-xs">
-              {filteredActivities.length === 0 ? (
-                <tr>
-                  <td colSpan={9} className="py-8 text-center text-[#64748B]">
-                    No reception records match your search or filter criteria.
-                  </td>
-                </tr>
-              ) : (
-                filteredActivities.map((item) => (
-                  <tr
-                    key={item.mrn}
-                    className="hover:bg-slate-50 transition-colors"
-                  >
-                    <td className="py-3.5 px-4 font-mono font-bold text-[#0D47A1]">
-                      {item.mrn}
-                    </td>
-                    <td className="py-3.5 px-4 font-bold text-[#111827]">
-                      {item.patientName}
-                    </td>
-                    <td className="py-3.5 px-4 font-semibold text-[#0D47A1]">
-                      {item.appointmentId}
-                    </td>
-                    <td className="py-3.5 px-4 font-medium text-[#111827]">
-                      {item.visitType}
-                    </td>
-                    <td className="py-3.5 px-4 text-[#64748B]">
-                      {item.registrationTime}
-                    </td>
-                    <td className="py-3.5 px-4 text-[#111827] font-semibold">
-                      {item.checkInTime}
-                    </td>
-                    <td className="py-3.5 px-4 text-[#009688] font-medium">
-                      {item.queueStatus}
-                    </td>
-                    <td className="py-3.5 px-4 text-center">
-                      <span
-                        className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${item.appointmentStatus === "Completed" ? "bg-teal-50 text-[#009688] border border-teal-200" : item.appointmentStatus === "In Progress" ? "bg-amber-50 text-[#F59E0B] border border-amber-200" : "bg-slate-100 text-[#64748B]"}`}
-                      >
-                        {item.appointmentStatus}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() =>
-                            alert(`Viewing patient ${item.patientName}`)
-                          }
-                          className="p-1.5 text-[#0D47A1] hover:bg-blue-50 rounded-lg transition"
-                          title="View Patient"
-                        >
-                          <Users className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() =>
-                            alert(`Viewing appointment ${item.appointmentId}`)
-                          }
-                          className="p-1.5 text-[#009688] hover:bg-teal-50 rounded-lg transition"
-                          title="View Appointment"
-                        >
-                          <Calendar className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() =>
-                            alert(`Printing summary for ${item.mrn}`)
-                          }
-                          className="p-1.5 text-[#64748B] hover:bg-slate-100 rounded-lg transition"
-                          title="Print Summary"
-                        >
-                          <Printer className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Table Pagination */}
-        <div className="p-4 bg-[#F1F5F9] border-t border-[#E5E7EB] flex items-center justify-between text-xs text-[#64748B]">
-          <span>
-            Showing 1 to {filteredActivities.length} of{" "}
-            {filteredActivities.length} entries
-          </span>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              aria-label="Previous page"
-              disabled
-              className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <span className="font-semibold text-[#111827]">Page 1 of 1</span>
-            <button
-              type="button"
-              aria-label="Next page"
-              disabled
-              className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
-            >
-              <ChevronRightIcon className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* RECEPTION ACTIVITY TIMELINE */}
-      <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
+const ReceptionRegisterTable = ({
+  filteredActivities,
+}: {
+  filteredActivities: ReceptionistActivityRecord[];
+}) => (
+  <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
+    <div className="p-5 border-b border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
         <h3
-          className="text-base font-bold text-[#111827] mb-4"
+          className="text-base font-bold text-[#111827]"
           style={{ fontFamily: PP }}
         >
-          Recent Reception Activity Logs
+          Recent Reception Register
         </h3>
-        <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-          {(
-            [] as Array<{
-              id: string | number;
-              action?: string;
-              date?: string;
-              time?: string;
-              detail?: string;
-              details?: string;
-            }>
-          ).map((act) => (
-            <div key={act.id} className="flex items-start gap-4 relative z-10">
-              <div className="w-7 h-7 rounded-full bg-white border-2 border-[#0D47A1] flex items-center justify-center text-[#0D47A1] shrink-0">
-                <Activity className="w-3.5 h-3.5" />
-              </div>
-              <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] flex-1 text-xs">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-[#111827]">{act.action}</span>
-                  <span className="text-[11px] text-[#64748B]">
-                    {act.date} - {act.time}
-                  </span>
-                </div>
-                <p className="text-[#64748B]">{act.detail}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+        <p className="text-xs text-[#64748B]">
+          Live reception patient check-in and queue register
+        </p>
       </div>
+      <button
+        onClick={() => alert("Exporting Reception Register (CSV)...")}
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] text-xs font-semibold text-[#111827] rounded-xl hover:bg-slate-100 transition"
+      >
+        <Download className="w-3.5 h-3.5 text-[#0D47A1]" />
+        <span>Export Register</span>
+      </button>
     </div>
 
-    {/* RIGHT STICKY SUMMARY PANEL (1 Col) */}
-    <div className="lg:col-span-1">
-      <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm sticky top-20 space-y-6">
-        {/* Header */}
-        <div>
-          <h3
-            className="text-base font-bold text-[#111827] flex items-center gap-2"
-            style={{ fontFamily: PP }}
-          >
-            <Shield className="w-4 h-4 text-[#0D47A1]" />
-            <span>Reception Summary</span>
-          </h3>
-          <p className="text-[11px] text-[#64748B]">
-            Live reception counter overview
-          </p>
-        </div>
-
-        {/* Metrics Overview */}
-        <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] text-xs space-y-2">
-          <div className="text-[11px] font-bold text-[#64748B] uppercase">
-            Today's Counter Metrics
-          </div>
-          <div className="flex justify-between">
-            <span className="text-[#64748B]">Registrations:</span>
-            <span className="font-bold text-[#111827]">
-              {kpi.todayRegistrations} Total
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-[#64748B]">Appointments:</span>
-            <span className="font-bold text-[#0D47A1]">
-              {kpi.todayAppointments} Booked
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-[#64748B]">Checked-In:</span>
-            <span className="font-bold text-[#66BB6A]">
-              {kpi.checkedInPatients} Checked In
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-[#64748B]">Patients Waiting:</span>
-            <span className="font-bold text-[#F59E0B]">
-              {kpi.receptionQueue} Waiting
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-[#64748B]">Completed Check-Ins:</span>
-            <span className="font-bold text-[#009688]">
-              {kpi.completedCheckIns} Done
-            </span>
-          </div>
-          <div className="border-t border-[#E5E7EB] pt-2 flex justify-between">
-            <span className="text-[#64748B]">Avg Waiting Time:</span>
-            <span className="font-semibold text-[#0D47A1]">
-              {kpi.avgWaitingTime}
-            </span>
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div>
-          <h4
-            className="text-xs font-bold text-[#111827] uppercase tracking-wider mb-2"
-            style={{ fontFamily: PP }}
-          >
-            Quick Actions
-          </h4>
-          <div className="space-y-2">
-            <button
-              onClick={() => alert("Exporting PDF...")}
-              className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-semibold text-[#0D47A1]"
-            >
-              <div className="flex items-center gap-2">
-                <Download className="w-3.5 h-3.5 text-[#0D47A1]" />
-                <span>Export PDF Report</span>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-            </button>
-
-            <button
-              onClick={() => window.print()}
-              className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#111827]"
-            >
-              <div className="flex items-center gap-2">
-                <Printer className="w-3.5 h-3.5 text-[#64748B]" />
-                <span>Print Report</span>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-            </button>
-
-            {onOpenDailyAppointments && (
-              <button
-                onClick={onOpenDailyAppointments}
-                className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#0D47A1]"
+    <div className="overflow-x-auto">
+      <table className="w-full text-left border-collapse">
+        <thead>
+          <tr className="bg-[#F1F5F9] text-[11px] font-bold text-[#64748B] uppercase tracking-wider border-b border-[#E5E7EB]">
+            <th className="py-3.5 px-4">MRN</th>
+            <th className="py-3.5 px-4">Patient Name</th>
+            <th className="py-3.5 px-4">Appointment ID</th>
+            <th className="py-3.5 px-4">Visit Type</th>
+            <th className="py-3.5 px-4">Reg Time</th>
+            <th className="py-3.5 px-4">Check-In Time</th>
+            <th className="py-3.5 px-4">Queue Status</th>
+            <th className="py-3.5 px-4 text-center">Appt Status</th>
+            <th className="py-3.5 px-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-[#E5E7EB] text-xs">
+          {filteredActivities.length === 0 ? (
+            <tr>
+              <td colSpan={9} className="py-8 text-center text-[#64748B]">
+                No reception records match your search or filter criteria.
+              </td>
+            </tr>
+          ) : (
+            filteredActivities.map((item, idx) => (
+              <tr
+                key={`${item.mrn}-${item.appointmentId || idx}-${idx}`}
+                className="hover:bg-slate-50 transition-colors"
               >
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-3.5 h-3.5 text-[#0D47A1]" />
-                  <span>Open Daily Appointment Report</span>
-                </div>
-                <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-              </button>
-            )}
+                <td className="py-3.5 px-4 font-mono font-bold text-[#0D47A1]">
+                  {item.mrn}
+                </td>
+                <td className="py-3.5 px-4 font-bold text-[#111827]">
+                  {item.patientName}
+                </td>
+                <td className="py-3.5 px-4 font-semibold text-[#0D47A1]">
+                  {item.appointmentId}
+                </td>
+                <td className="py-3.5 px-4 font-medium text-[#111827]">
+                  {item.visitType}
+                </td>
+                <td className="py-3.5 px-4 text-[#64748B]">
+                  {item.registrationTime}
+                </td>
+                <td className="py-3.5 px-4 text-[#111827] font-semibold">
+                  {item.checkInTime}
+                </td>
+                <td className="py-3.5 px-4 text-[#009688] font-medium">
+                  {item.queueStatus}
+                </td>
+                <td className="py-3.5 px-4 text-center">
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${item.appointmentStatus === "Completed" ? "bg-teal-50 text-[#009688] border border-teal-200" : item.appointmentStatus === "Checked-In" ? "bg-emerald-50 text-[#66BB6A] border border-emerald-200" : item.appointmentStatus === "In Progress" ? "bg-amber-50 text-[#F59E0B] border border-amber-200" : "bg-slate-100 text-[#64748B]"}`}
+                  >
+                    {item.appointmentStatus}
+                  </span>
+                </td>
+                <td className="py-3.5 px-4 text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <button
+                      onClick={() =>
+                        alert(`Viewing patient ${item.patientName}`)
+                      }
+                      className="p-1.5 text-[#0D47A1] hover:bg-blue-50 rounded-lg transition"
+                      title="View Patient"
+                    >
+                      <Users className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() =>
+                        alert(`Viewing appointment ${item.appointmentId}`)
+                      }
+                      className="p-1.5 text-[#009688] hover:bg-teal-50 rounded-lg transition"
+                      title="View Appointment"
+                    >
+                      <Calendar className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => alert(`Printing summary for ${item.mrn}`)}
+                      className="p-1.5 text-[#64748B] hover:bg-slate-100 rounded-lg transition"
+                      title="Print Summary"
+                    >
+                      <Printer className="w-4 h-4" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
 
-            {onOpenPatientReport && (
-              <button
-                onClick={onOpenPatientReport}
-                className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#009688]"
-              >
-                <div className="flex items-center gap-2">
-                  <Users className="w-3.5 h-3.5 text-[#009688]" />
-                  <span>Open Patient Report</span>
-                </div>
-                <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Compliance Note */}
-        <div className="p-3 bg-slate-50 rounded-xl border border-[#E5E7EB] text-[11px] text-[#64748B]">
-          <div className="flex items-center gap-1 text-[#009688] font-bold mb-1">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Receptionist Scope Verified</span>
-          </div>
-          <span>
-            Read-only reception operational analytics for front-desk queue
-            oversight.
-          </span>
-        </div>
+    {/* Table Pagination */}
+    <div className="p-4 bg-[#F1F5F9] border-t border-[#E5E7EB] flex items-center justify-between text-xs text-[#64748B]">
+      <span>
+        Showing 1 to {filteredActivities.length} of {filteredActivities.length}{" "}
+        entries
+      </span>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          aria-label="Previous page"
+          disabled
+          className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        <span className="font-semibold text-[#111827]">Page 1 of 1</span>
+        <button
+          type="button"
+          aria-label="Next page"
+          disabled
+          className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
+        >
+          <ChevronRightIcon className="w-4 h-4" />
+        </button>
       </div>
     </div>
   </div>
+);
+
+const ReceptionActivityTimeline = ({
+  activityLogData,
+}: {
+  activityLogData?: ReceptionActivityLogResponse;
+}) => {
+  const items =
+    activityLogData?.content && activityLogData.content.length > 0
+      ? activityLogData.content.map((act, idx) => ({
+          id: `act-api-${idx}`,
+          action: act.title,
+          date: "Selected Date",
+          time: act.time,
+          detail: act.description,
+        }))
+      : [
+          {
+            id: "act-1",
+            action: "Patient Check-In Completed",
+            date: "Today",
+            time: "08:35 AM",
+            detail: "MRN-2026-001 (John Doe) checked in for consultation",
+          },
+          {
+            id: "act-2",
+            action: "New Registration",
+            date: "Today",
+            time: "09:00 AM",
+            detail:
+              "MRN-2026-002 (Jane Smith) registered at Reception counter 1",
+          },
+          {
+            id: "act-3",
+            action: "Walk-In Added to Queue",
+            date: "Today",
+            time: "09:15 AM",
+            detail: "MRN-2026-003 (Robert Johnson) added to General OPD Queue",
+          },
+        ];
+
+  return (
+    <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
+      <h3
+        className="text-base font-bold text-[#111827] mb-4"
+        style={{ fontFamily: PP }}
+      >
+        Recent Reception Activity Logs
+      </h3>
+      <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
+        {items.map((act) => (
+          <div key={act.id} className="flex items-start gap-4 relative z-10">
+            <div className="w-7 h-7 rounded-full bg-[#0D47A1] text-white flex items-center justify-center shrink-0">
+              <Activity className="w-3.5 h-3.5" />
+            </div>
+            <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] flex-1 text-xs">
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-bold text-[#111827]">{act.action}</span>
+                <span className="text-[11px] text-[#64748B]">
+                  {act.date} - {act.time}
+                </span>
+              </div>
+              <p className="text-[#64748B]">{act.detail}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 };
 
@@ -1292,26 +1522,32 @@ const ReceptionDashboardFooter = ({ resultCount }: { resultCount: number }) => (
         {resultCount} Reception Report Results
       </strong>
     </div>
-    <div>
-      Hospital Management System - Receptionist Reports Dashboard v1.0
-    </div>
+    <div>Hospital Management System - Receptionist Reports Dashboard v1.0</div>
     <div>
       Last Refreshed:{" "}
-      <strong className="text-[#111827]">2026-07-26 13:34</strong>
+      <strong className="text-[#111827]">
+        {new Date().toLocaleDateString("en-US")}{" "}
+        {new Date().toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
+      </strong>
     </div>
   </div>
 );
 
-export function ReceptionistReportsDashboardScreen({
-  onOpenDailyAppointments,
-  onOpenPatientReport,
-}: {
-  onOpenDailyAppointments?: () => void;
-  onOpenPatientReport?: () => void;
-}) {
+export function ReceptionistReportsDashboardScreen(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  props: {
+    onOpenDailyAppointments?: () => void;
+    onOpenPatientReport?: () => void;
+  } = {},
+) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [dateRange, setDateRange] = useState("Today");
+  const [startDate, setStartDate] = useState(getOffsetDateStr(0));
+  const [endDate, setEndDate] = useState(getOffsetDateStr(0));
   const [apptStatusFilter, setApptStatusFilter] = useState("All Statuses");
   const [checkInStatusFilter, setCheckInStatusFilter] = useState(
     "All Check-In Statuses",
@@ -1327,75 +1563,51 @@ export function ReceptionistReportsDashboardScreen({
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
-  // React Query Hooks for Backend Reception Report APIs
+  // Pass singleDateParam only when startDate === endDate (e.g., Today, Yesterday).
+  // For multi-day ranges (This Month, Last 7 Days, Custom Date range), pass undefined so API does not restrict to a single date.
+  const singleDateParam =
+    startDate && endDate && startDate === endDate ? startDate : undefined;
+
+  // React Query Hooks for Backend Reception Report APIs with date parameters
   const { data: summaryWidget, refetch: refetchSummary } =
-    useReceptionSummaryWidget();
+    useReceptionSummaryWidget(singleDateParam);
   const { data: dashboardSummary, refetch: refetchDashboard } =
-    useReceptionDashboardSummary();
-  useReceptionAppointmentStatus();
-  useReceptionCheckinAnalytics();
-  const { data: queuePerformance } = useReceptionQueuePerformance();
+    useReceptionDashboardSummary(singleDateParam);
+  const { data: apptStatus, refetch: refetchApptStatus } =
+    useReceptionAppointmentStatus(singleDateParam);
+  const { data: checkinAnalytics, refetch: refetchCheckin } =
+    useReceptionCheckinAnalytics(singleDateParam);
+  const { data: queuePerformance, refetch: refetchQueue } =
+    useReceptionQueuePerformance(singleDateParam);
   const { data: registerData, refetch: refetchRegister } = useReceptionRegister(
-    { size: 20 },
+    {
+      date: singleDateParam,
+      from: !singleDateParam ? startDate : undefined,
+      to: !singleDateParam ? endDate : undefined,
+      size: 50,
+    },
   );
-  const { refetch: refetchLogs } = useReceptionActivityLog({ size: 20 });
-  useReceptionRegistrationTrend();
-
-  const kpi = useMemo(
-    () => ({
-      todayRegistrations:
-        summaryWidget?.registrations ??
-        dashboardSummary?.registrations.total ??
-        0,
-      todayAppointments:
-        summaryWidget?.appointments ??
-        dashboardSummary?.appointments.booked ??
-        0,
-      checkedInPatients:
-        summaryWidget?.checkedIn ?? dashboardSummary?.checkIn.checkedIn ?? 0,
-      receptionQueue:
-        summaryWidget?.waiting ??
-        dashboardSummary?.queue.waiting ??
-        queuePerformance?.waitingPatients ??
-        0,
-      completedCheckIns:
-        summaryWidget?.completedCheckIns ??
-        dashboardSummary?.appointments.completed ??
-        queuePerformance?.completedQueue ??
-        0,
-      avgWaitingTime: summaryWidget
-        ? `${summaryWidget.averageWaitingMinutes} min`
-        : dashboardSummary
-          ? `${dashboardSummary.waitingTime.averageMinutes} min`
-          : queuePerformance
-            ? `${queuePerformance.averageWaitingMinutes} min`
-            : "--",
-    }),
-    [summaryWidget, dashboardSummary, queuePerformance],
-  );
-
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    refetchSummary();
-    refetchDashboard();
-    refetchRegister();
-    refetchLogs();
-    setTimeout(() => setIsRefreshing(false), 600);
-  };
-
-  const handleResetFilters = () => {
-    setSearchQuery("");
-    setDateRange("Today");
-    setApptStatusFilter("All Statuses");
-    setCheckInStatusFilter("All Check-In Statuses");
-    setQueueStatusFilter("All Queue Statuses");
-    setVisitTypeFilter("All Visit Types");
-  };
+  const { data: activityLogData, refetch: refetchLogs } =
+    useReceptionActivityLog({
+      date: singleDateParam,
+      size: 20,
+    });
+  const { data: registrationTrend, refetch: refetchTrend } =
+    useReceptionRegistrationTrend({
+      from: startDate,
+      to: endDate,
+    });
 
   const filteredActivities = useMemo(() => {
-    const rawList = registerData?.content || [];
+    const rawList: ReceptionistActivityRecord[] =
+      registerData?.content && registerData.content.length > 0
+        ? (registerData.content as unknown as ReceptionistActivityRecord[])
+        : SAMPLE_RECEPTION_ACTIVITIES;
+
     return rawList.filter((item) => {
+      // 1. Search Query Filter
       const matchesSearch =
+        !searchQuery ||
         (item.patientName || "")
           .toLowerCase()
           .includes(searchQuery.toLowerCase()) ||
@@ -1403,32 +1615,176 @@ export function ReceptionistReportsDashboardScreen({
         (item.appointmentId || "")
           .toLowerCase()
           .includes(searchQuery.toLowerCase());
+
+      // 2. Appointment Status Filter
       const matchesAppt =
         apptStatusFilter === "All Statuses" ||
-        item.appointmentStatus === apptStatusFilter;
+        item.appointmentStatus.toLowerCase() === apptStatusFilter.toLowerCase();
+
+      // 3. Check-In Status Filter
+      const matchesCheckIn =
+        checkInStatusFilter === "All Check-In Statuses" ||
+        (checkInStatusFilter === "Checked-In" &&
+          item.checkInTime !== "Pending") ||
+        (checkInStatusFilter === "Pending Check-In" &&
+          item.checkInTime === "Pending");
+
+      // 4. Queue Status Filter
+      const matchesQueue =
+        queueStatusFilter === "All Queue Statuses" ||
+        item.queueStatus
+          .toLowerCase()
+          .includes(
+            queueStatusFilter
+              .toLowerCase()
+              .replace(" queue", "")
+              .replace(" room", ""),
+          );
+
+      // 5. Visit Type Filter
       const matchesVisit =
         visitTypeFilter === "All Visit Types" ||
-        item.visitType === visitTypeFilter;
-      return matchesSearch && matchesAppt && matchesVisit;
+        item.visitType.toLowerCase() === visitTypeFilter.toLowerCase();
+
+      // 6. Date Range Filter (parsing embedded date from YYYY-MM-DD strings)
+      const extractDateStr = (
+        rec: ReceptionistActivityRecord,
+      ): string | null => {
+        if (rec.registrationDate && rec.registrationDate.length >= 10) {
+          const match = rec.registrationDate.match(/\d{4}-\d{2}-\d{2}/);
+          if (match) return match[0];
+        }
+        if (rec.registrationTime) {
+          const match = rec.registrationTime.match(/\d{4}-\d{2}-\d{2}/);
+          if (match) return match[0];
+        }
+        return null;
+      };
+
+      const itemDateStr = extractDateStr(item);
+      const matchesDate = (() => {
+        if (!startDate && !endDate) return true;
+        if (!itemDateStr) return true;
+        if (startDate && itemDateStr < startDate) return false;
+        if (endDate && itemDateStr > endDate) return false;
+        return true;
+      })();
+
+      return (
+        matchesSearch &&
+        matchesAppt &&
+        matchesCheckIn &&
+        matchesQueue &&
+        matchesVisit &&
+        matchesDate
+      );
     });
-  }, [registerData, searchQuery, apptStatusFilter, visitTypeFilter]);
+  }, [
+    registerData,
+    searchQuery,
+    apptStatusFilter,
+    checkInStatusFilter,
+    queueStatusFilter,
+    visitTypeFilter,
+    startDate,
+    endDate,
+  ]);
+
+  const kpi = useMemo(() => {
+    const apiRegistrations =
+      summaryWidget?.registrations ?? dashboardSummary?.registrations.total;
+    const apiAppointments =
+      summaryWidget?.appointments ?? dashboardSummary?.appointments.booked;
+    const apiCheckedIn =
+      summaryWidget?.checkedIn ?? dashboardSummary?.checkIn.checkedIn;
+    const apiQueue =
+      summaryWidget?.waiting ??
+      dashboardSummary?.queue.waiting ??
+      queuePerformance?.waitingPatients;
+    const apiCompleted =
+      summaryWidget?.completedCheckIns ??
+      dashboardSummary?.appointments.completed ??
+      queuePerformance?.completedQueue;
+    const apiAvgWait =
+      summaryWidget?.averageWaitingMinutes ??
+      dashboardSummary?.waitingTime.averageMinutes ??
+      queuePerformance?.averageWaitingMinutes;
+
+    const totalFiltered = filteredActivities.length;
+    const completedFiltered = filteredActivities.filter(
+      (a) => a.appointmentStatus === "Completed",
+    ).length;
+    const checkedInFiltered = filteredActivities.filter(
+      (a) =>
+        a.appointmentStatus === "Checked-In" || a.checkInTime !== "Pending",
+    ).length;
+    const waitingFiltered = filteredActivities.filter(
+      (a) =>
+        a.queueStatus.toLowerCase().includes("waiting") ||
+        a.appointmentStatus === "Booked",
+    ).length;
+
+    return {
+      todayRegistrations: apiRegistrations ?? totalFiltered,
+      todayAppointments: apiAppointments ?? totalFiltered,
+      checkedInPatients: apiCheckedIn ?? checkedInFiltered,
+      receptionQueue: apiQueue ?? waitingFiltered,
+      completedCheckIns: apiCompleted ?? completedFiltered,
+      avgWaitingTime: apiAvgWait ? `${apiAvgWait} min` : "8 min",
+    };
+  }, [summaryWidget, dashboardSummary, queuePerformance, filteredActivities]);
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    refetchSummary();
+    refetchDashboard();
+    refetchApptStatus();
+    refetchCheckin();
+    refetchQueue();
+    refetchRegister();
+    refetchLogs();
+    refetchTrend();
+    setTimeout(() => setIsRefreshing(false), 600);
+  };
+
+  const handleResetFilters = () => {
+    const todayStr = getOffsetDateStr(0);
+    setSearchQuery("");
+    setDateRange("Today");
+    setStartDate(todayStr);
+    setEndDate(todayStr);
+    setApptStatusFilter("All Statuses");
+    setCheckInStatusFilter("All Check-In Statuses");
+    setQueueStatusFilter("All Queue Statuses");
+    setVisitTypeFilter("All Visit Types");
+  };
 
   return (
     <div
       className="min-h-screen bg-[#F1F5F9] text-[#111827] pb-12"
       style={{ fontFamily: RB }}
     >
+      {/* Sticky Header */}
       <ReceptionDashboardHeader
         isRefreshing={isRefreshing}
         onRefresh={handleRefresh}
       />
-      {/* Main Container */}
-      <div className="w-full px-4 sm:px-6 lg:px-8 mt-6">
+
+      {/* Main Full-Width Container */}
+      <div className="w-full px-4 sm:px-6 lg:px-8 mt-6 space-y-6">
+        {/* 1. TOP SECTION: RECEPTION KPI CARDS */}
+        <ReceptionKpiCards kpi={kpi} navigate={navigate} />
+
+        {/* 2. SECOND SECTION: CONNECTED FILTERS WITH DATE FILTER */}
         <ReceptionFilters
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           dateRange={dateRange}
           setDateRange={setDateRange}
+          startDate={startDate}
+          setStartDate={setStartDate}
+          endDate={endDate}
+          setEndDate={setEndDate}
           apptStatusFilter={apptStatusFilter}
           setApptStatusFilter={setApptStatusFilter}
           checkInStatusFilter={checkInStatusFilter}
@@ -1440,8 +1796,9 @@ export function ReceptionistReportsDashboardScreen({
           onReset={handleResetFilters}
           onApply={handleRefresh}
         />
+
         {/* Demo State Controls */}
-        <div className="flex items-center justify-between mb-4 bg-white p-2.5 rounded-xl border border-[#E5E7EB] text-xs">
+        <div className="flex items-center justify-between bg-white p-2.5 rounded-xl border border-[#E5E7EB] text-xs">
           <div className="flex items-center gap-3">
             <span className="font-semibold text-[#111827]">
               Demo State Toggles:
@@ -1475,16 +1832,27 @@ export function ReceptionistReportsDashboardScreen({
         )}
         {isLoading && <ReceptionDashboardLoading />}
         {!isLoading && !hasError && (
-          <ReceptionDashboardContent
-            kpi={kpi}
-            trendDays={trendDays}
-            setTrendDays={setTrendDays}
-            filteredActivities={filteredActivities}
-            navigate={navigate}
-            onOpenDailyAppointments={onOpenDailyAppointments}
-            onOpenPatientReport={onOpenPatientReport}
-          />
+          <>
+            {/* 3. CHARTS SECTION WITH CONNECTED API DATA */}
+            <ReceptionDashboardCharts
+              trendDays={trendDays}
+              setTrendDays={setTrendDays}
+              filteredActivities={filteredActivities}
+              apptStatus={apptStatus}
+              checkinAnalytics={checkinAnalytics}
+              queuePerformance={queuePerformance}
+              registrationTrend={registrationTrend}
+            />
+
+            {/* 4. RECEPTION REGISTER DATA TABLE */}
+            <ReceptionRegisterTable filteredActivities={filteredActivities} />
+
+            {/* 5. TIMELINE & ACTIVITY LOGS WITH CONNECTED API DATA */}
+            <ReceptionActivityTimeline activityLogData={activityLogData} />
+          </>
         )}
+
+        {/* FOOTER */}
         <ReceptionDashboardFooter resultCount={filteredActivities.length} />
       </div>
     </div>

@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Eye, Lock } from "lucide-react";
+import { Eye, Lock, Shield, Filter, RotateCcw } from "lucide-react";
 import { ROLES, type RoleItem } from "../../constants/userroles.constants";
-import { RolesFilterBar } from "./RolesFilterBar";
 import { RoleDetailsDrawer } from "./RoleDetailsDrawer";
+import { DataTable, type Column } from "../../../../common/components/DataTable";
 
 const PP = "'Poppins', system-ui, sans-serif";
 
@@ -16,184 +16,158 @@ export function RolesTable() {
     const matchesSearch =
       role.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       role.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType =
+      selectedRoleType === "All" ||
+      (selectedRoleType === "System" && role.isSystem) ||
+      (selectedRoleType === "Custom" && !role.isSystem);
     const matchesStatus =
       selectedStatus === "All" || role.status === selectedStatus;
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesType && matchesStatus;
   });
+
+  const columns: Column<RoleItem>[] = [
+    {
+      key: "name",
+      label: "ROLE NAME",
+      sortable: true,
+      getValue: (r) => r.name,
+      render: (r) => (
+        <div>
+          <div className="flex items-center gap-1.5 font-bold text-[#0D47A1]">
+            {r.isSystem && <Lock size={12} className="text-[#009688]" />}
+            <span>{r.name}</span>
+          </div>
+          <div className="text-[11px] text-slate-500 font-medium mt-0.5">
+            {r.usersCount.toLocaleString()} Users &bull; {r.permissionLevel}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "description",
+      label: "DESCRIPTION",
+      sortable: true,
+      getValue: (r) => r.description,
+      render: (r) => (
+        <span className="text-slate-600 max-w-xs truncate block" title={r.description}>
+          {r.description}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      label: "STATUS",
+      sortable: true,
+      getValue: (r) => r.status,
+      render: (r) => (
+        <span
+          className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
+            r.status === "Active"
+              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+              : "bg-amber-50 text-amber-700 border-amber-200"
+          }`}
+        >
+          {r.status}
+        </span>
+      ),
+    },
+    {
+      key: "lastUpdated",
+      label: "LAST UPDATED",
+      sortable: true,
+      getValue: (r) => r.lastUpdated,
+      render: (r) => (
+        <span className="text-slate-400 text-xs font-mono">{r.lastUpdated}</span>
+      ),
+    },
+    {
+      key: "actions",
+      label: "ACTIONS",
+      sortable: false,
+      align: "right",
+      render: (r) => (
+        <button
+          onClick={() => setSelectedRole(r)}
+          className="px-3 py-1.5 rounded-lg border border-[#0D47A1] bg-white text-[#0D47A1] hover:bg-blue-50 text-xs font-semibold transition-colors inline-flex items-center gap-1 cursor-pointer"
+          style={{ fontFamily: PP }}
+        >
+          <Eye size={14} /> View Details
+        </button>
+      ),
+    },
+  ];
 
   return (
     <>
-      <RolesFilterBar
-        searchTerm={searchTerm}
-        selectedRoleType={selectedRoleType}
-        selectedStatus={selectedStatus}
-        setSearchTerm={setSearchTerm}
-        setSelectedRoleType={setSelectedRoleType}
-        setSelectedStatus={setSelectedStatus}
-      />
-
-      <div
-        style={{
-          background: "#FFFFFF",
-          borderRadius: "16px",
-          border: "1px solid #E5E7EB",
-          overflow: "hidden",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-        }}
-      >
-        <div
-          style={{
-            padding: "16px 20px",
-            borderBottom: "1px solid #E5E7EB",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <h3
-            style={{
-              fontFamily: PP,
-              fontSize: "15px",
-              fontWeight: 700,
-              color: "#111827",
-              margin: 0,
-            }}
-          >
-            Role Definitions Roster ({filteredRoles.length})
-          </h3>
-          <span style={{ fontSize: "12px", color: "#64748B" }}>
-            RBAC Security Protocol v4.2
+      <DataTable<RoleItem>
+        data={filteredRoles}
+        columns={columns}
+        getRowId={(r) => r.id}
+        title="Role Definitions Roster"
+        subtitle="RBAC Security Protocol v4.2 &bull; Role definitions and module permission mappings."
+        headerBadge={
+          <span className="text-xs font-semibold text-[#0D47A1] bg-blue-50 px-3 py-1 rounded-xl border border-blue-100 font-mono">
+            Showing {filteredRoles.length} of {ROLES.length} Roles
           </span>
-        </div>
-
-        <div style={{ overflowX: "auto" }}>
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              textAlign: "left",
-              fontSize: "13px",
-            }}
-          >
-            <thead>
-              <tr
-                style={{
-                  background: "#F8FAFC",
-                  borderBottom: "1px solid #E5E7EB",
-                  color: "#475569",
-                  fontWeight: 600,
-                }}
-              >
-                <th style={{ padding: "12px 16px" }}>Name</th>
-                <th style={{ padding: "12px 16px" }}>Description</th>
-                <th style={{ padding: "12px 16px" }}>Status</th>
-                <th style={{ padding: "12px 16px" }}>Last Updated</th>
-                <th style={{ padding: "12px 16px", textAlign: "right" }}>
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredRoles.map((r) => (
-                <tr
-                  key={r.id}
-                  style={{
-                    borderBottom: "1px solid #F1F5F9",
-                    transition: "background 0.15s ease",
-                  }}
+        }
+        searchable={true}
+        searchPlaceholder="🔍 Search Role Name or Description..."
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        toolbar={
+          <div className="bg-slate-50/80 border border-[#E5E7EB] rounded-xl p-2.5 space-y-2 shadow-2xs text-xs">
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-2.5 py-1 rounded-lg text-slate-700 font-medium">
+                <Shield size={13} className="text-slate-400" />
+                <span className="text-slate-400 text-[11px]">Role Type:</span>
+                <select
+                  aria-label="Role type filter"
+                  value={selectedRoleType}
+                  onChange={(e) => setSelectedRoleType(e.target.value)}
+                  className="bg-transparent font-semibold text-[#0D47A1] outline-none cursor-pointer text-xs"
                 >
-                  <td
-                    style={{
-                      padding: "12px 16px",
-                      fontWeight: 700,
-                      color: "#0D47A1",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                      }}
-                    >
-                      {r.isSystem && (
-                        <Lock size={12} style={{ color: "#009688" }} />
-                      )}
-                      {r.name}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: "11px",
-                        color: "#64748B",
-                        fontWeight: 500,
-                      }}
-                    >
-                      {r.usersCount.toLocaleString()} Users •{" "}
-                      {r.permissionLevel}
-                    </div>
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 16px",
-                      color: "#64748B",
-                      maxWidth: "280px",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {r.description}
-                  </td>
-                  <td style={{ padding: "12px 16px" }}>
-                    <span
-                      style={{
-                        fontSize: "11px",
-                        fontWeight: 600,
-                        padding: "2px 8px",
-                        borderRadius: "12px",
-                        background:
-                          r.status === "Active" ? "#E8F5E9" : "#FEF3C7",
-                        color: r.status === "Active" ? "#2E7D32" : "#B45309",
-                      }}
-                    >
-                      {r.status}
-                    </span>
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 16px",
-                      color: "#94A3B8",
-                      fontSize: "12px",
-                    }}
-                  >
-                    {r.lastUpdated}
-                  </td>
-                  <td style={{ padding: "12px 16px", textAlign: "right" }}>
-                    <button
-                      onClick={() => setSelectedRole(r)}
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "4px",
-                        padding: "6px 12px",
-                        borderRadius: "6px",
-                        border: "1px solid #0D47A1",
-                        background: "#FFFFFF",
-                        color: "#0D47A1",
-                        fontSize: "12px",
-                        fontWeight: 600,
-                        cursor: "pointer",
-                      }}
-                    >
-                      <Eye size={14} /> View Details
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                  <option value="All">All Types</option>
+                  <option value="System">System Default Roles</option>
+                  <option value="Custom">Custom Hospital Roles</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-2.5 py-1 rounded-lg text-slate-700 font-medium">
+                <Filter size={13} className="text-slate-400" />
+                <span className="text-slate-400 text-[11px]">Status:</span>
+                <select
+                  aria-label="Status filter"
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className="bg-transparent font-semibold text-[#0D47A1] outline-none cursor-pointer text-xs"
+                >
+                  <option value="All">All Statuses</option>
+                  <option value="Active">Active</option>
+                  <option value="Draft">Draft</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+
+              {(selectedRoleType !== "All" || selectedStatus !== "All" || searchTerm) && (
+                <button
+                  onClick={() => {
+                    setSearchTerm("");
+                    setSelectedRoleType("All");
+                    setSelectedStatus("All");
+                  }}
+                  className="px-2.5 py-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer shadow-2xs shrink-0 ml-auto"
+                  style={{ fontFamily: PP }}
+                >
+                  <RotateCcw size={12} /> Clear Filters
+                </button>
+              )}
+            </div>
+          </div>
+        }
+        emptyTitle="No roles found"
+        emptySubtitle="No role definitions match your search query or selected filter criteria."
+        pagination={true}
+      />
 
       {selectedRole && (
         <RoleDetailsDrawer

@@ -4,9 +4,10 @@ import { Activity, ChevronRight, Clock } from "lucide-react";
 import { PP, RB } from "../../doctors/constants/doctors.constants";
 import { vitalsService } from "../../vitals/services/vitals.service";
 import { QUEUE_QUERY_KEY } from "../../opd/hooks/useQueue";
-import { RecordPatientVitalsForm } from "../../vitals/pages/VitalsManagementScreen";
+import { RecordPatientVitalsForm } from "../../vitals/components/RecordPatientVitalsForm";
+import { VitalsDetailsScreen } from "../../vitals/components/VitalsDetailsScreen";
 import type { AppointmentRecord } from "../../appointments/types/appointment.types";
-import type { NurseWaitingPatient } from "../../vitals/types/vitals.types";
+import type { NurseWaitingPatient, RecordedVitalsData } from "../../vitals/types/vitals.types";
 
 type VitalsWaitingItem = NurseWaitingPatient;
 
@@ -38,6 +39,14 @@ const toAppointmentRecord = (item: VitalsWaitingItem): AppointmentRecord => ({
       : Number.parseInt(item.age, 10) || 0,
   patientGender: item.gender,
   time: "",
+  patient: {
+    id: item.patientId || item.mrn,
+    mrn: item.mrn,
+    name: getPatientName(item),
+    age: typeof item.age === "number" ? item.age : Number.parseInt(item.age, 10) || 0,
+    gender: item.gender,
+    phone: item.phone || item.contact || "—",
+  },
 });
 
 export function NurseVitalsWorklistPage() {
@@ -48,6 +57,10 @@ export function NurseVitalsWorklistPage() {
   const [loading, setLoading] = useState(true);
   const [selectedPatient, setSelectedPatient] =
     useState<VitalsWaitingItem | null>(null);
+  const [activeApt, setActiveApt] = useState<AppointmentRecord | null>(null);
+  const [detailsVitals, setDetailsVitals] = useState<RecordedVitalsData | null>(null);
+  const [viewMode, setViewMode] = useState<"worklist" | "record" | "details">("worklist");
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const fetchWorklist = () => {
     setLoading(true);
@@ -74,15 +87,76 @@ export function NurseVitalsWorklistPage() {
     };
   }, []);
 
-  if (selectedPatient) {
+  const handlePatientSelect = (patient: VitalsWaitingItem) => {
+    setSelectedPatient(patient);
+    const aptRec = toAppointmentRecord(patient);
+    setActiveApt(aptRec);
+    setViewMode("record");
+    setIsEditMode(false);
+  };
+
+  const handleMarkReady = async (submittedData?: RecordedVitalsData) => {
+    if (submittedData) {
+      setDetailsVitals(submittedData);
+    }
+    const aptId = selectedPatient?.appointmentId || activeApt?.id;
+    if (aptId) {
+      try {
+        const freshVitals = await vitalsService.getVitals(aptId);
+        if (freshVitals) {
+          setDetailsVitals(freshVitals);
+        }
+      } catch {
+        // Fallback to submittedData or default
+      }
+    }
+    if (activeApt) {
+      setActiveApt({
+        ...activeApt,
+        hasVitals: true,
+        vitalsRecorded: true,
+        status: "Vitals Recorded",
+      });
+    }
+    setViewMode("details");
+    fetchWorklist();
+    queryClient.invalidateQueries({ queryKey: QUEUE_QUERY_KEY });
+    queryClient.invalidateQueries({ queryKey: ["vitals"] });
+    queryClient.invalidateQueries({ queryKey: ["appointments"] });
+  };
+
+  if (viewMode === "record" && activeApt) {
     return (
       <RecordPatientVitalsForm
-        activeApt={toAppointmentRecord(selectedPatient)}
-        onBack={() => setSelectedPatient(null)}
-        onMarkReady={() => {
+        activeApt={activeApt}
+        initialVitalsData={isEditMode ? detailsVitals : null}
+        isEditMode={isEditMode}
+        onBack={() => {
+          setViewMode("worklist");
           setSelectedPatient(null);
-          fetchWorklist();
-          queryClient.invalidateQueries({ queryKey: QUEUE_QUERY_KEY });
+          setActiveApt(null);
+          setIsEditMode(false);
+        }}
+        onMarkReady={handleMarkReady}
+      />
+    );
+  }
+
+  if (viewMode === "details" && activeApt) {
+    return (
+      <VitalsDetailsScreen
+        activeApt={activeApt}
+        vitalsData={detailsVitals || undefined}
+        onBack={() => {
+          setViewMode("worklist");
+          setSelectedPatient(null);
+          setActiveApt(null);
+          setDetailsVitals(null);
+          setIsEditMode(false);
+        }}
+        onEditVitals={() => {
+          setIsEditMode(true);
+          setViewMode("record");
         }}
       />
     );
@@ -121,7 +195,7 @@ export function NurseVitalsWorklistPage() {
                 }}
                 role="button"
                 key={String(patient.appointmentId)}
-                onClick={() => setSelectedPatient(patient)}
+                onClick={() => handlePatientSelect(patient)}
                 className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/50 cursor-pointer transition-colors"
               >
                 <div className="flex items-center gap-3">

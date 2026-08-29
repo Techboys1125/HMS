@@ -7,7 +7,6 @@ import {
   Upload,
   Download,
   Trash2,
-  Eye,
   Plus,
   X,
   FileCheck,
@@ -50,20 +49,27 @@ export function PatientDocumentsTab({ patient, canEdit }: DocumentsTabProps) {
 
   const mrn = patient.mrn || String(patient.id || "");
 
-  const loadDocuments = async () => {
-    setIsLoading(true);
-    try {
-      const list = await patientsApi.getDocuments(mrn);
-      setDocuments(list || []);
-    } catch {
-      setDocuments([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
-    loadDocuments();
+    let active = true;
+
+    patientsApi
+      .getDocuments(mrn)
+      .then((list) => {
+        if (active) {
+          setDocuments(list || []);
+          setIsLoading(false);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setDocuments([]);
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
   }, [mrn]);
 
   const triggerToast = (msg: string) => {

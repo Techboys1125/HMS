@@ -63,6 +63,9 @@ const emptyFormData: ConsultationFormData = {
   followupRequired: false,
   nextVisitDate: "",
   followupNotes: "",
+  followUpType: "ROUTINE",
+  followUpIntervalValue: 7,
+  followUpIntervalUnit: "DAYS",
 };
 
 const TODAY_STR = new Date().toISOString().split("T")[0];
@@ -75,7 +78,10 @@ const saveMedications = async (
   medicines: MedicineItem[],
 ) => {
   const validMeds = medicines.filter((m) => m.name.trim() !== "");
-  console.log("SAVE MEDICATIONS CALLED:", { prescriptionId, medicines: validMeds });
+  console.log("SAVE MEDICATIONS CALLED:", {
+    prescriptionId,
+    medicines: validMeds,
+  });
 
   if (validMeds.length === 0) {
     console.warn("No valid medicines to save");
@@ -202,7 +208,7 @@ export function StartConsultationPage({
         if (!isMounted) return;
 
         if (res) {
-          const c = ((res.consultation || res) as unknown) as Record<
+          const c = (res.consultation || res) as unknown as Record<
             string,
             unknown
           >;
@@ -227,7 +233,11 @@ export function StartConsultationPage({
               age: Number(c.age || c.patientAge || pSub.age || 0),
               gender: String(c.gender || c.patientGender || pSub.gender || ""),
               phone: String(
-                c.phone || c.mobile || pSub.phone || pSub.registeredMobile || "",
+                c.phone ||
+                  c.mobile ||
+                  pSub.phone ||
+                  pSub.registeredMobile ||
+                  "",
               ),
               bloodGroup: String(c.bloodGroup || pSub.bloodGroup || ""),
               allergies: Array.isArray(c.allergies)
@@ -236,7 +246,11 @@ export function StartConsultationPage({
                   ? (pSub.allergies as string[])
                   : [],
               doctor: String(
-                c.doctor || c.doctorName || docSub.name || docSub.fullName || "",
+                c.doctor ||
+                  c.doctorName ||
+                  docSub.name ||
+                  docSub.fullName ||
+                  "",
               ),
               opdRoom: String(c.opdRoom || c.roomNumber || ""),
               visitType: String(
@@ -245,7 +259,9 @@ export function StartConsultationPage({
               appointmentTime: String(c.appointmentTime || c.time || ""),
             });
 
-            const vObj = (c.vitals || (res as Record<string, unknown>).vitals || {}) as Record<string, unknown>;
+            const vObj = (c.vitals ||
+              (res as Record<string, unknown>).vitals ||
+              {}) as Record<string, unknown>;
             const toStr = (v: unknown) => (v != null ? String(v) : "");
 
             setFormData((prev) => ({
@@ -260,89 +276,114 @@ export function StartConsultationPage({
               visitType:
                 (c.visitType as "New Consultation" | "Follow-up") ||
                 prev.visitType,
-              height: vObj.height ? toStr(vObj.height).replace(" cm", "") : prev.height,
-              weight: vObj.weight ? toStr(vObj.weight).replace(" kg", "") : prev.weight,
-              temperature: (vObj.temp || vObj.temperature)
-                ? toStr(vObj.temp || vObj.temperature).replace(" °C", "").replace("°C", "")
-                : prev.temperature,
-              bp: (vObj.bp || vObj.bloodPressure)
-                ? toStr(vObj.bp || vObj.bloodPressure).replace(" mmHg", "")
-                : prev.bp,
-              pulse: (vObj.pulse || vObj.heartRate)
-                ? toStr(vObj.pulse || vObj.heartRate).replace(" bpm", "")
-                : prev.pulse,
-              respiratoryRate: (vObj.respiratoryRate || vObj.respRate)
-                ? toStr(vObj.respiratoryRate || vObj.respRate).replace(" /min", "")
-                : prev.respiratoryRate,
-              spo2: (vObj.spo2 || vObj.oxygenSaturation)
-                ? toStr(vObj.spo2 || vObj.oxygenSaturation).replace(" %", "").replace("%", "")
-                : prev.spo2,
-              bloodSugar: (vObj.bloodSugar || vObj.sugar)
-                ? toStr(vObj.bloodSugar || vObj.sugar).replace(" mg/dL", "")
-                : prev.bloodSugar,
+              height: vObj.height
+                ? toStr(vObj.height).replace(" cm", "")
+                : prev.height,
+              weight: vObj.weight
+                ? toStr(vObj.weight).replace(" kg", "")
+                : prev.weight,
+              temperature:
+                vObj.temp || vObj.temperature
+                  ? toStr(vObj.temp || vObj.temperature)
+                      .replace(" °C", "")
+                      .replace("°C", "")
+                  : prev.temperature,
+              bp:
+                vObj.bp || vObj.bloodPressure
+                  ? toStr(vObj.bp || vObj.bloodPressure).replace(" mmHg", "")
+                  : prev.bp,
+              pulse:
+                vObj.pulse || vObj.heartRate
+                  ? toStr(vObj.pulse || vObj.heartRate).replace(" bpm", "")
+                  : prev.pulse,
+              respiratoryRate:
+                vObj.respiratoryRate || vObj.respRate
+                  ? toStr(vObj.respiratoryRate || vObj.respRate).replace(
+                      " /min",
+                      "",
+                    )
+                  : prev.respiratoryRate,
+              spo2:
+                vObj.spo2 || vObj.oxygenSaturation
+                  ? toStr(vObj.spo2 || vObj.oxygenSaturation)
+                      .replace(" %", "")
+                      .replace("%", "")
+                  : prev.spo2,
+              bloodSugar:
+                vObj.bloodSugar || vObj.sugar
+                  ? toStr(vObj.bloodSugar || vObj.sugar).replace(" mg/dL", "")
+                  : prev.bloodSugar,
             }));
 
-            // Restore existing prescription medicines
-            try {
-              let existingMeds: MedicineItem[] = [];
-              const rxRes = await encountersApi
-                .getPrescriptionByEncounterId(activeConsultationId)
-                .catch(() => null);
-              if (rxRes) {
-                const rxObj = rxRes as unknown as Record<
-                  string,
-                  unknown
-                >;
-                const rawMeds = (rxObj.medications ||
-                  rxObj.medicines ||
-                  rxObj.items ||
-                  rxObj.prescriptionItems ||
-                  []) as unknown[];
-                if (Array.isArray(rawMeds) && rawMeds.length > 0) {
-                  existingMeds = rawMeds.map((m: unknown, idx: number) => {
-                    const item = (m && typeof m === "object"
-                      ? m
-                      : {}) as Record<string, unknown>;
-                    return {
-                      id: String(item.id || item.medicationId || idx + 1),
-                      name: String(
-                        item.name || item.medicineName || item.drugName || "Medication",
-                      ),
-                      dosage: String(
-                        item.dosage || item.dose || item.doseValue || "1 tab",
-                      ),
-                      frequency: String(
-                        item.frequency ||
-                          item.frequencyCode ||
-                          item.frequencyDisplay ||
-                          "1-0-1",
-                      ),
-                      duration: String(
-                        item.duration || item.durationValue || "5 days",
-                      ),
-                      instructions: String(
-                        item.instructions || item.notes || "After food",
-                      ),
-                    };
-                  });
+            // Restore existing prescription medicines (only for completed consultations)
+            const cStatus = String(
+              c.status || c.consultationStatus || c.state || "",
+            ).toUpperCase();
+            const isCompletedConsultation =
+              cStatus === "COMPLETED" || cStatus === "FINISHED";
+
+            if (isCompletedConsultation) {
+              try {
+                let existingMeds: MedicineItem[] = [];
+                const rxRes = await encountersApi
+                  .getPrescriptionByEncounterId(activeConsultationId)
+                  .catch(() => null);
+                if (rxRes) {
+                  const rxObj = rxRes as unknown as Record<string, unknown>;
+                  const rawMeds = (rxObj.medications ||
+                    rxObj.medicines ||
+                    rxObj.items ||
+                    rxObj.prescriptionItems ||
+                    []) as unknown[];
+                  if (Array.isArray(rawMeds) && rawMeds.length > 0) {
+                    existingMeds = rawMeds.map((m: unknown, idx: number) => {
+                      const item = (
+                        m && typeof m === "object" ? m : {}
+                      ) as Record<string, unknown>;
+                      return {
+                        id: String(item.id || item.medicationId || idx + 1),
+                        name: String(
+                          item.name ||
+                            item.medicineName ||
+                            item.drugName ||
+                            "Medication",
+                        ),
+                        dosage: String(
+                          item.dosage || item.dose || item.doseValue || "1 tab",
+                        ),
+                        frequency: String(
+                          item.frequency ||
+                            item.frequencyCode ||
+                            item.frequencyDisplay ||
+                            "1-0-1",
+                        ),
+                        duration: String(
+                          item.duration || item.durationValue || "5 days",
+                        ),
+                        instructions: String(
+                          item.instructions || item.notes || "After food",
+                        ),
+                      };
+                    });
+                  }
                 }
-              }
-              if (existingMeds.length === 0) {
-                const rawCached = localStorage.getItem(
-                  `hms-completed-meds:${activeConsultationId}`,
-                );
-                if (rawCached) {
-                  existingMeds = JSON.parse(rawCached);
+                if (existingMeds.length === 0) {
+                  const rawCached = localStorage.getItem(
+                    `hms-completed-meds:${activeConsultationId}`,
+                  );
+                  if (rawCached) {
+                    existingMeds = JSON.parse(rawCached);
+                  }
                 }
+                if (existingMeds.length > 0) {
+                  setFormData((prev) => ({
+                    ...prev,
+                    medicines: existingMeds,
+                  }));
+                }
+              } catch {
+                // non-blocking
               }
-              if (existingMeds.length > 0) {
-                setFormData((prev) => ({
-                  ...prev,
-                  medicines: existingMeds,
-                }));
-              }
-            } catch {
-              // non-blocking
             }
 
             return;
@@ -368,11 +409,9 @@ export function StartConsultationPage({
 
         if (apptRes) {
           const rawData = (apptRes as unknown as Record<string, unknown>)?.data;
-          const appt = (
-            ((rawData as Record<string, unknown>)?.data ||
-              rawData ||
-              apptRes) as Record<string, unknown>
-          );
+          const appt = ((rawData as Record<string, unknown>)?.data ||
+            rawData ||
+            apptRes) as Record<string, unknown>;
           const patientObj = (appt.patient || {}) as Record<string, unknown>;
           const doctorObj = (appt.doctor || {}) as Record<string, unknown>;
           const deptObj = (appt.department || {}) as Record<string, unknown>;
@@ -386,7 +425,11 @@ export function StartConsultationPage({
               "",
           );
           const pMrn = String(
-            appt.mrn || appt.patientMrn || appt.patient_mrn || patientObj.mrn || "",
+            appt.mrn ||
+              appt.patientMrn ||
+              appt.patient_mrn ||
+              patientObj.mrn ||
+              "",
           );
           const deptName = String(
             appt.departmentName ||
@@ -651,6 +694,19 @@ export function StartConsultationPage({
     setIsDraftSaved(true);
     try {
       if (activeEncounterId) {
+        const consultationPayload = {
+          chiefComplaint: formData.chiefComplaint || formData.symptoms,
+          historyOfPresentIllness: formData.symptoms || formData.chiefComplaint,
+          generalExamination: formData.clinicalExamination,
+          assessmentSummary: formData.assessment,
+          advice: formData.advice,
+          followUpInstructions: formData.followupNotes,
+          followUpType: formData.followupRequired ? (formData.followUpType || "ROUTINE") : undefined,
+          followUpIntervalValue: formData.followupRequired ? Number(formData.followUpIntervalValue || 7) : undefined,
+          followUpIntervalUnit: formData.followupRequired ? (formData.followUpIntervalUnit || "DAYS") : undefined,
+          followUpDate: formData.followupRequired ? formData.nextVisitDate : undefined,
+        };
+        await encountersApi.initConsultationPut(activeEncounterId, consultationPayload).catch(() => null);
         await consultationApi.saveDraft(activeEncounterId, {
           chiefComplaint: formData.chiefComplaint,
           symptoms: formData.symptoms,
@@ -720,8 +776,9 @@ export function StartConsultationPage({
           triggerToast("Warning: Diagnosis could not be saved. Please retry.");
         }
       }
-      let rxIdToUse = activePrescriptionId;
+      let rxIdToUse: string | number | null = activePrescriptionId || null;
       const validMeds = formData.medicines.filter((m) => m.name.trim() !== "");
+
       if (!rxIdToUse && validMeds.length > 0) {
         const targetEncId =
           activeEncounterId ||
@@ -735,40 +792,48 @@ export function StartConsultationPage({
             );
             console.log("CREATE PRESCRIPTION RAW RESPONSE:", createdRx);
 
-            const rxObj = (createdRx as unknown) as Record<string, unknown>;
+            const rxObj = createdRx as unknown as Record<string, unknown>;
             const rxData = (rxObj?.data as Record<string, unknown>) || {};
-            const rxIdResolved = (createdRx?.id ??
+            const rxIdResolved =
+              createdRx?.id ??
               createdRx?.prescriptionId ??
               rxData.id ??
               rxData.prescriptionId ??
-              targetEncId) as string | number;
+              null;
 
             console.log("RESOLVED PRESCRIPTION ID:", rxIdResolved);
-            if (rxIdResolved) rxIdToUse = rxIdResolved;
+            // CRITICAL FIX: Only accept rxIdResolved if it is NOT equal to targetEncId
+            if (
+              rxIdResolved != null &&
+              String(rxIdResolved) !== String(targetEncId)
+            ) {
+              rxIdToUse = rxIdResolved as string | number;
+            } else {
+              console.warn(
+                "Prescription creation did not return a distinct prescription ID:",
+                createdRx,
+              );
+              rxIdToUse = null;
+            }
           } catch (e) {
             console.error("Could not create prescription for medicines:", e);
-            rxIdToUse = targetEncId;
+            rxIdToUse = null; // NEVER fallback to targetEncId!
           }
         }
       }
-      if (validMeds.length > 0) {
-        const finalIdToUse =
-          rxIdToUse ||
-          activeEncounterId ||
-          selectedConsultation?.encounterId ||
-          selectedConsultation?.id;
 
-        if (!finalIdToUse) {
-          console.error("Cannot save medications: prescription/encounter ID is missing!", {
-            encounterId: activeEncounterId,
-            medicines: validMeds,
-          });
-        } else {
+      if (validMeds.length > 0) {
+        // CRITICAL FIX: Only call saveMedications if we have a valid prescription ID
+        if (rxIdToUse && String(rxIdToUse) !== String(activeEncounterId)) {
           try {
-            await saveMedications(finalIdToUse, formData.medicines);
+            await saveMedications(rxIdToUse, formData.medicines);
           } catch (medErr) {
-            console.error("❌ MEDICATION SAVE FAILED:", medErr);
+            console.error("MEDICATION SAVE FAILED:", medErr);
           }
+        } else {
+          console.warn(
+            "Skipping saveMedications: No valid prescription ID available (encounter has no linked prescription).",
+          );
         }
 
         try {
@@ -787,11 +852,31 @@ export function StartConsultationPage({
           // ignore
         }
       }
+      if (activeEncounterId) {
+        try {
+          const consultationPayload = {
+            chiefComplaint: formData.chiefComplaint || formData.symptoms,
+            historyOfPresentIllness: formData.symptoms || formData.chiefComplaint,
+            generalExamination: formData.clinicalExamination,
+            assessmentSummary: formData.assessment || formData.finalDiagnosis,
+            advice: formData.advice,
+            followUpInstructions: formData.followupNotes,
+            followUpType: formData.followupRequired ? (formData.followUpType || "ROUTINE") : undefined,
+            followUpIntervalValue: formData.followupRequired ? Number(formData.followUpIntervalValue || 7) : undefined,
+            followUpIntervalUnit: formData.followupRequired ? (formData.followUpIntervalUnit || "DAYS") : undefined,
+            followUpDate: formData.followupRequired ? formData.nextVisitDate : undefined,
+          };
+          await encountersApi.initConsultationPut(activeEncounterId, consultationPayload).catch(() => null);
+        } catch (putErr) {
+          console.warn("Non-blocking PUT consultation warning:", putErr);
+        }
+      }
       if (selectedConsultation?.id) {
         try {
           await consultationApi.saveClinicalNotes(selectedConsultation.id, {
             chiefComplaint: formData.chiefComplaint || formData.symptoms,
-            historyOfPresentIllness: formData.symptoms || formData.chiefComplaint,
+            historyOfPresentIllness:
+              formData.symptoms || formData.chiefComplaint,
             generalExamination: formData.clinicalExamination,
             assessmentSummary: formData.assessment,
             advice: formData.advice,
@@ -809,16 +894,26 @@ export function StartConsultationPage({
         const aptId = activeAppointmentId || selectedConsultation?.id || 0;
 
         if (encId && String(encId) !== "ENC-TEMP") {
-          const hasMeds = formData.medicines.some((m) => m.name.trim() !== "");
-          const outcome = hasMeds ? "PRESCRIPTION_CREATED" : "NO_PRESCRIPTION_REQUIRED";
+          const hasMeds = validMeds.length > 0;
+          // CRITICAL FIX: Only set outcome to PRESCRIPTION_CREATED if a real prescription ID exists!
+          const outcome =
+            hasMeds && rxIdToUse
+              ? "PRESCRIPTION_CREATED"
+              : "NO_PRESCRIPTION_REQUIRED";
           try {
             await consultationApi.setPrescriptionResolution(encId, { outcome });
           } catch (resErr) {
             console.warn("Prescription resolution pre-check warning:", resErr);
           }
 
-          const checkRes = await encountersApi.getFinalizationCheck(encId).catch(() => null);
-          if (checkRes && checkRes.ready === false && Array.isArray(checkRes.checks)) {
+          const checkRes = await encountersApi
+            .getFinalizationCheck(encId)
+            .catch(() => null);
+          if (
+            checkRes &&
+            checkRes.ready === false &&
+            Array.isArray(checkRes.checks)
+          ) {
             const failedMsgs = checkRes.checks
               .filter((c) => !c.passed)
               .map((c) => c.code || "Finalization readiness check failed");
@@ -1075,17 +1170,7 @@ export function StartConsultationPage({
         pageTitle="Start Outpatient Consultation"
         subtitle="Record symptoms, evaluate vitals, diagnosis, prescribe medicines and finalize session."
         breadcrumbs={[{ label: "Workspace", active: true }]}
-        actions={
-          onBack && (
-            <button
-              onClick={onBack}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-xs font-semibold transition-colors shadow-sm"
-              style={{ fontFamily: PP }}
-            >
-              Back
-            </button>
-          )
-        }
+        onBack={onBack ? onBack : () => navigate(-1)}
       />
 
       <div className="p-6 space-y-6 flex-1">
@@ -1120,18 +1205,6 @@ export function StartConsultationPage({
           opdRoom={opdRoomNumber}
           visitType={formData.visitType}
           appointmentTime={appointmentTimeStr}
-          extraDetails={
-            onViewHistory && patientMrn ? (
-              <button
-                type="button"
-                onClick={() => onViewHistory(patientMrn)}
-                className="px-3.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-[#0D47A1] text-xs font-bold rounded-xl border border-blue-100 transition-colors"
-                style={{ fontFamily: PP }}
-              >
-                View History
-              </button>
-            ) : undefined
-          }
         />
 
         <div className="grid grid-cols-1 gap-6">
@@ -1319,7 +1392,12 @@ export function StartConsultationPage({
                 required={formData.followupRequired}
                 nextVisitDate={formData.nextVisitDate}
                 notes={formData.followupNotes}
+                followUpType={formData.followUpType}
+                followUpIntervalValue={formData.followUpIntervalValue}
+                followUpIntervalUnit={formData.followUpIntervalUnit}
                 onChange={handleFieldChange}
+                patientMrn={patientMrn}
+                encounterId={activeEncounterId}
               />
             )}
           </div>

@@ -6,6 +6,8 @@ import {
   type SetStateAction,
   type TransitionStartFunction,
 } from "react";
+import { useNavigate } from "react-router";
+import { ROUTES } from "../../../app/routes/routes";
 import {
   ArrowLeft,
   Calendar,
@@ -21,6 +23,7 @@ import {
   UserCheck,
   Users,
 } from "lucide-react";
+import { useConsultation } from "../../opd/hooks/useConsultation";
 import { PP, RB } from "../constants/appointment.constants";
 import { StatusBadge } from "./StatusBadge";
 import { Avatar } from "./Avatar";
@@ -84,6 +87,7 @@ type WorkspaceQueueTableProps = {
   onPatientSelect?: (id: number | string) => void;
   isNurse: boolean;
   isDoctor: boolean;
+  onStartConsultation?: (apt?: AppointmentRecord | null) => void;
   onUpdateStatus: (
     aptId: string | number,
     status: AppointmentStatus,
@@ -380,7 +384,7 @@ const WorkspaceCurrentPatient = ({
   isDoctor,
   onStartConsultation,
 }: WorkspaceCurrentPatientProps) => (
-  <div className="lg:col-span-8 bg-linear-to-r from-teal-900 via-[#009688] to-[#0D47A1] rounded-2xl p-5 text-white shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+  <div className="lg:col-span-12 bg-linear-to-r from-teal-900 via-[#009688] to-[#0D47A1] rounded-2xl p-5 text-white shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
     {currentPatient ? (
       <>
         <div className="flex items-center gap-4">
@@ -447,51 +451,6 @@ const WorkspaceCurrentPatient = ({
   </div>
 );
 
-const WorkspaceNextPatient = ({
-  nextPatient,
-}: {
-  nextPatient: AppointmentRecord | null;
-}) => (
-  <div className="lg:col-span-4 bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex flex-col justify-between space-y-3">
-    <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-      <span
-        className="text-xs font-bold text-[#111827] uppercase tracking-wider flex items-center gap-1.5"
-        style={{ fontFamily: PP }}
-      >
-        <Clock size={14} className="text-[#0D47A1]" /> Next Patient Preview
-      </span>
-      <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-        Up Next
-      </span>
-    </div>
-
-    {nextPatient ? (
-      <div className="space-y-2 text-xs">
-        <div className="flex items-center justify-between">
-          <span className="font-mono font-bold text-[#0D47A1] bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
-            {nextPatient.tokenNo}
-          </span>
-          <span className="font-mono text-slate-500">
-            {nextPatient.timeSlot}
-          </span>
-        </div>
-        <div
-          className="font-bold text-[#111827] text-sm"
-          style={{ fontFamily: PP }}
-        >
-          {nextPatient.patientName}
-        </div>
-        <div className="text-[11px] text-slate-400">
-          Est. Wait Time: <strong className="text-[#009688]">15 mins</strong>
-        </div>
-      </div>
-    ) : (
-      <div className="py-4 text-center text-xs text-slate-400">
-        No subsequent patients in queue today.
-      </div>
-    )}
-  </div>
-);
 
 const WorkspaceQueueTable = ({
   filteredQueue,
@@ -500,6 +459,7 @@ const WorkspaceQueueTable = ({
   onPatientSelect,
   isNurse,
   isDoctor,
+  onStartConsultation,
   onUpdateStatus,
   onBackToDirectory,
   currentPage,
@@ -613,11 +573,11 @@ const WorkspaceQueueTable = ({
 
                   {isNurse ? null : isDoctor ? (
                     <button
-                      onClick={() => onViewDetails(q)}
-                      className="px-2.5 py-1 rounded-lg bg-blue-50 text-[#0D47A1] text-[11px] font-bold border border-blue-200 hover:bg-blue-100 transition-colors flex items-center gap-1 shadow-xs"
-                      title="View Appointment Details"
+                      onClick={() => onStartConsultation?.(q)}
+                      className="px-2.5 py-1 rounded-lg bg-[#009688] hover:bg-[#00796B] text-white text-[11px] font-bold transition-colors flex items-center gap-1 shadow-xs cursor-pointer"
+                      title="Start Consultation"
                     >
-                      <Eye size={12} /> View
+                      <Stethoscope size={12} /> Start Consultation
                     </button>
                   ) : (
                     <>
@@ -718,6 +678,7 @@ export function DockableQueueWorkspace({
   onStartConsultation?: (apt?: AppointmentRecord | null) => void;
   onRefresh?: () => void;
 }) {
+  const navigate = useNavigate();
   const [isPending, startTransition] = useTransition();
   const [searchQuery, setSearchQuery] = useState("");
   const [doctorFilter] = useState("All");
@@ -728,6 +689,64 @@ export function DockableQueueWorkspace({
 
   const isDoctor = userRole === "Doctor";
   const isNurse = userRole === "Nurse";
+
+  const { startConsultation: apiStartConsultation } = useConsultation();
+
+  const handleStartConsultationAction = async (
+    apt?: AppointmentRecord | null,
+  ) => {
+    const targetApt = apt || currentPatient;
+    const fallbackId = targetApt?.id || targetApt?.appointmentId;
+
+    if (targetApt) {
+      try {
+        // Trigger Encounter API (POST /api/v1/encounters & PATCH /api/v1/doctor/appointments/{id}/start)
+        const encRes = await apiStartConsultation(targetApt).catch((err) => {
+          console.warn("Encounter API start consultation warning:", err);
+          return null;
+        });
+
+        const encId =
+          encRes?.encounterId || encRes?.consultationId || fallbackId;
+
+        // Call parent callback if provided
+        onStartConsultation?.(targetApt);
+
+        // Always navigate to Start Consultation workspace
+        if (encId) {
+          navigate(
+            ROUTES.DOCTOR_CONSULTATION_ID
+              ? ROUTES.DOCTOR_CONSULTATION_ID.replace(
+                  ":consultationId",
+                  String(encId),
+                )
+              : `/doctor/consultation/${encId}`,
+          );
+        } else {
+          navigate(ROUTES.DOCTOR_CONSULTATION);
+        }
+      } catch (err) {
+        console.error(
+          "Failed to execute encounter start consultation API:",
+          err,
+        );
+        onStartConsultation?.(targetApt);
+        if (fallbackId) {
+          navigate(
+            ROUTES.DOCTOR_CONSULTATION_ID
+              ? ROUTES.DOCTOR_CONSULTATION_ID.replace(
+                  ":consultationId",
+                  String(fallbackId),
+                )
+              : `/doctor/consultation/${fallbackId}`,
+          );
+        }
+      }
+    } else {
+      onStartConsultation?.(null);
+      navigate(ROUTES.DOCTOR_CONSULTATION);
+    }
+  };
 
   const todayStr = getTodayDateString();
 
@@ -776,34 +795,12 @@ export function DockableQueueWorkspace({
 
   // Current Patient (In Progress or first Waiting/Checked-In)
   // Doctors must NOT see patients who are still waiting for nurse vitals
-  const currentPatient = useMemo(() => {
-    const eligible = todayQueue.filter(
+  const currentPatient =
+    readyPatients[0] ||
+    waitingPatients.filter(
       (a) => a.status !== "Waiting for Vitals" && a.status !== "Checked-In",
-    );
-    const ready = eligible.filter(
-      (a) =>
-        a.status === "In Consultation" ||
-        a.status === "In Progress" ||
-        a.status === "Called" ||
-        a.status === "Waiting for Doctor",
-    );
-    const waiting = eligible.filter(
-      (a) =>
-        a.status === "Waiting" ||
-        a.status === "Booked" ||
-        a.status === "Scheduled" ||
-        a.status === "Waiting for Doctor",
-    );
-    return ready[0] || waiting[0] || null;
-  }, [todayQueue]);
-
-  // Next Patient Preview
-  const nextPatient = useMemo(() => {
-    if (readyPatients.length > 0) {
-      return waitingPatients[0] || null;
-    }
-    return waitingPatients[1] || null;
-  }, [readyPatients, waitingPatients]);
+    )[0] ||
+    null;
 
   const filteredQueue = useMemo(() => {
     return todayQueue.filter((q) => {
@@ -873,7 +870,7 @@ export function DockableQueueWorkspace({
         onRefresh={onRefresh}
         startTransition={startTransition}
         isPending={isPending}
-        onStartConsultation={onStartConsultation}
+        onStartConsultation={handleStartConsultationAction}
         currentPatient={currentPatient}
       />
 
@@ -905,10 +902,8 @@ export function DockableQueueWorkspace({
             currentPatient={currentPatient}
             onPatientSelect={onPatientSelect}
             isDoctor={isDoctor}
-            onStartConsultation={onStartConsultation}
+            onStartConsultation={handleStartConsultationAction}
           />
-
-          <WorkspaceNextPatient nextPatient={nextPatient} />
         </div>
       )}
 
@@ -921,6 +916,7 @@ export function DockableQueueWorkspace({
             onPatientSelect={onPatientSelect}
             isNurse={isNurse}
             isDoctor={isDoctor}
+            onStartConsultation={handleStartConsultationAction}
             onUpdateStatus={onUpdateStatus}
             onBackToDirectory={onBackToDirectory}
             currentPage={currentPage}

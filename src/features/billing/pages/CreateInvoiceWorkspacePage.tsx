@@ -20,6 +20,7 @@ import {
   Copy,
   X,
   AlertCircle,
+  ArrowLeft,
 } from "lucide-react";
 import { PP, RB } from "../constants/billing.constants";
 import {
@@ -929,6 +930,15 @@ export function CreateInvoiceWorkspacePage() {
       {/* 1. PAGE HEADER */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm">
         <div>
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-2 px-3.5 py-2 mb-3 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-xs transition-all cursor-pointer"
+            style={{ fontFamily: RB }}
+          >
+            <ArrowLeft size={16} />
+            Back
+          </button>
           <div
             className="flex items-center gap-2 text-xs text-[#64748B] mb-1 font-medium"
             style={{ fontFamily: RB }}
@@ -1778,7 +1788,7 @@ export function CreateInvoiceWorkspacePage() {
                     className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 font-semibold focus:bg-white focus:border-[#0D47A1] focus:outline-none"
                   >
                     <option value="UPI">UPI / GPay / PhonePe</option>
-                    <option value="Cash">Cash</option>
+                    <option value="Cash">Cash / Hand Cash</option>
                     <option value="Card">Credit / Debit Card</option>
                     <option value="Bank Transfer">
                       Bank Transfer (NEFT/IMPS)
@@ -1818,19 +1828,21 @@ export function CreateInvoiceWorkspacePage() {
                   </p>
                 )}
               </div>
-              <div>
-                <span className="block text-slate-700 font-semibold mb-1">
-                  Txn / Reference Number
-                  <input
-                    aria-label="Input field"
-                    type="text"
-                    value={referenceNo}
-                    onChange={(e) => setReferenceNo(e.target.value)}
-                    placeholder="e.g. UPI/890123/OKAX"
-                    className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 focus:bg-white focus:border-[#0D47A1] focus:outline-none font-mono"
-                  />
-                </span>
-              </div>
+              {paymentMode !== "Cash" && (
+                <div>
+                  <span className="block text-slate-700 font-semibold mb-1">
+                    Txn / Reference Number
+                    <input
+                      aria-label="Input field"
+                      type="text"
+                      value={referenceNo}
+                      onChange={(e) => setReferenceNo(e.target.value)}
+                      placeholder="e.g. UPI/890123/OKAX"
+                      className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 focus:bg-white focus:border-[#0D47A1] focus:outline-none font-mono"
+                    />
+                  </span>
+                </div>
+              )}
               <div>
                 <span className="block text-slate-700 font-semibold mb-1">
                   Transaction Notes

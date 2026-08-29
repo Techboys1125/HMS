@@ -9,15 +9,14 @@ import { departmentsApi } from "../../users/api/departments.api";
 import type { AppointmentRecord } from "../../appointments/types/appointment.types";
 import { type QueueManagementScreenProps } from "../types/appointment-screen.types";
 import { usePermissions } from "../../../permissions/usePermissions";
+import { DataTable } from "../../../common/components/DataTable";
 import {
   ChevronRight,
   RefreshCw,
   UserCheck,
   Search,
-  Users,
   AlertCircle,
 } from "lucide-react";
-import { Pagination } from "../../../common/components/Pagination";
 
 const fetchQueue = async () => {
   return appointmentService.getActiveAppointments();
@@ -215,14 +214,7 @@ export function QueueManagementScreen({
     });
   }, [queueItems, searchQuery, selectedDoctor, selectedDept, selectedStatus]);
 
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
-  const totalPages = Math.ceil(filteredQueue.length / pageSize);
-  const paginatedQueue = filteredQueue.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize,
-  );
+  // Pagination handled by DataTable component
 
   // Summary KPI Metrics
   const metrics = useMemo(() => {
@@ -548,186 +540,199 @@ export function QueueManagementScreen({
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         {/* LEFT COLUMN: ENTERPRISE QUEUE TABLE (8 COLS) */}
         <div className="xl:col-span-12 space-y-6">
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
-              <div>
-                <h2
-                  className="text-base font-bold text-[#111827]"
-                  style={{ fontFamily: PP }}
-                >
-                  Today's Queue Table
-                </h2>
-                <p className="text-xs text-[#64748B]">
-                  Real-time patient flow and arrival management
-                </p>
-              </div>
-            </div>
-
-            <div className="overflow-x-auto max-h-150 overflow-y-auto">
-              <table
-                className="w-full border-collapse text-left text-xs"
-                style={{ fontFamily: RB }}
-              >
-                <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB] z-10">
-                  <tr
-                    className="text-[#64748B] font-bold"
-                    style={{ fontFamily: PP }}
+          <DataTable<AppointmentRecord>
+            data={filteredQueue}
+            columns={[
+              {
+                key: "tokenNo",
+                label: "TOKEN",
+                sortable: true,
+                getValue: (apt) =>
+                  apt.queueToken || apt.tokenNo || `TK-${apt.id}`,
+                render: (apt) => (
+                  <span className="font-mono font-bold text-[#0D47A1]">
+                    {apt.queueToken || apt.tokenNo || `TK-${apt.id}`}
+                  </span>
+                ),
+              },
+              {
+                key: "patientName",
+                label: "PATIENT",
+                sortable: true,
+                getValue: (apt) => apt.patientName,
+                render: (apt) => (
+                  <span className="font-bold text-[#111827]">
+                    {apt.patientName}
+                  </span>
+                ),
+              },
+              {
+                key: "patientMrn",
+                label: "MRN",
+                sortable: true,
+                getValue: (apt) => apt.patientMrn || apt.mrn || "",
+                render: (apt) => (
+                  <span className="font-mono text-slate-500">
+                    {apt.patientMrn || apt.mrn || ""}
+                  </span>
+                ),
+              },
+              {
+                key: "doctorName",
+                label: "DOCTOR",
+                sortable: true,
+                getValue: (apt) => apt.doctorName || "",
+                render: (apt) => (
+                  <span className="font-medium">{apt.doctorName}</span>
+                ),
+              },
+              {
+                key: "departmentName",
+                label: "DEPARTMENT",
+                sortable: true,
+                getValue: (apt) => apt.departmentName || "",
+                render: (apt) => (
+                  <span className="text-slate-600">{apt.departmentName}</span>
+                ),
+              },
+              {
+                key: "timeSlot",
+                label: "APPT TIME",
+                sortable: true,
+                getValue: (apt) => apt.startTime || apt.timeSlot || "",
+                render: (apt) => (
+                  <span className="font-mono text-slate-500">
+                    {apt.startTime || apt.timeSlot || ""}
+                  </span>
+                ),
+              },
+              {
+                key: "arrivalTime",
+                label: "ARRIVAL TIME",
+                sortable: true,
+                getValue: (apt) => apt.arrivalTime || "",
+                render: (apt) => (
+                  <span className="font-mono text-slate-500">
+                    {apt.arrivalTime || ""}
+                  </span>
+                ),
+              },
+              {
+                key: "waitingTimeMinutes",
+                label: "WAIT TIME",
+                sortable: true,
+                getValue: (apt) => apt.waitingTimeMinutes || 0,
+                render: (apt) => (
+                  <span className="font-mono text-slate-500">
+                    {apt.waitingTimeMinutes
+                      ? `${apt.waitingTimeMinutes} min`
+                      : ""}
+                  </span>
+                ),
+              },
+              {
+                key: "status",
+                label: "QUEUE STATUS",
+                sortable: true,
+                getValue: (apt) => apt.status || "",
+                render: (apt) => {
+                  const displayStatus = String(apt.status || "").replace(
+                    /_/g,
+                    " ",
+                  );
+                  return (
+                    <Chip
+                      label={displayStatus}
+                      variant={getStatusChipVariant(displayStatus)}
+                    />
+                  );
+                },
+              },
+              {
+                key: "actions",
+                label: "ACTIONS",
+                sortable: false,
+                align: "right",
+                render: (apt) => (
+                  <div
+                    className="flex items-center justify-end gap-1.5"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    <th className="px-4 py-3.5">Token</th>
-                    <th className="px-4 py-3.5">Patient</th>
-                    <th className="px-4 py-3.5">MRN</th>
-                    <th className="px-4 py-3.5">Doctor</th>
-                    <th className="px-4 py-3.5">Department</th>
-                    <th className="px-4 py-3.5">Appt Time</th>
-                    <th className="px-4 py-3.5">Arrival Time</th>
-                    <th className="px-4 py-3.5">Wait Time</th>
-                    <th className="px-4 py-3.5">Queue Status</th>
-                    <th className="px-4 py-3.5 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 text-[#111827]">
-                  {filteredQueue.length > 0 ? (
-                    paginatedQueue.map((apt) => {
-                      const isSelected =
-                        selectedTokenId === apt.queueToken ||
-                        selectedTokenId === String(apt.id);
-                      const displayStatus = String(apt.status || "").replace(
-                        /_/g,
-                        " ",
-                      );
-                      return (
-                        <tr
-                          key={apt.id}
-                          onClick={() =>
-                            setSelectedTokenId(apt.queueToken || String(apt.id))
-                          }
-                          className={`hover:bg-slate-50/80 cursor-pointer transition-colors ${isSelected ? "bg-blue-50/60 font-medium" : ""}`}
+                    {(apt.status === "Booked" ||
+                      apt.status === "Scheduled" ||
+                      apt.status === "BOOKED" ||
+                      apt.status === "CONFIRMED") &&
+                      canCheckIn && (
+                        <button
+                          onClick={() => handleExecuteCheckIn(apt)}
+                          className="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors shadow-xs bg-[#009688] text-white hover:bg-teal-700 cursor-pointer"
+                          title="Check-In Patient"
                         >
-                          <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
-                            {apt.queueToken || apt.tokenNo || `TK-${apt.id}`}
-                          </td>
-                          <td className="px-4 py-3.5 font-bold text-[#111827]">
-                            {apt.patientName}
-                          </td>
-                          <td className="px-4 py-3.5 font-mono text-slate-500">
-                            {apt.patientMrn || apt.mrn || ""}
-                          </td>
-                          <td className="px-4 py-3.5 font-medium">
-                            {apt.doctorName}
-                          </td>
-                          <td className="px-4 py-3.5 text-slate-600">
-                            {apt.departmentName}
-                          </td>
-                          <td className="px-4 py-3.5 font-mono text-slate-500">
-                            {apt.startTime || apt.timeSlot || ""}
-                          </td>
-                          <td className="px-4 py-3.5 font-mono text-slate-500">
-                            {apt.arrivalTime || ""}
-                          </td>
-                          <td className="px-4 py-3.5 font-mono text-slate-500">
-                            {apt.waitingTimeMinutes
-                              ? `${apt.waitingTimeMinutes} min`
-                              : ""}
-                          </td>
-                          <td className="px-4 py-3.5">
-                            <Chip
-                              label={displayStatus}
-                              variant={getStatusChipVariant(displayStatus)}
-                            />
-                          </td>
-                          <td
-                            className="px-4 py-3.5 text-right"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <div className="flex items-center justify-end gap-1.5">
-                              {(apt.status === "Booked" ||
-                                apt.status === "Scheduled" ||
-                                apt.status === "BOOKED" ||
-                                apt.status === "CONFIRMED") &&
-                                canCheckIn && (
-                                  <button
-                                    onClick={() => handleExecuteCheckIn(apt)}
-                                    className="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors shadow-xs bg-[#009688] text-white hover:bg-teal-700 cursor-pointer"
-                                    title="Check-In Patient"
-                                  >
-                                    Check-In
-                                  </button>
-                                )}
+                          Check-In
+                        </button>
+                      )}
 
-                              {(apt.status === "Checked-In" ||
-                                apt.status === "CHECKED_IN" ||
-                                apt.status === "Waiting for Vitals" ||
-                                apt.status === "WAITING_FOR_VITALS") &&
-                              canRecordVitals ? (
-                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
-                                  Vitals Pending
-                                </span>
-                              ) : null}
+                    {(apt.status === "Checked-In" ||
+                      apt.status === "CHECKED_IN" ||
+                      apt.status === "Waiting for Vitals" ||
+                      apt.status === "WAITING_FOR_VITALS") &&
+                    canRecordVitals ? (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
+                        Vitals Pending
+                      </span>
+                    ) : null}
 
-                              <button
-                                onClick={() =>
-                                  onPatientSelect &&
-                                  onPatientSelect(
-                                    apt.patientMrn || apt.mrn || "",
-                                  )
-                                }
-                                title="View Patient"
-                                className="px-2 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
-                              >
-                                View
-                              </button>
+                    <button
+                      onClick={() =>
+                        onPatientSelect &&
+                        onPatientSelect(apt.patientMrn || apt.mrn || "")
+                      }
+                      title="View Patient"
+                      className="px-2 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors cursor-pointer"
+                    >
+                      View
+                    </button>
 
-                              {apt.status !== "Completed" &&
-                                apt.status !== "COMPLETED" &&
-                                apt.status !== "Cancelled" &&
-                                apt.status !== "CANCELLED" &&
-                                apt.status !== "No Show" &&
-                                apt.status !== "NO_SHOW" && (
-                                  <button
-                                    onClick={() => setNoShowDialogApt(apt)}
-                                    title="Mark No Show"
-                                    className="px-2 py-1 rounded-lg bg-red-50 text-[#EF4444] text-[11px] font-semibold hover:bg-red-100 transition-colors"
-                                  >
-                                    No Show
-                                  </button>
-                                )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  ) : (
-                    <tr>
-                      <td colSpan={10} className="px-4 py-12 text-center">
-                        <div className="flex flex-col items-center justify-center gap-2">
-                          <Users size={32} className="text-slate-300" />
-                          <p className="text-sm font-semibold text-[#111827]">
-                            No patients are currently in today's queue.
-                          </p>
-                          <button
-                            onClick={onPatientSearchClick}
-                            className="mt-2 px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-colors flex items-center gap-1.5"
-                            style={{ fontFamily: PP }}
-                          >
-                            <Search size={15} /> Patient Search
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination Component */}
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              pageSize={pageSize}
-              totalCount={filteredQueue.length}
-            />
-          </div>
+                    {apt.status !== "Completed" &&
+                      apt.status !== "COMPLETED" &&
+                      apt.status !== "Cancelled" &&
+                      apt.status !== "CANCELLED" &&
+                      apt.status !== "No Show" &&
+                      apt.status !== "NO_SHOW" && (
+                        <button
+                          onClick={() => setNoShowDialogApt(apt)}
+                          title="Mark No Show"
+                          className="px-2 py-1 rounded-lg bg-red-50 text-[#EF4444] text-[11px] font-semibold hover:bg-red-100 transition-colors cursor-pointer"
+                        >
+                          No Show
+                        </button>
+                      )}
+                  </div>
+                ),
+              },
+            ]}
+            getRowId={(apt) => apt.id}
+            selectedRowId={selectedTokenId}
+            onRowClick={(apt) =>
+              setSelectedTokenId(apt.queueToken || String(apt.id))
+            }
+            title="Today's Queue Table"
+            subtitle="Real-time patient flow and arrival management"
+            searchable={true}
+            searchPlaceholder=" Search queue by patient name, MRN, token, doctor..."
+            emptyTitle="No patients are currently in today's queue."
+            emptySubtitle="Try adjusting search or select another doctor or department filter."
+            emptyAction={
+              <button
+                onClick={onPatientSearchClick}
+                className="mt-2 px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-colors flex items-center gap-1.5 cursor-pointer"
+                style={{ fontFamily: PP }}
+              >
+                <Search size={15} /> Patient Search
+              </button>
+            }
+            pagination={true}
+          />
         </div>
       </div>
 

@@ -15,6 +15,7 @@ import { PP, RB } from "../../../doctors/constants/doctors.constants";
 import { patientsApi } from "../../api/patient.api";
 import { InvoiceDetailsDrawer } from "../../../billing/components/InvoiceDetailsDrawer";
 import { mapApiInvoiceToInvoiceRecord } from "../../../billing/utils/billing.utils";
+import { DataTable} from "../../../../common/components/DataTable";
 
 export interface BillingTabProps {
   patient: Patient;
@@ -56,8 +57,6 @@ function renderBillingStatusBadge(status?: string) {
 
 export function PatientBillingTab({
   patient,
-  canEdit,
-  isOwnProfile,
 }: BillingTabProps) {
   const [invoices, setInvoices] = useState<ApiPatientInvoice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,7 +90,10 @@ export function PatientBillingTab({
     };
   }, [patient.mrn]);
 
-  const safeInvoices = Array.isArray(invoices) ? invoices : [];
+  const safeInvoices = useMemo(
+    () => (Array.isArray(invoices) ? invoices : []),
+    [invoices],
+  );
 
   // Summary Metrics (Total Billed, Total Paid, Outstanding, Payment Rate)
   const summary = useMemo(() => {
@@ -309,102 +311,180 @@ export function PatientBillingTab({
           </div>
         ) : (
           <>
-            {/* Desktop Table View */}
-            <div className="hidden md:block overflow-x-auto border border-slate-100 rounded-xl">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="bg-slate-50/80 border-b border-slate-200 text-[#64748B] font-semibold text-[11px] uppercase tracking-wider">
-                    <th className="py-3 px-4">Invoice No</th>
-                    <th className="py-3 px-4">Date</th>
-                    <th className="py-3 px-4">Doctor</th>
-                    <th className="py-3 px-4 text-right">Amount</th>
-                    <th className="py-3 px-4 text-right">Paid</th>
-                    <th className="py-3 px-4 text-right">Balance</th>
-                    <th className="py-3 px-4 text-center">Status</th>
-                    <th className="py-3 px-4 text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-[#111827]">
-                  {filteredInvoices.map((inv) => {
-                    const billId = inv.invoiceNumber || String(inv.id);
-                    const displayInvNo = billId.startsWith("BL-")
-                      ? billId
-                      : `BL-2026-${String(billId).padStart(6, "0")}`;
-                    const amountNum = parseAmount(inv.amount);
-                    const paidNum = inv.paidAmount != null ? inv.paidAmount : (inv.status === "Paid" ? amountNum : 0);
-                    const balanceNum = inv.balance != null ? inv.balance : Math.max(0, amountNum - paidNum);
-
-                    return (
-                      <tr
-                        key={inv.id}
-                        className="hover:bg-slate-50/70 transition-colors group"
-                      >
-                        <td className="py-3.5 px-4 font-mono font-bold text-[#0D47A1]">
-                          <button
-                            type="button"
-                            onClick={() => handleOpenInvoice(inv)}
-                            className="hover:underline text-left cursor-pointer"
-                          >
-                            {displayInvNo}
-                          </button>
-                        </td>
-                        <td className="py-3.5 px-4 text-slate-600 whitespace-nowrap">
-                          {inv.date || "—"}
-                        </td>
-                        <td className="py-3.5 px-4 text-slate-700 font-semibold">
-                          {inv.doctorName || "—"}
-                        </td>
-                        <td className="py-3.5 px-4 text-right text-slate-900 font-bold">
-                          ₹{amountNum.toLocaleString("en-IN")}
-                        </td>
-                        <td className="py-3.5 px-4 text-right font-bold text-[#66BB6A]">
+            {/* Desktop Table View rendered via common DataTable */}
+            <div className="hidden md:block">
+              <DataTable<ApiPatientInvoice>
+                data={filteredInvoices}
+                columns={[
+                  {
+                    key: "invoiceNumber",
+                    label: "INVOICE NO",
+                    sortable: true,
+                    getValue: (inv) => inv.invoiceNumber || String(inv.id),
+                    render: (inv) => {
+                      const billId = inv.invoiceNumber || String(inv.id);
+                      const displayInvNo = billId.startsWith("BL-")
+                        ? billId
+                        : `BL-2026-${String(billId).padStart(6, "0")}`;
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => handleOpenInvoice(inv)}
+                          className="font-mono font-bold text-[#0D47A1] hover:underline text-left cursor-pointer"
+                        >
+                          {displayInvNo}
+                        </button>
+                      );
+                    },
+                  },
+                  {
+                    key: "date",
+                    label: "DATE",
+                    sortable: true,
+                    getValue: (inv) => inv.date || "",
+                    render: (inv) => (
+                      <span className="text-slate-600 whitespace-nowrap">
+                        {inv.date || "—"}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "doctorName",
+                    label: "DOCTOR",
+                    sortable: true,
+                    getValue: (inv) => inv.doctorName || "",
+                    render: (inv) => (
+                      <span className="text-slate-700 font-semibold">
+                        {inv.doctorName || "—"}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "amount",
+                    label: "AMOUNT",
+                    sortable: true,
+                    align: "right",
+                    getValue: (inv) => parseAmount(inv.amount),
+                    render: (inv) => (
+                      <span className="text-slate-900 font-bold">
+                        ₹{parseAmount(inv.amount).toLocaleString("en-IN")}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "paidAmount",
+                    label: "PAID",
+                    sortable: true,
+                    align: "right",
+                    getValue: (inv) =>
+                      inv.paidAmount != null
+                        ? inv.paidAmount
+                        : inv.status === "Paid"
+                          ? parseAmount(inv.amount)
+                          : 0,
+                    render: (inv) => {
+                      const amountNum = parseAmount(inv.amount);
+                      const paidNum =
+                        inv.paidAmount != null
+                          ? inv.paidAmount
+                          : inv.status === "Paid"
+                            ? amountNum
+                            : 0;
+                      return (
+                        <span className="font-bold text-[#66BB6A]">
                           ₹{paidNum.toLocaleString("en-IN")}
-                        </td>
-                        <td className="py-3.5 px-4 text-right font-semibold text-[#EF4444]">
+                        </span>
+                      );
+                    },
+                  },
+                  {
+                    key: "balance",
+                    label: "BALANCE",
+                    sortable: true,
+                    align: "right",
+                    getValue: (inv) => {
+                      const amountNum = parseAmount(inv.amount);
+                      const paidNum =
+                        inv.paidAmount != null
+                          ? inv.paidAmount
+                          : inv.status === "Paid"
+                            ? amountNum
+                            : 0;
+                      return inv.balance != null
+                        ? inv.balance
+                        : Math.max(0, amountNum - paidNum);
+                    },
+                    render: (inv) => {
+                      const amountNum = parseAmount(inv.amount);
+                      const paidNum =
+                        inv.paidAmount != null
+                          ? inv.paidAmount
+                          : inv.status === "Paid"
+                            ? amountNum
+                            : 0;
+                      const balanceNum =
+                        inv.balance != null
+                          ? inv.balance
+                          : Math.max(0, amountNum - paidNum);
+                      return (
+                        <span className="font-semibold text-[#EF4444]">
                           ₹{balanceNum.toLocaleString("en-IN")}
-                        </td>
-                        <td className="py-3.5 px-4 text-center">
-                          {renderBillingStatusBadge(inv.status)}
-                        </td>
-                        <td className="py-3.5 px-4 text-center">
-                          <div className="flex items-center justify-center gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => handleOpenInvoice(inv)}
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors cursor-pointer"
-                              title="View Invoice Details"
-                            >
-                              <Eye size={15} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                handleOpenInvoice(inv);
-                                setTimeout(() => window.print(), 300);
-                              }}
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                              title="Print Invoice / Receipt"
-                            >
-                              <Printer size={15} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                handleOpenInvoice(inv);
-                                setTimeout(() => window.print(), 300);
-                              }}
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                              title="Download Receipt PDF"
-                            >
-                              <Download size={15} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                        </span>
+                      );
+                    },
+                  },
+                  {
+                    key: "status",
+                    label: "STATUS",
+                    sortable: true,
+                    align: "center",
+                    getValue: (inv) => inv.status,
+                    render: (inv) => renderBillingStatusBadge(inv.status),
+                  },
+                  {
+                    key: "actions",
+                    label: "ACTIONS",
+                    sortable: false,
+                    align: "center",
+                    render: (inv) => (
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenInvoice(inv)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors cursor-pointer"
+                          title="View Invoice Details"
+                        >
+                          <Eye size={15} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleOpenInvoice(inv);
+                            setTimeout(() => window.print(), 300);
+                          }}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                          title="Print Invoice / Receipt"
+                        >
+                          <Printer size={15} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleOpenInvoice(inv);
+                            setTimeout(() => window.print(), 300);
+                          }}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                          title="Download Receipt PDF"
+                        >
+                          <Download size={15} />
+                        </button>
+                      </div>
+                    ),
+                  },
+                ]}
+                getRowId={(inv) => inv.id}
+                pagination={true}
+              />
             </div>
 
             {/* Mobile View */}

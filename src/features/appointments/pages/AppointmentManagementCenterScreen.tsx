@@ -9,7 +9,6 @@ import {
   X,
   Plus,
   Eye,
-  ArrowUpDown,
   RotateCcw,
   Building2,
   Ban,
@@ -20,7 +19,9 @@ import {
   Clock,
   Calendar,
   UserCheck,
+  ArrowLeft,
 } from "lucide-react";
+import { DataTable } from "../../../common/components/DataTable";
 import { PP, RB } from "../constants/appointment.constants";
 import { appointmentService } from "../services/appointment.service";
 import { useAppointments } from "../hooks/useAppointments";
@@ -42,7 +43,6 @@ import { CancelAppointmentConfirmationDialog } from "../components/CancelAppoint
 import { StatusBadge } from "../components/StatusBadge";
 import { Avatar } from "../components/Avatar";
 import { CheckInConfirmationModal } from "../../reception/components/CheckInConfirmationModal";
-import { Pagination } from "../../../common/components/Pagination";
 import { AppointmentDatePickerFilter } from "../components/AppointmentDatePickerFilter";
 import { useAuthStore } from "../../auth/store/auth.store";
 
@@ -96,6 +96,7 @@ export function AppointmentManagementCenterScreen({
   onBookAppointmentClick,
   userRole: userRoleProp,
   doctorId,
+  onBack,
   onRegisterNewPatientClick,
   onRegisterPatientClick,
 }: Props) {
@@ -132,6 +133,7 @@ export function AppointmentManagementCenterScreen({
   const setFilter = (field: keyof FilterState, value: string) =>
     dispatch({ type: "SET_FIELD", field, value });
   const [deptOptions, setDeptOptions] = useState<string[]>([]);
+  const [statusTab, setStatusTab] = useState<string>("All");
 
   useEffect(() => {
     appointmentService
@@ -146,9 +148,8 @@ export function AppointmentManagementCenterScreen({
   }, []);
 
   // Sorting - Default Appointment Time Ascending
-  const [sortColumn, setSortColumn] =
-    useState<keyof AppointmentRecord>("timeSlot");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [sortColumn] = useState<keyof AppointmentRecord>("timeSlot");
+  const [sortDirection] = useState<"asc" | "desc">("asc");
 
   // Toast State
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -281,24 +282,6 @@ export function AppointmentManagementCenterScreen({
     });
   }, [roleAppointments, filters, dateFilter, sortColumn, sortDirection]);
 
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
-  const totalPages = Math.ceil(filteredAppointments.length / pageSize);
-  const paginatedAppointments = filteredAppointments.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize,
-  );
-
-  const handleSort = (col: keyof AppointmentRecord) => {
-    if (sortColumn === col) {
-      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
-    } else {
-      setSortColumn(col);
-      setSortDirection("asc");
-    }
-  };
-
   const handleBookSuccess = async (newApt: AppointmentRecord) => {
     await refetch();
     if (newApt.isWalkIn) {
@@ -425,9 +408,25 @@ export function AppointmentManagementCenterScreen({
           }}
           onBackToDirectory={() => setViewMode("directory")}
           onPatientSelect={onPatientSelect}
-          userRole={userRole}
-          onStartConsultation={(apt) => onStartConsultation?.(apt)}
-          onRefresh={() => refetch()}
+          onStartConsultation={(apt) => {
+            if (onStartConsultation) {
+              onStartConsultation(apt);
+            } else {
+              const targetId = typeof apt === "object" && apt ? apt.id : apt;
+              if (targetId) {
+                navigate(
+                  ROUTES.DOCTOR_CONSULTATION_ID
+                    ? ROUTES.DOCTOR_CONSULTATION_ID.replace(
+                        ":consultationId",
+                        String(targetId),
+                      )
+                    : `/doctor/consultation/${targetId}`,
+                );
+              } else {
+                navigate(ROUTES.DOCTOR_CONSULTATION);
+              }
+            }
+          }}
         />
       ) : (
         <>
@@ -500,6 +499,14 @@ export function AppointmentManagementCenterScreen({
               </div>
 
               <div className="flex items-center gap-3 shrink-0">
+                <button
+                  onClick={onBack ? onBack : () => navigate(-1)}
+                  className="px-3.5 py-2.5 rounded-xl border border-[#E5E7EB] bg-white text-xs font-semibold text-[#111827] hover:bg-slate-50 transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
+                  style={{ fontFamily: PP }}
+                >
+                  <ArrowLeft size={14} /> Back
+                </button>
+
                 <button
                   onClick={() => setViewMode("queue")}
                   className="px-3.5 py-2.5 rounded-xl border border-[#0D47A1] bg-blue-50 text-xs font-bold text-[#0D47A1] hover:bg-blue-100 transition-colors flex items-center gap-1.5 shadow-xs"
@@ -589,341 +596,8 @@ export function AppointmentManagementCenterScreen({
               </div>
             </div>
           )}
-
-          {/* ── 3. SEARCH & FILTERS TOOLBAR + STATUS TABS ── */}
-          <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
-            {/* Search Input (Full Width Row 1) */}
-            <div className="relative w-full">
-              <Search
-                size={15}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-              />
-              <input
-                aria-label="Input field"
-                type="text"
-                value={filters.searchQuery}
-                onChange={(e) => setFilter("searchQuery", e.target.value)}
-                placeholder="Search by Patient Name, MRN, Appointment ID..."
-                className="w-full pl-9 pr-3.5 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-              />
-              {filters.searchQuery && (
-                <button
-                  aria-label="Close"
-                  onClick={() => setFilter("searchQuery", "")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                >
-                  <X size={13} />
-                </button>
-              )}
-            </div>
-
-            {/* Filter Controls (Next Row 2) */}
-            <div className="flex items-center gap-2 flex-wrap text-xs pt-1 border-t border-slate-100">
-              <AppointmentDatePickerFilter
-                selectedDate={dateFilter}
-                onChange={setDateFilter}
-              />
-
-              <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
-                <Filter size={13} className="text-slate-400" />
-                <span className="text-slate-500 font-medium">Status:</span>
-                <select
-                  aria-label="Select option"
-                  value={filters.statusFilter}
-                  onChange={(e) => setFilter("statusFilter", e.target.value)}
-                  className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
-                >
-                  <option value="All">All Statuses</option>
-                  <option value="Booked">Booked</option>
-                  <option value="Checked-In">Checked-In</option>
-                  <option value="Waiting for Vitals">
-                    Waiting for Vitals
-                  </option>
-                  <option value="Waiting for Doctor">
-                    Waiting for Doctor
-                  </option>
-                  <option value="Called">Called</option>
-                  <option value="In Consultation">In Consultation</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Cancelled">Cancelled</option>
-                  <option value="No Show">No Show</option>
-                </select>
-              </div>
-
-              {userRole !== "Doctor" && (
-                <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
-                  <Stethoscope size={13} className="text-slate-400" />
-                  <span className="text-slate-500 font-medium">Doctor:</span>
-                  <select
-                    aria-label="Select option"
-                    value={filters.doctorFilter}
-                    onChange={(e) =>
-                      setFilter("doctorFilter", e.target.value)
-                    }
-                    className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
-                  >
-                    <option value="All">All Doctors</option>
-                    {doctorsList.map((d) => (
-                      <option key={d} value={d}>
-                        {d}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
-                <Building2 size={13} className="text-slate-400" />
-                <span className="text-slate-500 font-medium">Dept:</span>
-                <select
-                  aria-label="Select option"
-                  value={filters.deptFilter}
-                  onChange={(e) => {
-                    const selectedDeptVal = e.target.value;
-                    setFilter("deptFilter", selectedDeptVal);
-                    if (
-                      selectedDeptVal !== "All" &&
-                      filters.doctorFilter !== "All"
-                    ) {
-                      const doctorInDept = appointments.some(
-                        (a) =>
-                          a.department === selectedDeptVal &&
-                          a.doctorName === filters.doctorFilter,
-                      );
-                      if (!doctorInDept) {
-                        setFilter("doctorFilter", "All");
-                      }
-                    }
-                  }}
-                  className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
-                >
-                  <option value="All">All Departments</option>
-                  {deptOptions.map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
-                <Building2 size={13} className="text-slate-400" />
-                <span className="text-slate-500 font-medium">
-                  Visit Type:
-                </span>
-                <select
-                  aria-label="Select option"
-                  value={filters.visitTypeFilter}
-                  onChange={(e) =>
-                    setFilter("visitTypeFilter", e.target.value)
-                  }
-                  className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
-                >
-                  <option value="All">All Visit Types</option>
-                  <option value="First Visit">First Visit</option>
-                  <option value="Follow-up">Follow-up</option>
-                  <option value="Walk-In">Walk-In</option>
-                </select>
-              </div>
-
-              <button
-                onClick={() => {
-                  setFilter("searchQuery", "");
-                  setFilter("statusFilter", "All");
-                  setFilter("doctorFilter", "All");
-                  setFilter("deptFilter", "All");
-                  setDateFilter(todayDateStr);
-                  setFilter("visitTypeFilter", "All");
-                  triggerToast("Filters reset.");
-                }}
-                className="p-2 rounded-xl border border-[#E5E7EB] bg-white text-slate-500 hover:text-[#0D47A1] hover:bg-slate-50 transition-colors"
-                title="Reset Filters"
-              >
-                <RotateCcw size={14} />
-              </button>
-            </div>
-
-           
-          </div>
- {/* STATUS TABS STRIP (Row 3) */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-2 border-t border-gray-100">
-              {[
-                { id: "All", label: "All", count: roleAppointments.length },
-                {
-                  id: "Waiting",
-                  label: "Waiting",
-                  count: roleAppointments.filter(
-                    (a) =>
-                      a.status === "Waiting" ||
-                      a.status === "Waiting for Vitals" ||
-                      a.status === "Waiting for Doctor" ||
-                      a.status === "Called",
-                  ).length,
-                },
-                {
-                  id: "Checked-In",
-                  label: "Checked-In",
-                  count: roleAppointments.filter(
-                    (a) => a.status === "Checked-In",
-                  ).length,
-                },
-                {
-                  id: "In Consultation",
-                  label: "In Consultation",
-                  count: roleAppointments.filter(
-                    (a) =>
-                      a.status === "In Consultation" ||
-                      a.status === "In Progress",
-                  ).length,
-                },
-                {
-                  id: "Completed",
-                  label: "Completed",
-                  count: roleAppointments.filter(
-                    (a) => a.status === "Completed",
-                  ).length,
-                },
-                {
-                  id: "Cancelled",
-                  label: "Cancelled",
-                  count: roleAppointments.filter(
-                    (a) => a.status === "Cancelled",
-                  ).length,
-                },
-                {
-                  id: "No Show",
-                  label: "No Show",
-                  count: roleAppointments.filter((a) => a.status === "No Show")
-                    .length,
-                },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setFilter("statusFilter", tab.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap ${
-                    filters.statusFilter === tab.id
-                      ? "bg-[#0D47A1] text-white shadow-xs"
-                      : "bg-slate-50 text-[#64748B] hover:bg-slate-100 hover:text-[#111827]"
-                  }`}
-                  style={{ fontFamily: PP }}
-                >
-                  <span>{tab.label}</span>
-                  <span
-                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                      filters.statusFilter === tab.id
-                        ? "bg-white/20 text-white"
-                        : "bg-slate-200 text-[#111827]"
-                    }`}
-                  >
-                    {tab.count}
-                  </span>
-                </button>
-              ))}
-            </div>
-          {/* ── 2. SUMMARY KPI CARDS (5 CARDS) ── */}
-          {userRole === "Nurse" ? (
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
-                <div>
-                  <div className="text-xs text-[#64748B] font-medium">
-                    Today's Assigned Appointments
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#0D47A1] mt-0.5"
-                    style={{ fontFamily: PP }}
-                  >
-                    {totalTodayCount}
-                  </div>
-                  <div className="text-[10px] text-[#0D47A1] font-medium mt-1">
-                    Assigned schedule
-                  </div>
-                </div>
-                <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-[#0D47A1]">
-                  <Calendar size={18} />
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
-                <div>
-                  <div className="text-xs text-[#64748B] font-medium">
-                    Patients Waiting
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#F59E0B] mt-0.5"
-                    style={{ fontFamily: PP }}
-                  >
-                    {waitingCount}
-                  </div>
-                  <div className="text-[10px] text-amber-600 font-medium mt-1">
-                    In lounge
-                  </div>
-                </div>
-                <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-[#F59E0B]">
-                  <Clock size={18} />
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
-                <div>
-                  <div className="text-xs text-[#64748B] font-medium">
-                    Checked-In Patients
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#0D47A1] mt-0.5"
-                    style={{ fontFamily: PP }}
-                  >
-                    {checkedInCount}
-                  </div>
-                  <div className="text-[10px] text-blue-600 font-medium mt-1">
-                    Arrived at desk
-                  </div>
-                </div>
-                <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-[#0D47A1]">
-                  <UserCheck size={18} />
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
-                <div>
-                  <div className="text-xs text-[#64748B] font-medium">
-                    Ready For Consultation
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#009688] mt-0.5"
-                    style={{ fontFamily: PP }}
-                  >
-                    {checkedInCount}
-                  </div>
-                  <div className="text-[10px] text-teal-600 font-medium mt-1">
-                    Vitals prepped
-                  </div>
-                </div>
-                <div className="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center text-[#009688]">
-                  <Stethoscope size={18} />
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
-                <div>
-                  <div className="text-xs text-[#64748B] font-medium">
-                    Completed Consultations
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#66BB6A] mt-0.5"
-                    style={{ fontFamily: PP }}
-                  >
-                    {completedCheckInsCount}
-                  </div>
-                  <div className="text-[10px] text-green-600 font-medium mt-1">
-                    Finished visits
-                  </div>
-                </div>
-                <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center text-[#66BB6A]">
-                  <CheckCircle2 size={18} />
-                </div>
-              </div>
-            </div>
-          ) : userRole === "Doctor" ? (
+          {/* ── 2. KPI CARDS ROW (TOP SECTION) ── */}
+          {userRole === "Doctor" ? (
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
               <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
                 <div>
@@ -1129,316 +803,496 @@ export function AppointmentManagementCenterScreen({
             </div>
           )}
 
-          {/* ── 4. MAIN WORKSPACE GRID: ENTERPRISE DATA TABLE + RIGHT CONTEXT PANEL ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Main Table Column */}
-            <div className="lg:col-span-4 space-y-6">
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
-                <div className="p-4 border-b border-[#E5E7EB] flex items-center justify-between bg-slate-50/50">
-                  <h3
-                    className="text-sm font-bold text-[#111827] flex items-center gap-2"
-                    style={{ fontFamily: PP }}
+          {/* ── 3. STANDALONE STATUS TAB NAVBAR (BELOW KPI CARDS / TOP NAVBAR) ── */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-2 shadow-xs flex items-center gap-2 overflow-x-auto">
+            {[
+              {
+                id: "All",
+                label: "All Appointments",
+                count: roleAppointments.length,
+              },
+              {
+                id: "Waiting",
+                label: "Waiting Patients",
+                count: roleAppointments.filter(
+                  (a) =>
+                    a.status === "Waiting" ||
+                    a.status === "Waiting for Vitals" ||
+                    a.status === "Waiting for Doctor" ||
+                    a.status === "Called",
+                ).length,
+              },
+              {
+                id: "Checked-In",
+                label: "Checked-In",
+                count: roleAppointments.filter((a) => a.status === "Checked-In")
+                  .length,
+              },
+              {
+                id: "Completed",
+                label: "Completed",
+                count: roleAppointments.filter((a) => a.status === "Completed")
+                  .length,
+              },
+              {
+                id: "Cancelled",
+                label: "Cancelled",
+                count: roleAppointments.filter((a) => a.status === "Cancelled")
+                  .length,
+              },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setStatusTab(tab.id);
+                  if (tab.id !== "All" && tab.id !== "Waiting") {
+                    setFilter("statusFilter", tab.id);
+                  } else {
+                    setFilter("statusFilter", "All");
+                  }
+                }}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+                  statusTab === tab.id
+                    ? "bg-[#0D47A1] text-white shadow-sm"
+                    : "bg-slate-50 text-slate-600 border border-[#E5E7EB] hover:bg-slate-100"
+                }`}
+                style={{ fontFamily: PP }}
+              >
+                <span>{tab.label}</span>
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                    statusTab === tab.id
+                      ? "bg-white/20 text-white"
+                      : "bg-slate-200 text-slate-700"
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* ── 4. MAIN WORKSPACE CONTAINER: APPOINTMENT DATA TABLE WITH MERGED TOOLBAR ── */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col p-5 space-y-4">
+            {/* MERGED SEARCH & FILTER CONTROLS TOOLBAR INSIDE TABLE CONTAINER */}
+            <div className="bg-slate-50/80 border border-[#E5E7EB] rounded-xl p-3 space-y-2.5 shadow-2xs">
+              {/* Search Input */}
+              <div className="relative w-full">
+                <Search
+                  size={15}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                />
+                <input
+                  aria-label="Input field"
+                  type="text"
+                  value={filters.searchQuery}
+                  onChange={(e) => setFilter("searchQuery", e.target.value)}
+                  placeholder=" Search by Patient Name, MRN, Appointment ID..."
+                  className="w-full pl-9 pr-8 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] shadow-2xs transition-all placeholder:text-slate-400"
+                />
+                {filters.searchQuery && (
+                  <button
+                    aria-label="Close"
+                    onClick={() => setFilter("searchQuery", "")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                   >
-                    <Calendar size={16} className="text-[#0D47A1]" />{" "}
-                    {userRole === "Doctor"
-                      ? "Today's Doctor Consultation Appointments"
-                      : "Today's Reception Appointment Workload"}
-                  </h3>
-                  <span className="text-xs text-[#64748B]">
-                    Showing{" "}
-                    <strong className="text-[#111827]">
-                      {filteredAppointments.length}
-                    </strong>{" "}
-                    appointments
+                    <X size={13} />
+                  </button>
+                )}
+              </div>
+
+              {/* Filter Controls Row */}
+              <div className="flex items-center gap-2 flex-wrap text-xs pt-1 border-t border-slate-200/70">
+                <AppointmentDatePickerFilter
+                  selectedDate={dateFilter}
+                  onChange={setDateFilter}
+                />
+
+                <div className="flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-2.5 py-1 rounded-lg">
+                  <Filter size={12} className="text-slate-400" />
+                  <span className="text-slate-500 font-medium text-[11px]">
+                    Status:
                   </span>
+                  <select
+                    aria-label="Select option"
+                    value={filters.statusFilter}
+                    onChange={(e) => setFilter("statusFilter", e.target.value)}
+                    className="bg-transparent font-semibold text-[#0D47A1] text-xs outline-none cursor-pointer"
+                  >
+                    <option value="All">All Statuses</option>
+                    <option value="Booked">Booked</option>
+                    <option value="Checked-In">Checked-In</option>
+                    <option value="Waiting for Vitals">
+                      Waiting for Vitals
+                    </option>
+                    <option value="Waiting for Doctor">
+                      Waiting for Doctor
+                    </option>
+                    <option value="Called">Called</option>
+                    <option value="In Consultation">In Consultation</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                    <option value="No Show">No Show</option>
+                  </select>
                 </div>
 
-                {filteredAppointments.length > 0 ? (
-                  <div className="overflow-x-auto max-h-130 overflow-y-auto">
-                    <table className="w-full border-collapse text-left text-xs">
-                      <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB] z-10">
-                        <tr
-                          className="text-[#64748B] font-bold"
-                          style={{ fontFamily: PP }}
-                        >
-                          <th
-                            tabIndex={0}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === " ") {
-                                e.preventDefault();
-                                (e.currentTarget as HTMLElement).click();
-                              }
-                            }}
-                            onClick={() => handleSort("patientName")}
-                            className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
-                          >
-                            <div className="flex items-center gap-1">
-                              <span>Patient</span>
-                              <ArrowUpDown
-                                size={12}
-                                className="text-slate-400"
-                              />
-                            </div>
-                          </th>
-                          <th
-                            tabIndex={0}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === " ") {
-                                e.preventDefault();
-                                (e.currentTarget as HTMLElement).click();
-                              }
-                            }}
-                            onClick={() => handleSort("id")}
-                            className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
-                          >
-                            <div className="flex items-center gap-1">
-                              <span>Appointment ID</span>
-                              <ArrowUpDown
-                                size={12}
-                                className="text-slate-400"
-                              />
-                            </div>
-                          </th>
-                          <th className="px-4 py-3.5">MRN</th>
-                          {!isDoctor && <th className="px-4 py-3.5">Doctor</th>}
-                          {!isDoctor && (
-                            <th className="px-4 py-3.5">Department</th>
-                          )}
-                          <th
-                            tabIndex={0}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === " ") {
-                                e.preventDefault();
-                                (e.currentTarget as HTMLElement).click();
-                              }
-                            }}
-                            onClick={() => handleSort("timeSlot")}
-                            className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
-                          >
-                            <div className="flex items-center gap-1">
-                              <span>Appointment Time</span>
-                              <ArrowUpDown
-                                size={12}
-                                className="text-slate-400"
-                              />
-                            </div>
-                          </th>
-                          <th className="px-4 py-3.5">Status</th>
-                          <th className="px-4 py-3.5 text-right">Actions</th>
-                        </tr>
-                      </thead>
-
-                      <tbody className="divide-y divide-gray-100 text-[#111827]">
-                        {paginatedAppointments.map((apt) => (
-                          <tr
-                            key={apt.id}
-                            className="hover:bg-slate-50/80 transition-colors"
-                          >
-                            <td className="px-4 py-3.5">
-                              <div
-                                tabIndex={0}
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter" || e.key === " ") {
-                                    e.preventDefault();
-                                    (e.currentTarget as HTMLElement).click();
-                                  }
-                                }}
-                                role="button"
-                                onClick={() => onPatientSelect?.(apt.patientId)}
-                                className="flex items-center gap-2 cursor-pointer hover:underline"
-                              >
-                                <Avatar name={apt.patientName} size="sm" />
-                                <div>
-                                  <span
-                                    className="font-bold text-[#111827] block"
-                                    style={{ fontFamily: PP }}
-                                  >
-                                    {apt.patientName}
-                                  </span>
-                                  <span className="text-[10px] text-slate-500 font-mono">
-                                    {apt.patientPhone}
-                                  </span>
-                                </div>
-                              </div>
-                            </td>
-
-                            <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
-                              {apt.appointmentNumber || apt.id}
-                            </td>
-
-                            <td className="px-4 py-3.5 font-mono text-[#0D47A1] font-bold">
-                              {apt.mrn}
-                            </td>
-
-                            {!isDoctor && (
-                              <td className="px-4 py-3.5">
-                                <div className="font-semibold text-[#111827]">
-                                  {typeof apt.doctorName === "string"
-                                    ? apt.doctorName
-                                    : (
-                                        apt.doctorName as unknown as Record<
-                                          string,
-                                          string
-                                        >
-                                      )?.name ||
-                                      (
-                                        apt.doctorName as unknown as Record<
-                                          string,
-                                          string
-                                        >
-                                      )?.fullName ||
-                                      (
-                                        apt.doctorName as unknown as Record<
-                                          string,
-                                          string
-                                        >
-                                      )?.full_name ||
-                                      "—"}
-                                </div>
-                                <div className="text-[10px] text-slate-400">
-                                  {apt.opdRoom}
-                                </div>
-                              </td>
-                            )}
-
-                            {!isDoctor && (
-                              <td className="px-4 py-3.5 font-medium text-slate-700">
-                                {typeof apt.department === "string"
-                                  ? apt.department
-                                  : apt.department?.departmentName ||
-                                    apt.department?.name ||
-                                    apt.department?.departmentCode ||
-                                    ""}
-                              </td>
-                            )}
-
-                            <td className="px-4 py-3.5 font-mono text-[#0D47A1] font-bold">
-                              {formatTime(apt.timeSlot)}
-                            </td>
-
-                            <td className="px-4 py-3.5">
-                              <StatusBadge status={apt.status} />
-                            </td>
-
-                            <td className="px-4 py-3.5 text-right">
-                              <div className="flex items-center justify-end gap-1.5">
-                                {isNurse ? (
-                                  <div className="flex items-center justify-end gap-1.5">
-                                    {onPatientSelect && (
-                                      <button
-                                        onClick={() =>
-                                          onPatientSelect(apt.patientId)
-                                        }
-                                        className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-[10px] font-bold border border-slate-200 hover:bg-slate-200 transition-colors flex items-center gap-1 cursor-pointer"
-                                        title="View Patient Profile"
-                                      >
-                                        <User size={12} /> Profile
-                                      </button>
-                                    )}
-                                    <button
-                                      onClick={() => setDetailsApt(apt)}
-                                      className="px-2.5 py-1 rounded-lg bg-blue-50 text-[#0D47A1] text-[10px] font-bold border border-blue-200 hover:bg-blue-100 transition-colors flex items-center gap-1 cursor-pointer"
-                                      title="View Appointment Details"
-                                    >
-                                      <Eye size={12} /> View
-                                    </button>
-                                  </div>
-                                ) : isDoctor ? (
-                                  <button
-                                    onClick={() => setDetailsApt(apt)}
-                                    className="px-2.5 py-1 rounded-lg bg-blue-50 text-[#0D47A1] text-[10px] font-bold border border-blue-200 hover:bg-blue-100 transition-colors flex items-center gap-1 cursor-pointer"
-                                    title="View Appointment Details"
-                                  >
-                                    <Eye size={12} /> View
-                                  </button>
-                                ) : (
-                                  <>
-                                    {(apt.status === "Scheduled" ||
-                                      apt.status === "Booked" ||
-                                      apt.status === "BOOKED" ||
-                                      apt.status === "Confirmed" ||
-                                      apt.status === "CONFIRMED") && (
-                                      <button
-                                        onClick={() =>
-                                          handleCheckInPatient(apt)
-                                        }
-                                        className="px-2 py-1 rounded-lg text-[10px] font-bold transition-colors flex items-center gap-1 shadow-xs bg-[#0D47A1] text-white hover:bg-[#0c3d8a] cursor-pointer"
-                                        title="Check-In Patient"
-                                      >
-                                        <CheckCircle2 size={12} /> Check-In
-                                      </button>
-                                    )}
-
-                                    {(apt.status === "Booked" ||
-                                      apt.status === "Confirmed" ||
-                                      apt.status === "BOOKED" ||
-                                      apt.status === "CONFIRMED" ||
-                                      apt.status === "Scheduled") && (
-                                      <button
-                                        onClick={() => setRescheduleApt(apt)}
-                                        className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-teal-50 text-[#009688] transition-colors cursor-pointer"
-                                        title="Reschedule Appointment"
-                                      >
-                                        <CalendarIcon size={14} />
-                                      </button>
-                                    )}
-
-                                    {apt.status !== "Completed" &&
-                                      apt.status !== "Cancelled" &&
-                                      apt.status !== "No Show" &&
-                                      apt.status !== "COMPLETED" &&
-                                      apt.status !== "CANCELLED" &&
-                                      apt.status !== "NO_SHOW" && (
-                                        <button
-                                          onClick={() => setCancelApt(apt)}
-                                          className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-red-50 text-[#EF4444] transition-colors cursor-pointer"
-                                          title="Cancel Appointment"
-                                        >
-                                          <Ban size={14} />
-                                        </button>
-                                      )}
-
-                                    <button
-                                      onClick={() => setDetailsApt(apt)}
-                                      className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-blue-50 text-[#0D47A1] transition-colors cursor-pointer"
-                                      title="View Appointment Details"
-                                    >
-                                      <Eye size={14} />
-                                    </button>
-                                  </>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="py-16 text-center space-y-3">
-                    <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto">
-                      <Calendar size={32} />
-                    </div>
-                    <div className="space-y-1">
-                      <h3
-                        className="text-sm font-bold text-[#111827]"
-                        style={{ fontFamily: PP }}
-                      >
-                        No appointments scheduled today.
-                      </h3>
-                      <p className="text-xs text-[#64748B]">
-                        All consultation visits for today are completed or no
-                        appointments match filters.
-                      </p>
-                    </div>
+                {userRole !== "Doctor" && (
+                  <div className="flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-2.5 py-1 rounded-lg">
+                    <Stethoscope size={12} className="text-slate-400" />
+                    <span className="text-slate-500 font-medium text-[11px]">
+                      Doctor:
+                    </span>
+                    <select
+                      aria-label="Select option"
+                      value={filters.doctorFilter}
+                      onChange={(e) =>
+                        setFilter("doctorFilter", e.target.value)
+                      }
+                      className="bg-transparent font-semibold text-[#0D47A1] text-xs outline-none cursor-pointer"
+                    >
+                      <option value="All">All Doctors</option>
+                      {doctorsList.map((d) => (
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 )}
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={setCurrentPage}
-                  pageSize={pageSize}
-                  totalCount={filteredAppointments.length}
+
+                <div className="flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-2.5 py-1 rounded-lg">
+                  <Building2 size={12} className="text-slate-400" />
+                  <span className="text-slate-500 font-medium text-[11px]">
+                    Dept:
+                  </span>
+                  <select
+                    aria-label="Select option"
+                    value={filters.deptFilter}
+                    onChange={(e) => {
+                      const selectedDeptVal = e.target.value;
+                      setFilter("deptFilter", selectedDeptVal);
+                      if (
+                        selectedDeptVal !== "All" &&
+                        filters.doctorFilter !== "All"
+                      ) {
+                        const doctorInDept = appointments.some(
+                          (a) =>
+                            a.department === selectedDeptVal &&
+                            a.doctorName === filters.doctorFilter,
+                        );
+                        if (!doctorInDept) {
+                          setFilter("doctorFilter", "All");
+                        }
+                      }
+                    }}
+                    className="bg-transparent font-semibold text-[#0D47A1] text-xs outline-none cursor-pointer"
+                  >
+                    <option value="All">All Departments</option>
+                    {deptOptions.map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-2.5 py-1 rounded-lg">
+                  <Building2 size={12} className="text-slate-400" />
+                  <span className="text-slate-500 font-medium text-[11px]">
+                    Visit Type:
+                  </span>
+                  <select
+                    aria-label="Select option"
+                    value={filters.visitTypeFilter}
+                    onChange={(e) =>
+                      setFilter("visitTypeFilter", e.target.value)
+                    }
+                    className="bg-transparent font-semibold text-[#0D47A1] text-xs outline-none cursor-pointer"
+                  >
+                    <option value="All">All Visit Types</option>
+                    <option value="First Visit">First Visit</option>
+                    <option value="Follow-up">Follow-up</option>
+                    <option value="Walk-In">Walk-In</option>
+                  </select>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setFilter("searchQuery", "");
+                    setFilter("statusFilter", "All");
+                    setFilter("doctorFilter", "All");
+                    setFilter("deptFilter", "All");
+                    setDateFilter(todayDateStr);
+                    setFilter("visitTypeFilter", "All");
+                    triggerToast("Filters reset.");
+                  }}
+                  className="px-2.5 py-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer shrink-0"
+                  title="Reset Filters"
+                >
+                  <RotateCcw size={12} /> Clear Filters
+                </button>
+              </div>
+            </div>
+
+            {/* ── 4. MAIN WORKSPACE GRID: ENTERPRISE DATA TABLE + RIGHT CONTEXT PANEL ── */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              {/* Main Table Column */}
+              <div className="lg:col-span-4 space-y-6">
+                <DataTable
+                  data={filteredAppointments}
+                  columns={[
+                    {
+                      key: "patientName",
+                      label: "PATIENT",
+                      sortable: true,
+                      getValue: (apt) => apt.patientName,
+                      render: (apt) => (
+                        <div
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              (e.currentTarget as HTMLElement).click();
+                            }
+                          }}
+                          role="button"
+                          onClick={() => onPatientSelect?.(apt.patientId)}
+                          className="flex items-center gap-2 cursor-pointer hover:underline"
+                        >
+                          <Avatar name={apt.patientName} size="sm" />
+                          <div>
+                            <span
+                              className="font-bold text-[#111827] block"
+                              style={{ fontFamily: PP }}
+                            >
+                              {apt.patientName}
+                            </span>
+                            <span className="text-[10px] text-slate-500 font-mono">
+                              {apt.patientPhone}
+                            </span>
+                          </div>
+                        </div>
+                      ),
+                    },
+                    {
+                      key: "appointmentNumber",
+                      label: "APPOINTMENT ID",
+                      sortable: true,
+                      getValue: (apt) => apt.appointmentNumber || apt.id,
+                      render: (apt) => (
+                        <span className="font-mono font-bold text-[#0D47A1]">
+                          {apt.appointmentNumber || apt.id}
+                        </span>
+                      ),
+                    },
+                    {
+                      key: "mrn",
+                      label: "MRN",
+                      sortable: true,
+                      getValue: (apt) => apt.mrn,
+                      render: (apt) => (
+                        <span className="font-mono text-[#0D47A1] font-bold">
+                          {apt.mrn}
+                        </span>
+                      ),
+                    },
+                    {
+                      key: "doctorName",
+                      label: "DOCTOR",
+                      sortable: true,
+                      visible: !isDoctor,
+                      getValue: (apt) =>
+                        typeof apt.doctorName === "string"
+                          ? apt.doctorName
+                          : (
+                              apt.doctorName as unknown as Record<
+                                string,
+                                string
+                              >
+                            )?.name || "",
+                      render: (apt) => (
+                        <div>
+                          <div className="font-semibold text-[#111827]">
+                            {typeof apt.doctorName === "string"
+                              ? apt.doctorName
+                              : (
+                                  apt.doctorName as unknown as Record<
+                                    string,
+                                    string
+                                  >
+                                )?.name ||
+                                (
+                                  apt.doctorName as unknown as Record<
+                                    string,
+                                    string
+                                  >
+                                )?.fullName ||
+                                "—"}
+                          </div>
+                          <div className="text-[10px] text-slate-400">
+                            {apt.opdRoom}
+                          </div>
+                        </div>
+                      ),
+                    },
+                    {
+                      key: "department",
+                      label: "DEPARTMENT",
+                      sortable: true,
+                      visible: !isDoctor,
+                      getValue: (apt) =>
+                        typeof apt.department === "string"
+                          ? apt.department
+                          : apt.department?.departmentName ||
+                            apt.department?.name ||
+                            "",
+                      render: (apt) => (
+                        <span className="font-medium text-slate-700">
+                          {typeof apt.department === "string"
+                            ? apt.department
+                            : apt.department?.departmentName ||
+                              apt.department?.name ||
+                              ""}
+                        </span>
+                      ),
+                    },
+                    {
+                      key: "timeSlot",
+                      label: "APPOINTMENT TIME",
+                      sortable: true,
+                      getValue: (apt) => apt.timeSlot || "",
+                      render: (apt) => (
+                        <span className="font-mono text-[#0D47A1] font-bold">
+                          {formatTime(apt.timeSlot)}
+                        </span>
+                      ),
+                    },
+                    {
+                      key: "status",
+                      label: "STATUS",
+                      sortable: true,
+                      getValue: (apt) => apt.status,
+                      render: (apt) => <StatusBadge status={apt.status} />,
+                    },
+                    {
+                      key: "actions",
+                      label: "ACTIONS",
+                      sortable: false,
+                      align: "right",
+                      render: (apt) => (
+                        <div
+                          className="flex items-center justify-end gap-1.5"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {isNurse ? (
+                            <div className="flex items-center justify-end gap-1.5">
+                              {onPatientSelect && (
+                                <button
+                                  onClick={() => onPatientSelect(apt.patientId)}
+                                  className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-[10px] font-bold border border-slate-200 hover:bg-slate-200 transition-colors flex items-center gap-1 cursor-pointer"
+                                  title="View Patient Profile"
+                                >
+                                  <User size={12} /> Profile
+                                </button>
+                              )}
+                              <button
+                                onClick={() => setDetailsApt(apt)}
+                                className="px-2.5 py-1 rounded-lg bg-blue-50 text-[#0D47A1] text-[10px] font-bold border border-blue-200 hover:bg-blue-100 transition-colors flex items-center gap-1 cursor-pointer"
+                                title="View Appointment Details"
+                              >
+                                <Eye size={12} /> View
+                              </button>
+                            </div>
+                          ) : isDoctor ? (
+                            <button
+                              onClick={() => setDetailsApt(apt)}
+                              className="px-2.5 py-1 rounded-lg bg-blue-50 text-[#0D47A1] text-[10px] font-bold border border-blue-200 hover:bg-blue-100 transition-colors flex items-center gap-1 cursor-pointer"
+                              title="View Appointment Details"
+                            >
+                              <Eye size={12} /> View
+                            </button>
+                          ) : (
+                            <>
+                              {(apt.status === "Scheduled" ||
+                                apt.status === "Booked" ||
+                                apt.status === "BOOKED" ||
+                                apt.status === "Confirmed" ||
+                                apt.status === "CONFIRMED") && (
+                                <button
+                                  onClick={() => handleCheckInPatient(apt)}
+                                  className="px-2 py-1 rounded-lg text-[10px] font-bold transition-colors flex items-center gap-1 shadow-xs bg-[#0D47A1] text-white hover:bg-[#0c3d8a] cursor-pointer"
+                                  title="Check-In Patient"
+                                >
+                                  <CheckCircle2 size={12} /> Check-In
+                                </button>
+                              )}
+
+                              {(apt.status === "Booked" ||
+                                apt.status === "Confirmed" ||
+                                apt.status === "BOOKED" ||
+                                apt.status === "CONFIRMED" ||
+                                apt.status === "Scheduled") && (
+                                <button
+                                  onClick={() => setRescheduleApt(apt)}
+                                  className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-teal-50 text-[#009688] transition-colors cursor-pointer"
+                                  title="Reschedule Appointment"
+                                >
+                                  <CalendarIcon size={14} />
+                                </button>
+                              )}
+
+                              {apt.status !== "Completed" &&
+                                apt.status !== "Cancelled" &&
+                                apt.status !== "No Show" &&
+                                apt.status !== "COMPLETED" &&
+                                apt.status !== "CANCELLED" &&
+                                apt.status !== "NO_SHOW" && (
+                                  <button
+                                    onClick={() => setCancelApt(apt)}
+                                    className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-red-50 text-[#EF4444] transition-colors cursor-pointer"
+                                    title="Cancel Appointment"
+                                  >
+                                    <Ban size={14} />
+                                  </button>
+                                )}
+
+                              <button
+                                onClick={() => setDetailsApt(apt)}
+                                className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-blue-50 text-[#0D47A1] transition-colors cursor-pointer"
+                                title="View Appointment Details"
+                              >
+                                <Eye size={14} />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      ),
+                    },
+                  ]}
+                  getRowId={(apt) => apt.id}
+                  title={
+                    <>
+                      <Calendar size={16} className="text-[#0D47A1]" />
+                      {userRole === "Doctor"
+                        ? "Today's Doctor Consultation Appointments"
+                        : "Today's Reception Appointment Workload"}
+                    </>
+                  }
+                  headerBadge={
+                    <span className="text-xs text-[#64748B]">
+                      Showing{" "}
+                      <strong className="text-[#111827]">
+                        {filteredAppointments.length}
+                      </strong>{" "}
+                      appointments
+                    </span>
+                  }
+                  searchable={true}
+                  searchPlaceholder=" Search appointments by patient name, MRN, ID, doctor..."
+                  emptyTitle="No appointments scheduled today."
+                  emptySubtitle="All consultation visits for today are completed or no appointments match filters."
+                  emptyIcon={<Calendar size={32} />}
+                  pagination={true}
                 />
               </div>
             </div>

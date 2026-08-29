@@ -218,7 +218,9 @@ export const consultationApi = {
       raw = unwrap<Record<string, unknown>>(response.data);
     } catch {
       // 2. Try GET /api/v1/encounters/{id}/workspace
-      const ws = await consultationApi.getWorkspace(encounterId).catch(() => null);
+      const ws = await consultationApi
+        .getWorkspace(encounterId)
+        .catch(() => null);
       if (ws?.vitals) {
         raw = ws.vitals as Record<string, unknown>;
       } else {
@@ -230,9 +232,13 @@ export const consultationApi = {
           raw = unwrap<Record<string, unknown>>(nurseVitals.data);
         } catch {
           // 4. Resolve encounter ID via createEncounter(appointmentId)
-          const encRes = await consultationApi.createEncounter(encounterId).catch(() => null);
+          const encRes = await consultationApi
+            .createEncounter(encounterId)
+            .catch(() => null);
           if (encRes?.encounterId) {
-            const ws2 = await consultationApi.getWorkspace(encRes.encounterId).catch(() => null);
+            const ws2 = await consultationApi
+              .getWorkspace(encRes.encounterId)
+              .catch(() => null);
             if (ws2?.vitals) {
               raw = ws2.vitals as Record<string, unknown>;
             }
@@ -782,7 +788,7 @@ export const consultationApi = {
 
   /**
    * GET /api/v1/encounters/{encounterId}/consultation
-   * Get consultation clinical notes
+   * Get consultation clinical notes & follow-up data
    */
   getConsultation: async (encounterId: string | number) => {
     try {
@@ -794,4 +800,96 @@ export const consultationApi = {
       return null;
     }
   },
+
+  /**
+   * PUT /api/v1/encounters/{encounterId}/consultation
+   * Start / Initialize / Update Consultation (PUT Idempotent)
+   * Payload: { chiefComplaint, historyOfPresentIllness, pastMedicalHistory, generalExamination, physicalExamination, assessmentSummary, advice, followUpInstructions, followUpType, followUpIntervalValue, followUpIntervalUnit, followUpDate }
+   */
+  updateConsultationPut: async (
+    encounterId: string | number,
+    payload: Record<string, unknown>,
+  ) => {
+    try {
+      const response = await apiClient.put<
+        ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
+      >(`/api/v1/encounters/${encounterId}/consultation`, payload);
+      return unwrap<Record<string, unknown>>(response.data);
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  /**
+   * POST /api/v1/encounters/{encounterId}/consultation
+   * Start / Initialize Consultation (POST)
+   */
+  updateConsultationPost: async (
+    encounterId: string | number,
+    payload: Record<string, unknown>,
+  ) => {
+    try {
+      const response = await apiClient.post<
+        ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
+      >(`/api/v1/encounters/${encounterId}/consultation`, payload);
+      return unwrap<Record<string, unknown>>(response.data);
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  updateDiagnosisPut: async (
+    encounterId: string | number,
+    diagnosisId: string | number,
+    payload: Record<string, unknown>,
+  ) => {
+    try {
+      const response = await apiClient.put<
+        ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
+      >(`/api/v1/encounters/${encounterId}/diagnoses/${diagnosisId}`, payload);
+      return unwrap<Record<string, unknown>>(response.data);
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  updatePrescriptionAdvice: async (
+    prescriptionId: string | number,
+    payload: Record<string, unknown>,
+  ) => {
+    try {
+      const response = await apiClient.put<
+        ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
+      >(`/api/v1/prescriptions/${prescriptionId}/advice`, payload);
+      return unwrap<Record<string, unknown>>(response.data);
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  updatePrescriptionMedication: async (
+    prescriptionId: string | number,
+    medicationId: string | number,
+    payload: Record<string, unknown>,
+  ) => {
+    try {
+      const response = await apiClient.put<
+        ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
+      >(`/api/v1/prescriptions/${prescriptionId}/medications/${medicationId}`, payload);
+      return unwrap<Record<string, unknown>>(response.data);
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  updateAmendment: async (
+    encounterId: string | number,
+    amendmentIdOrPayload: string | number | Record<string, unknown>,
+    payload?: Record<string, unknown>,
+  ) => {
+    const data = (payload || (typeof amendmentIdOrPayload === "object" ? amendmentIdOrPayload : {})) as Record<string, unknown>;
+    return consultationApi.createAmendment(encounterId, data);
+  },
 };
+
+

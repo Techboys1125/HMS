@@ -550,7 +550,7 @@ export function RescheduleAppointmentConfirmationDialog({
       }, 0);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, apt]);
+  }, [isOpen, apt, setCurrentMonthDate]);
 
   const onEscape = useEffectEvent(() => {
     onClose();

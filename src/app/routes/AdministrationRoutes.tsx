@@ -44,6 +44,14 @@ export function AdministrationRoutes() {
         }
       />
       <Route
+        path="/profile/:userId"
+        element={
+          <RouteGuard requiredPermission="PROFILE_VIEW">
+            <UserProfileRoute />
+          </RouteGuard>
+        }
+      />
+      <Route
         path={ROUTES.MY_PROFILE}
         element={
           <RouteGuard requiredPermission="PROFILE_VIEW">
