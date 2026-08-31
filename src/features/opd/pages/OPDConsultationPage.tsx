@@ -31,7 +31,6 @@ import { appointmentsApi } from "../../appointments/api/appointments.api";
 import { vitalsApi } from "../../vitals/api/vitals.api";
 import { ConsultationHeader } from "../components/ConsultationHeader";
 import { ConsultationKPICards } from "../components/ConsultationKPICards";
-import { ConsultationFilters } from "../components/ConsultationFilters";
 import { ConsultationTabs } from "../components/ConsultationTabs";
 import { ConsultationTable } from "../components/ConsultationTable";
 import { OperationalSummaryModal } from "../components/OperationalSummaryModal";
@@ -1294,7 +1293,5 @@ function OPDConsultationPage({
   );
 }
 
-export const OpdConsultationCenterScreen: React.FC<OPDConsultationPageProps> =
-  OPDConsultationPage;
 export const OpdConsultationCenterScreen: React.FC<OPDConsultationPageProps> =
   OPDConsultationPage;

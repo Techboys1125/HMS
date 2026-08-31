@@ -60,4 +60,62 @@ export const receptionDashboardApi = {
     >("/api/v1/reception/dashboard/performance-summary");
     return unwrap(res);
   },
+
+  getQueue: async (): Promise<
+    Array<{
+      token: string;
+      patientName: string;
+      mrn: string;
+      doctorName: string;
+      departmentName: string;
+      appointmentTime: string;
+      queuePosition: number;
+      status: string;
+    }>
+  > => {
+    const res = await apiClient.get<unknown>("/api/v1/reception/queue");
+    const rawData = res.data as { data?: unknown } | unknown[];
+    const rawList = Array.isArray(rawData)
+      ? rawData
+      : Array.isArray((rawData as { data?: unknown })?.data)
+        ? ((rawData as { data?: unknown }).data as unknown[])
+        : [];
+    return rawList.map((itemVal: unknown, idx: number) => {
+      const item = itemVal as Record<string, unknown>;
+      return {
+        token:
+          (item.tokenNumber as string) ||
+          (item.queueToken as string) ||
+          `TK-${100 + idx + 1}`,
+        patientName:
+          (item.patientName as string) ||
+          ((item.patient as Record<string, unknown>)?.fullName as string) ||
+          ((item.patient as Record<string, unknown>)?.name as string) ||
+          "Patient",
+        mrn:
+          (item.mrn as string) ||
+          ((item.patient as Record<string, unknown>)?.mrn as string) ||
+          `MRN-${100 + idx + 1}`,
+        doctorName:
+          (item.doctorName as string) ||
+          ((item.doctor as Record<string, unknown>)?.fullName as string) ||
+          ((item.doctor as Record<string, unknown>)?.name as string) ||
+          "",
+        departmentName:
+          (item.departmentName as string) ||
+          ((item.department as Record<string, unknown>)?.name as string) ||
+          "",
+        appointmentTime:
+          (item.appointmentTime as string) ||
+          (item.timeSlot as string) ||
+          (item.startTime as string) ||
+          "--",
+        queuePosition: (item.queuePosition as number) || idx + 1,
+        status:
+          (item.queueStatus as string) ||
+          (item.status as string) ||
+          "WAITING",
+      };
+    });
+  },
 };

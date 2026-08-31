@@ -3,7 +3,6 @@ import { useNavigate } from "react-router";
 import {
   Users,
   UserPlus,
-  Search,
   Filter,
   CheckCircle2,
   Eye,
@@ -238,7 +237,8 @@ export function FamilyMembersManagement({
   }>({ loading: false });
 
   // State for Full Patient Edit Modal (PUT /api/v1/patients/{mrn})
-  const [editPatientMember, setEditPatientMember] = useState<FamilyMember | null>(null);
+  const [editPatientMember, setEditPatientMember] =
+    useState<FamilyMember | null>(null);
 
   // Load Member Basic Info for View Drawer
   useEffect(() => {
@@ -311,8 +311,7 @@ export function FamilyMembersManagement({
       apiClient
         .get(`/api/v1/patients/${encodeURIComponent(viewDrawerMember.mrn)}`)
         .then((res) => {
-          const basic =
-            (res.data as { data?: unknown })?.data || res.data;
+          const basic = (res.data as { data?: unknown })?.data || res.data;
           setModalData((prev) => ({
             ...prev,
             basicInfo:
@@ -323,11 +322,6 @@ export function FamilyMembersManagement({
         })
         .catch(() => null);
     }
-  };
-
-  const handlePatientError = (msg: string) => {
-    drawerDispatch({ type: "SHOW_TOAST", message: msg });
-    setTimeout(() => drawerDispatch({ type: "CLEAR_TOAST" }), 4000);
   };
 
   const handleRemoveSuccess = (mrnOrId: string, name: string) => {
@@ -377,7 +371,8 @@ export function FamilyMembersManagement({
             </span>
           </div>
           <p className="text-xs text-[#64748B]" style={{ fontFamily: RB }}>
-            Manage linked family member profiles under your Patient Portal account
+            Manage linked family member profiles under your Patient Portal
+            account
           </p>
         </div>
         <button
@@ -413,7 +408,8 @@ export function FamilyMembersManagement({
             </div>
           </div>
           <div className="text-right text-xs text-[#64748B]">
-            <span className="font-bold text-[#0D47A1]">{verifiedCount}</span> Verified
+            <span className="font-bold text-[#0D47A1]">{verifiedCount}</span>{" "}
+            Verified
           </div>
         </div>
 
@@ -458,7 +454,7 @@ export function FamilyMembersManagement({
           title="Linked Family Profiles"
           subtitle="Manage linked family member profiles under your Patient Portal account."
           searchable={true}
-          searchPlaceholder="🔍 Search family member by name, MRN, relationship..."
+          searchPlaceholder=" Search family member by name, MRN, relationship..."
           searchValue={searchTerm}
           onSearchChange={(val) =>
             filterDispatch({
@@ -472,7 +468,9 @@ export function FamilyMembersManagement({
               <div className="flex items-center gap-2 flex-wrap">
                 <div className="flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-2.5 py-1 rounded-lg text-slate-700 font-medium">
                   <Filter className="w-3.5 h-3.5 text-slate-400" />
-                  <span className="text-slate-400 text-[11px]">Relationship:</span>
+                  <span className="text-slate-400 text-[11px]">
+                    Relationship:
+                  </span>
                   <select
                     value={relFilter}
                     onChange={(e) =>
@@ -520,12 +518,26 @@ export function FamilyMembersManagement({
                   </select>
                 </div>
 
-                {(searchTerm || relFilter !== "All" || statusFilter !== "All") && (
+                {(searchTerm ||
+                  relFilter !== "All" ||
+                  statusFilter !== "All") && (
                   <button
                     onClick={() => {
-                      filterDispatch({ type: "SET_FIELD", field: "searchTerm", value: "" });
-                      filterDispatch({ type: "SET_FIELD", field: "relFilter", value: "All" });
-                      filterDispatch({ type: "SET_FIELD", field: "statusFilter", value: "All" });
+                      filterDispatch({
+                        type: "SET_FIELD",
+                        field: "searchTerm",
+                        value: "",
+                      });
+                      filterDispatch({
+                        type: "SET_FIELD",
+                        field: "relFilter",
+                        value: "All",
+                      });
+                      filterDispatch({
+                        type: "SET_FIELD",
+                        field: "statusFilter",
+                        value: "All",
+                      });
                     }}
                     className="px-2.5 py-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer shadow-2xs shrink-0 ml-auto"
                     style={{ fontFamily: PP }}
@@ -702,8 +714,6 @@ export function FamilyMembersManagement({
           })
         }
       />
-
-
 
       {/* ── REMOVE FAMILY MEMBER CONFIRMATION DIALOG COMPONENT ── */}
       <RemoveMemberConfirmDialog

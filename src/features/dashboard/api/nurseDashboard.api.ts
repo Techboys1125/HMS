@@ -52,8 +52,8 @@ export const nurseDashboardApi = {
     } catch {
       const fallbackData = await vitalsApi.getNurseQueue(undefined, page, size);
       return {
-        content: fallbackData as any,
-        patients: fallbackData as any,
+        content: fallbackData as unknown as NurseQueue["content"],
+        patients: fallbackData as unknown as NurseQueue["patients"],
         waitingForVitals: fallbackData.length,
         page,
         size,

@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useReducer } from "react";
 import { useNavigate } from "react-router";
 import {
-  Search,
   Plus,
   Filter,
   Download,
@@ -24,14 +23,12 @@ import type { AppointmentRecord } from "../../appointments/types/appointment.typ
 import { PP, RB } from "../constants/patient.fonts";
 import { usePatientPortal } from "../context/usePatientPortal";
 import type { FamilyMember } from "./FamilyMembersManagement";
-import {
-  PatientCancelAppointmentDialog,
-} from "../components/PatientDialogs";
+import { PatientCancelAppointmentDialog } from "../components/PatientDialogs";
 import { RescheduleAppointmentConfirmationDialog } from "../../appointments/components/RescheduleAppointmentConfirmationDialog";
 import { BookAppointmentScreen } from "../../appointments/pages/BookAppointmentScreen";
 import { appointmentService } from "../../appointments/services/appointment.service";
 import { appointmentsApi } from "../../appointments/api/appointments.api";
-import { DataTable} from "../../../common/components/DataTable";
+import { DataTable } from "../../../common/components/DataTable";
 import type { ApiResponse } from "../../auth/types/auth.types";
 import { to24Hour } from "../../../lib/time-utils";
 import { downloadAppointmentSlipPdf } from "../../../utils/appointmentPdf.utils";
@@ -567,25 +564,47 @@ export function PatientAppointmentsScreen({
                   "No additional remarks";
 
                 const docObj =
-                  doctorRaw && typeof doctorRaw === "object" && doctorRaw !== null
+                  doctorRaw &&
+                  typeof doctorRaw === "object" &&
+                  doctorRaw !== null
                     ? (doctorRaw as unknown as Record<string, unknown>)
                     : {};
                 const rawDocId: string | number =
                   a.doctorId ||
                   (docObj.id as string | number) ||
                   (docObj.doctorId as string | number) ||
-                  ((a as unknown as Record<string, unknown>).doctor_id as string | number) ||
+                  ((a as unknown as Record<string, unknown>).doctor_id as
+                    | string
+                    | number) ||
                   1;
 
                 return {
                   id: apptIdStr,
                   rawId: a.id || a.appointmentId || apptIdStr,
                   appointmentNumber: a.appointmentNumber || apptIdStr,
-                  mrn: a.mrn || a.patientMrn || patient?.mrn || activePatient?.mrn || "",
-                  patientPhone: a.patientPhone || a.phone || patient?.phone || activePatient?.phone || "",
-                  tokenNo: String(a.tokenNumber || a.queueToken || a.tokenNo || ""),
-                  queueToken: String(a.queueToken || a.tokenNumber || a.tokenNo || ""),
-                  patientId: a.patientId || patient?.id || activePatient?.id || apptIdStr,
+                  mrn:
+                    a.mrn ||
+                    a.patientMrn ||
+                    patient?.mrn ||
+                    activePatient?.mrn ||
+                    "",
+                  patientPhone:
+                    a.patientPhone ||
+                    a.phone ||
+                    patient?.phone ||
+                    activePatient?.phone ||
+                    "",
+                  tokenNo: String(
+                    a.tokenNumber || a.queueToken || a.tokenNo || "",
+                  ),
+                  queueToken: String(
+                    a.queueToken || a.tokenNumber || a.tokenNo || "",
+                  ),
+                  patientId:
+                    a.patientId ||
+                    patient?.id ||
+                    activePatient?.id ||
+                    apptIdStr,
                   patientName:
                     pName || patient?.name || activePatient?.name || "Patient",
                   date: datePart,
@@ -594,9 +613,11 @@ export function PatientAppointmentsScreen({
                   doctor: doctorName,
                   specialty:
                     a.specialty ||
-                    ((a as unknown as Record<string, unknown>).doctorSpecialty as string) ||
+                    ((a as unknown as Record<string, unknown>)
+                      .doctorSpecialty as string) ||
                     (docObj.specialty as string) ||
-                    (docObj.primarySpecialty as Record<string, string>)?.specialtyName ||
+                    (docObj.primarySpecialty as Record<string, string>)
+                      ?.specialtyName ||
                     deptName,
                   department: deptName,
                   visitType: (a.visitType === "Follow-up OPD" ||
@@ -712,7 +733,8 @@ export function PatientAppointmentsScreen({
                   ? createdAppt.doctor
                   : (
                       createdAppt.doctor as
-                        { fullName?: string; name?: string } | undefined
+                        | { fullName?: string; name?: string }
+                        | undefined
                     )?.fullName ||
                     (createdAppt.doctor as { name?: string } | undefined)
                       ?.name ||
@@ -725,7 +747,8 @@ export function PatientAppointmentsScreen({
                   ? createdAppt.department
                   : (
                       createdAppt.department as
-                        { departmentName?: string; name?: string } | undefined
+                        | { departmentName?: string; name?: string }
+                        | undefined
                     )?.departmentName ||
                     (createdAppt.department as { name?: string } | undefined)
                       ?.name ||
@@ -1205,7 +1228,7 @@ export function PatientAppointmentsScreen({
                 </span>
               }
               searchable={true}
-              searchPlaceholder="🔍 Search by Doctor Name, Appointment ID, Department..."
+              searchPlaceholder=" Search by Doctor Name, Appointment ID, Department..."
               searchValue={filterState.searchQuery}
               onSearchChange={(val) =>
                 filterDispatch({
@@ -1218,10 +1241,10 @@ export function PatientAppointmentsScreen({
               emptySubtitle="You don't have any appointments matching your search criteria."
               emptyIcon={<Calendar size={28} />}
               emptyAction={
-                (filterState.deptFilter !== "All" ||
-                  filterState.statusFilter !== "All" ||
-                  filterState.dateRangeFilter !== "All" ||
-                  filterState.searchQuery) ? (
+                filterState.deptFilter !== "All" ||
+                filterState.statusFilter !== "All" ||
+                filterState.dateRangeFilter !== "All" ||
+                filterState.searchQuery ? (
                   <button
                     onClick={handleResetFilters}
                     className="px-4 py-2 bg-[#0D47A1] text-white text-xs font-semibold rounded-xl hover:bg-blue-900 cursor-pointer"
@@ -1231,320 +1254,327 @@ export function PatientAppointmentsScreen({
                   </button>
                 ) : undefined
               }
-                  toolbar={
-                    <div className="bg-slate-50/80 border border-[#E5E7EB] rounded-xl p-2.5 space-y-2 shadow-2xs text-xs">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <div className="flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-2.5 py-1 rounded-lg text-slate-700 font-medium">
-                          <Calendar size={13} className="text-slate-400" />
-                          <span className="text-slate-400 text-[11px]">Date:</span>
-                          <select
-                            value={filterState.dateRangeFilter}
-                            onChange={(e) =>
-                              filterDispatch({
-                                type: "SET_FILTER",
-                                field: "dateRangeFilter",
-                                value: e.target.value,
-                              })
-                            }
-                            className="bg-transparent font-semibold text-[#0D47A1] outline-none cursor-pointer text-xs"
-                          >
-                            <option value="All">All Dates</option>
-                            <option value="Today">Today</option>
-                            <option value="This Week">This Week</option>
-                            <option value="This Month">This Month</option>
-                          </select>
-                        </div>
+              toolbar={
+                <div className="bg-slate-50/80 border border-[#E5E7EB] rounded-xl p-2.5 space-y-2 shadow-2xs text-xs">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-2.5 py-1 rounded-lg text-slate-700 font-medium">
+                      <Calendar size={13} className="text-slate-400" />
+                      <span className="text-slate-400 text-[11px]">Date:</span>
+                      <select
+                        value={filterState.dateRangeFilter}
+                        onChange={(e) =>
+                          filterDispatch({
+                            type: "SET_FILTER",
+                            field: "dateRangeFilter",
+                            value: e.target.value,
+                          })
+                        }
+                        className="bg-transparent font-semibold text-[#0D47A1] outline-none cursor-pointer text-xs"
+                      >
+                        <option value="All">All Dates</option>
+                        <option value="Today">Today</option>
+                        <option value="This Week">This Week</option>
+                        <option value="This Month">This Month</option>
+                      </select>
+                    </div>
 
-                        <div className="flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-2.5 py-1 rounded-lg text-slate-700 font-medium">
-                          <Filter size={13} className="text-slate-400" />
-                          <span className="text-slate-400 text-[11px]">Status:</span>
-                          <select
-                            value={filterState.statusFilter}
-                            onChange={(e) =>
-                              filterDispatch({
-                                type: "SET_FILTER",
-                                field: "statusFilter",
-                                value: e.target.value,
-                              })
-                            }
-                            className="bg-transparent font-semibold text-[#0D47A1] outline-none cursor-pointer text-xs"
-                          >
-                            <option value="All">All Statuses</option>
-                            <option value="Confirmed">Confirmed</option>
-                            <option value="Scheduled">Scheduled</option>
-                            <option value="Pending">Pending</option>
-                            <option value="Completed">Completed</option>
-                            <option value="Cancelled">Cancelled</option>
-                            <option value="No Show">No Show</option>
-                          </select>
-                        </div>
+                    <div className="flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-2.5 py-1 rounded-lg text-slate-700 font-medium">
+                      <Filter size={13} className="text-slate-400" />
+                      <span className="text-slate-400 text-[11px]">
+                        Status:
+                      </span>
+                      <select
+                        value={filterState.statusFilter}
+                        onChange={(e) =>
+                          filterDispatch({
+                            type: "SET_FILTER",
+                            field: "statusFilter",
+                            value: e.target.value,
+                          })
+                        }
+                        className="bg-transparent font-semibold text-[#0D47A1] outline-none cursor-pointer text-xs"
+                      >
+                        <option value="All">All Statuses</option>
+                        <option value="Confirmed">Confirmed</option>
+                        <option value="Scheduled">Scheduled</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                        <option value="No Show">No Show</option>
+                      </select>
+                    </div>
 
-                        <div className="flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-2.5 py-1 rounded-lg text-slate-700 font-medium">
-                          <span className="text-slate-400 text-[11px]">Department:</span>
-                          <select
-                            value={filterState.deptFilter}
-                            onChange={(e) =>
-                              filterDispatch({
-                                type: "SET_FILTER",
-                                field: "deptFilter",
-                                value: e.target.value,
-                              })
-                            }
-                            className="bg-transparent font-semibold text-[#0D47A1] outline-none cursor-pointer text-xs"
-                          >
-                            <option value="All">All Departments</option>
-                            <option value="Cardiology">Cardiology</option>
-                            <option value="General Medicine">General Medicine</option>
-                            <option value="Neurology">Neurology</option>
-                            <option value="Gynecology">Gynecology</option>
-                            <option value="Pediatrics">Pediatrics</option>
-                          </select>
-                        </div>
+                    <div className="flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-2.5 py-1 rounded-lg text-slate-700 font-medium">
+                      <span className="text-slate-400 text-[11px]">
+                        Department:
+                      </span>
+                      <select
+                        value={filterState.deptFilter}
+                        onChange={(e) =>
+                          filterDispatch({
+                            type: "SET_FILTER",
+                            field: "deptFilter",
+                            value: e.target.value,
+                          })
+                        }
+                        className="bg-transparent font-semibold text-[#0D47A1] outline-none cursor-pointer text-xs"
+                      >
+                        <option value="All">All Departments</option>
+                        <option value="Cardiology">Cardiology</option>
+                        <option value="General Medicine">
+                          General Medicine
+                        </option>
+                        <option value="Neurology">Neurology</option>
+                        <option value="Gynecology">Gynecology</option>
+                        <option value="Pediatrics">Pediatrics</option>
+                      </select>
+                    </div>
 
-                        {(filterState.deptFilter !== "All" ||
-                          filterState.statusFilter !== "All" ||
-                          filterState.dateRangeFilter !== "All" ||
-                          filterState.searchQuery) && (
+                    {(filterState.deptFilter !== "All" ||
+                      filterState.statusFilter !== "All" ||
+                      filterState.dateRangeFilter !== "All" ||
+                      filterState.searchQuery) && (
+                      <button
+                        onClick={handleResetFilters}
+                        className="px-2.5 py-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer shadow-2xs shrink-0 ml-auto"
+                        style={{ fontFamily: PP }}
+                      >
+                        <RefreshCw size={12} /> Clear Filters
+                      </button>
+                    )}
+                  </div>
+                </div>
+              }
+              columns={[
+                {
+                  key: "id",
+                  label: "APPOINTMENT ID",
+                  sortable: true,
+                  getValue: (appt) => appt.id,
+                  render: (appt) => (
+                    <span className="font-mono font-bold text-[#0D47A1]">
+                      {appt.id}
+                    </span>
+                  ),
+                },
+                {
+                  key: "patientName",
+                  label: "PATIENT NAME",
+                  sortable: true,
+                  getValue: (appt) =>
+                    appt.patientName || activePatient?.name || "Patient",
+                  render: (appt) => (
+                    <span className="font-bold text-[#111827]">
+                      {appt.patientName || activePatient?.name || "Patient"}
+                    </span>
+                  ),
+                },
+                {
+                  key: "doctor",
+                  label: "DOCTOR",
+                  sortable: true,
+                  getValue: (appt) => appt.doctor,
+                  render: (appt) => (
+                    <div>
+                      <div className="font-bold text-[#111827]">
+                        {appt.doctor}
+                      </div>
+                      <div className="text-[11px] text-[#64748B]">
+                        {appt.specialty}
+                      </div>
+                    </div>
+                  ),
+                },
+                {
+                  key: "department",
+                  label: "DEPARTMENT",
+                  sortable: true,
+                  getValue: (appt) => appt.department,
+                  render: (appt) => (
+                    <span className="text-slate-700 font-medium">
+                      {appt.department}
+                    </span>
+                  ),
+                },
+                {
+                  key: "date",
+                  label: "DATE",
+                  sortable: true,
+                  getValue: (appt) => appt.date,
+                  render: (appt) => (
+                    <span className="font-medium text-[#111827]">
+                      {appt.date}
+                    </span>
+                  ),
+                },
+                {
+                  key: "time",
+                  label: "TIME",
+                  sortable: true,
+                  getValue: (appt) => appt.time,
+                  render: (appt) => (
+                    <span className="text-[#0D47A1] font-semibold">
+                      {formatDisplayTime(appt.time)}
+                    </span>
+                  ),
+                },
+                {
+                  key: "status",
+                  label: "STATUS",
+                  sortable: true,
+                  getValue: (appt) => appt.status,
+                  render: (appt) => {
+                    const st = getAppointmentStatusStyle(appt.status);
+                    return (
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${st.badgeClass}`}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${st.dotClass}`}
+                        />
+                        {st.label}
+                      </span>
+                    );
+                  },
+                },
+                {
+                  key: "actions",
+                  label: "ACTIONS",
+                  sortable: false,
+                  align: "right",
+                  render: (appt) => {
+                    const isUpcoming = [
+                      "Confirmed",
+                      "Scheduled",
+                      "Booked",
+                      "Pending",
+                    ].includes(appt.status);
+                    return (
+                      <div className="flex items-center justify-end gap-1.5">
+                        {isUpcoming && appt.status !== "No Show" && (
                           <button
-                            onClick={handleResetFilters}
-                            className="px-2.5 py-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer shadow-2xs shrink-0 ml-auto"
-                            style={{ fontFamily: PP }}
+                            onClick={() => setCancellingAppt(appt)}
+                            className="px-2 py-1 text-[11px] font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors flex items-center gap-1 cursor-pointer shrink-0"
+                            title="Cancel Appointment"
                           >
-                            <RefreshCw size={12} /> Clear Filters
+                            <XCircle size={13} /> Cancel
                           </button>
                         )}
+                        <button
+                          onClick={() => setSelectedDetails(appt)}
+                          className="px-2.5 py-1 text-[11px] font-bold text-[#0D47A1] bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors flex items-center gap-1 cursor-pointer shrink-0"
+                          title="View Details"
+                        >
+                          <Eye size={13} /> View
+                        </button>
+                      </div>
+                    );
+                  },
+                },
+              ]}
+              getRowId={(appt) => appt.id}
+              pagination={true}
+            />
+          </div>
+
+          {/* Mobile / Tablet Cards View */}
+          <div className="md:hidden space-y-3">
+            {paginatedAppointments.map((appt) => {
+              const isUpcoming = [
+                "Confirmed",
+                "Scheduled",
+                "Booked",
+                "Pending",
+              ].includes(appt.status);
+              return (
+                <div
+                  key={appt.id}
+                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm space-y-3"
+                >
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div>
+                      <h4
+                        className="text-xs font-bold text-[#111827]"
+                        style={{ fontFamily: PP }}
+                      >
+                        {appt.doctor}
+                      </h4>
+                      <div className="text-[11px] text-[#64748B]">
+                        {appt.department} · {appt.specialty}
                       </div>
                     </div>
-                  }
-                  columns={[
-                    {
-                      key: "id",
-                      label: "APPOINTMENT ID",
-                      sortable: true,
-                      getValue: (appt) => appt.id,
-                      render: (appt) => (
-                        <span className="font-mono font-bold text-[#0D47A1]">
-                          {appt.id}
-                        </span>
-                      ),
-                    },
-                    {
-                      key: "patientName",
-                      label: "PATIENT NAME",
-                      sortable: true,
-                      getValue: (appt) => appt.patientName || activePatient?.name || "Patient",
-                      render: (appt) => (
-                        <span className="font-bold text-[#111827]">
-                          {appt.patientName || activePatient?.name || "Patient"}
-                        </span>
-                      ),
-                    },
-                    {
-                      key: "doctor",
-                      label: "DOCTOR",
-                      sortable: true,
-                      getValue: (appt) => appt.doctor,
-                      render: (appt) => (
-                        <div>
-                          <div className="font-bold text-[#111827]">
-                            {appt.doctor}
-                          </div>
-                          <div className="text-[11px] text-[#64748B]">
-                            {appt.specialty}
-                          </div>
-                        </div>
-                      ),
-                    },
-                    {
-                      key: "department",
-                      label: "DEPARTMENT",
-                      sortable: true,
-                      getValue: (appt) => appt.department,
-                      render: (appt) => (
-                        <span className="text-slate-700 font-medium">
-                          {appt.department}
-                        </span>
-                      ),
-                    },
-                    {
-                      key: "date",
-                      label: "DATE",
-                      sortable: true,
-                      getValue: (appt) => appt.date,
-                      render: (appt) => (
-                        <span className="font-medium text-[#111827]">
-                          {appt.date}
-                        </span>
-                      ),
-                    },
-                    {
-                      key: "time",
-                      label: "TIME",
-                      sortable: true,
-                      getValue: (appt) => appt.time,
-                      render: (appt) => (
-                        <span className="text-[#0D47A1] font-semibold">
-                          {formatDisplayTime(appt.time)}
-                        </span>
-                      ),
-                    },
-                    {
-                      key: "status",
-                      label: "STATUS",
-                      sortable: true,
-                      getValue: (appt) => appt.status,
-                      render: (appt) => {
-                        const st = getAppointmentStatusStyle(appt.status);
-                        return (
+                    {(() => {
+                      const st = getAppointmentStatusStyle(appt.status);
+                      return (
+                        <span
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${st.badgeClass}`}
+                        >
                           <span
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${st.badgeClass}`}
-                          >
-                            <span
-                              className={`w-1.5 h-1.5 rounded-full ${st.dotClass}`}
-                            />
-                            {st.label}
-                          </span>
-                        );
-                      },
-                    },
-                    {
-                      key: "actions",
-                      label: "ACTIONS",
-                      sortable: false,
-                      align: "right",
-                      render: (appt) => {
-                        const isUpcoming = [
-                          "Confirmed",
-                          "Scheduled",
-                          "Booked",
-                          "Pending",
-                        ].includes(appt.status);
-                        return (
-                          <div className="flex items-center justify-end gap-1.5">
-                            {isUpcoming && appt.status !== "No Show" && (
-                              <button
-                                onClick={() => setCancellingAppt(appt)}
-                                className="px-2 py-1 text-[11px] font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors flex items-center gap-1 cursor-pointer shrink-0"
-                                title="Cancel Appointment"
-                              >
-                                <XCircle size={13} /> Cancel
-                              </button>
-                            )}
-                            <button
-                              onClick={() => setSelectedDetails(appt)}
-                              className="px-2.5 py-1 text-[11px] font-bold text-[#0D47A1] bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors flex items-center gap-1 cursor-pointer shrink-0"
-                              title="View Details"
-                            >
-                              <Eye size={13} /> View
-                            </button>
-                          </div>
-                        );
-                      },
-                    },
-                  ]}
-                  getRowId={(appt) => appt.id}
-                  pagination={true}
-                />
-              </div>
-
-              {/* Mobile / Tablet Cards View */}
-              <div className="md:hidden space-y-3">
-                {paginatedAppointments.map((appt) => {
-                  const isUpcoming = [
-                    "Confirmed",
-                    "Scheduled",
-                    "Booked",
-                    "Pending",
-                  ].includes(appt.status);
-                  return (
-                    <div
-                      key={appt.id}
-                      className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm space-y-3"
-                    >
-                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <div>
-                          <h4
-                            className="text-xs font-bold text-[#111827]"
-                            style={{ fontFamily: PP }}
-                          >
-                            {appt.doctor}
-                          </h4>
-                          <div className="text-[11px] text-[#64748B]">
-                            {appt.department} · {appt.specialty}
-                          </div>
-                        </div>
-                        {(() => {
-                          const st = getAppointmentStatusStyle(appt.status);
-                          return (
-                            <span
-                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${st.badgeClass}`}
-                            >
-                              <span
-                                className={`w-1.5 h-1.5 rounded-full ${st.dotClass}`}
-                              />
-                              {st.label}
-                            </span>
-                          );
-                        })()}
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                          <span className="text-[#64748B] text-[10px] block">
-                            Appointment ID
-                          </span>
-                          <span className="font-mono font-bold text-[#0D47A1]">
-                            {appt.id}
-                          </span>
-                        </div>
-                        <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                          <span className="text-[#64748B] text-[10px] block">
-                            Date & Time
-                          </span>
-                          <span className="font-semibold text-[#111827]">
-                            {appt.date} ({appt.time})
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                        <span className="text-[11px] text-slate-500 font-medium">
-                          {appt.visitType}
+                            className={`w-1.5 h-1.5 rounded-full ${st.dotClass}`}
+                          />
+                          {st.label}
                         </span>
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            onClick={() => setSelectedDetails(appt)}
-                            className="px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-200"
-                          >
-                            Details
-                          </button>
-                          {isUpcoming && (
-                            <>
-                              <button
-                                onClick={() =>
-                                  filterDispatch({
-                                    type: "SET_RESCHEDULING",
-                                    appointment: appt,
-                                  })
-                                }
-                                className="px-3 py-1.5 bg-blue-50 text-[#0D47A1] text-xs font-semibold rounded-xl hover:bg-blue-100"
-                              >
-                                Reschedule
-                              </button>
-                              <button
-                                onClick={() => setCancellingAppt(appt)}
-                                className="px-3 py-1.5 bg-red-50 text-red-600 text-xs font-semibold rounded-xl hover:bg-red-100"
-                              >
-                                Cancel
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </div>
+                      );
+                    })()}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                      <span className="text-[#64748B] text-[10px] block">
+                        Appointment ID
+                      </span>
+                      <span className="font-mono font-bold text-[#0D47A1]">
+                        {appt.id}
+                      </span>
                     </div>
-                  );
-                })}
-              </div>
+                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                      <span className="text-[#64748B] text-[10px] block">
+                        Date & Time
+                      </span>
+                      <span className="font-semibold text-[#111827]">
+                        {appt.date} ({appt.time})
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                    <span className="text-[11px] text-slate-500 font-medium">
+                      {appt.visitType}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => setSelectedDetails(appt)}
+                        className="px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-200"
+                      >
+                        Details
+                      </button>
+                      {isUpcoming && (
+                        <>
+                          <button
+                            onClick={() =>
+                              filterDispatch({
+                                type: "SET_RESCHEDULING",
+                                appointment: appt,
+                              })
+                            }
+                            className="px-3 py-1.5 bg-blue-50 text-[#0D47A1] text-xs font-semibold rounded-xl hover:bg-blue-100"
+                          >
+                            Reschedule
+                          </button>
+                          <button
+                            onClick={() => setCancellingAppt(appt)}
+                            className="px-3 py-1.5 bg-red-50 text-red-600 text-xs font-semibold rounded-xl hover:bg-red-100"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -2146,9 +2176,7 @@ export function PatientAppointmentsScreen({
                   filterState.reschedulingAppt.tokenNo ||
                   "",
                 mrn:
-                  filterState.reschedulingAppt.mrn ||
-                  activePatient?.mrn ||
-                  "",
+                  filterState.reschedulingAppt.mrn || activePatient?.mrn || "",
                 patientId:
                   filterState.reschedulingAppt.patientId ||
                   activePatient?.id ||

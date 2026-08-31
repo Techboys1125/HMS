@@ -25,6 +25,45 @@ import { patientsApi } from "../api/patient.api";
 import { ROUTES } from "../../../app/routes/routes";
 
 import { formatCompactCurrency } from "../../billing/utils/billing.utils";
+import { normalizeImageUrl } from "../../../lib/image-utils";
+
+function extractPatientPhotoUrl(p?: Patient | null): string | undefined {
+  if (!p) return undefined;
+  const obj = p as unknown as Record<string, unknown>;
+  const candidates = [
+    p.photoUrl,
+    obj.photo_url,
+    obj.photoUrl,
+    obj.photo,
+    obj.avatar,
+    obj.avatarUrl,
+    obj.avatar_url,
+    obj.profileImage,
+    obj.profile_image,
+    obj.profileImageUrl,
+    obj.profile_image_url,
+    obj.image,
+    obj.imageUrl,
+    obj.image_url,
+    obj.picture,
+    obj.pictureUrl,
+    obj.profilePicture,
+  ];
+
+  for (const c of candidates) {
+    if (
+      typeof c === "string" &&
+      c.trim() &&
+      c.trim() !== "—" &&
+      c.trim() !== "null" &&
+      c.trim() !== "undefined"
+    ) {
+      const normalized = normalizeImageUrl(c);
+      if (normalized) return normalized;
+    }
+  }
+  return undefined;
+}
 
 // Tabs
 import { PatientAppointmentsTab } from "../components/tabs/AppointmentsTab";
@@ -417,37 +456,44 @@ export function PatientProfilePage({
 
   // Particular API metrics for this patient
   const totalVisits = appointments.length;
-  const visitHistory = appointments.filter(
-    (a) =>
-      (a.status || "").toLowerCase() === "completed" ||
-      (a.status || "").toLowerCase() === "checked-in",
-  );
+  const visitHistory = appointments.filter((a) => {
+    const s = (a.status || "").toLowerCase().trim();
+    return s === "completed" || s === "finalized" || s === "closed";
+  });
   const lastVisitDate =
     visitHistory.length > 0
       ? formatDate(visitHistory[0].date || visitHistory[0].appointmentDate)
       : "—";
 
-  const upcomingAppts = appointments.filter(
-    (a) =>
-      (a.status || "").toLowerCase() === "scheduled" ||
-      (a.status || "").toLowerCase() === "confirmed",
-  );
+  const upcomingAppts = appointments.filter((a) => {
+    const s = (a.status || "").toLowerCase().trim();
+    return (
+      s !== "completed" &&
+      s !== "cancelled" &&
+      s !== "canceled" &&
+      s !== "closed" &&
+      s !== "no_show" &&
+      s !== "no-show"
+    );
+  });
   const upcomingDate =
     upcomingAppts.length > 0
       ? formatDate(upcomingAppts[0].date || upcomingAppts[0].appointmentDate)
       : "—";
 
-  const activeScriptsCount = rxSummary
-    ? rxSummary.active
-    : prescriptions.filter((p) => {
-        const s = (p.status || "").toLowerCase();
-        return (
-          s === "active" ||
-          s === "issued" ||
-          s === "finalized" ||
-          s === "completed"
-        );
-      }).length;
+  const activeScriptsCount =
+    rxSummary && rxSummary.active > 0
+      ? rxSummary.active
+      : prescriptions.filter((p) => {
+          const s = (p.status || "").toLowerCase().trim();
+          return (
+            s === "active" ||
+            s === "issued" ||
+            s === "finalized" ||
+            s === "completed" ||
+            s === "medication_prescribed"
+          );
+        }).length;
 
   const outstandingCalc = billing.reduce((sum, inv) => {
     const s = (inv.status || "").toLowerCase();
@@ -565,20 +611,28 @@ export function PatientProfilePage({
       <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm flex flex-col xl:flex-row xl:items-center justify-between gap-6">
         <div className="flex flex-col sm:flex-row sm:items-center gap-5">
           {/* Avatar */}
-          <div
-            className="w-16 h-16 rounded-full bg-[#EF4444] text-white font-bold text-xl flex items-center justify-center shadow-md overflow-hidden shrink-0"
-            style={{ fontFamily: PP }}
-          >
-            {currentPatient.photoUrl ? (
-              <img
-                src={currentPatient.photoUrl}
-                alt={displayName}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              initials
-            )}
-          </div>
+          {(() => {
+            const photoUrl = extractPatientPhotoUrl(currentPatient);
+            return (
+              <div
+                className="w-16 h-16 rounded-full bg-[#EF4444] text-white font-bold text-xl flex items-center justify-center shadow-md overflow-hidden shrink-0"
+                style={{ fontFamily: PP }}
+              >
+                {photoUrl ? (
+                  <img
+                    src={photoUrl}
+                    alt={displayName}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLElement).style.display = "none";
+                    }}
+                  />
+                ) : (
+                  initials
+                )}
+              </div>
+            );
+          })()}
 
           {/* Details */}
           <div>
@@ -651,7 +705,7 @@ export function PatientProfilePage({
       </div>
 
       {/* ── 3. 6 KPI SUMMARY CARDS ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm text-center">
           <div className="text-[11px] text-[#64748B] font-medium mb-1">
             Total Visits
@@ -700,18 +754,6 @@ export function PatientProfilePage({
           </div>
           <div className="text-base font-bold text-[#EF4444] mt-1">
             {outstandingDisplay}
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm text-center">
-          <div className="text-[11px] text-[#64748B] font-medium mb-1">
-            Allergies
-          </div>
-          <div
-            className="text-2xl font-bold text-[#F59E0B]"
-            style={{ fontFamily: PP }}
-          >
-            {allergiesList.length}
           </div>
         </div>
       </div>
@@ -917,18 +959,28 @@ export function PatientProfilePage({
                 </button>
               </div>
 
-              {prescriptions.filter(
-                (p) =>
-                  (p.status || "").toLowerCase() === "active" ||
-                  (p.status || "").toLowerCase() === "issued",
-              ).length > 0 ? (
+              {prescriptions.filter((p) => {
+                const s = (p.status || "").toLowerCase().trim();
+                return (
+                  s === "active" ||
+                  s === "issued" ||
+                  s === "finalized" ||
+                  s === "completed" ||
+                  s === "medication_prescribed"
+                );
+              }).length > 0 ? (
                 <div className="space-y-3">
                   {prescriptions
-                    .filter(
-                      (p) =>
-                        (p.status || "").toLowerCase() === "active" ||
-                        (p.status || "").toLowerCase() === "issued",
-                    )
+                    .filter((p) => {
+                      const s = (p.status || "").toLowerCase().trim();
+                      return (
+                        s === "active" ||
+                        s === "issued" ||
+                        s === "finalized" ||
+                        s === "completed" ||
+                        s === "medication_prescribed"
+                      );
+                    })
                     .slice(0, 3)
                     .map((rx) => (
                       <div

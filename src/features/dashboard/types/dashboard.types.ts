@@ -453,7 +453,7 @@ export interface DoctorNextPatient {
   appointmentTime: string;
 }
 
-interface DoctorTimelineItem {
+export interface DoctorTimelineItem {
   appointmentId: string;
   token: string;
   patientName: string;

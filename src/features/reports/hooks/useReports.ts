@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { useSearchParams } from "react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuthStore } from "../../auth/store/auth.store";
 import type { ReportFilters } from "../services/reports.service";
 import {
@@ -40,6 +40,8 @@ import {
   fetchCollectionRateActivityTrend,
   fetchCollectionRateDepartments,
   fetchCollectionRateStatusShare,
+  exportCollectionRateExcel,
+  exportCollectionRatePdf,
   fetchDoctorPerformanceById,
   fetchDoctorActivities,
   fetchDoctorWorkload,
@@ -47,9 +49,10 @@ import {
   fetchDoctorConsultationTrend,
   fetchDoctorConsultationDuration,
   fetchDoctorConsultationStatus,
+  exportDoctorPerformanceExcel,
+  exportDoctorPerformancePdf,
   fetchAdminAppointmentsReport,
   fetchAdminDepartmentsConsultations,
-  fetchPatientRegistrationDetails,
 } from "../services/reports.service";
 
 // ─── Query Key Factories ────────────────────────────────────────────────────
@@ -77,11 +80,9 @@ const reportKeys = {
     [...reportKeys.all, "invoice-summary", f] as const,
   operationalTrend: (f?: ReportFilters) =>
     [...reportKeys.all, "operational-trend", f] as const,
-  patientRegistrationSummary: (f?: ReportFilters) =>
+   patientRegistrationSummary: (f?: ReportFilters) =>
     [...reportKeys.all, "patient-registration-summary", f] as const,
-  patientRegistrationDetails: (f?: ReportFilters) =>
-    [...reportKeys.all, "patient-registration-details", f] as const,
-  revenueVsCollection: (f?: ReportFilters) =>
+   revenueVsCollection: (f?: ReportFilters) =>
     [...reportKeys.all, "revenue-vs-collection", f] as const,
   dailyRevenue: (f?: ReportFilters) =>
     [...reportKeys.all, "daily-revenue", f] as const,
@@ -102,8 +103,46 @@ const reportKeys = {
     [...reportKeys.all, "gender-breakdown", f] as const,
   patientMasterRegister: (f?: ReportFilters) =>
     [...reportKeys.all, "patient-master-register", f] as const,
-  patientRegistrationTrend: (period?: string) =>
-    [...reportKeys.all, "patient-registration-trend", period] as const,
+  patientRegistrationTrend: (f?: ReportFilters) =>
+    [...reportKeys.all, "patient-registration-trend", f] as const,
+  adminReportsDashboard: (f?: ReportFilters) =>
+    [...reportKeys.all, "admin-reports-dashboard", f] as const,
+  collectionRateSummary: (f?: ReportFilters) =>
+    [...reportKeys.all, "collection-rate-summary", f] as const,
+  collectionRateAnalytics: (f?: ReportFilters) =>
+    [...reportKeys.all, "collection-rate-analytics", f] as const,
+  collectionRateRegister: (f?: ReportFilters) =>
+    [...reportKeys.all, "collection-rate-register", f] as const,
+  collectionRateActivityTrend: (f?: ReportFilters) =>
+    [...reportKeys.all, "collection-rate-activity-trend", f] as const,
+  collectionRateDepartments: () =>
+    [...reportKeys.all, "collection-rate-departments"] as const,
+  collectionRateStatusShare: () =>
+    [...reportKeys.all, "collection-rate-status-share"] as const,
+  doctorPerformanceById: (doctorId: string | number, f?: ReportFilters) =>
+    [...reportKeys.all, "doctor-performance-id", doctorId, f] as const,
+  doctorActivities: (doctorId: string | number, f?: ReportFilters) =>
+    [...reportKeys.all, "doctor-activities", doctorId, f] as const,
+  doctorWorkload: (f?: ReportFilters) =>
+    [...reportKeys.all, "doctor-workload", f] as const,
+  doctorConsultationTrend: (f?: ReportFilters) =>
+    [...reportKeys.all, "doctor-consultation-trend", f] as const,
+  doctorConsultationDuration: (f?: ReportFilters) =>
+    [...reportKeys.all, "doctor-consultation-duration", f] as const,
+  doctorConsultationStatus: (f?: ReportFilters) =>
+    [...reportKeys.all, "doctor-consultation-status", f] as const,
+  adminAppointmentsReport: (f?: ReportFilters) =>
+    [...reportKeys.all, "admin-appointments-report", f] as const,
+  adminDepartmentsConsultations: (f?: ReportFilters) =>
+    [...reportKeys.all, "admin-departments-consultations", f] as const,
+  collectionRateExcelExport: (f?: ReportFilters) =>
+    [...reportKeys.all, "collection-rate-excel-export", f] as const,
+  collectionRatePdfExport: (f?: ReportFilters) =>
+    [...reportKeys.all, "collection-rate-pdf-export", f] as const,
+  doctorPerformanceExcelExport: (f?: ReportFilters) =>
+    [...reportKeys.all, "doctor-performance-excel-export", f] as const,
+  doctorPerformancePdfExport: (f?: ReportFilters) =>
+    [...reportKeys.all, "doctor-performance-pdf-export", f] as const,
 };
 
 export { extractList } from "../services/reports.service";
@@ -116,16 +155,23 @@ function getDefaultFilters(filters?: ReportFilters): ReportFilters {
   return {
     fromDate: filters?.fromDate || defaultStart,
     toDate: filters?.toDate || today,
+    date: filters?.date,
     doctorId: filters?.doctorId,
     departmentId: filters?.departmentId,
     status: filters?.status,
     appointmentType: filters?.appointmentType,
+    visitType: filters?.visitType,
+    gender: filters?.gender,
+    ageGroup: filters?.ageGroup,
     page: filters?.page ?? 0,
     size: filters?.size ?? 20,
     period: filters?.period,
     paymentStatus: filters?.paymentStatus,
     paymentMethod: filters?.paymentMethod,
     search: filters?.search,
+    sort: filters?.sort,
+    interval: filters?.interval,
+    patientId: filters?.patientId,
   };
 }
 
@@ -342,12 +388,10 @@ export function useMostViewedReports() {
 }
 
 // 18. Patient Age Demographics
-export function usePatientAgeDemographics(filters?: ReportFilters) {
-  const f = getDefaultFilters(filters);
+export function usePatientAgeDemographics() {
   return useQuery({
-    queryKey: reportKeys.patientAgeDemographics(f),
-    queryFn: () => fetchPatientAgeDemographics(f),
-    enabled: true,
+    queryKey: [...reportKeys.all, "patient-age-demographics"] as const,
+    queryFn: () => fetchPatientAgeDemographics(),
     staleTime: 60_000,
   });
 }
@@ -389,7 +433,7 @@ export function usePatientMasterRegister(filters?: ReportFilters) {
 export function useAdminReportsDashboard(filters?: ReportFilters) {
   const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: [...reportKeys.all, "admin-reports-dashboard", f] as const,
+    queryKey: reportKeys.adminReportsDashboard(f),
     queryFn: () => fetchAdminReportsDashboard(f),
     enabled: true,
     staleTime: 60_000,
@@ -400,7 +444,7 @@ export function useAdminReportsDashboard(filters?: ReportFilters) {
 export function useCollectionRateSummary(filters?: ReportFilters) {
   const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: [...reportKeys.all, "collection-rate-summary", f] as const,
+    queryKey: reportKeys.collectionRateSummary(f),
     queryFn: () => fetchCollectionRateSummary(f),
     enabled: true,
     staleTime: 60_000,
@@ -532,8 +576,9 @@ export function useAccountantTransactionReport(params?: {
 export function usePatientDashboard(filters?: ReportFilters) {
   const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: [...reportKeys.all, "patient-dashboard", f] as const,
+    queryKey: reportKeys.patientDashboard(f),
     queryFn: () => fetchPatientDashboard(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
@@ -541,8 +586,9 @@ export function usePatientDashboard(filters?: ReportFilters) {
 export function usePatientRegistrationTrend(filters?: ReportFilters) {
   const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: [...reportKeys.all, "patient-registration-trend", f] as const,
+    queryKey: reportKeys.patientRegistrationTrend(f),
     queryFn: () => fetchPatientRegistrationTrend(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
@@ -550,8 +596,9 @@ export function usePatientRegistrationTrend(filters?: ReportFilters) {
 export function useCollectionRateAnalytics(filters?: ReportFilters) {
   const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: [...reportKeys.all, "collection-rate-analytics", f] as const,
+    queryKey: reportKeys.collectionRateAnalytics(f),
     queryFn: () => fetchCollectionRateAnalytics(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
@@ -559,8 +606,9 @@ export function useCollectionRateAnalytics(filters?: ReportFilters) {
 export function useCollectionRateRegister(filters?: ReportFilters) {
   const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: [...reportKeys.all, "collection-rate-register", f] as const,
+    queryKey: reportKeys.collectionRateRegister(f),
     queryFn: () => fetchCollectionRateRegister(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
@@ -568,34 +616,33 @@ export function useCollectionRateRegister(filters?: ReportFilters) {
 export function useCollectionRateActivityTrend(filters?: ReportFilters) {
   const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: [...reportKeys.all, "collection-rate-activity-trend", f] as const,
+    queryKey: reportKeys.collectionRateActivityTrend(f),
     queryFn: () => fetchCollectionRateActivityTrend(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
 
-export function useCollectionRateDepartments(filters?: ReportFilters) {
-  const f = getDefaultFilters(filters);
+export function useCollectionRateDepartments() {
   return useQuery({
-    queryKey: [...reportKeys.all, "collection-rate-departments", f] as const,
-    queryFn: () => fetchCollectionRateDepartments(f),
-    staleTime: 60_000,
+    queryKey: reportKeys.collectionRateDepartments(),
+    queryFn: fetchCollectionRateDepartments,
+    staleTime: 120_000,
   });
 }
 
-export function useCollectionRateStatusShare(filters?: ReportFilters) {
-  const f = getDefaultFilters(filters);
+export function useCollectionRateStatusShare() {
   return useQuery({
-    queryKey: [...reportKeys.all, "collection-rate-status-share", f] as const,
-    queryFn: () => fetchCollectionRateStatusShare(f),
-    staleTime: 60_000,
+    queryKey: reportKeys.collectionRateStatusShare(),
+    queryFn: fetchCollectionRateStatusShare,
+    staleTime: 120_000,
   });
 }
 
 export function useDoctorPerformanceById(doctorId: string | number, filters?: ReportFilters) {
   const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: [...reportKeys.all, "doctor-performance-id", doctorId, f] as const,
+    queryKey: reportKeys.doctorPerformanceById(doctorId, f),
     queryFn: () => fetchDoctorPerformanceById(doctorId, f),
     enabled: Boolean(doctorId),
     staleTime: 60_000,
@@ -605,18 +652,9 @@ export function useDoctorPerformanceById(doctorId: string | number, filters?: Re
 export function useDoctorActivities(doctorId: string | number, filters?: ReportFilters) {
   const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: [...reportKeys.all, "doctor-activities", doctorId, f] as const,
+    queryKey: reportKeys.doctorActivities(doctorId, f),
     queryFn: () => fetchDoctorActivities(doctorId, f),
     enabled: Boolean(doctorId),
-    staleTime: 60_000,
-  });
-}
-
-export function useDoctorWorkload(filters?: ReportFilters) {
-  const f = getDefaultFilters(filters);
-  return useQuery({
-    queryKey: [...reportKeys.all, "doctor-workload", f] as const,
-    queryFn: () => fetchDoctorWorkload(f),
     staleTime: 60_000,
   });
 }
@@ -624,8 +662,18 @@ export function useDoctorWorkload(filters?: ReportFilters) {
 export function useDoctorPatientWorkload(filters?: ReportFilters) {
   const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: [...reportKeys.all, "doctor-patient-workload", f] as const,
+    queryKey: reportKeys.doctorPatientWorkload(f),
     queryFn: () => fetchDoctorPatientWorkload(f),
+    staleTime: 60_000,
+  });
+}
+
+export function useDoctorWorkload(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
+  return useQuery({
+    queryKey: reportKeys.doctorWorkload(f),
+    queryFn: () => fetchDoctorWorkload(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
@@ -633,8 +681,9 @@ export function useDoctorPatientWorkload(filters?: ReportFilters) {
 export function useDoctorConsultationTrend(filters?: ReportFilters) {
   const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: [...reportKeys.all, "doctor-consultation-trend", f] as const,
+    queryKey: reportKeys.doctorConsultationTrend(f),
     queryFn: () => fetchDoctorConsultationTrend(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
@@ -642,8 +691,9 @@ export function useDoctorConsultationTrend(filters?: ReportFilters) {
 export function useDoctorConsultationDuration(filters?: ReportFilters) {
   const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: [...reportKeys.all, "doctor-consultation-duration", f] as const,
+    queryKey: reportKeys.doctorConsultationDuration(f),
     queryFn: () => fetchDoctorConsultationDuration(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
@@ -651,17 +701,47 @@ export function useDoctorConsultationDuration(filters?: ReportFilters) {
 export function useDoctorConsultationStatus(filters?: ReportFilters) {
   const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: [...reportKeys.all, "doctor-consultation-status", f] as const,
+    queryKey: reportKeys.doctorConsultationStatus(f),
     queryFn: () => fetchDoctorConsultationStatus(f),
+    enabled: true,
     staleTime: 60_000,
+  });
+}
+
+export function useExportCollectionRateExcel(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
+  return useMutation({
+    mutationFn: () => exportCollectionRateExcel(f),
+  });
+}
+
+export function useExportCollectionRatePdf(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
+  return useMutation({
+    mutationFn: () => exportCollectionRatePdf(f),
+  });
+}
+
+export function useExportDoctorPerformanceExcel(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
+  return useMutation({
+    mutationFn: () => exportDoctorPerformanceExcel(f),
+  });
+}
+
+export function useExportDoctorPerformancePdf(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
+  return useMutation({
+    mutationFn: () => exportDoctorPerformancePdf(f),
   });
 }
 
 export function useAdminAppointmentsReport(filters?: ReportFilters) {
   const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: [...reportKeys.all, "admin-appointments-report", f] as const,
+    queryKey: reportKeys.adminAppointmentsReport(f),
     queryFn: () => fetchAdminAppointmentsReport(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
@@ -669,18 +749,9 @@ export function useAdminAppointmentsReport(filters?: ReportFilters) {
 export function useAdminDepartmentsConsultations(filters?: ReportFilters) {
   const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: [...reportKeys.all, "admin-departments-consultations", f] as const,
+    queryKey: reportKeys.adminDepartmentsConsultations(f),
     queryFn: () => fetchAdminDepartmentsConsultations(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
-
-export function usePatientRegistrationDetails(filters?: ReportFilters) {
-  const f = getDefaultFilters(filters);
-  return useQuery({
-    queryKey: [...reportKeys.all, "patient-registration-details", f] as const,
-    queryFn: () => fetchPatientRegistrationDetails(f),
-    staleTime: 60_000,
-  });
-}
-

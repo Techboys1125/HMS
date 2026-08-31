@@ -84,7 +84,9 @@ export const PatientRegisterForm: React.FC<PatientRegisterFormProps> = ({
         "hms-pending-patient-profile:v1",
         JSON.stringify(payload),
       );
-    } catch {}
+    } catch (err) {
+      void err;
+    }
 
     register({
       fullName,

@@ -143,9 +143,7 @@ export interface KpiConsultationRecord {
   consultationTime: string;
   durationMinutes: number;
   status: "Completed" | "In-Progress" | "Cancelled";
-}
-
-export interface KpiPendingPaymentRecord {
+}export interface KpiPendingPaymentRecord {
   invoiceId: string;
   patientName: string;
   doctorName: string;
@@ -175,101 +173,16 @@ export interface ApiEnvelope<T> {
 
 export interface PaginatedData<T> {
   content: T[];
-  page: number;
-  size: number;
   totalElements: number;
   totalPages: number;
-}
-
-// 1. Doctor Performance Summary
-export interface DoctorPerformanceSummary {
-  doctorId: string;
-  doctorName: string;
-  department: string;
-  appointments: number;
-  completed: number;
-  pending: number;
-  cancelled: number;
-  followUps: number;
-  averageDurationMinutes: number;
-  rating: number | null;
-  id?: string;
-  code?: string;
-  name?: string;
-  totalAppointments?: number;
-  completedAppointments?: number;
-  pendingAppointments?: number;
-  cancelledAppointments?: number;
-  followup?: number;
-  avgConsultationTimeMinutes?: number;
-  patientRating?: number;
-}
-
-export interface DoctorPerformanceSummaryData {
-  summary: {
-    totalDoctors: number;
-    activeDoctors: number;
-    onLeaveDoctors: number;
-    totalConsultations: number;
-    completedConsultations: number;
-    pendingConsultations: number;
-    cancelledConsultations: number;
-    followUpConsultations: number;
-    averageConsultationDurationMinutes: number;
-    doctorUtilizationPercentage: number;
-    patientSatisfaction: number | null;
-    totalAppointments: number;
-    totalCompleted: number;
-    totalCancelled: number;
-    totalRevenue: number;
-  };
-  content: DoctorPerformanceSummary[];
-  page: number;
   size: number;
-  totalElements: number;
-  totalPages: number;
+  number: number;
+  first: boolean;
+  last: boolean;
 }
 
-// 2. Daily Appointments Report
-export interface DailyAppointmentSummary {
-  date: string;
-  totalAppointments: number;
-  completedAppointments: number;
-  cancelledAppointments: number;
-  pendingAppointments: number;
-}
-
-// 3. Daily Appointments Detail
-export interface DailyAppointmentDetail {
-  appointmentTime: string;
-  patientId: string;
-  appointmentId: number;
-  appointmentNumber: string;
-  patientName: string;
-  doctorName: string;
-  department: string;
-  appointmentDate: string;
-  date?: string;
-  status: string;
-  appointmentType: string;
-  visitType?: string;
-  mrn?: string;
-  queueNumber?: string;
-  durationMinutes?: number;
-  diagnosis?: string;
-  prescriptionIssued?: boolean;
-}
-
-// 4. Collection Rate
-export interface CollectionRateData {
-  totalBilled: number;
-  totalCollected: number;
-  outstandingAmount: number;
-  collectionRate: number;
-}
-
-// 5. Hospital Dashboard
-export interface HospitalDashboardData {
+// 1. Admin Dashboard Summary (ReportDashboardSummaryDto)
+export interface AdminDashboardData {
   totalPatients: number;
   totalDoctors: number;
   totalAppointments: number;
@@ -284,55 +197,143 @@ export interface HospitalDashboardData {
   collectionRate: number;
 }
 
+export interface AdminAppointmentRecord {
+  appointmentId: string;
+  patientName: string;
+  doctorName: string;
+  departmentName: string;
+  scheduledTime: string;
+  status: string;
+}
+
+export interface DepartmentConsultationRecord {
+  department: string;
+  totalConsultations: number;
+}
+
+// 4. Collection Rate Summary (CollectionRateKpiSummaryDto)
+export interface CollectionRateSummaryData {
+  totalConsultations: number;
+  previousPeriodConsultations: number;
+  consultationGrowthPercentage: number;
+  averageConsultationDurationMinutes: number;
+  completionRate: number;
+  totalBilledAmount: number;
+  totalCollectedAmount: number;
+  collectionRate: number;
+}
+
+// 5. Hospital Dashboard (HospitalDashboardResponse)
+export interface HospitalDashboardData {
+  reportDate: string;
+  dailyAppointments: {
+    total: number;
+    percentageChange: number;
+    comparison: string;
+    done: number;
+    cancelled: number;
+    pending: number;
+  };
+  patientRegistrations: {
+    total: number;
+    percentageChange: number;
+    comparison: string;
+    newPatients: number;
+    returningPatients: number;
+    walkIn: number;
+  };
+  dailyRevenue: {
+    total: number;
+    currency: string;
+    percentageChange: number;
+    collected: number;
+    outstanding: number;
+  };
+  invoiceSummary: {
+    total: number;
+    collectionRate: number;
+    paid: number;
+    pending: number;
+    voidInvoices: number;
+  };
+  doctorPerformance: {
+    averageConsultationTimeMinutes: number;
+    completionRate: number;
+    averageRating: number;
+  };
+  collectionRate: {
+    rate: number;
+    collected: number;
+  };
+}
+
 // 6. Department Consultation Volume
 export interface DepartmentConsultationVolume {
   departmentId: string;
   departmentName: string;
-  completedConsultations: number;
-  totalConsultations: number;
+  consultationCount: number;
 }
 
-// 8. Invoice Register Detail
+// 8. Invoice Register Detail (PageInvoiceDetailResponse)
 export interface InvoiceRegisterRecord {
-  paymentMethod: "Cash" | "Card" | "UPI" | "Bank Transfer";
-  department: string;
-  doctorName: string;
-  mrn: string;
+  billId: number;
   invoiceNumber: string;
   patientName: string;
+  patientMrn: string;
+  mrn?: string;
+  doctorName: string;
+  department: string;
+  invoiceDate: string;
+  createdDate: string;
   billedAmount: number;
+  totalAmount: number;
   paidAmount: number;
+  collectedAmount: number;
   outstandingAmount: number;
   paymentStatus: string;
-  invoiceDate: string;
+  paymentMethod: string;
+  id: string;
+  paymentId: string;
+  receiptNumber: string;
+  amount: number;
+  paidAt: string;
   dueDate?: string;
-  overdueDays?: number;
+  status: string;
 }
 
-// 9. Invoice Summary
+// 9. Invoice Summary (InvoiceSummaryResponse)
 export interface InvoiceSummaryData {
   totalInvoices: number;
-  paidInvoices: number;
-  unpaidInvoices: number;
   totalBilledAmount: number;
   totalPaidAmount: number;
   totalOutstandingAmount: number;
+  paidInvoices: number;
+  unpaidInvoices: number;
+  voidInvoices: number;
+  collectionRate: number;
 }
 
-// 10. Hospital Operational Trend
+// 10. Hospital Operational Trend (operational-trend returns { period, data })
 export interface OperationalTrendPoint {
-  collected: number;
   date: string;
-  registrations: number;
   appointments: number;
-  revenue: number;
+  registrations: number;
 }
 
-// 11. Patient Registration Summary
+export interface OperationalTrendResponse {
+  period: string;
+  data: OperationalTrendPoint[];
+}
+
+// 11. Patient Registration Summary (patient-registrations)
 export interface PatientRegistrationSummary {
+  date: string;
+  total: number;
   totalRegistrations: number;
+  percentageChange: number;
   newPatients: number;
   returningPatients: number;
+  walkInPatients: number;
 }
 
 // 13. Revenue vs Collection
@@ -400,57 +401,70 @@ export interface MostViewedReport {
   viewCount: number;
 }
 
-// 18. Patient Age Demographics
-interface AgeGroup {
+// 18. Patient Age Demographics (PatientAgeDemographicsResponse)
+export interface AgeGroupPoint {
   ageGroup: string;
   count: number;
   percentage: number;
 }
 
-export interface PatientAgeDemographics {
-  totalPatients: number;
-  ageGroups: AgeGroup[];
+export interface AgeDemographicsResponse {
+  data: AgeGroupPoint[];
 }
 
-// 20. Department Patient Visits
-export interface DepartmentPatientVisit {
-  departmentId: number;
+// 20. Department Patient Visits (DepartmentPatientVisitsResponse)
+export interface DepartmentVisitDto {
+  departmentId: string;
   departmentName: string;
-  patientCount: number;
+  patientVisits: number;
+}
+
+export interface DepartmentPatientVisitsResponse {
+  departments: DepartmentVisitDto[];
+}
+
+// 22. Gender Breakdown (PatientGenderBreakdownResponse)
+export interface GenderPointDto {
+  gender: string;
+  count: number;
   percentage: number;
+  label: string;
+  value: number;
 }
 
-// 22. Gender Breakdown
-export interface GenderBreakdownData {
+export interface GenderBreakdownResponse {
+  totalPatients: number;
+  data: GenderPointDto[];
+  breakdown: GenderPointDto[];
   maleCount: number;
-  malePercentage: number;
   femaleCount: number;
-  femalePercentage: number;
   otherCount: number;
-  otherPercentage: number;
+  totalCount: number;
 }
 
-// 23. Patient Master Register
-export interface PatientMasterRecord {
-  registrationDate: string;
-  visitType: string;
-  doctorName: string;
-  department: string;
-  mobile: string;
-  patientName: string;
-  patientId: number;
+// 23. Patient Master Register (PagePatientReportRowResponse)
+export interface PatientMasterRegisterRecord {
+  patientId: string;
   mrn: string;
   fullName: string;
-  gender: string;
+  patientName: string;
   age: number;
-  mobileNumber: string;
-  registeredDate: string;
-  lastVisitDate: string;
-  totalVisits: number;
+  gender: string;
+  mobile: string;
+  phone: string;
+  departmentId: string;
+  departmentName: string;
+  department: string;
+  doctorId: string;
+  doctorName: string;
+  registrationDate: string;
+  createdDate: string;
+  visitType: string;
   status: string;
-  phone?: string;
-  createdDate?: string;
 }
+
+// Alias for backward compatibility with existing page code
+export type PatientMasterRecord = PatientMasterRegisterRecord;
 
 // ─── Doctor Personal Practice Reports Interfaces ─────────────────────────────
 
@@ -600,7 +614,7 @@ export interface AccountantPaymentCollectionData {
   methodBreakdown: AccountantPaymentMethodItem[];
 }
 
-interface AccountantRefundItem {
+export interface AccountantRefundItem {
   refundId?: string;
   invoiceId?: string;
   patientName?: string;
@@ -634,4 +648,374 @@ export interface AccountantTransactionRegisterResponse {
   size: number;
   totalElements: number;
   totalPages: number;
+}
+
+// ─── Patient Demographics & Master Records ─────────────────────────────────
+
+export interface PatientDashboardData {
+  dateRange: {
+    from: string;
+    to: string;
+  };
+  totalRegisteredPatients: {
+    count: number;
+    percentageChange: number;
+    comparison: string;
+  };
+  newPatients: {
+    count: number;
+    percentageChange: number;
+    comparison: string;
+  };
+  returningPatients: {
+    count: number;
+    percentageChange: number;
+    comparison: string;
+    repeatCount: number;
+    followUpCount: number;
+  };
+  walkInPatients: {
+    count: number;
+    scheduledAppointments: number;
+  };
+  genderDistribution: {
+    male: number;
+    female: number;
+    other: number;
+  };
+  emergencyVisits: number;
+  averageAge: number;
+  malePercentage: number;
+  femalePercentage: number;
+  otherPercentage: number;
+  averageDailyRegistrations: number;
+  totalPatients: number;
+  patientSummary: {
+    totalPatients: number;
+    newPatients: number;
+    returningPatients: number;
+    walkIns: number;
+    averageDailyIntake: number;
+    mostActiveDepartment: {
+      departmentId: string;
+      departmentName: string;
+    };
+  };
+}
+
+export interface PatientMasterRegisterResponse {
+  content: PatientMasterRegisterRecord[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+}
+
+export interface GenderBreakdownItem {
+  label: string;
+  value: number;
+  percentage: number;
+}
+
+export interface AgeGroupItem {
+  range: string;
+  count: number;
+  percentage: number;
+}
+
+export interface RegistrationTrendDataPoint {
+  date: string;
+  newPatients: number;
+  returningPatients: number;
+}
+
+export interface RegistrationTrendResponse {
+  period: string;
+  data: RegistrationTrendDataPoint[];
+  dataPoints: RegistrationTrendDataPoint[];
+}
+
+// ─── Billing & Collection Rate Analytics (Actual API responses) ─────────────
+
+// /api/v1/admin/reports/collection-rate returns CollectionRateReportDto
+export interface CollectionRateReportDto {
+  summary: {
+    totalBilled: number;
+    totalCollected: number;
+    outstandingAmount: number;
+    collectionRate: number;
+  };
+  content: CollectionRateItemDto[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+export interface CollectionRateItemDto {
+  patientId: string;
+  patientName: string;
+  mrn: string;
+  department: string;
+  doctorName: string;
+  visitType: string;
+  billedAmount: number;
+  paidAmount: number;
+  outstandingAmount: number;
+  paymentStatus: string;
+}
+
+// /api/v1/admin/reports/collection-rate/summary returns CollectionRateKpiSummaryDto
+export interface CollectionRateKpiSummaryDto {
+  totalConsultations: number;
+  previousPeriodConsultations: number;
+  consultationGrowthPercentage: number;
+  averageConsultationDurationMinutes: number;
+  completionRate: number;
+  totalBilledAmount: number;
+  totalCollectedAmount: number;
+  totalPendingAmount: number;
+  collectionRate: number;
+  collectionRatePercentage: number;
+}
+
+// /api/v1/admin/reports/collection-rate/register returns same structure as /collection-rate (CollectionRateReportDto)
+export interface CollectionRateRegisterRecord {
+  patientId: string;
+  patientName: string;
+  mrn: string;
+  department: string;
+  doctorName: string;
+  visitType: string;
+  billedAmount: number;
+  paidAmount: number;
+  outstandingAmount: number;
+  paymentStatus: string;
+}
+
+// /api/v1/admin/reports/collection-rate/activity-trend returns array of { period, consultations, billedAmount, collectedAmount }
+export interface CollectionRateActivityTrendPoint {
+  period: string;
+  consultations: number;
+  billedAmount: number;
+  collectedAmount: number;
+}
+
+// /api/v1/admin/reports/collection-rate/departments returns array of DepartmentContributionDto
+export interface CollectionRateDepartmentRecord {
+  departmentId: string;
+  departmentName: string;
+  consultations: number;
+  billedAmount: number;
+  collectedAmount: number;
+  collectionRate: number;
+}
+
+// /api/v1/admin/reports/collection-rate/status-share returns array of CollectionStatusShareDto
+export interface PaymentStatusShareRecord {
+  status: string;
+  count: number;
+  amount: number;
+  percentage: number;
+}
+
+// ─── Doctor Performance & Workload ─────────────────────────────────────────
+
+export interface DoctorSummaryMetrics {
+  totalDoctors: number;
+  activeDoctors: number;
+  onLeaveDoctors: number;
+  totalConsultations: number;
+  completedConsultations: number;
+  pendingConsultations: number;
+  cancelledConsultations: number;
+  followUpConsultations: number;
+  averageConsultationDurationMinutes: number;
+  avgConsultationDurationMinutes: number;
+  avgConsultationsPerDoctor: number;
+  doctorUtilizationPercentage: number;
+  patientSatisfaction: number | null;
+  totalAppointments: number;
+  totalCompleted: number;
+  totalCancelled: number;
+  totalRevenue: number;
+}
+
+export interface DoctorPerformanceItemDto {
+  doctorId: string;
+  doctorName: string;
+  department: string;
+  departmentName: string;
+  appointments: number;
+  completed: number;
+  pending: number;
+  cancelled: number;
+  followUps: number;
+  averageDurationMinutes: number;
+  avgDurationMinutes: number;
+  rating: number | null;
+  totalConsultations: number;
+  completedConsultations: number;
+  cancelledConsultations: number;
+  totalRevenueGenerated: number;
+}
+
+export type DoctorPerformanceTableRow = DoctorPerformanceItemDto;
+
+export interface DoctorPerformancePaginatedData {
+  summary: DoctorSummaryMetrics;
+  content: DoctorPerformanceItemDto[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+export interface DoctorInfo {
+  doctorId: string;
+  doctorName: string;
+  department: string;
+}
+
+export interface DoctorIndividualPerformance {
+  doctor: DoctorInfo;
+  appointments: number;
+  completed: number;
+  pending: number;
+  cancelled: number;
+  followUps: number;
+  averageDurationMinutes: number;
+  rating: number | null;
+  utilizationPercentage: number;
+}
+
+export interface DoctorActivityRecord {
+  activityId: string;
+  doctorId: string;
+  activityType: string;
+  patientId: string;
+  appointmentId: string;
+  timestamp: string;
+  description: string;
+}
+
+export interface DoctorWorkloadRecord {
+  doctorId: string;
+  doctorName: string;
+  completedConsultations: number;
+  totalAppointments: number;
+}
+
+export interface DoctorWorkloadResponse {
+  doctors: DoctorWorkloadRecord[];
+}
+
+export interface ConsultationTrendDataPoint {
+  date: string;
+  completed: number;
+  pending: number;
+}
+
+export interface ConsultationDurationPoint {
+  date: string;
+  averageDurationMinutes: number;
+}
+
+export interface ConsultationStatusRecord {
+  status: string;
+  count: number;
+  percentage: number;
+}
+
+// ─── Hospital Invoices & Summaries ─────────────────────────────────────────
+
+export interface HospitalInvoiceRecord {
+  billId: number;
+  invoiceNumber: string;
+  patientName: string;
+  patientMrn: string;
+  amount: number;
+  status: string;
+  paymentStatus: string;
+  createdAt: string;
+}
+
+export interface HospitalInvoicesPageResponse {
+  content: HospitalInvoiceRecord[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+}
+
+export interface HospitalInvoiceSummaryData {
+  totalInvoices: number;
+  paid: number;
+  pending: number;
+  voidInvoices: number;
+  collectionRate: number;
+}
+
+// ─── Hospital Appointments ─────────────────────────────────────────────────
+
+export interface DailyAppointmentSummary {
+  date: string;
+  total: number;
+  percentageChange: number;
+  previousDayTotal: number;
+  done: number;
+  cancelled: number;
+  pending: number;
+  totalAppointments: number;
+  completedAppointments: number;
+  cancelledAppointments: number;
+  pendingAppointments: number;
+}
+
+export interface DailyAppointmentDetail {
+  appointmentId: number;
+  appointmentNumber: string;
+  patientName: string;
+  mrn?: string;
+  patientId?: number;
+  doctorName: string;
+  department?: string;
+  departmentName?: string;
+  appointmentDate: string;
+  date?: string;
+  appointmentTime?: string;
+  startTime?: string;
+  visitType?: string;
+  appointmentType?: string;
+  queueNumber?: string;
+  status: string;
+  durationMinutes?: number;
+  consultationId?: string;
+  consultationTime?: string;
+}
+
+export interface AdminAppointmentsResponse {
+  totalAppointments: number;
+  completed: number;
+  booked: number;
+  cancelled: number;
+  noShow: number;
+  content: AdminAppointmentRecord[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+export interface AdminAppointmentRecord {
+  appointmentId: string;
+  appointmentNumber: string;
+  patientName: string;
+  mrn: string;
+  doctorName: string;
+  departmentName: string;
+  appointmentDate: string;
+  startTime: string;
+  status: string;
+  appointmentType: string;
 }

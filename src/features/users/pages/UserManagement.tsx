@@ -26,7 +26,6 @@ import {
   Users,
   UserCheck,
   UserX,
-  Search,
   Filter,
   Shield,
   Key,
@@ -37,7 +36,6 @@ import {
   AlertTriangle,
   Mail,
   Clock,
-  ArrowUpDown,
   RotateCcw,
   UserPlus,
   Loader2,
@@ -147,8 +145,8 @@ const UserManagement: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>("All");
 
   // Sorting
-  const [sortColumn, setSortColumn] = useState<keyof UserRecord>("empId");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [sortColumn] = useState<keyof UserRecord>("empId");
+  const [sortDirection] = useState<"asc" | "desc">("asc");
 
   // Departments fetched from API (replaces hardcoded DEPARTMENT_NAME_TO_ID)
   const [apiDepartments, setApiDepartments] = useState<
@@ -260,9 +258,11 @@ const UserManagement: React.FC = () => {
 
             const uRecord = u as unknown as Record<string, unknown>;
             const doctorProfile = uRecord.doctorProfile as
-              Record<string, unknown> | undefined;
+              | Record<string, unknown>
+              | undefined;
             const primaryDept = doctorProfile?.primaryDepartment as
-              Record<string, unknown> | undefined;
+              | Record<string, unknown>
+              | undefined;
             const deptName =
               u.departmentName ??
               u.department ??
@@ -352,9 +352,11 @@ const UserManagement: React.FC = () => {
 
                 const uRecord = u as unknown as Record<string, unknown>;
                 const doctorProfile = uRecord.doctorProfile as
-                  Record<string, unknown> | undefined;
+                  | Record<string, unknown>
+                  | undefined;
                 const primaryDept = doctorProfile?.primaryDepartment as
-                  Record<string, unknown> | undefined;
+                  | Record<string, unknown>
+                  | undefined;
                 const deptName =
                   u.departmentName ??
                   u.department ??
@@ -530,16 +532,6 @@ const UserManagement: React.FC = () => {
   ).length;
   const pendingUsersCount = users.filter((u) => u.status === "Pending").length;
 
-  // Sorting handler
-  const handleSort = (col: keyof UserRecord) => {
-    if (sortColumn === col) {
-      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
-    } else {
-      setSortColumn(col);
-      setSortDirection("asc");
-    }
-  };
-
   // Filtered & Sorted Users dataset
   const filteredUsers = useMemo(() => {
     return users
@@ -570,25 +562,6 @@ const UserManagement: React.FC = () => {
         return 0;
       });
   }, [users, searchQuery, roleFilter, statusFilter, sortColumn, sortDirection]);
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-
-  const userTotalPages = Math.max(
-    1,
-    Math.ceil(filteredUsers.length / pageSize),
-  );
-
-  if (currentPage > userTotalPages) {
-    setCurrentPage(1);
-  }
-
-  const userStartIndex = (currentPage - 1) * pageSize;
-  const userEndIndex = Math.min(
-    userStartIndex + pageSize,
-    filteredUsers.length,
-  );
-  const paginatedUsers = filteredUsers.slice(userStartIndex, userEndIndex);
 
   // Role badge styles
 
@@ -665,6 +638,18 @@ const UserManagement: React.FC = () => {
         <DepartmentsSpecialtiesWorkspace />
       ) : (
         <div className="bg-slate-50/50 rounded-2xl shadow-sm border border-gray-200 min-h-175 overflow-hidden flex flex-col font-medium transition-opacity duration-200 w-full space-y-6 relative p-6">
+          {errorMsg && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-xs flex items-center justify-between">
+              <span>{errorMsg}</span>
+              <button
+                onClick={() => setErrorMsg(null)}
+                className="text-red-500 hover:text-red-700 font-bold ml-2 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
           {/* ── 2. SUMMARY KPI CARDS ── */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Total Users */}
@@ -756,7 +741,7 @@ const UserManagement: React.FC = () => {
           </div>
 
           {/* ── 3. MAIN ROLES & USER MANAGEMENT TABLE ── */}
-            <DataTable<UserRecord>
+          <DataTable<UserRecord>
             data={filteredUsers}
             loading={loading}
             getRowId={(u) => u.id}
@@ -768,7 +753,7 @@ const UserManagement: React.FC = () => {
               </span>
             }
             searchable={true}
-            searchPlaceholder="🔍 Search by User Name, Employee ID, Email, Username..."
+            searchPlaceholder=" Search by User Name, Employee ID, Email, Username..."
             searchValue={searchQuery}
             onSearchChange={setSearchQuery}
             toolbar={
@@ -811,7 +796,9 @@ const UserManagement: React.FC = () => {
                     </select>
                   </div>
 
-                  {(roleFilter !== "All" || statusFilter !== "All" || searchQuery) && (
+                  {(roleFilter !== "All" ||
+                    statusFilter !== "All" ||
+                    searchQuery) && (
                     <button
                       onClick={() => {
                         setSearchQuery("");

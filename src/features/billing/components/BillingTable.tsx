@@ -13,7 +13,7 @@ import {
   Filter,
   Calendar,
 } from "lucide-react";
-import { PP, RB } from "../constants/billing.constants";
+import { PP } from "../constants/billing.constants";
 import type { InvoiceRecord } from "../types/billing.types";
 import { BillingStatusBadge } from "./BillingStatusBadge";
 import { DataTable, type Column } from "../../../common/components/DataTable";
@@ -148,7 +148,7 @@ export function BillingTable({
         getValue: (inv) => inv.invoiceAmount,
         render: (inv) => (
           <span className="font-bold text-slate-900" style={{ fontFamily: PP }}>
-            ${inv.invoiceAmount.toFixed(2)}
+            ₹{inv.invoiceAmount.toFixed(2)}
           </span>
         ),
       },
@@ -160,7 +160,7 @@ export function BillingTable({
         getValue: (inv) => inv.paidAmount,
         render: (inv) => (
           <span className="font-semibold text-[#009688]">
-            ${inv.paidAmount.toFixed(2)}
+            ₹{inv.paidAmount.toFixed(2)}
           </span>
         ),
       },
@@ -177,7 +177,7 @@ export function BillingTable({
             }`}
             style={{ fontFamily: PP }}
           >
-            ${inv.balance.toFixed(2)}
+            ₹{inv.balance.toFixed(2)}
           </span>
         ),
       },
@@ -448,7 +448,7 @@ export function BillingTable({
         subtitle={subtitle}
         headerBadge={headerBadge}
         searchable={true}
-        searchPlaceholder="🔍 Search invoice number, patient name, doctor..."
+        searchPlaceholder=" Search invoice number, patient name, doctor..."
         searchValue={searchQuery}
         onSearchChange={onSearchChange}
         toolbar={filterToolbar}

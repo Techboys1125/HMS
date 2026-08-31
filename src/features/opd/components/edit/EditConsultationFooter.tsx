@@ -1,5 +1,5 @@
 import React from "react";
-import { Save, Loader2, ArrowLeft } from "lucide-react";
+import { Save, Loader2 } from "lucide-react";
 
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";

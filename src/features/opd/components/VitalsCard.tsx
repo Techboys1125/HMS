@@ -95,6 +95,14 @@ export const VitalsCard: React.FC<VitalsCardProps> = ({
       color: "text-cyan-600",
       bg: "bg-cyan-50",
     },
+    {
+      label: "Blood Sugar (mg/dL)",
+      field: "bloodSugar" as const,
+      value: values.bloodSugar || "--",
+      icon: Activity,
+      color: "text-fuchsia-600",
+      bg: "bg-fuchsia-50",
+    },
   ];
 
   if (isEditable && onChange) {

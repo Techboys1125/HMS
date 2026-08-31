@@ -15,6 +15,7 @@ import { patientsApi } from "../../patients/api/patient.api";
 import { doctorsApi } from "../../doctors/api/doctors.api";
 import { vitalsApi } from "../../vitals/api/vitals.api";
 import { EditConsultationScreen } from "./EditConsultationScreen";
+import { ConsultationHistoryScreen } from "./ConsultationHistoryScreen";
 
 // --- Design System Tokens ---
 const PP = "'Poppins', system-ui, sans-serif";
@@ -176,6 +177,7 @@ export function ConsultationDetailsScreen({
   encounterId,
   initialRecord,
   onBack,
+  onEditConsultation,
   onViewHistory,
   onViewPatientProfile,
 }: ConsultationDetailsScreenProps) {
@@ -260,6 +262,14 @@ export function ConsultationDetailsScreen({
 
   const [isEditing, setIsEditing] = useState(false);
   const [reloadCounter, setReloadCounter] = useState(0);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+
+  const handleViewHistoryClick = () => {
+    if (onViewHistory) {
+      onViewHistory(record.mrn);
+    }
+    setShowHistoryModal(true);
+  };
 
   const handleStartEdit = () => {
     if (onEditConsultation) {
@@ -285,8 +295,6 @@ export function ConsultationDetailsScreen({
         const encIdNum = Number(rawEncIdStr.replace(/\D+/g, "")) || Number(targetEncId) || 0;
         if (encIdNum <= 0) return;
 
-        console.log("Encounter ID:", encIdNum);
-
         // 1. Load workspace context (patient, appointment, vitals, consultation notes, diagnoses)
         const workspaceResponse = await consultationApi
           .getWorkspace(encIdNum)
@@ -296,9 +304,6 @@ export function ConsultationDetailsScreen({
           console.warn(`Workspace not found for encounter ${encIdNum}`);
           return;
         }
-
-        console.log("CONSULTATION WORKSPACE:", workspaceData);
-        console.log("WORKSPACE VITALS:", workspaceData?.vitals);
 
         const encSub = asRecord(workspaceData.encounter);
         const apptSub = asRecord(workspaceData.appointment);
@@ -358,11 +363,6 @@ export function ConsultationDetailsScreen({
           try {
             const rxRes =
               await encountersApi.getPrescriptionByEncounterId(realEncounterId);
-            console.log("========== PRESCRIPTION DEBUG ==========");
-            console.log("Encounter ID:", realEncounterId);
-            console.log("Prescription response:", rxRes);
-            console.log("Prescription JSON:", JSON.stringify(rxRes, null, 2));
-
             if (rxRes) {
               prescriptionData = asRecord(unwrapApiData(rxRes));
             }
@@ -476,7 +476,19 @@ export function ConsultationDetailsScreen({
           const spo2 =
             rawV.spo2 ?? rawV.oxygenSaturation ?? rawV.spo2Percent ?? null;
           const sugar =
-            rawV.bloodSugar ?? rawV.sugar ?? rawV.bloodSugarMgDl ?? null;
+            rawV.bloodSugar ??
+            rawV.sugar ??
+            rawV.bloodSugarMgDl ??
+            rawV.randomBloodSugar ??
+            rawV.fastingBloodSugar ??
+            rawV.blood_sugar ??
+            rawV.rbs ??
+            rawV.fbs ??
+            rawV.bloodSugarVal ??
+            rawV.bloodSugarLevel ??
+            rawV.glucose ??
+            rawV.bloodGlucose ??
+            null;
           const bmiCalc =
             rawV.bmi ??
             (h && w && Number(h) > 0 && Number(w) > 0
@@ -535,8 +547,6 @@ export function ConsultationDetailsScreen({
           ) {
             medicationList = initialRecord.medicines;
           }
-
-          console.log("MEDICATION LIST:", medicationList);
 
           const meds = medicationList.map((item: unknown, idx: number) => {
             const m = asRecord(item);
@@ -770,11 +780,19 @@ export function ConsultationDetailsScreen({
                   followUpNt !== ""),
             );
 
-            const isFollowUpRequiredYes =
+            const isExplicitlyNo =
+              rawFollowUpReq === false ||
+              String(rawFollowUpReq).toLowerCase() === "no" ||
+              String(rawFollowUpReq).toLowerCase() === "false";
+
+            const isExplicitlyYes =
               rawFollowUpReq === true ||
               String(rawFollowUpReq).toLowerCase() === "yes" ||
-              String(rawFollowUpReq).toLowerCase() === "true" ||
-              hasFollowUpDateOrNotes;
+              String(rawFollowUpReq).toLowerCase() === "true";
+
+            const isFollowUpRequiredYes = isExplicitlyNo
+              ? false
+              : isExplicitlyYes || hasFollowUpDateOrNotes;
 
             return {
               ...prev,
@@ -1204,8 +1222,8 @@ export function ConsultationDetailsScreen({
               View Patient Profile
             </button>
             <button
-              onClick={() => onViewHistory?.(record.mrn)}
-              className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-xs font-semibold text-[#0D47A1] hover:bg-blue-50 transition-colors"
+              onClick={handleViewHistoryClick}
+              className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-xs font-semibold text-[#0D47A1] hover:bg-blue-50 transition-colors cursor-pointer"
               style={{ fontFamily: PP }}
             >
               View Consultation History
@@ -1540,7 +1558,7 @@ export function ConsultationDetailsScreen({
                     {record.vitals.pulse}
                   </div>
                 </div>
-                <div className="p-3 bg-fuchsia-50/50 border border-fuchsia-100 rounded-xl">
+                {/* <div className="p-3 bg-fuchsia-50/50 border border-fuchsia-100 rounded-xl">
                   <div
                     className="text-[10px] text-fuchsia-700 font-bold uppercase"
                     style={{ fontFamily: PP }}
@@ -1550,7 +1568,7 @@ export function ConsultationDetailsScreen({
                   <div className="font-bold text-fuchsia-800 text-sm mt-1">
                     {record.vitals.bloodSugar || "—"}
                   </div>
-                </div>
+                </div> */}
                 <div className="p-3 bg-green-50/50 border border-green-100 rounded-xl">
                   <div
                     className="text-[10px] text-green-600 font-bold uppercase"
@@ -1892,77 +1910,87 @@ export function ConsultationDetailsScreen({
               />
             </button>
 
-            {!collapsedSections.followup && (
-              <div
-                className="p-5 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs"
-                style={{ fontFamily: RB }}
-              >
-                <div>
-                  <span
-                    className="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    Follow-up Required
-                  </span>
-                  {record.followupRequired === "Yes" ||
-                  (record.followupRequired as unknown) === true ||
-                  String(record.followupRequired).toLowerCase() === "yes" ||
-                  String(record.followupRequired).toLowerCase() === "true" ? (
-                    <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 text-xs">
-                      <CheckCircle2 size={15} className="text-emerald-600" /> Yes (Follow-up Scheduled)
+            {!collapsedSections.followup && (() => {
+              const isRequiredYes =
+                record.followupRequired === "Yes" ||
+                (record.followupRequired as unknown) === true ||
+                String(record.followupRequired).toLowerCase() === "yes" ||
+                String(record.followupRequired).toLowerCase() === "true";
+
+              return (
+                <div
+                  className="p-5 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs"
+                  style={{ fontFamily: RB }}
+                >
+                  <div>
+                    <span
+                      className="text-[10px] font-bold text-slate-400 uppercase block mb-1"
+                      style={{ fontFamily: PP }}
+                    >
+                      Follow-up Required
                     </span>
-                  ) : (
-                    <span className="font-semibold text-slate-500 text-xs">No</span>
-                  )}
-                </div>
-                <div>
-                  <span
-                    className="text-[10px] font-bold text-slate-400 uppercase"
-                    style={{ fontFamily: PP }}
-                  >
-                    Follow-up Type
-                  </span>
-                  <p className="font-semibold text-slate-800 mt-1">
-                    {record.followUpType === "ROUTINE"
-                      ? "Routine Follow-up"
-                      : record.followUpType === "SPECIALIST"
-                        ? "Specialist Referral"
-                        : record.followUpType === "TELECONSULT"
-                          ? "Teleconsultation"
-                          : record.followUpType === "EMERGENCY"
-                            ? "Urgent / Emergency"
-                            : record.followUpType || "Routine Follow-up"}
-                  </p>
-                </div>
-                {record.nextVisitDate &&
-                  record.nextVisitDate !== "—" &&
-                  record.nextVisitDate !== "None" &&
-                  record.nextVisitDate !== "" && (
-                    <div>
-                      <span
-                        className="text-[10px] font-bold text-slate-400 uppercase"
-                        style={{ fontFamily: PP }}
-                      >
-                        Next Visit Date
+                    {isRequiredYes ? (
+                      <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 text-xs">
+                        <CheckCircle2 size={15} className="text-emerald-600" /> Yes (Follow-up Scheduled)
                       </span>
-                      <p className="font-bold text-[#0D47A1] text-sm mt-1">
-                        {formatDateOnly(record.nextVisitDate)}
-                      </p>
-                    </div>
+                    ) : (
+                      <span className="font-semibold text-slate-500 text-xs">No</span>
+                    )}
+                  </div>
+
+                  {isRequiredYes && (
+                    <>
+                      <div>
+                        <span
+                          className="text-[10px] font-bold text-slate-400 uppercase"
+                          style={{ fontFamily: PP }}
+                        >
+                          Follow-up Type
+                        </span>
+                        <p className="font-semibold text-slate-800 mt-1">
+                          {record.followUpType === "ROUTINE"
+                            ? "Routine Follow-up"
+                            : record.followUpType === "SPECIALIST"
+                              ? "Specialist Referral"
+                              : record.followUpType === "TELECONSULT"
+                                ? "Teleconsultation"
+                                : record.followUpType === "EMERGENCY"
+                                  ? "Urgent / Emergency"
+                                  : record.followUpType || "Routine Follow-up"}
+                        </p>
+                      </div>
+                      {record.nextVisitDate &&
+                        record.nextVisitDate !== "—" &&
+                        record.nextVisitDate !== "None" &&
+                        record.nextVisitDate !== "" && (
+                          <div>
+                            <span
+                              className="text-[10px] font-bold text-slate-400 uppercase"
+                              style={{ fontFamily: PP }}
+                            >
+                              Next Visit Date
+                            </span>
+                            <p className="font-bold text-[#0D47A1] text-sm mt-1">
+                              {formatDateOnly(record.nextVisitDate)}
+                            </p>
+                          </div>
+                        )}
+                      <div className="sm:col-span-3 border-t border-gray-100 pt-2">
+                        <span
+                          className="text-[10px] font-bold text-slate-400 uppercase"
+                          style={{ fontFamily: PP }}
+                        >
+                          Follow-up Notes
+                        </span>
+                        <p className="font-medium text-slate-700 mt-1 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                          {record.followupNotes || "None recorded"}
+                        </p>
+                      </div>
+                    </>
                   )}
-                <div className="sm:col-span-3 border-t border-gray-100 pt-2">
-                  <span
-                    className="text-[10px] font-bold text-slate-400 uppercase"
-                    style={{ fontFamily: PP }}
-                  >
-                    Follow-up Notes
-                  </span>
-                  <p className="font-medium text-slate-700 mt-1 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                    {record.followupNotes || "None recorded"}
-                  </p>
                 </div>
-              </div>
-            )}
+              );
+            })()}
           </div>
 
           {/* ── SECTION 08: CONSULTATION SUMMARY ── */}
@@ -2104,6 +2132,32 @@ export function ConsultationDetailsScreen({
           </button>
         </div>
       </div>
+
+      {showHistoryModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm p-4 md:p-8 flex items-center justify-center no-print">
+          <div className="bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto shadow-2xl relative flex flex-col">
+            <div className="sticky top-0 z-10 bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between">
+              <h2 className="text-base font-bold text-slate-800" style={{ fontFamily: PP }}>
+                Patient Consultation History — {record.patientName} ({record.mrn})
+              </h2>
+              <button
+                onClick={() => setShowHistoryModal(false)}
+                className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+                style={{ fontFamily: PP }}
+              >
+                Close History
+              </button>
+            </div>
+            <div className="p-4 flex-1">
+              <ConsultationHistoryScreen
+                patientId={record.mrn}
+                role="doctor"
+                onBack={() => setShowHistoryModal(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

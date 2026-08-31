@@ -7,7 +7,6 @@ import { patientsApi } from "../api/patient.api";
 import { usePatientPortal } from "../context/usePatientPortal";
 import type { FamilyMember } from "./FamilyMembersManagement";
 import {
-  Search,
   Download,
   ChevronRight,
   Eye,
@@ -25,7 +24,6 @@ import type {
   PrescriptionRecord,
 } from "../types/patient.types";
 import { PP, RB } from "../constants/patient.fonts";
-import { Pagination } from "../../../common/components/Pagination";
 import { DataTable } from "../../../common/components/DataTable";
 import { ROUTES } from "../../../app/routes/routes";
 
@@ -45,8 +43,6 @@ export function PatientMedicalRecordsScreen({
   const [deptFilter, setDeptFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
   const [dateFilter, setDateFilter] = useState("All");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   const handleResetFilters = () => {
@@ -55,8 +51,6 @@ export function PatientMedicalRecordsScreen({
     setDeptFilter("All");
     setStatusFilter("All");
     setDateFilter("All");
-    setStartDate("");
-    setEndDate("");
   };
 
   const [visitRecords, setVisitRecords] = useState<MedicalVisitRecord[]>([]);
@@ -108,7 +102,9 @@ export function PatientMedicalRecordsScreen({
                       a.status === "FOLLOW_UP"
                     ? "Follow-up Required"
                     : "Completed") as
-                "Completed" | "In-Progress" | "Follow-up Required",
+                | "Completed"
+                | "In-Progress"
+                | "Follow-up Required",
             }),
           );
           setVisitRecords(mapped);
@@ -211,15 +207,6 @@ export function PatientMedicalRecordsScreen({
     if (statusFilter !== "All" && rx.status !== statusFilter) return false;
     return true;
   });
-
-  // Pagination for visits
-  const [visitsPage, setVisitsPage] = useState(1);
-  const visitsPageSize = 10;
-  const visitsTotalPages = Math.ceil(filteredVisits.length / visitsPageSize);
-  const paginatedVisits = filteredVisits.slice(
-    (visitsPage - 1) * visitsPageSize,
-    visitsPage * visitsPageSize,
-  );
 
   return (
     <div
@@ -419,7 +406,9 @@ export function PatientMedicalRecordsScreen({
                 render: (v) => (
                   <div>
                     <div className="font-bold text-[#111827]">{v.date}</div>
-                    <div className="text-[11px] text-[#64748B] font-mono">{v.id}</div>
+                    <div className="text-[11px] text-[#64748B] font-mono">
+                      {v.id}
+                    </div>
                   </div>
                 ),
               },
@@ -429,7 +418,9 @@ export function PatientMedicalRecordsScreen({
                 sortable: true,
                 getValue: (v) => v.doctor,
                 render: (v) => (
-                  <span className="font-semibold text-[#111827]">{v.doctor}</span>
+                  <span className="font-semibold text-[#111827]">
+                    {v.doctor}
+                  </span>
                 ),
               },
               {
@@ -438,7 +429,9 @@ export function PatientMedicalRecordsScreen({
                 sortable: true,
                 getValue: (v) => v.department,
                 render: (v) => (
-                  <span className="text-slate-600 font-medium">{v.department}</span>
+                  <span className="text-slate-600 font-medium">
+                    {v.department}
+                  </span>
                 ),
               },
               {
@@ -447,7 +440,9 @@ export function PatientMedicalRecordsScreen({
                 sortable: true,
                 getValue: (v) => v.diagnosis,
                 render: (v) => (
-                  <span className="font-medium text-slate-800">{v.diagnosis}</span>
+                  <span className="font-medium text-slate-800">
+                    {v.diagnosis}
+                  </span>
                 ),
               },
               {
@@ -482,7 +477,7 @@ export function PatientMedicalRecordsScreen({
             title="My Medical Visits"
             subtitle="Complete record of outpatient visits and medical consultations."
             searchable={true}
-            searchPlaceholder="🔍 Search Doctor, Department, Diagnosis..."
+            searchPlaceholder=" Search Doctor, Department, Diagnosis..."
             searchValue={searchQuery}
             onSearchChange={setSearchQuery}
             toolbar={
@@ -505,7 +500,9 @@ export function PatientMedicalRecordsScreen({
                   </div>
 
                   <div className="flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-2.5 py-1 rounded-lg text-slate-700 font-medium">
-                    <span className="text-slate-400 text-[11px]">Department:</span>
+                    <span className="text-slate-400 text-[11px]">
+                      Department:
+                    </span>
                     <select
                       value={deptFilter}
                       onChange={(e) => setDeptFilter(e.target.value)}
@@ -530,7 +527,10 @@ export function PatientMedicalRecordsScreen({
                     </select>
                   </div>
 
-                  {(searchQuery || deptFilter !== "All" || doctorFilter !== "All" || dateFilter !== "All") && (
+                  {(searchQuery ||
+                    deptFilter !== "All" ||
+                    doctorFilter !== "All" ||
+                    dateFilter !== "All") && (
                     <button
                       onClick={handleResetFilters}
                       className="px-2.5 py-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer shadow-2xs shrink-0 ml-auto"
@@ -679,14 +679,17 @@ export function PatientMedicalRecordsScreen({
               </span>
             }
             searchable={true}
-            searchPlaceholder="🔍 Search Prescription ID, Doctor, Medicine..."
+            searchPlaceholder=" Search Prescription ID, Doctor, Medicine..."
             searchValue={searchQuery}
             onSearchChange={setSearchQuery}
             emptyTitle="No prescriptions found"
             emptySubtitle="There are no prescription records matching your search or filters."
             emptyIcon={<Pill size={28} />}
             emptyAction={
-              (searchQuery || deptFilter !== "All" || doctorFilter !== "All" || dateFilter !== "All") ? (
+              searchQuery ||
+              deptFilter !== "All" ||
+              doctorFilter !== "All" ||
+              dateFilter !== "All" ? (
                 <button
                   onClick={handleResetFilters}
                   className="px-4 py-2 bg-[#0D47A1] text-white text-xs font-semibold rounded-xl hover:bg-blue-900 cursor-pointer"
@@ -716,7 +719,9 @@ export function PatientMedicalRecordsScreen({
                   </div>
 
                   <div className="flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-2.5 py-1 rounded-lg text-slate-700 font-medium">
-                    <span className="text-slate-400 text-[11px]">Department:</span>
+                    <span className="text-slate-400 text-[11px]">
+                      Department:
+                    </span>
                     <select
                       value={deptFilter}
                       onChange={(e) => setDeptFilter(e.target.value)}
@@ -741,7 +746,10 @@ export function PatientMedicalRecordsScreen({
                     </select>
                   </div>
 
-                  {(searchQuery || deptFilter !== "All" || doctorFilter !== "All" || dateFilter !== "All") && (
+                  {(searchQuery ||
+                    deptFilter !== "All" ||
+                    doctorFilter !== "All" ||
+                    dateFilter !== "All") && (
                     <button
                       onClick={handleResetFilters}
                       className="px-2.5 py-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer shadow-2xs shrink-0 ml-auto"

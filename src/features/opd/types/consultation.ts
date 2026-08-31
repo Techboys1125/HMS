@@ -92,6 +92,8 @@ export interface ConsultationRecord {
   status: ConsultationStatus;
   chiefComplaint: string;
   opdRoom: string;
+  queueNumber?: number | string;
+  time?: string;
   date: string;
   duration?: string;
   visitDate?: string;

@@ -14,7 +14,8 @@ interface EditConsultationExaminationCardProps {
     finalDiagnosis: string;
     icdCode: string;
   };
-  setFormData: React.Dispatch<React.SetStateAction<any>>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  setFormData: (action: any) => void;
 }
 
 export const EditConsultationExaminationCard: React.FC<
@@ -57,7 +58,8 @@ export const EditConsultationExaminationCard: React.FC<
               rows={2}
               value={formData.clinicalExamination}
               onChange={(e) =>
-                setFormData((prev: any) => ({
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  setFormData((prev: any) => ({
                   ...prev,
                   clinicalExamination: e.target.value,
                 }))
@@ -80,6 +82,7 @@ export const EditConsultationExaminationCard: React.FC<
                 type="text"
                 value={formData.provisionalDiagnosis}
                 onChange={(e) =>
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   setFormData((prev: any) => ({
                     ...prev,
                     provisionalDiagnosis: e.target.value,
@@ -101,6 +104,7 @@ export const EditConsultationExaminationCard: React.FC<
                 type="text"
                 value={formData.finalDiagnosis}
                 onChange={(e) =>
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   setFormData((prev: any) => ({
                     ...prev,
                     finalDiagnosis: e.target.value,

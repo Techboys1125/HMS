@@ -10,13 +10,11 @@ import {
   Database,
   Download,
   Eye,
-  Layers,
   Lock,
   LogIn,
   Printer,
   RefreshCw,
   RotateCcw,
-  Search,
   Server,
   Trash2,
   Users,
@@ -48,7 +46,6 @@ import { SeverityBadge, StatusBadge } from "../components/AuditBadges";
 import { AuditLogDetailsPage } from "./AuditLogDetailsPage";
 import { DataTable, type Column } from "../../../common/components/DataTable";
 import { LoginSupplementaryData } from "../components/LoginSupplementaryPanels";
-import { AuditLogHeaderMetrics } from "../components/AuditLogHeaderMetrics";
 import {
   ApiFilterSelect,
   DateCalendarPicker,
@@ -98,6 +95,11 @@ function metricIcon(metric: AuditMetric): typeof Activity {
 }
 
 function downloadCsv(records: AuditRecord[], filename: string): void {
+  if (!records || records.length === 0) {
+    alert("No audit records available to export.");
+    return;
+  }
+
   const header = [
     "Event ID",
     "Timestamp",
@@ -111,30 +113,34 @@ function downloadCsv(records: AuditRecord[], filename: string): void {
     "Description",
   ];
   const rows = records.map((record) => [
-    record.id,
-    record.timestamp,
-    record.category,
-    record.user,
-    record.userRole,
-    record.module,
-    record.action,
-    record.severity,
-    record.status,
-    record.description,
+    record.id ?? "",
+    record.timestamp ?? "",
+    record.category ?? "",
+    record.user ?? "",
+    record.userRole ?? "",
+    record.module ?? "",
+    record.action ?? "",
+    record.severity ?? "",
+    record.status ?? "",
+    record.description ?? "",
   ]);
   const csv = [header, ...rows]
     .map((row) =>
-      row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(","),
+      row
+        .map((value) => `"${String(value ?? "").replace(/"/g, '""')}"`)
+        .join(","),
     )
     .join("\n");
-  const url = URL.createObjectURL(
-    new Blob([csv], { type: "text/csv;charset=utf-8" }),
-  );
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
-  anchor.download = filename;
+  anchor.download = filename.endsWith(".csv") ? filename : `${filename}.csv`;
+  anchor.style.display = "none";
+  document.body.appendChild(anchor);
   anchor.click();
-  URL.revokeObjectURL(url);
+  document.body.removeChild(anchor);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
 interface FilterState {
   currentWorkspace: AuditCategory;
@@ -368,6 +374,9 @@ export function AuditLogManagementPage() {
     filters.searchQuery,
     filters.selectedDateRange,
     filters.selectedDepartment,
+    filters.selectedEventType,
+    filters.selectedModule,
+    filters.selectedRole,
     filters.selectedSeverity,
     filters.selectedStatus,
     filters.selectedUser,
@@ -1091,7 +1100,6 @@ export function AuditLogManagementPage() {
     }
   };
 
-  const isAllTable = isAllWorkspace || isCriticalWorkspace;
   const currentPage = activeQuery.data?.number ?? page;
   const totalPages = activeQuery.data?.totalPages ?? 0;
   const canGoNext = Boolean(
@@ -1421,7 +1429,7 @@ export function AuditLogManagementPage() {
           </span>
         }
         searchable={true}
-        searchPlaceholder="🔍 Search loaded records by event, user, module, action, or record ID..."
+        searchPlaceholder=" Search loaded records by event, user, module, action, or record ID..."
         searchValue={filters.searchQuery}
         onSearchChange={(v) => setFilter("searchQuery", v)}
         toolbar={

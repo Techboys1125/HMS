@@ -1,5 +1,5 @@
 import React from "react";
-import { display, getErrorMessage, safeArray } from "../utils/auditlog.utils";
+import { display, getErrorMessage } from "../utils/auditlog.utils";
 
 const PP = "Poppins, sans-serif";
 

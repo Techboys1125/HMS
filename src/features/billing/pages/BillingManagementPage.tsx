@@ -11,12 +11,10 @@ import {
 import { billingService } from "../services/billing.service";
 import { BillingHeader } from "../components/BillingHeader";
 import { BillingKPICards } from "../components/BillingKPICards";
-import { BillingSearchBar } from "../components/BillingSearchBar";
-import { BillingFilters } from "../components/BillingFilters";
 import { BillingTable } from "../components/BillingTable";
 import { BillingPagination } from "../components/BillingPagination";
 import { mapApiBillToInvoiceRecord as mapBillToInvoice } from "../utils/billing.utils";
-import { PP, RB } from "../constants/billing.constants";
+import { RB } from "../constants/billing.constants";
 
 export function BillingManagementPage({ onBack }: { onBack?: () => void }) {
   const navigate = useNavigate();
@@ -80,6 +78,36 @@ export function BillingManagementPage({ onBack }: { onBack?: () => void }) {
     if (methodFilter !== "All") {
       params.paymentMethod = methodFilter.toUpperCase().replace(" ", "_");
     }
+
+    if (dateFilter !== "All") {
+      const now = new Date();
+      const todayStr = now.toISOString().split("T")[0];
+
+      if (dateFilter === "Today") {
+        params.fromDate = todayStr;
+        params.toDate = todayStr;
+      } else if (dateFilter === "Yesterday") {
+        const yest = new Date(now);
+        yest.setDate(yest.getDate() - 1);
+        const yestStr = yest.toISOString().split("T")[0];
+        params.fromDate = yestStr;
+        params.toDate = yestStr;
+      } else if (dateFilter === "This Week") {
+        const weekAgo = new Date(now);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        params.fromDate = weekAgo.toISOString().split("T")[0];
+        params.toDate = todayStr;
+      } else if (dateFilter === "This Month") {
+        const monthAgo = new Date(now);
+        monthAgo.setDate(monthAgo.getDate() - 30);
+        params.fromDate = monthAgo.toISOString().split("T")[0];
+        params.toDate = todayStr;
+      } else if (dateFilter === "Custom" && startDate && endDate) {
+        params.fromDate = startDate;
+        params.toDate = endDate;
+      }
+    }
+
     return params;
   }, [
     isPatient,
@@ -89,6 +117,9 @@ export function BillingManagementPage({ onBack }: { onBack?: () => void }) {
     activeTab,
     statusFilter,
     methodFilter,
+    dateFilter,
+    startDate,
+    endDate,
   ]);
 
   const { data: billsData, isLoading: listLoading } = useBillingList(
@@ -106,50 +137,11 @@ export function BillingManagementPage({ onBack }: { onBack?: () => void }) {
     },
   });
 
-  // Map API bills to InvoiceRecord format and apply date filtering
+  // Map API bills to InvoiceRecord format
   const allInvoices = useMemo(() => {
     if (!billsData?.bills) return [];
-    let list = billsData.bills.map(mapBillToInvoice);
-    if (dateFilter !== "All") {
-      const now = new Date();
-      const todayStr = now.toISOString().split("T")[0];
-
-      if (dateFilter === "Today") {
-        list = list.filter((inv) => inv.invoiceDate?.includes(todayStr));
-      } else if (dateFilter === "Yesterday") {
-        const yest = new Date(now);
-        yest.setDate(yest.getDate() - 1);
-        const yestStr = yest.toISOString().split("T")[0];
-        list = list.filter((inv) => inv.invoiceDate?.includes(yestStr));
-      } else if (dateFilter === "This Week") {
-        const weekAgo = new Date(now);
-        weekAgo.setDate(weekAgo.getDate() - 7);
-        list = list.filter((inv) => {
-          if (!inv.invoiceDate) return true;
-          const d = new Date(inv.invoiceDate);
-          return d >= weekAgo && d <= now;
-        });
-      } else if (dateFilter === "This Month") {
-        const monthAgo = new Date(now);
-        monthAgo.setDate(monthAgo.getDate() - 30);
-        list = list.filter((inv) => {
-          if (!inv.invoiceDate) return true;
-          const d = new Date(inv.invoiceDate);
-          return d >= monthAgo && d <= now;
-        });
-      } else if (dateFilter === "Custom" && startDate && endDate) {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
-        list = list.filter((inv) => {
-          if (!inv.invoiceDate) return true;
-          const d = new Date(inv.invoiceDate);
-          return d >= start && d <= end;
-        });
-      }
-    }
-    return list;
-  }, [billsData, dateFilter, startDate, endDate]);
+    return billsData.bills.map(mapBillToInvoice);
+  }, [billsData]);
 
   const totalCount = billsData?.totalElements || 0;
 
@@ -328,17 +320,11 @@ export function BillingManagementPage({ onBack }: { onBack?: () => void }) {
             `/billing/create?${billIdParam}appointmentId=${encodeURIComponent(String(inv.appointmentId ?? ""))}&encounterId=${encodeURIComponent(String(inv.encounterId ?? ""))}&patientId=${encodeURIComponent(String(inv.patientId ?? ""))}&patientMrn=${encodeURIComponent(inv.mrn)}&doctorId=${encodeURIComponent(String(inv.doctorId ?? ""))}`,
           );
         }}
-        onCancelInvoice={
-          canCancelInvoice ? handleCancelInvoice : undefined
-        }
+        onCancelInvoice={canCancelInvoice ? handleCancelInvoice : undefined}
         onViewPaymentHistory={(inv) =>
-          navigate(
-            `/billing/history?billId=${encodeURIComponent(inv.id)}`,
-          )
+          navigate(`/billing/history?billId=${encodeURIComponent(inv.id)}`)
         }
-        onPrintInvoice={(inv) =>
-          navigate(`/billing/invoice/${inv.id}/print`)
-        }
+        onPrintInvoice={(inv) => navigate(`/billing/invoice/${inv.id}/print`)}
       />
     </div>
   );

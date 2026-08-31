@@ -21,7 +21,6 @@ import {
   useDoctorTodayAppointments,
   useDoctorConsultationQueue,
   useDoctorCallToken,
-  useDoctorCompleteAppointment,
 } from "../hooks/useDoctorDashboard";
 import type { DoctorTimelineItem } from "../types/dashboard.types";
 
@@ -302,26 +301,37 @@ const parseMinutes = (val?: string) => {
   return Number.isNaN(n) ? 0 : n;
 };
 
-const getTimelinePatientName = (item: any) => {
-  if (!item) return "Patient";
-  if (typeof item.patientName === "string" && item.patientName.trim())
-    return item.patientName;
-  if (typeof item.patient === "string" && item.patient.trim())
-    return item.patient;
+type TimelineItemLike = {
+  patientName?: string;
+  patient?: string | { name?: string; fullName?: string };
+  name?: string;
+  doctorName?: string;
+  appointmentId?: string | number;
+  token?: string | number;
+};
+
+const getTimelinePatientName = (item: unknown) => {
+  if (!item || typeof item !== "object") return "Patient";
+  const obj = item as TimelineItemLike;
+  if (typeof obj.patientName === "string" && obj.patientName.trim())
+    return obj.patientName;
+  if (typeof obj.patient === "string" && obj.patient.trim())
+    return obj.patient;
   if (
-    item.patient &&
-    typeof item.patient.name === "string" &&
-    item.patient.name.trim()
+    obj.patient &&
+    typeof obj.patient === "object" &&
+    typeof obj.patient.name === "string" &&
+    obj.patient.name.trim()
   )
-    return item.patient.name;
-  if (typeof item.name === "string" && item.name.trim()) return item.name;
+    return obj.patient.name;
+  if (typeof obj.name === "string" && obj.name.trim()) return obj.name;
   if (
-    typeof item.doctorName === "string" &&
-    item.doctorName.trim() &&
-    !item.doctorName.startsWith("Dr")
+    typeof obj.doctorName === "string" &&
+    obj.doctorName.trim() &&
+    !obj.doctorName.startsWith("Dr")
   )
-    return item.doctorName;
-  return `Patient #${item.appointmentId || item.token || "101"}`;
+    return obj.doctorName;
+  return `Patient #${obj.appointmentId || obj.token || "101"}`;
 };
 
 export function DoctorDashboard() {
@@ -333,7 +343,6 @@ export function DoctorDashboard() {
   const todayAppointmentsQuery = useDoctorTodayAppointments();
   const consultationQueueQuery = useDoctorConsultationQueue();
   const callTokenMutation = useDoctorCallToken();
-  const completeMutation = useDoctorCompleteAppointment();
 
   const stats = statsQuery.data;
   const currentPatient = currentPatientQuery.data;
@@ -450,7 +459,7 @@ export function DoctorDashboard() {
   const resolvedNextPatient = useMemo(() => {
     if (
       nextPatient &&
-      ((nextPatient as any).patient ||
+      ((nextPatient as unknown as Record<string, unknown>).patient ||
         nextPatient.patientName ||
         nextPatient.token)
     ) {
@@ -459,14 +468,14 @@ export function DoctorDashboard() {
         patientName: getTimelinePatientName(nextPatient),
         appointmentTime:
           nextPatient.appointmentTime ||
-          (nextPatient as any).waitingTime ||
+          ((nextPatient as unknown as Record<string, unknown>).waitingTime as string) ||
           "Waiting",
       };
     }
     const queueList = consultationQueue?.queue || [];
     const waitingItem =
       queueList.find(
-        (q: any) =>
+        (q) =>
           q.status === "WAITING" ||
           q.queueStatus === "WAITING_FOR_DOCTOR_CALL" ||
           q.status === "CHECKED_IN",
@@ -1188,7 +1197,7 @@ export function DoctorDashboard() {
                   <span className="text-xs text-[#64748B]">
                     {getTimelinePatientName(qItem)} ·{" "}
                     {qItem.departmentName ||
-                      (qItem as any).doctor?.department ||
+                      (qItem as unknown as { doctor?: { department?: string } }).doctor?.department ||
                       "OPD"}
                   </span>
                 </div>

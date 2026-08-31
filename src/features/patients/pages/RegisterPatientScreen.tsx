@@ -757,7 +757,6 @@ export function RegisterPatientScreen({
     if (!isEditMode || !editMember) return;
     let cancelled = false;
 
-    // Immediate initial population from editMember prop
     const emObj = editMember as Record<string, unknown>;
     const emName = editMember.patientName || (editMember.fullName as string) || (editMember.name as string) || "";
     const emGender = editMember.gender ? String(editMember.gender).toUpperCase() : "";
@@ -770,24 +769,28 @@ export function RegisterPatientScreen({
     const emRel = editMember.relationship ? String(editMember.relationship).toUpperCase() : "";
     const emAddr = extractAddressFields(emObj.address || emObj);
 
-    setForm((prev) => ({
-      ...prev,
-      fullName: emName || prev.fullName,
-      gender: emGender || prev.gender,
-      dateOfBirth: emDob || prev.dateOfBirth,
-      mobileNumber: emMobile || prev.mobileNumber,
-      email: emEmail || prev.email,
-      bloodGroup: emBlood || prev.bloodGroup,
-      maritalStatus: emMarital || prev.maritalStatus,
-      knownAllergies: emAllergies || prev.knownAllergies,
-      relationship: emRel || prev.relationship,
-      addressLine1: emAddr.addressLine1 || prev.addressLine1,
-      addressLine2: emAddr.addressLine2 || prev.addressLine2,
-      city: emAddr.city || prev.city,
-      state: emAddr.state || prev.state,
-      pincode: emAddr.pincode || prev.pincode,
-      country: emAddr.country || prev.country || "India",
-    }));
+    // Immediate initial population from editMember prop
+    Promise.resolve().then(() => {
+      if (cancelled) return;
+      setForm((prev) => ({
+        ...prev,
+        fullName: emName || prev.fullName,
+        gender: emGender || prev.gender,
+        dateOfBirth: emDob || prev.dateOfBirth,
+        mobileNumber: emMobile || prev.mobileNumber,
+        email: emEmail || prev.email,
+        bloodGroup: emBlood || prev.bloodGroup,
+        maritalStatus: emMarital || prev.maritalStatus,
+        knownAllergies: emAllergies || prev.knownAllergies,
+        relationship: emRel || prev.relationship,
+        addressLine1: emAddr.addressLine1 || prev.addressLine1,
+        addressLine2: emAddr.addressLine2 || prev.addressLine2,
+        city: emAddr.city || prev.city,
+        state: emAddr.state || prev.state,
+        pincode: emAddr.pincode || prev.pincode,
+        country: emAddr.country || prev.country || "India",
+      }));
+    });
 
     // Fetch full patient record from API
     const mrn = editMember.mrn;

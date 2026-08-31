@@ -23,3 +23,15 @@ dist-ssr
 *.sln
 *.sw?
 public/__verify.html
+report-spec-details.json
+get_endpoints_summary.json
+report-schemas.json
+tsconfig-errors4.txt
+tsconfig-errors3.txt
+tsconfig-errors2.txt
+tsconfig-errors.txt
+eslint-output.txt
+build-output2.txt
+build-output.txt
+backend-paths.json
+backend-spec.json

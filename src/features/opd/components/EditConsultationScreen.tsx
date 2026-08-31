@@ -25,6 +25,7 @@ import { encountersApi } from "../../encounters/api/encounters.api";
 import { patientsApi } from "../../patients/api/patient.api";
 import { doctorsApi } from "../../doctors/api/doctors.api";
 import { vitalsApi } from "../../vitals/api/vitals.api";
+import { ConsultationHistoryScreen } from "./ConsultationHistoryScreen";
 
 // --- Design System Tokens ---
 const PP = "'Poppins', system-ui, sans-serif";
@@ -128,6 +129,16 @@ export function EditConsultationScreen({
     revisionNotes: false,
   });
 
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+
+  const handleViewHistory = (mrn?: string) => {
+    const targetMrn = mrn || formData.mrn;
+    if (onViewHistory) {
+      onViewHistory(targetMrn);
+    }
+    setShowHistoryModal(true);
+  };
+
   const toggleSection = (key: string) => {
     setCollapsedSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
@@ -229,7 +240,15 @@ export function EditConsultationScreen({
       pulse: stripUnit(recVitals?.pulse),
       respiratoryRate: stripUnit(recVitals?.respiratoryRate),
       spo2: stripUnit(recVitals?.spo2),
-      bloodSugar: stripUnit(recVitals?.bloodSugar),
+      bloodSugar: stripUnit(
+        recVitals?.bloodSugar ??
+          recVitals?.sugar ??
+          recVitals?.bloodSugarMgDl ??
+          recVitals?.randomBloodSugar ??
+          recVitals?.fastingBloodSugar ??
+          recVitals?.blood_sugar ??
+          recVitals?.glucose,
+      ),
 
       // Clinical Examination & Diagnosis
       clinicalExamination: toStringValue(rec?.clinicalExamination ?? ""),
@@ -482,6 +501,13 @@ export function EditConsultationScreen({
           diagnoses.find((d) => d.active !== false) ??
           {};
 
+        const provisionalDiagnosisObj =
+          diagnoses.find(
+            (d) =>
+              d.active !== false &&
+              (d.diagnosisType === "PROVISIONAL" || d.type === "PROVISIONAL"),
+          ) ?? {};
+
         // 4. Fetch Prescription
         let prescription: Record<string, unknown> | null = null;
         if (realEncounterId) {
@@ -517,12 +543,33 @@ export function EditConsultationScreen({
             const durObj = med.duration as Record<string, unknown> | undefined;
             const qtyObj = med.quantity as Record<string, unknown> | undefined;
             const doseObj = med.dose as Record<string, unknown> | undefined;
+            const doseVal = (() => {
+              if (doseObj && typeof doseObj === "object") {
+                const val = doseObj.value != null ? String(doseObj.value) : "";
+                const unit = doseObj.unit != null ? String(doseObj.unit) : "";
+                const text = `${val} ${unit}`.trim();
+                if (text) return text;
+              }
+              if (med.doseValue != null || med.doseUnit != null) {
+                const val = med.doseValue != null ? String(med.doseValue) : "";
+                const unit = med.doseUnit != null ? String(med.doseUnit) : "";
+                const text = `${val} ${unit}`.trim();
+                if (text) return text;
+              }
+              if (typeof med.dosage === "string" && med.dosage.trim())
+                return med.dosage.trim();
+              if (typeof med.dose === "string" && med.dose.trim())
+                return med.dose.trim();
+              if (typeof med.strength === "string" && med.strength.trim())
+                return med.strength.trim();
+              return "";
+            })();
 
             return {
               id: String(med.medicationId ?? med.id ?? idx + 1),
               medicationId: Number(med.medicationId ?? med.id ?? 0),
               name: toStringValue(med.medicineName ?? med.name),
-              dosage: toStringValue(med.strength ?? med.dosage),
+              dosage: doseVal || toStringValue(med.strength ?? med.dosage ?? "1 tab"),
               frequency: toStringValue(
                 freqObj?.display ??
                   med.frequencyDisplay ??
@@ -681,7 +728,15 @@ export function EditConsultationScreen({
           respiratoryRate: getVitalVal(vitals?.respiratoryRate),
           spo2:
             getVitalVal(vitals?.oxygenSaturation) || getVitalVal(vitals?.spo2),
-          bloodSugar: getVitalVal(vitals?.bloodSugar),
+          bloodSugar:
+            getVitalVal(vitals?.bloodSugar) ||
+            getVitalVal(vitals?.sugar) ||
+            getVitalVal(vitals?.bloodSugarMgDl) ||
+            getVitalVal(vitals?.randomBloodSugar) ||
+            getVitalVal(vitals?.fastingBloodSugar) ||
+            getVitalVal(vitals?.blood_sugar) ||
+            getVitalVal(vitals?.glucose) ||
+            "",
 
           clinicalExamination:
             [
@@ -692,7 +747,11 @@ export function EditConsultationScreen({
               .join("\n") ||
             toStringValue(consultation?.examinationNotes ?? ""),
           provisionalDiagnosis: toStringValue(
-            consultation?.provisionalDiagnosis ?? "",
+            consultation?.provisionalDiagnosis ??
+              provisionalDiagnosisObj.diagnosisName ??
+              provisionalDiagnosisObj.name ??
+              primaryDiagnosis?.diagnosisName ??
+              "",
           ),
           finalDiagnosis: toStringValue(
             primaryDiagnosis?.diagnosisName ??
@@ -1244,7 +1303,7 @@ export function EditConsultationScreen({
         visitDate={formData.visitDate}
         allergies={formData.allergies}
         onViewPatientProfile={() => {}}
-        onViewHistory={onViewHistory}
+        onViewHistory={handleViewHistory}
       />
 
       {/* ── MAIN WORKSPACE CONTAINER ── */}
@@ -1881,6 +1940,32 @@ export function EditConsultationScreen({
           )}
         </div>
       </div>
+
+      {showHistoryModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm p-4 md:p-8 flex items-center justify-center no-print">
+          <div className="bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto shadow-2xl relative flex flex-col">
+            <div className="sticky top-0 z-10 bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between">
+              <h2 className="text-base font-bold text-slate-800" style={{ fontFamily: PP }}>
+                Patient Consultation History — {formData.patientName} ({formData.mrn})
+              </h2>
+              <button
+                onClick={() => setShowHistoryModal(false)}
+                className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+                style={{ fontFamily: PP }}
+              >
+                Close History
+              </button>
+            </div>
+            <div className="p-4 flex-1">
+              <ConsultationHistoryScreen
+                patientId={formData.mrn}
+                role="doctor"
+                onBack={() => setShowHistoryModal(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

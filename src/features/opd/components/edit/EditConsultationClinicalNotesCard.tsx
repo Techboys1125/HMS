@@ -13,7 +13,8 @@ interface EditConsultationClinicalNotesCardProps {
     assessment: string;
     advice: string;
   };
-  setFormData: React.Dispatch<React.SetStateAction<any>>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  setFormData: (action: any) => void;
 }
 
 export const EditConsultationClinicalNotesCard: React.FC<
@@ -59,7 +60,8 @@ export const EditConsultationClinicalNotesCard: React.FC<
               rows={2}
               value={formData.symptoms}
               onChange={(e) =>
-                setFormData((prev: any) => ({
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  setFormData((prev: any) => ({
                   ...prev,
                   symptoms: e.target.value,
                 }))
@@ -79,7 +81,8 @@ export const EditConsultationClinicalNotesCard: React.FC<
               rows={2}
               value={formData.assessment}
               onChange={(e) =>
-                setFormData((prev: any) => ({
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  setFormData((prev: any) => ({
                   ...prev,
                   assessment: e.target.value,
                 }))
@@ -99,7 +102,8 @@ export const EditConsultationClinicalNotesCard: React.FC<
               rows={2}
               value={formData.advice}
               onChange={(e) =>
-                setFormData((prev: any) => ({
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  setFormData((prev: any) => ({
                   ...prev,
                   advice: e.target.value,
                 }))

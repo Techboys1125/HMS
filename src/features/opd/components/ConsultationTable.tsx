@@ -60,6 +60,7 @@ const getVisitTypeColor = (visitType: string): string => {
   return visitTypeColors[visitType] || "bg-slate-100 text-slate-600";
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const formatAppointmentFormattedId = (item: any): string => {
   const rawNum =
     item.appointmentNumber ||
@@ -145,12 +146,10 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
         key: "tokenNo",
         label: "TOKEN",
         sortable: true,
-        getValue: (item) => item.tokenNo || (item as any).queueNumber || "—",
+        getValue: (item) => String(item.tokenNo || item.queueNumber || "—"),
         render: (item) => (
-          <span
-            className="w-7 h-7 rounded-lg bg-blue-100 text-[#0D47A1] font-bold text-xs flex items-center justify-center font-mono"
-          >
-            {item.tokenNo || (item as any).queueNumber || "—"}
+          <span className="font-mono text-xs font-bold text-[#0D47A1]">
+            {String(item.tokenNo || item.queueNumber || "—")}
           </span>
         ),
       },
@@ -218,10 +217,10 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
         label: "TIME",
         sortable: true,
         getValue: (item) =>
-          item.appointmentTime || (item as any).time || item.date || "—",
+          String(item.appointmentTime || item.time || item.date || "—"),
         render: (item) => (
           <span className="font-mono text-xs text-slate-600">
-            {item.appointmentTime || (item as any).time || item.date || "—"}
+            {String(item.appointmentTime || item.time || item.date || "—")}
           </span>
         ),
       },
@@ -388,7 +387,7 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
         </span>
       }
       searchable={true}
-      searchPlaceholder="🔍 Search by Patient Name, MRN, Consultation ID, Doctor..."
+      searchPlaceholder=" Search by Patient Name, MRN, Consultation ID, Doctor..."
       searchValue={searchQuery}
       onSearchChange={onSearchChange}
       toolbar={toolbar}

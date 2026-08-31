@@ -16,8 +16,10 @@ interface EditConsultationVitalsCardProps {
     bp: string;
     pulse: string;
     spo2: string;
+    bloodSugar?: string;
   };
-  setFormData: React.Dispatch<React.SetStateAction<any>>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  setFormData: (action: any) => void;
 }
 
 export const EditConsultationVitalsCard: React.FC<
@@ -79,6 +81,7 @@ export const EditConsultationVitalsCard: React.FC<
                 type="number"
                 value={formData.height}
                 onChange={(e) =>
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   setFormData((prev: any) => ({
                     ...prev,
                     height: e.target.value,
@@ -100,6 +103,7 @@ export const EditConsultationVitalsCard: React.FC<
                 type="number"
                 value={formData.weight}
                 onChange={(e) =>
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   setFormData((prev: any) => ({
                     ...prev,
                     weight: e.target.value,
@@ -137,6 +141,7 @@ export const EditConsultationVitalsCard: React.FC<
                 type="text"
                 value={formData.temperature}
                 onChange={(e) =>
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   setFormData((prev: any) => ({
                     ...prev,
                     temperature: e.target.value,
@@ -148,7 +153,7 @@ export const EditConsultationVitalsCard: React.FC<
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
             <div>
               <label
                 className="block text-[11px] font-semibold text-[#64748B] mb-1"
@@ -161,6 +166,7 @@ export const EditConsultationVitalsCard: React.FC<
                 type="text"
                 value={formData.bp}
                 onChange={(e) =>
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   setFormData((prev: any) => ({
                     ...prev,
                     bp: e.target.value,
@@ -183,6 +189,7 @@ export const EditConsultationVitalsCard: React.FC<
                 type="number"
                 value={formData.pulse}
                 onChange={(e) =>
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   setFormData((prev: any) => ({
                     ...prev,
                     pulse: e.target.value,
@@ -204,11 +211,35 @@ export const EditConsultationVitalsCard: React.FC<
                 type="number"
                 value={formData.spo2}
                 onChange={(e) =>
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   setFormData((prev: any) => ({
                     ...prev,
                     spo2: e.target.value,
                   }))
                 }
+                className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs text-[#111827] disabled:opacity-65 disabled:bg-slate-100"
+                style={{ fontFamily: RB }}
+              />
+            </div>
+            <div>
+              <label
+                className="block text-[11px] font-semibold text-[#64748B] mb-1"
+                style={{ fontFamily: PP }}
+              >
+                Blood Sugar (mg/dL)
+              </label>
+              <input
+                disabled={!isEditing}
+                type="text"
+                value={formData.bloodSugar || ""}
+                onChange={(e) =>
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  setFormData((prev: any) => ({
+                    ...prev,
+                    bloodSugar: e.target.value,
+                  }))
+                }
+                placeholder="110 mg/dL"
                 className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs text-[#111827] disabled:opacity-65 disabled:bg-slate-100"
                 style={{ fontFamily: RB }}
               />

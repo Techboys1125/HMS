@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { normalizeImageUrl } from "../../lib/image-utils";
+
 const AVATAR_COLORS = [
   "bg-[#0D47A1]",
   "bg-[#009688]",
@@ -10,36 +13,28 @@ const AVATAR_SIZES = {
   sm: "w-7 h-7 text-xs",
   md: "w-9 h-9 text-sm",
   lg: "w-11 h-11 text-base",
+  xl: "w-16 h-16 text-xl",
 };
-
-import { useState } from "react";
-
-const BASE_URL = "http://192.168.1.44:8888";
-
-function formatAvatarUrl(url?: string | null): string | null {
-  if (!url) return null;
-  if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
-    return url;
-  }
-  const cleanBase = BASE_URL.replace(/\/+$/, "");
-  return url.startsWith("/") ? `${cleanBase}${url}` : `${cleanBase}/${url}`;
-}
 
 export function Avatar({
   name,
   size = "sm",
   src,
   photoUrl,
+  photo,
+  className = "",
 }: {
   name: string;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
   src?: string | null;
   photoUrl?: string | null;
+  photo?: string | null;
+  className?: string;
 }) {
   const [failedSource, setFailedSource] = useState<string | null>(null);
-  const rawSource = src || photoUrl;
-  const imageSource = formatAvatarUrl(rawSource);
-  const imageError = failedSource === imageSource;
+  const rawSource = src || photoUrl || photo;
+  const imageSource = normalizeImageUrl(rawSource);
+  const imageError = Boolean(imageSource) && failedSource === imageSource;
 
   const initials = name
     ? name
@@ -60,16 +55,18 @@ export function Avatar({
         src={imageSource}
         alt={name || "Avatar"}
         onError={() => setFailedSource(imageSource)}
-        className={`${AVATAR_SIZES[size].split(" ")[0]} ${AVATAR_SIZES[size].split(" ")[1]} rounded-full object-cover shrink-0 border border-slate-200`}
+        className={`${AVATAR_SIZES[size]} rounded-full object-cover shrink-0 border border-slate-200 ${className}`}
       />
     );
   }
 
   return (
     <div
-      className={`${AVATAR_SIZES[size]} ${color} rounded-full flex items-center justify-center text-white font-semibold shrink-0`}
+      className={`${AVATAR_SIZES[size]} ${color} rounded-full flex items-center justify-center text-white font-semibold shrink-0 ${className}`}
     >
       {initials}
     </div>
   );
 }
+
+export default Avatar;

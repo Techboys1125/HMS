@@ -9,7 +9,6 @@ import { useDoctorFilters } from "../hooks/useDoctorFilters";
 import { useToast } from "../hooks/useToast";
 import { useAuthStore } from "../../auth/store/auth.store";
 import { KpiCards } from "../components/KpiCards";
-import { DoctorFilterBar } from "../components/DoctorFilterBar";
 import { DoctorTable } from "../components/DoctorTable";
 import { QuickDetailsDrawer } from "../components/QuickDetailsDrawer";
 import { ScheduleModal } from "../components/ScheduleModal";
@@ -79,10 +78,6 @@ export function DoctorManagementPage() {
   const {
     searchDoctorQuery,
     setSearchDoctorQuery,
-    searchEmpIdQuery,
-    setSearchEmpIdQuery,
-    searchRegNoQuery,
-    setSearchRegNoQuery,
     deptFilter,
     setDeptFilter,
     specialtyFilter,

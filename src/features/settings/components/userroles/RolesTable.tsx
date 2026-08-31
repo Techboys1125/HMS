@@ -2,7 +2,10 @@ import { useState } from "react";
 import { Eye, Lock, Shield, Filter, RotateCcw } from "lucide-react";
 import { ROLES, type RoleItem } from "../../constants/userroles.constants";
 import { RoleDetailsDrawer } from "./RoleDetailsDrawer";
-import { DataTable, type Column } from "../../../../common/components/DataTable";
+import {
+  DataTable,
+  type Column,
+} from "../../../../common/components/DataTable";
 
 const PP = "'Poppins', system-ui, sans-serif";
 
@@ -49,7 +52,10 @@ export function RolesTable() {
       sortable: true,
       getValue: (r) => r.description,
       render: (r) => (
-        <span className="text-slate-600 max-w-xs truncate block" title={r.description}>
+        <span
+          className="text-slate-600 max-w-xs truncate block"
+          title={r.description}
+        >
           {r.description}
         </span>
       ),
@@ -77,7 +83,9 @@ export function RolesTable() {
       sortable: true,
       getValue: (r) => r.lastUpdated,
       render: (r) => (
-        <span className="text-slate-400 text-xs font-mono">{r.lastUpdated}</span>
+        <span className="text-slate-400 text-xs font-mono">
+          {r.lastUpdated}
+        </span>
       ),
     },
     {
@@ -111,7 +119,7 @@ export function RolesTable() {
           </span>
         }
         searchable={true}
-        searchPlaceholder="🔍 Search Role Name or Description..."
+        searchPlaceholder=" Search Role Name or Description..."
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}
         toolbar={
@@ -148,7 +156,9 @@ export function RolesTable() {
                 </select>
               </div>
 
-              {(selectedRoleType !== "All" || selectedStatus !== "All" || searchTerm) && (
+              {(selectedRoleType !== "All" ||
+                selectedStatus !== "All" ||
+                searchTerm) && (
                 <button
                   onClick={() => {
                     setSearchTerm("");

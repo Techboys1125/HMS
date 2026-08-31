@@ -29,9 +29,11 @@ import type {
 import {
   useDailyRevenue,
   useDailyRevenueDetails,
-  useCollectionRate,
+  useCollectionRateSummary,
   extractList,
 } from "../hooks/useReports";
+import { exportDataToCsv } from "../utils/export.utils";
+import { formatCompactCurrency } from "../../billing/utils/billing.utils";
 
 import {
   AreaChart,
@@ -234,7 +236,7 @@ function CircularProgress({
   );
 }
 
-import { formatCompactCurrency } from "../../billing/utils/billing.utils";
+// ─── Formatting Helpers ──────────────────────────────────────────────────────
 
 const formatCurrency = (amount: number) => {
   return formatCompactCurrency(amount);
@@ -299,6 +301,30 @@ const renderStatusChip = (status?: string) => {
   );
 };
 
+function computeDateRangeObject(range: string, customFrom: string, customTo: string) {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  if (range === "Today") return { fromDate: todayStr, toDate: todayStr };
+  if (range === "7 Days") {
+    const from = new Date();
+    from.setDate(from.getDate() - 7);
+    return { fromDate: from.toISOString().slice(0, 10), toDate: todayStr };
+  }
+  if (range === "30 Days") {
+    const from = new Date();
+    from.setDate(from.getDate() - 30);
+    return { fromDate: from.toISOString().slice(0, 10), toDate: todayStr };
+  }
+  if (range === "90 Days") {
+    const from = new Date();
+    from.setDate(from.getDate() - 90);
+    return { fromDate: from.toISOString().slice(0, 10), toDate: todayStr };
+  }
+  if (range === "Custom" && customFrom && customTo) {
+    return { fromDate: customFrom, toDate: customTo };
+  }
+  return { fromDate: customFrom || todayStr, toDate: customTo || todayStr };
+}
+
 export function DailyRevenueReportScreen({
   onBack,
 }: {
@@ -325,7 +351,7 @@ export function DailyRevenueReportScreen({
   } = state;
 
   // ─── API Data Hooks ──────────────────────────────────────────────────────
-  const today = new Date().toISOString().slice(0, 10);
+  const [today] = useState(() => new Date().toISOString().slice(0, 10));
   const [fromDate, setFromDate] = useState(today);
   const [toDate, setToDate] = useState(today);
 
@@ -333,26 +359,27 @@ export function DailyRevenueReportScreen({
     const now = new Date();
     if (range === "Today") return { fromDate: today, toDate: today };
     if (range === "7 Days") {
-      const from = new Date(now);
-      from.setDate(now.getDate() - 7);
-      return { fromDate: from.toISOString().slice(0, 10), toDate: today };
+      const past = new Date(now.getTime() - 7 * 86400000);
+      return {
+        fromDate: past.toISOString().slice(0, 10),
+        toDate: today,
+      };
     }
     if (range === "30 Days") {
-      const from = new Date(now);
-      from.setDate(now.getDate() - 30);
-      return { fromDate: from.toISOString().slice(0, 10), toDate: today };
-    }
-    if (range === "90 Days") {
-      const from = new Date(now);
-      from.setDate(now.getDate() - 90);
-      return { fromDate: from.toISOString().slice(0, 10), toDate: today };
+      const past = new Date(now.getTime() - 30 * 86400000);
+      return {
+        fromDate: past.toISOString().slice(0, 10),
+        toDate: today,
+      };
     }
     if (range === "Custom" && fromDate && toDate) {
       return { fromDate, toDate };
     }
     return { fromDate: fromDate || today, toDate: toDate || today };
   };
-  const dates = getDateRange(dateRange);
+
+  const dates = useMemo(() => ({ fromDate, toDate }), [fromDate, toDate]);
+
   const reportFilters = useMemo(
     () => ({
       fromDate: dates.fromDate,
@@ -376,7 +403,7 @@ export function DailyRevenueReportScreen({
   );
   const { data: rawDailyRevenue } = useDailyRevenue(reportFilters);
   const { data: rawDetails } = useDailyRevenueDetails(reportFilters);
-  const { data: collectionRateData } = useCollectionRate(reportFilters);
+  const { data: collectionRateData } = useCollectionRateSummary(reportFilters);
 
   const dailyRevenueData = useMemo(
     () => extractList<DailyRevenuePoint>(rawDailyRevenue),
@@ -438,15 +465,9 @@ export function DailyRevenueReportScreen({
     const result = [];
     const baseRev = 14500000;
     for (let i = daysCount - 1; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const dateStr = d.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      });
       const dayRev = Math.max(500000, baseRev + ((i * 123456) % 3000000));
       result.push({
-        date: dateStr,
+        date: `T-${i}d`,
         amount: dayRev,
         Revenue: dayRev,
         Collections: Math.round(dayRev * 0.95),
@@ -513,9 +534,9 @@ export function DailyRevenueReportScreen({
 
   const paymentMethodShareData = useMemo(() => {
     const map: Record<string, number> = {};
-    filteredData.forEach((d) => {
+    for (const d of filteredData) {
       map[d.paymentMethod] = (map[d.paymentMethod] || 0) + d.collectedAmount;
-    });
+    }
     const colors: Record<string, string> = {
       Cash: "#009688",
       Card: "#0D47A1",
@@ -539,11 +560,11 @@ export function DailyRevenueReportScreen({
 
   const deptRevenueData = useMemo(() => {
     const map: Record<string, { department: string; revenue: number }> = {};
-    filteredData.forEach((d) => {
+    for (const d of filteredData) {
       if (!map[d.department])
         map[d.department] = { department: d.department, revenue: 0 };
       map[d.department].revenue += d.invoiceAmount;
-    });
+    }
     const list = Object.values(map);
     if (list.length === 0) {
       return [
@@ -557,11 +578,11 @@ export function DailyRevenueReportScreen({
 
   const doctorRevenueData = useMemo(() => {
     const map: Record<string, { doctor: string; revenue: number }> = {};
-    filteredData.forEach((d) => {
+    for (const d of filteredData) {
       if (!map[d.doctorName])
         map[d.doctorName] = { doctor: d.doctorName, revenue: 0 };
       map[d.doctorName].revenue += d.invoiceAmount;
-    });
+    }
     const list = Object.values(map);
     if (list.length === 0) {
       return [
@@ -575,9 +596,9 @@ export function DailyRevenueReportScreen({
 
   const deptOptions = useMemo(() => {
     const set = new Set<string>();
-    revenueTableSource.forEach((d) => {
+    for (const d of revenueTableSource) {
       if (d.department) set.add(d.department);
-    });
+    }
     const list = Array.from(set).filter(Boolean);
     if (!list.includes("General Medicine")) list.push("General Medicine");
     if (!list.includes("EYE DEPT")) list.push("EYE DEPT");
@@ -588,15 +609,63 @@ export function DailyRevenueReportScreen({
 
   const doctorOptions = useMemo(() => {
     const set = new Set<string>();
-    revenueTableSource.forEach((d) => {
+    for (const d of revenueTableSource) {
       if (d.doctorName) set.add(d.doctorName);
-    });
+    }
     const list = Array.from(set).filter(Boolean);
     if (!list.includes("Dr. sarath")) list.push("Dr. sarath");
     if (!list.includes("Dr. pradeep")) list.push("Dr. pradeep");
     if (!list.includes("Dr. Rajesh Kumar")) list.push("Dr. Rajesh Kumar");
     return ["All Doctors", ...list];
   }, [revenueTableSource]);
+
+  // Computed KPI Card Values from filtered data
+  const computedRevenueStats = useMemo(() => {
+    let sumBilled = 0;
+    let sumPaid = 0;
+    let sumDue = 0;
+    let paidInvoices = 0;
+    let pendingInvoices = 0;
+    let voidInvoices = 0;
+
+    for (const inv of filteredData) {
+      const billed = inv.invoiceAmount;
+      const paid = inv.collectedAmount;
+      const due = inv.outstandingAmount || Math.max(0, billed - paid);
+      sumBilled += billed;
+      sumPaid += paid;
+      sumDue += due;
+      const st = String(inv.paymentStatus).toUpperCase();
+      if (st === "PAID" || st === "COMPLETED") paidInvoices++;
+      else if (st === "CANCELLED" || st === "VOID") voidInvoices++;
+      else pendingInvoices++;
+    }
+
+    const invoicesCount = filteredData.length;
+    const totalRev = sumBilled || collectionRateData?.totalBilledAmount || 2173826168;
+    const collectedRev =
+      sumPaid || collectionRateData?.totalCollectedAmount || 2173826168;
+    const outstanding =
+      sumDue || collectionRateData?.totalPendingAmount || 1032500000;
+
+    const collectionRate =
+      totalRev > 0 ? ((collectedRev / totalRev) * 100).toFixed(1) : "94.4";
+
+    return {
+      totalRev,
+      collectedRev,
+      outstanding,
+      invoicesCount:
+        invoicesCount ||
+        (revenueDetailsList.length > 0 ? revenueDetailsList.length : 4),
+      paidInvoices: paidInvoices || 2,
+      pendingInvoices: pendingInvoices || 2,
+      voidInvoices: voidInvoices || 0,
+      avgValue:
+        invoicesCount > 0 ? Math.round(sumBilled / invoicesCount) : 543456542,
+      collectionRate,
+    };
+  }, [filteredData, collectionRateData, revenueDetailsList]);
 
   const [lastUpdated] = useState(() => {
     const now = new Date();
@@ -632,6 +701,119 @@ export function DailyRevenueReportScreen({
     setTimeout(() => dispatch({ type: "SET_REFRESHING", payload: false }), 400);
   };
 
+  const handleExportAllCsv = () => {
+    // 1. KPI Summary
+    const kpiSummaryRows = [
+      {
+        Section: "1. SUMMARY KPI",
+        Category_Item: "Total Revenue Billed",
+        Amount_or_Count: `INR ${computedRevenueStats.totalRev}`,
+        Percentage_Share: "100%",
+        Primary_Detail: "Total Billed Across All Services",
+        Secondary_Detail: "Hospital Operational Revenue",
+        Status_or_Date: "Total Billed",
+      },
+      {
+        Section: "1. SUMMARY KPI",
+        Category_Item: "Total Revenue Collected",
+        Amount_or_Count: `INR ${computedRevenueStats.collectedRev}`,
+        Percentage_Share: `${computedRevenueStats.collectionRate}%`,
+        Primary_Detail: "Total Realized Collections",
+        Secondary_Detail: "Bank & Cash Realization",
+        Status_or_Date: "Collected",
+      },
+      {
+        Section: "1. SUMMARY KPI",
+        Category_Item: "Total Outstanding Balance",
+        Amount_or_Count: `INR ${computedRevenueStats.outstanding}`,
+        Percentage_Share: `${(100 - Number(computedRevenueStats.collectionRate || 0)).toFixed(1)}%`,
+        Primary_Detail: "Uncollected Due Amounts",
+        Secondary_Detail: "Pending Receivables",
+        Status_or_Date: "Outstanding",
+      },
+    ];
+
+    // 2. Graph 1: Payment Method Share (%)
+    const totalMethodValue =
+      paymentMethodShareData.reduce((sum, m) => sum + (m.value || 0), 0) || 1;
+    const methodRows = paymentMethodShareData.map((m) => {
+      const pct = ((m.value / totalMethodValue) * 100).toFixed(1);
+      return {
+        Section: "2. PAYMENT METHOD GRAPH SHARE",
+        Category_Item: m.name,
+        Amount_or_Count: `INR ${m.value}`,
+        Percentage_Share: `${pct}%`,
+        Primary_Detail: `Collections via ${m.name}`,
+        Secondary_Detail: "Method Distribution Graph",
+        Status_or_Date: "Active",
+      };
+    });
+
+    // 3. Graph 2: Department Revenue Share (%)
+    const totalDeptVal =
+      deptRevenueData.reduce((sum, d) => sum + (d.revenue || 0), 0) || 1;
+    const deptRows = deptRevenueData.map((d) => {
+      const pct = ((d.revenue / totalDeptVal) * 100).toFixed(1);
+      return {
+        Section: "3. DEPARTMENT REVENUE GRAPH SHARE",
+        Category_Item: d.department,
+        Amount_or_Count: `INR ${d.revenue}`,
+        Percentage_Share: `${pct}%`,
+        Primary_Detail: `Department Revenue Total`,
+        Secondary_Detail: "Department Distribution Graph",
+        Status_or_Date: "Active",
+      };
+    });
+
+    // 4. Graph 3: Doctor Revenue Performance Share (%)
+    const totalDocVal =
+      doctorRevenueData.reduce((sum, d) => sum + (d.revenue || 0), 0) || 1;
+    const doctorRows = doctorRevenueData.map((d) => {
+      const pct = ((d.revenue / totalDocVal) * 100).toFixed(1);
+      return {
+        Section: "4. DOCTOR PERFORMANCE GRAPH SHARE",
+        Category_Item: d.doctor,
+        Amount_or_Count: `INR ${d.revenue}`,
+        Percentage_Share: `${pct}%`,
+        Primary_Detail: `Doctor Revenue Generated`,
+        Secondary_Detail: "Doctor Contribution Graph",
+        Status_or_Date: "Active",
+      };
+    });
+
+    // 5. Table: Complete Revenue Transaction Records
+    const recordRows = (
+      filteredData.length > 0 ? filteredData : revenueTableSource
+    ).map((rec) => {
+      const pct =
+        rec.invoiceAmount > 0
+          ? ((rec.collectedAmount / rec.invoiceAmount) * 100).toFixed(1)
+          : "0";
+      return {
+        Section: "5. REVENUE TRANSACTION TABLE REGISTRY",
+        Category_Item: rec.id,
+        Amount_or_Count: `Billed: INR ${rec.invoiceAmount} (Collected: INR ${rec.collectedAmount})`,
+        Percentage_Share: `${pct}%`,
+        Primary_Detail: `Patient: ${rec.patientName} (${rec.mrn})`,
+        Secondary_Detail: `Doctor: ${rec.doctorName} | Dept: ${rec.department} | Method: ${rec.paymentMethod}`,
+        Status_or_Date: `Date: ${rec.invoiceDate} | Status: ${rec.paymentStatus}`,
+      };
+    });
+
+    const allRows = [
+      ...kpiSummaryRows,
+      ...methodRows,
+      ...deptRows,
+      ...doctorRows,
+      ...recordRows,
+    ];
+
+    exportDataToCsv(
+      `Daily_Revenue_Report_Complete_All_Data_${new Date().toISOString().slice(0, 10)}.csv`,
+      allRows,
+    );
+  };
+
   const handleApplyFilters = () => {
     dispatch({ type: "SET_LOADING", payload: true });
     setTimeout(() => {
@@ -662,50 +844,6 @@ export function DailyRevenueReportScreen({
       dispatch({ type: "SET_LOADING", payload: false });
     }, 300);
   };
-
-  // Computed KPI Card Values from filtered data
-  const computedRevenueStats = useMemo(() => {
-    let sumBilled = 0;
-    let sumPaid = 0;
-    let sumDue = 0;
-    let paidInvoices = 0;
-    let pendingInvoices = 0;
-    let voidInvoices = 0;
-
-    filteredData.forEach((inv) => {
-      const billed = inv.invoiceAmount;
-      const paid = inv.collectedAmount;
-      const due = inv.outstandingAmount || Math.max(0, billed - paid);
-      sumBilled += billed;
-      sumPaid += paid;
-      sumDue += due;
-      const st = String(inv.paymentStatus).toUpperCase();
-      if (st === "PAID" || st === "COMPLETED") paidInvoices++;
-      else if (st === "CANCELLED" || st === "VOID") voidInvoices++;
-      else pendingInvoices++;
-    });
-
-    const invoicesCount = filteredData.length;
-    const totalRev = sumBilled || collectionRateData?.totalBilled || 2173826168;
-    const collectedRev =
-      sumPaid || collectionRateData?.totalCollected || 2173826168;
-    const outstanding =
-      sumDue || collectionRateData?.outstandingAmount || 1032500000;
-
-    return {
-      totalRev,
-      collectedRev,
-      outstanding,
-      invoicesCount:
-        invoicesCount ||
-        (revenueDetailsList.length > 0 ? revenueDetailsList.length : 4),
-      paidInvoices: paidInvoices || 2,
-      pendingInvoices: pendingInvoices || 2,
-      voidInvoices: voidInvoices || 0,
-      avgValue:
-        invoicesCount > 0 ? Math.round(sumBilled / invoicesCount) : 543456542,
-    };
-  }, [filteredData, collectionRateData, revenueDetailsList]);
 
   // Sorted records
   const sortedData = useMemo(() => {
@@ -822,23 +960,18 @@ export function DailyRevenueReportScreen({
 
               <button
                 onClick={() => window.print()}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium text-[#111827] bg-white border border-[#E5E7EB] hover:bg-slate-50 transition shadow-sm"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium text-[#111827] bg-white border border-[#E5E7EB] hover:bg-slate-50 transition shadow-sm cursor-pointer"
               >
                 <Printer className="w-3.5 h-3.5 text-[#0D47A1]" />
                 <span>Print Report</span>
               </button>
 
               <button
-                onClick={() =>
-                  dispatch({
-                    type: "SET_EXPORT_STATE",
-                    payload: { showExportModal: true },
-                  })
-                }
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#0D47A1] hover:bg-blue-900 transition shadow-sm"
+                onClick={handleExportAllCsv}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-slate-50 transition shadow-sm cursor-pointer"
                 style={{ fontFamily: PP }}
               >
-                <Download className="w-3.5 h-3.5" />
+                <Download className="w-4 h-4 text-emerald-600" />
                 <span>Export Report</span>
               </button>
             </div>
@@ -1024,22 +1157,10 @@ export function DailyRevenueReportScreen({
               UPI: -- | Bank: --
             </div>
             <div className="w-full bg-slate-100 rounded-full h-2 flex overflow-hidden">
-              <div
-                className="bg-[#009688] h-full"
-                style={{ width: "35%" }}
-              />
-              <div
-                className="bg-[#0D47A1] h-full"
-                style={{ width: "32%" }}
-              />
-              <div
-                className="bg-[#4DB6AC] h-full"
-                style={{ width: "26%" }}
-              />
-              <div
-                className="bg-[#66BB6A] h-full"
-                style={{ width: "7%" }}
-              />
+              <div className="bg-[#009688] h-full" style={{ width: "35%" }} />
+              <div className="bg-[#0D47A1] h-full" style={{ width: "32%" }} />
+              <div className="bg-[#4DB6AC] h-full" style={{ width: "26%" }} />
+              <div className="bg-[#66BB6A] h-full" style={{ width: "7%" }} />
             </div>
           </div>
 
@@ -1063,7 +1184,7 @@ export function DailyRevenueReportScreen({
               </div>
             </div>
             <CircularProgress
-              percentage={collectionRateData?.collectionRate ?? 0}
+              percentage={Number(computedRevenueStats.collectionRate || 0)}
               size={64}
               strokeWidth={7}
             />
@@ -1125,7 +1246,7 @@ export function DailyRevenueReportScreen({
                       type: "SET_FILTER",
                       payload: { key: "dateRange", value: btn.value },
                     });
-                    const r = getDateRange(btn.value);
+                    const r = computeDateRangeObject(btn.value, fromDate, toDate);
                     setFromDate(r.fromDate);
                     setToDate(r.toDate);
                   }}

@@ -15,7 +15,8 @@ interface EditConsultationVisitInfoCardProps {
     visitType: string;
     chiefComplaint: string;
   };
-  setFormData: React.Dispatch<React.SetStateAction<any>>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  setFormData: (action: any) => void;
 }
 
 export const EditConsultationVisitInfoCard: React.FC<
@@ -109,6 +110,7 @@ export const EditConsultationVisitInfoCard: React.FC<
                 disabled={!isEditing}
                 value={formData.visitType}
                 onChange={(e) =>
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   setFormData((prev: any) => ({
                     ...prev,
                     visitType: e.target.value,
@@ -136,7 +138,8 @@ export const EditConsultationVisitInfoCard: React.FC<
               rows={2}
               value={formData.chiefComplaint}
               onChange={(e) =>
-                setFormData((prev: any) => ({
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  setFormData((prev: any) => ({
                   ...prev,
                   chiefComplaint: e.target.value,
                 }))

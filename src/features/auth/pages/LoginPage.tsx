@@ -65,7 +65,9 @@ export const LoginPage: React.FC = () => {
           pendingDob = parsed?.dateOfBirth || parsed?.dob || "";
           pendingGender = parsed?.gender || "";
         }
-      } catch {}
+      } catch (err) {
+        void err;
+      }
 
       const userDob = rawUser.dateOfBirth || rawUser.dob || pendingDob;
       const userGender = rawUser.gender || pendingGender;

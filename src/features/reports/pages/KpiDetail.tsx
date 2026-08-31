@@ -1,5 +1,22 @@
 import { useState, useMemo, useReducer } from "react";
-import { ArrowLeft } from "lucide-react";
+import {
+  ArrowLeft,
+  Download,
+  RefreshCw,
+  Clock,
+  Printer,
+  ChevronRight,
+  TrendingUp,
+  Filter,
+  Search,
+  PieChart as PieChartIcon,
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight as ChevronRightIcon,
+  Eye,
+  BarChart3,
+} from "lucide-react";
+import { exportDataToCsv } from "../utils/export.utils";
 
 type ReportState = {
   searchQuery: string;
@@ -72,22 +89,6 @@ function reducer(state: ReportState, action: ReportAction): ReportState {
       return state;
   }
 }
-import {
-  Download,
-  RefreshCw,
-  Filter,
-  Search,
-  ChevronRight,
-  Clock,
-  PieChart as PieChartIcon,
-  AlertCircle,
-  TrendingUp,
-  Printer,
-  ChevronLeft,
-  ChevronRight as ChevronRightIcon,
-  Eye,
-  BarChart3,
-} from "lucide-react";
 import { PP, RB } from "../constants/reports.constants";
 import type {
   KpiRevenueRecord,
@@ -106,8 +107,6 @@ import {
   usePatientMasterRegister,
   useInvoiceRegister,
   useCollectionRateSummary,
-  useCollectionRateAnalytics,
-  useCollectionRateActivityTrend,
   extractList,
 } from "../hooks/useReports";
 import {
@@ -277,9 +276,8 @@ export function DashboardKpiDetailScreen({
   const { data: rawApptDetails } = useDailyAppointmentDetails(reportFilters);
   const { data: rawPatientRegister } = usePatientMasterRegister(reportFilters);
   const { data: rawInvoiceRegister } = useInvoiceRegister(reportFilters);
-  useCollectionRateSummary(reportFilters);
-  useCollectionRateAnalytics(reportFilters);
-  useCollectionRateActivityTrend(reportFilters);
+  const { data: collectionRateSummaryData } =
+    useCollectionRateSummary(reportFilters);
 
   const revenueList = useMemo(
     () => extractList<DailyRevenueDetail>(rawRevenueDetails),
@@ -773,6 +771,26 @@ export function DashboardKpiDetailScreen({
     let collectedAmt = 0;
     let pendingAmt = 0;
 
+    if (collectionRateSummaryData) {
+      return {
+        recordCount: count,
+        totalAmount: Number(collectionRateSummaryData.totalBilledAmount || 0),
+        collectedAmount: Number(
+          collectionRateSummaryData.totalCollectedAmount || 0,
+        ),
+        pendingAmount: Number(
+          collectionRateSummaryData.totalPendingAmount || 0,
+        ),
+        averageValue:
+          count > 0
+            ? Math.round(
+                Number(collectionRateSummaryData.totalBilledAmount || 0) /
+                  count,
+              )
+            : 0,
+      };
+    }
+
     if (isRevenueKpi) {
       (currentDataset as KpiRevenueRecord[]).forEach((d) => {
         totalAmt += d.invoiceAmount;
@@ -792,7 +810,63 @@ export function DashboardKpiDetailScreen({
       averageValue:
         count > 0 ? Math.round((totalAmt || pendingAmt || 500) / count) : 0,
     };
-  }, [currentDataset, isRevenueKpi, isPendingKpi]);
+  }, [currentDataset, isRevenueKpi, isPendingKpi, collectionRateSummaryData]);
+
+  const handleExportAllCsv = () => {
+    const kpiSummaryRows = [
+      {
+        Section: "1. SUMMARY KPI CARD",
+        Category_Item: selectedKpi,
+        Count_or_Amount: String(
+          summaryMetrics.totalAmount || summaryMetrics.recordCount,
+        ),
+        Percentage_Share: "100%",
+        Primary_Detail: `Total Records: ${summaryMetrics.recordCount}`,
+        Secondary_Detail: `Collected: INR ${summaryMetrics.collectedAmount} | Pending: INR ${summaryMetrics.pendingAmount}`,
+        Date_or_Status: "Active",
+      },
+      {
+        Section: "1. SUMMARY KPI CARD",
+        Category_Item: "Average Value",
+        Count_or_Amount: `INR ${summaryMetrics.averageValue}`,
+        Percentage_Share: "100%",
+        Primary_Detail: `Average per record in ${selectedKpi}`,
+        Secondary_Detail: "KPI Summary Metric",
+        Date_or_Status: "Calculated",
+      },
+    ];
+
+    type CsvExportRecord = Record<string, string | number | boolean | null | undefined>;
+    const recordRows = (currentDataset as unknown as Array<CsvExportRecord>).map((rec, idx) => ({
+      Section: "2. KPI DRILL-DOWN TABLE REGISTRY",
+      Category_Item:
+        rec.invoiceId ||
+        rec.appointmentId ||
+        rec.mrn ||
+        rec.consultationId ||
+        `REC-${idx + 1}`,
+      Count_or_Amount: rec.invoiceAmount
+        ? `INR ${rec.invoiceAmount}`
+        : rec.pendingAmount
+          ? `INR ${rec.pendingAmount}`
+          : rec.visitType || rec.appointmentStatus || "Record",
+      Percentage_Share: rec.collectedAmount
+        ? `${((Number(rec.collectedAmount) / (Number(rec.invoiceAmount) || 1)) * 100).toFixed(1)}%`
+        : "100%",
+      Primary_Detail: rec.patientName
+        ? `Patient: ${rec.patientName} (${rec.mrn || "N/A"})`
+        : "N/A",
+      Secondary_Detail: `Doctor: ${rec.doctorName || rec.registeredBy || "N/A"} | Dept: ${rec.department || "General"}`,
+      Date_or_Status: `Date/Time: ${rec.invoiceDate || rec.appointmentTime || rec.dueDate || today} | Status: ${rec.paymentStatus || rec.appointmentStatus || rec.status || "Active"}`,
+    }));
+
+    const allRows = [...kpiSummaryRows, ...recordRows];
+
+    exportDataToCsv(
+      `Dashboard_KPI_Detail_${selectedKpi.replace(/[^A-Za-z0-9]/g, "_")}_All_Data_${new Date().toISOString().slice(0, 10)}.csv`,
+      allRows,
+    );
+  };
 
   // Render status badge helper
 
@@ -875,11 +949,12 @@ export function DashboardKpiDetailScreen({
               </button>
 
               <button
-                onClick={() => setShowExportModal(true)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium text-white bg-[#0D47A1] hover:bg-blue-900 transition shadow-sm"
+                onClick={handleExportAllCsv}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-slate-50 transition shadow-sm cursor-pointer"
+                style={{ fontFamily: PP }}
               >
-                <Download className="w-3.5 h-3.5" />
-                <span>Export Register</span>
+                <Download className="w-4 h-4 text-emerald-600" />
+                <span>Export Report</span>
               </button>
 
               <button
@@ -958,6 +1033,9 @@ export function DashboardKpiDetailScreen({
                   <span className="text-[10px] text-[#009688] font-semibold mt-2 block">
                     Collected: ₹
                     {summaryMetrics.collectedAmount.toLocaleString()}
+                    {collectionRateSummaryData
+                      ? ` (${collectionRateSummaryData.collectionRatePercentage || 0}%)`
+                      : ""}
                   </span>
                 </div>
                 <div className="bg-[#F1F5F9] rounded-xl p-3.5 border border-[#E5E7EB] flex flex-col justify-between h-full">

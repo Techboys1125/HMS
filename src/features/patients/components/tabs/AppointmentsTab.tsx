@@ -179,10 +179,6 @@ export function PatientAppointmentsTab({
     () => (Array.isArray(appointments) ? appointments : []),
     [appointments],
   );
-  const safeAppointments = useMemo(
-    () => (Array.isArray(appointments) ? appointments : []),
-    [appointments],
-  );
 
   // Extract unique departments for dropdown
   const uniqueDepartments = useMemo(() => {

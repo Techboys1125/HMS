@@ -17,6 +17,7 @@ import {
   Search,
   AlertCircle,
 } from "lucide-react";
+import { getTodayDateString, normalizeDateString } from "../../../lib/time-utils";
 
 const fetchQueue = async () => {
   return appointmentService.getActiveAppointments();
@@ -71,11 +72,11 @@ export function QueueManagementScreen({
   const [searchQuery, setSearchQuery] = useState("");
 
   // Filter Bar state
+  const todayDateStr = getTodayDateString();
   const [selectedDoctor, setSelectedDoctor] = useState("All Doctors");
   const [selectedDept, setSelectedDept] = useState("All Departments");
-  const [, setSelectedDate] = useState("Today (2026-07-24)");
+  const [selectedDate, setSelectedDate] = useState(todayDateStr);
   const [selectedStatus, setSelectedStatus] = useState("All Statuses");
-  const [selectedType, setSelectedType] = useState("All Types");
 
   const [apiDepts, setApiDepts] = useState<string[]>([]);
 
@@ -209,10 +210,21 @@ export function QueueManagementScreen({
       const matchStatus =
         selectedStatus === "All Statuses" ||
         String(item.status).toUpperCase() === selectedStatus.toUpperCase();
+      const matchDate =
+        !selectedDate ||
+        normalizeDateString(item.appointmentDate || item.date || "") ===
+          normalizeDateString(selectedDate);
 
-      return matchSearch && matchDoc && matchDept && matchStatus;
+      return matchSearch && matchDoc && matchDept && matchStatus && matchDate;
     });
-  }, [queueItems, searchQuery, selectedDoctor, selectedDept, selectedStatus]);
+  }, [
+    queueItems,
+    searchQuery,
+    selectedDoctor,
+    selectedDept,
+    selectedStatus,
+    selectedDate,
+  ]);
 
   // Pagination handled by DataTable component
 
@@ -233,16 +245,22 @@ export function QueueManagementScreen({
     ).length;
     const completed = queueItems.filter((i) => i.status === "Completed").length;
     const noShows = queueItems.filter((i) => i.status === "No Show").length;
-    return { waiting, checkedIn, inConsultation, completed, noShows };
+    const waitTimes = queueItems
+      .map((i) => i.waitingTimeMinutes)
+      .filter((w): w is number => typeof w === "number" && w > 0);
+    const avgWaitTime =
+      waitTimes.length > 0
+        ? Math.round(waitTimes.reduce((a, b) => a + b, 0) / waitTimes.length)
+        : null;
+    return { waiting, checkedIn, inConsultation, completed, noShows, avgWaitTime };
   }, [queueItems]);
 
   const resetFilters = () => {
     setSearchQuery("");
     setSelectedDoctor("All Doctors");
     setSelectedDept("All Departments");
-    setSelectedDate("Today (2026-07-24)");
+    setSelectedDate(todayDateStr);
     setSelectedStatus("All Statuses");
-    setSelectedType("All Types");
   };
 
   const handleMarkNoShow = async (apt: AppointmentRecord) => {
@@ -363,6 +381,13 @@ export function QueueManagementScreen({
               className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] font-medium focus:outline-none"
             >
               <option>All Doctors</option>
+              {Array.from(
+                new Set(queueItems.map((i) => i.doctorName).filter(Boolean)),
+              ).map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
             </select>
 
             <select
@@ -393,20 +418,6 @@ export function QueueManagementScreen({
               <option>Completed</option>
               <option>No Show</option>
               <option>Cancelled</option>
-            </select>
-
-            <select
-              aria-label="Select option"
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] font-medium focus:outline-none"
-            >
-              <option>All Types</option>
-              <option>New Visit</option>
-              <option>Follow-up</option>
-              <option>Routine</option>
-              <option>Emergency</option>
-              <option>Consultation</option>
             </select>
 
             <button
@@ -528,7 +539,7 @@ export function QueueManagementScreen({
             className="text-2xl font-bold text-[#0D47A1]"
             style={{ fontFamily: PP }}
           >
-            14 min
+            {metrics.avgWaitTime !== null ? `${metrics.avgWaitTime} min` : "--"}
           </div>
           <span className="text-[10px] text-slate-400 font-medium">
             OPD bench target

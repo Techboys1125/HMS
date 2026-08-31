@@ -11,6 +11,7 @@ import {
   CreditCard,
   Loader2,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import {
   useReceptionSummary,
   useReceptionRegistrationTrend,
@@ -19,7 +20,7 @@ import {
   useReceptionRegistrationCategories,
   useReceptionPerformanceSummary,
 } from "../hooks/useReceptionDashboard";
-
+import { receptionDashboardApi } from "../api/receptionDashboard.api";
 import {
   AreaChart,
   Area,
@@ -238,19 +239,6 @@ function SH({
   );
 }
 
-const REC_STATUS_CHIP: Record<
-  string,
-  "success" | "teal" | "warning" | "error" | "info" | "default"
-> = {
-  Completed: "success",
-  "In Consultation": "teal",
-  Waiting: "warning",
-  "Checked In": "info",
-  Ready: "info",
-  Scheduled: "default",
-  Cancelled: "error",
-};
-
 // Quick Actions strictly aligned with requirements
 const REC_QUICK_ACTIONS = [
   {
@@ -283,7 +271,6 @@ export function ReceptionDashboard({
   onCheckInClick,
   userRole = "Receptionist",
   onPatientSelect,
-  onEditPatient,
 }: {
   onRegisterPatient?: () => void;
   onPatientSearch?: () => void;
@@ -310,6 +297,12 @@ export function ReceptionDashboard({
     useReceptionRegistrationCategories();
   const { data: perfSummary, error: perfSummaryError } =
     useReceptionPerformanceSummary();
+
+  const { data: queueData } = useQuery({
+    queryKey: ["reception-dashboard", "queue"],
+    queryFn: receptionDashboardApi.getQueue,
+    refetchInterval: 30000,
+  });
 
   const hasError =
     summaryError ||
@@ -792,40 +785,10 @@ export function ReceptionDashboard({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {(
-                [] as Array<{
-                  token: string;
-                  name: string;
-                  doctor: string;
-                  dept: string;
-                  time: string;
-                  pos: string;
-                  status: string;
-                }>
-              ).length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={8}
-                    className="px-5 py-8 text-center text-xs text-[#64748B]"
-                    style={{ fontFamily: RB }}
-                  >
-                    No patients in queue
-                  </td>
-                </tr>
-              ) : (
-                (
-                  [] as Array<{
-                    token: string;
-                    name: string;
-                    doctor: string;
-                    dept: string;
-                    time: string;
-                    pos: string;
-                    status: string;
-                  }>
-                ).map((q) => (
+              {queueData && queueData.length > 0 ? (
+                queueData.map((q) => (
                   <tr
-                    key={q.token || q.name}
+                    key={q.token}
                     className="hover:bg-slate-50 transition-colors"
                   >
                     <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
@@ -833,12 +796,12 @@ export function ReceptionDashboard({
                     </td>
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-2">
-                        <Av name={q.name} size="sm" />
+                        <Av name={q.patientName} size="sm" />
                         <span
                           className="text-xs font-medium text-[#111827]"
                           style={{ fontFamily: RB }}
                         >
-                          {q.name}
+                          {q.patientName}
                         </span>
                       </div>
                     </td>
@@ -846,24 +809,39 @@ export function ReceptionDashboard({
                       className="px-5 py-3 text-xs text-[#64748B]"
                       style={{ fontFamily: RB }}
                     >
-                      {q.doctor}
+                      {q.doctorName}
                     </td>
                     <td
                       className="px-5 py-3 text-xs text-[#64748B]"
                       style={{ fontFamily: RB }}
                     >
-                      {q.dept}
+                      {q.departmentName}
                     </td>
                     <td className="px-5 py-3 font-mono text-xs text-slate-600">
-                      {q.time}
+                      {q.appointmentTime}
                     </td>
                     <td className="px-5 py-3 font-mono text-xs font-bold text-[#009688]">
-                      {q.pos}
+                      {q.queuePosition}
                     </td>
                     <td className="px-5 py-3">
                       <Chip
                         label={q.status}
-                        variant={REC_STATUS_CHIP[q.status] || "default"}
+                        variant={
+                          q.status === "Scheduled"
+                            ? "default"
+                            : q.status === "Checked In" ||
+                                q.status === "CHECKED_IN"
+                              ? "info"
+                              : q.status === "Waiting" ||
+                                  q.status === "WAITING"
+                                ? "warning"
+                                : q.status === "Completed"
+                                  ? "success"
+                                  : q.status === "Cancelled" ||
+                                      q.status === "CANCELLED"
+                                    ? "error"
+                                    : "default"
+                        }
                       />
                     </td>
                     <td className="px-5 py-3">
@@ -872,7 +850,7 @@ export function ReceptionDashboard({
                           <button
                             onClick={() => {
                               if (onCheckInClick)
-                                onCheckInClick(q.token, "MRN-REG");
+                                onCheckInClick(q.token, q.mrn);
                               else navigate(ROUTES.APPOINTMENTS);
                             }}
                             className="px-2.5 py-1 rounded-lg bg-[#009688] text-white text-[11px] font-semibold hover:bg-teal-700 transition-colors"
@@ -887,12 +865,12 @@ export function ReceptionDashboard({
                         )}
                         <button
                           onClick={() => {
-                            if (onPatientSelect) onPatientSelect("MRN-892101");
+                            if (onPatientSelect) onPatientSelect(q.mrn);
                             else
                               navigate(
                                 ROUTES.PATIENT_PROFILE.replace(
                                   ":mrn",
-                                  "MRN-892101",
+                                  q.mrn,
                                 ),
                               );
                           }}
@@ -900,25 +878,20 @@ export function ReceptionDashboard({
                         >
                           View
                         </button>
-                        <button
-                          onClick={() => {
-                            if (onEditPatient) onEditPatient("MRN-892101");
-                            else
-                              navigate(
-                                ROUTES.PATIENT_PROFILE.replace(
-                                  ":mrn",
-                                  "MRN-892101",
-                                ),
-                              );
-                          }}
-                          className="px-2 py-1 rounded-lg border border-[#E5E7EB] text-slate-600 text-[11px] font-medium hover:bg-slate-50 transition-colors"
-                        >
-                          Edit
-                        </button>
                       </div>
                     </td>
                   </tr>
                 ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={8}
+                    className="px-5 py-8 text-center text-xs text-[#64748B]"
+                    style={{ fontFamily: RB }}
+                  >
+                    No patients in queue
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>

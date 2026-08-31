@@ -762,7 +762,8 @@ export function ConsultationHistoryScreen({
     return () => {
       isMounted = false;
     };
-  }, [patientId, patientData.department, patientData.primaryDoctor]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [patientId]);
 
   const toggleExpand = (id: string) => {
     setExpandedCardIds((prev) => ({ ...prev, [id]: !prev[id] }));

@@ -300,9 +300,6 @@ export const vitalsApi = {
       const response = await apiClient.get<
         NurseVitalsApiResponse<unknown> | Record<string, unknown>
       >(`/api/v1/encounters/${encounterId}/vitals`);
-      const response = await apiClient.get<
-        NurseVitalsApiResponse<unknown> | Record<string, unknown>
-      >(`/api/v1/encounters/${encounterId}/vitals`);
       return response.data;
     } catch {
       return null;

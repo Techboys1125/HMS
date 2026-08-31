@@ -31,6 +31,7 @@ import {
   useDailyAppointmentDetails,
   extractList,
 } from "../hooks/useReports";
+import { exportDataToCsv } from "../utils/export.utils";
 
 import {
   AreaChart,
@@ -521,6 +522,102 @@ export function DailyAppointmentReportScreen({
     setIsRefreshing(true);
     setTimeout(() => setIsRefreshing(false), 600);
   };
+
+  const handleExportAllCsv = () => {
+    // 1. KPI Cards Summary
+    const kpiRows = [
+      {
+        Section: "1. SUMMARY KPI CARDS",
+        Category_Item: "Total Appointments Booked",
+        Count_or_Amount: `${totalAppointments} Appointments`,
+        Percentage_Share: "100%",
+        Primary_Detail: `Completed: ${completedAppointments}`,
+        Secondary_Detail: `Pending: ${pendingAppointments} | Cancelled: ${cancelledAppointments}`,
+        Date_or_Status: "Total Booked",
+      },
+      {
+        Section: "1. SUMMARY KPI CARDS",
+        Category_Item: "Completed Consultations",
+        Count_or_Amount: `${completedAppointments} Consultations`,
+        Percentage_Share: `${completionRate}%`,
+        Primary_Detail: "Successfully Consulted Patients",
+        Secondary_Detail: "OPD Completed Visits",
+        Date_or_Status: "Completed",
+      },
+      {
+        Section: "1. SUMMARY KPI CARDS",
+        Category_Item: "Cancelled Appointments",
+        Count_or_Amount: `${cancelledAppointments} Appointments`,
+        Percentage_Share: `${cancellationRate}%`,
+        Primary_Detail: "Cancelled by Doctor or Patient",
+        Secondary_Detail: "OPD Cancellations",
+        Date_or_Status: "Cancelled",
+      },
+      {
+        Section: "1. SUMMARY KPI CARDS",
+        Category_Item: "Pending / Waiting Appointments",
+        Count_or_Amount: `${pendingAppointments} Appointments`,
+        Percentage_Share: `${noShowRate}%`,
+        Primary_Detail: "In-Queue / Scheduled Patients",
+        Secondary_Detail: "Waiting for Doctor",
+        Date_or_Status: "Pending",
+      },
+    ];
+
+    // 2. Chart Performance: Appointment Status Graph Share (%)
+    const totalStatusCount = statusDistFromApi.reduce((s, i) => s + (i.value || 0), 0) || 1;
+    const statusChartRows = statusDistFromApi.map((item) => {
+      const pct = ((item.value / totalStatusCount) * 100).toFixed(1);
+      return {
+        Section: "2. STATUS DISTRIBUTION GRAPH SHARE",
+        Category_Item: item.name,
+        Count_or_Amount: `${item.value} Appointments`,
+        Percentage_Share: `${pct}%`,
+        Primary_Detail: `Status Share in OPD`,
+        Secondary_Detail: "Status Graph Performance",
+        Date_or_Status: item.name,
+      };
+    });
+
+    // 3. Chart Performance: Department Volume Graph Share (%)
+    const totalDeptAppts = deptVolumeData.reduce((s, d) => s + d.appointments, 0) || 1;
+    const deptChartRows = deptVolumeData.map((dept) => {
+      const pct = ((dept.appointments / totalDeptAppts) * 100).toFixed(1);
+      const compPct = dept.appointments > 0 ? ((dept.completed / dept.appointments) * 100).toFixed(1) : "0";
+      return {
+        Section: "3. DEPARTMENT VOLUME GRAPH SHARE",
+        Category_Item: dept.department,
+        Count_or_Amount: `${dept.appointments} Appointments (${dept.completed} Completed)`,
+        Percentage_Share: `${pct}%`,
+        Primary_Detail: `Department Completion: ${compPct}%`,
+        Secondary_Detail: "Department OPD Volume Share",
+        Date_or_Status: "Active",
+      };
+    });
+
+    // 4. Detailed Table Values
+    const recordRows = (filteredData.length > 0 ? filteredData : tableDataSource).map((rec) => ({
+      Section: "4. APPOINTMENT DETAILED TABLE REGISTRY",
+      Category_Item: rec.id,
+      Count_or_Amount: `Visit: ${rec.visitType}`,
+      Percentage_Share: rec.status === "Completed" ? "100%" : "0%",
+      Primary_Detail: `Patient: ${rec.patientName} (${rec.mrn})`,
+      Secondary_Detail: `Doctor: ${rec.doctorName} | Dept: ${rec.department}`,
+      Date_or_Status: `Date: ${rec.appointmentDate} ${rec.appointmentTime} | Status: ${rec.status}`,
+    }));
+
+    const allRows = [
+      ...kpiRows,
+      ...statusChartRows,
+      ...deptChartRows,
+      ...recordRows,
+    ];
+
+    exportDataToCsv(
+      `Daily_Appointment_Report_Complete_All_Data_${new Date().toISOString().slice(0, 10)}.csv`,
+      allRows
+    );
+  };
   const handleResetFilters = () => {
     setSearchQuery("");
     setDateRange("Today");
@@ -531,68 +628,56 @@ export function DailyAppointmentReportScreen({
     setShiftFilter("All Shifts");
   };
 
-  const filteredData = useMemo(() => {
-    return tableDataSource.filter((item) => {
-      const itemDate = (item.appointmentDate || "").slice(0, 10);
-      const matchesDate =
-        !dates.fromDate ||
-        !dates.toDate ||
-        (itemDate >= dates.fromDate && itemDate <= dates.toDate);
+  const filteredData = tableDataSource.filter((item) => {
+    const itemDate = (item.appointmentDate || "").slice(0, 10);
+    const matchesDate =
+      !dates.fromDate ||
+      !dates.toDate ||
+      (itemDate >= dates.fromDate && itemDate <= dates.toDate);
 
-      const matchesSearch =
-        !searchQuery ||
-        item.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.doctorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.department.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch =
+      !searchQuery ||
+      item.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.doctorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.department.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesDept =
-        deptFilter === "All Departments" ||
-        item.department.toLowerCase().includes(deptFilter.toLowerCase()) ||
-        deptFilter.toLowerCase().includes(item.department.toLowerCase());
+    const matchesDept =
+      deptFilter === "All Departments" ||
+      item.department.toLowerCase().includes(deptFilter.toLowerCase()) ||
+      deptFilter.toLowerCase().includes(item.department.toLowerCase());
 
-      const matchesDoctor =
-        doctorFilter === "All Doctors" ||
-        item.doctorName.toLowerCase().includes(doctorFilter.toLowerCase()) ||
-        doctorFilter.toLowerCase().includes(item.doctorName.toLowerCase());
+    const matchesDoctor =
+      doctorFilter === "All Doctors" ||
+      item.doctorName.toLowerCase().includes(doctorFilter.toLowerCase()) ||
+      doctorFilter.toLowerCase().includes(item.doctorName.toLowerCase());
 
-      const matchesStatus =
-        statusFilter === "All Statuses" ||
-        item.status.toLowerCase() === statusFilter.toLowerCase();
+    const matchesStatus =
+      statusFilter === "All Statuses" ||
+      item.status.toLowerCase() === statusFilter.toLowerCase();
 
-      const matchesVisit =
-        visitTypeFilter === "All Visit Types" ||
-        item.visitType.toLowerCase().includes(visitTypeFilter.toLowerCase()) ||
-        visitTypeFilter.toLowerCase().includes(item.visitType.toLowerCase());
+    const matchesVisit =
+      visitTypeFilter === "All Visit Types" ||
+      item.visitType.toLowerCase().includes(visitTypeFilter.toLowerCase()) ||
+      visitTypeFilter.toLowerCase().includes(item.visitType.toLowerCase());
 
-      return (
-        matchesDate &&
-        matchesSearch &&
-        matchesDept &&
-        matchesDoctor &&
-        matchesStatus &&
-        matchesVisit
-      );
-    });
-  }, [
-    dates,
-    searchQuery,
-    deptFilter,
-    doctorFilter,
-    statusFilter,
-    visitTypeFilter,
-    tableDataSource,
-  ]);
+    return (
+      matchesDate &&
+      matchesSearch &&
+      matchesDept &&
+      matchesDoctor &&
+      matchesStatus &&
+      matchesVisit
+    );
+  });
 
-  const sortedData = useMemo(() => {
-    return filteredData.toSorted((a, b) => {
-      const aVal = a[sortField];
-      const bVal = b[sortField];
-      if (sortOrder === "asc") return aVal.localeCompare(bVal);
-      return bVal.localeCompare(aVal);
-    });
-  }, [filteredData, sortField, sortOrder]);
+  const sortedData = filteredData.toSorted((a, b) => {
+    const aVal = a[sortField];
+    const bVal = b[sortField];
+    if (sortOrder === "asc") return aVal.localeCompare(bVal);
+    return bVal.localeCompare(aVal);
+  });
 
   const handleSort = (field: keyof AppointmentReportRecord) => {
     if (sortField === field) {
@@ -690,12 +775,12 @@ export function DailyAppointmentReportScreen({
                 <span>Print</span>
               </button>
               <button
-                onClick={() => setShowExportModal(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0D47A1] text-white hover:bg-[#0a3880] text-xs font-semibold transition-all shadow-sm cursor-pointer"
+                onClick={handleExportAllCsv}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-slate-50 transition shadow-sm cursor-pointer"
                 style={{ fontFamily: PP }}
               >
-                <Download size={14} />
-                Export Summary
+                <Download className="w-4 h-4 text-emerald-600" />
+                <span>Export Report</span>
               </button>
             </div>
           </div>

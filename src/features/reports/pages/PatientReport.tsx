@@ -142,13 +142,15 @@ import type {
   PatientMasterRecord,
 } from "../types/reports.types";
 import {
-  usePatientAgeDemographics,
   useDepartmentPatientVisits,
   useGenderBreakdown,
   usePatientRegistrationSummary,
   usePatientMasterRegister,
+  usePatientDashboard,
+  usePatientRegistrationTrend,
   extractList,
 } from "../hooks/useReports";
+import { exportDataToCsv } from "../utils/export.utils";
 
 import { usePermissions } from "../../../permissions/usePermissions";
 import {
@@ -213,7 +215,7 @@ export function PatientReportScreen({
   onOpenAppointmentReport?: () => void;
   onOpenDoctorReport?: () => void;
 }) {
-  const { can, role } = usePermissions();
+  const {role } = usePermissions();
   // State
   const [state, dispatch] = useReducer(reducer, initialState);
   const {
@@ -267,18 +269,22 @@ export function PatientReportScreen({
       doctorId: doctorFilter !== "All Doctors" ? doctorFilter : undefined,
       departmentId: deptFilter !== "All Departments" ? deptFilter : undefined,
       status: regStatusFilter !== "All Statuses" ? regStatusFilter : undefined,
-      appointmentType:
+      visitType:
         visitTypeFilter !== "All Visit Types" ? visitTypeFilter : undefined,
+      gender: genderFilter !== "All Genders" ? genderFilter : undefined,
+      ageGroup: ageGroupFilter !== "All Age Groups" ? ageGroupFilter : undefined,
       page: 0,
       size: 50,
     }),
-    [dates, doctorFilter, deptFilter, regStatusFilter, visitTypeFilter],
+    [dates, doctorFilter, deptFilter, regStatusFilter, visitTypeFilter, genderFilter, ageGroupFilter],
   );
-  const { data: ageDemographics } = usePatientAgeDemographics(reportFilters);
+
   useDepartmentPatientVisits(reportFilters);
-  const { data: genderData } = useGenderBreakdown(reportFilters);
-  const { data: regSummary } = usePatientRegistrationSummary(reportFilters);
+  const { data: genderData = null } = useGenderBreakdown(reportFilters);
+  const { data: regSummary = null } = usePatientRegistrationSummary(reportFilters);
   const { data: patientMasterData } = usePatientMasterRegister(reportFilters);
+  const { data: patientDashboard = null } = usePatientDashboard(reportFilters);
+  const { data: registrationTrend = null } = usePatientRegistrationTrend(reportFilters);
 
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportFormat, setExportFormat] = useState<"pdf" | "excel" | "csv">(
@@ -336,6 +342,126 @@ export function PatientReportScreen({
     setTimeout(() => setIsRefreshing(false), 400);
   };
 
+  const handleExportAllCsv = () => {
+    // 1. KPI Cards Summary
+    const kpiRows = [
+      {
+        Section: "1. SUMMARY KPI CARDS",
+        Category_Item: "Total Patient Registrations",
+        Count_or_Amount: `${computedPatientStats.totalReg} Patients`,
+        Percentage_Share: "100%",
+        Primary_Detail: "Total Registered OPD Patients",
+        Secondary_Detail: `Active Patients: ${computedPatientStats.activeCount}`,
+        Date_or_Status: "Total Registrations",
+      },
+      {
+        Section: "1. SUMMARY KPI CARDS",
+        Category_Item: "New Patients",
+        Count_or_Amount: `${computedPatientStats.newCount} Patients`,
+        Percentage_Share: `${((computedPatientStats.newCount / (computedPatientStats.totalReg || 1)) * 100).toFixed(1)}%`,
+        Primary_Detail: "First-Time Registered Patients",
+        Secondary_Detail: "New Patient Registrations",
+        Date_or_Status: "New Patient",
+      },
+      {
+        Section: "1. SUMMARY KPI CARDS",
+        Category_Item: "Returning / Follow-Up Patients",
+        Count_or_Amount: `${computedPatientStats.returningCount} Patients`,
+        Percentage_Share: `${((computedPatientStats.returningCount / (computedPatientStats.totalReg || 1)) * 100).toFixed(1)}%`,
+        Primary_Detail: "Returning & Follow-up Visits",
+        Secondary_Detail: "Follow-up Registrations",
+        Date_or_Status: "Returning Patient",
+      },
+      {
+        Section: "1. SUMMARY KPI CARDS",
+        Category_Item: "Walk-In Patients",
+        Count_or_Amount: `${computedPatientStats.walkIns} Patients`,
+        Percentage_Share: `${((computedPatientStats.walkIns / (computedPatientStats.totalReg || 1)) * 100).toFixed(1)}%`,
+        Primary_Detail: "Walk-In Registrations",
+        Secondary_Detail: "Counter Registration",
+        Date_or_Status: "Walk-In",
+      },
+      {
+        Section: "1. SUMMARY KPI CARDS",
+        Category_Item: "Scheduled Patients",
+        Count_or_Amount: `${computedPatientStats.scheduled} Patients`,
+        Percentage_Share: `${((computedPatientStats.scheduled / (computedPatientStats.totalReg || 1)) * 100).toFixed(1)}%`,
+        Primary_Detail: "Pre-Booked Appointments",
+        Secondary_Detail: "Appointment Registrations",
+        Date_or_Status: "Scheduled",
+      },
+    ];
+
+    // 2. Graph 1: Gender Distribution Graph Share (%)
+    const totalGender = dynamicGenderData.reduce((s, g) => s + g.value, 0) || 1;
+    const genderChartRows = dynamicGenderData.map((g) => {
+      const pct = ((g.value / totalGender) * 100).toFixed(1);
+      return {
+        Section: "2. GENDER DEMOGRAPHICS GRAPH SHARE",
+        Category_Item: g.name,
+        Count_or_Amount: `${g.value} Patients`,
+        Percentage_Share: `${pct}%`,
+        Primary_Detail: `${g.name} Patient Demographics`,
+        Secondary_Detail: "Gender Share Graph",
+        Date_or_Status: "Active",
+      };
+    });
+
+    // 3. Graph 2: Age Group Demographics Graph Share (%)
+    const totalAgeCount = dynamicAgeData.reduce((s, a) => s + a.count, 0) || 1;
+    const ageChartRows = dynamicAgeData.map((a) => {
+      const pct = ((a.count / totalAgeCount) * 100).toFixed(1);
+      return {
+        Section: "3. AGE GROUP DEMOGRAPHICS GRAPH SHARE",
+        Category_Item: `Age Group ${a.group}`,
+        Count_or_Amount: `${a.count} Patients`,
+        Percentage_Share: `${pct}%`,
+        Primary_Detail: `Age Group ${a.group} Share`,
+        Secondary_Detail: "Age Demographics Graph",
+        Date_or_Status: "Active",
+      };
+    });
+
+    // 4. Graph 3: Department Registrations Share (%)
+    const totalDeptCount = dynamicDeptData.reduce((s, d) => s + d.total, 0) || 1;
+    const deptChartRows = dynamicDeptData.map((d) => {
+      const pct = ((d.total / totalDeptCount) * 100).toFixed(1);
+      return {
+        Section: "4. DEPARTMENT PATIENTS GRAPH SHARE",
+        Category_Item: d.department,
+        Count_or_Amount: `${d.total} Patients`,
+        Percentage_Share: `${pct}%`,
+        Primary_Detail: `Department Patient Volume`,
+        Secondary_Detail: "Department Share Graph",
+        Date_or_Status: "Active",
+      };
+    });
+
+    // 5. Table: Detailed Patient Registry Records
+    const recordRows = filteredData.map((rec) => ({
+      Section: "5. PATIENT MASTER TABLE REGISTRY",
+      Category_Item: rec.mrn,
+      Count_or_Amount: `Age: ${rec.age} | Gender: ${rec.gender}`,
+      Percentage_Share: rec.status === "Active" ? "100%" : "0%",
+      Primary_Detail: `Patient: ${rec.patientName} (Mobile: ${rec.mobile})`,
+      Secondary_Detail: `Doctor: ${rec.doctorName} | Dept: ${rec.department} | Visit: ${rec.visitType}`,
+      Date_or_Status: `Reg Date: ${rec.registrationDate} | Status: ${rec.status}`,
+    }));
+
+    const allRows = [
+      ...kpiRows,
+      ...genderChartRows,
+      ...ageChartRows,
+      ...deptChartRows,
+      ...recordRows,
+    ];
+
+    exportDataToCsv(
+      `Patient_Report_Complete_All_Data_${new Date().toISOString().slice(0, 10)}.csv`,
+      allRows
+    );
+  };
+
   const handleApplyFilters = () => {
     dispatch({ type: "LOAD_START" });
     setTimeout(() => {
@@ -377,34 +503,30 @@ export function PatientReportScreen({
     [patientMasterData],
   );
 
-  // Computed KPI Card Values from API hooks
-  const computedPatientStats = useMemo(() => {
-    const totalReg = regSummary?.totalRegistrations || patientMasterList.length || 65;
-    const newCount =
-      regSummary?.newPatients ||
-      patientMasterList.filter(
-        (p) => p.visitType === "New Visit" || !p.visitType,
-      ).length || 42;
-    const returningCount =
-      regSummary?.returningPatients ||
-      (totalReg - newCount > 0 ? totalReg - newCount : 23);
-    return {
-      totalReg,
-      newCount,
-      returningCount,
-      walkIns: patientMasterList.filter((p) => p.visitType === "Walk-In")
-        .length || 14,
-      scheduled: patientMasterList.filter((p) => p.visitType === "Scheduled")
-        .length || 26,
-      activeCount:
-        ageDemographics?.totalPatients ||
-        patientMasterList.filter((p) => p.status === "Active" || !p.status)
-          .length ||
-        totalReg,
-    };
-  }, [regSummary, ageDemographics, patientMasterList]);
+   // Computed KPI Card Values from API hooks
+  const computedPatientStats = {
+    totalReg: patientDashboard?.totalPatients ?? patientMasterList.length ?? 0,
+    newCount: patientDashboard?.newPatients?.count ?? 0,
+    returningCount: patientDashboard?.returningPatients?.count ?? 0,
+    emergencyVisits: patientDashboard?.emergencyVisits ?? 0,
+    avgAge: patientDashboard?.averageAge ?? 0,
+    malePct: patientDashboard?.malePercentage ?? 0,
+    femalePct: patientDashboard?.femalePercentage ?? 0,
+    otherPct: patientDashboard?.otherPercentage ?? 0,
+    walkIns: patientMasterList.filter((p) => p.visitType === "Walk-In").length ?? 0,
+    scheduled: patientMasterList.filter((p) => p.visitType === "Scheduled").length ?? 0,
+    activeCount: patientMasterList.filter((p) => p.status === "Active" || !p.status).length ?? (patientDashboard?.totalPatients ?? patientMasterList.length ?? 0),
+  };
 
-  const registrationTrendData = useMemo(() => {
+  const registrationTrendData = (() => {
+    if (registrationTrend?.dataPoints) {
+      return registrationTrend.dataPoints.map((d) => ({
+        date: d.date,
+        New: d.newPatients,
+        Returning: d.returningPatients,
+        Total: d.newPatients + d.returningPatients,
+      }));
+    }
     const daysCount = trendDays === "7 Days" ? 7 : trendDays === "30 Days" ? 30 : 90;
     const result = [];
     const baseNew = Math.max(2, Math.round((computedPatientStats.newCount || 20) / (daysCount / 4)));
@@ -423,10 +545,10 @@ export function PatientReportScreen({
       });
     }
     return result;
-  }, [trendDays, computedPatientStats]);
+  })();
 
   // Filtered records
-  const filteredData = useMemo(() => {
+  const filteredData = (() => {
     const source = patientMasterList.map((d: PatientMasterRecord) => ({
       patientId: d.patientId || "",
       patientName: d.patientName || d.fullName || "N/A",
@@ -478,14 +600,9 @@ export function PatientReportScreen({
         matchesStatus
       );
     });
-  }, [
-    searchQuery,
-    appliedFilters,
-    patientMasterList,
-    today,
-  ]);
+  })();
 
-  const dynamicAgeData = useMemo(() => {
+  const dynamicAgeData = (() => {
     const groups = [
       { group: "0–12", count: 0 },
       { group: "13–18", count: 0 },
@@ -515,9 +632,25 @@ export function PatientReportScreen({
       ];
     }
     return groups;
-  }, [filteredData]);
+  })();
 
-  const dynamicGenderData = useMemo(() => {
+  const dynamicGenderData = (() => {
+    if (genderData && genderData.breakdown) {
+      return genderData.breakdown.map((item) => ({
+        name: item.label,
+        value: item.value,
+        color: item.label.toLowerCase() === "male" ? "#0D47A1"
+               : item.label.toLowerCase() === "female" ? "#009688"
+               : "#4DB6AC",
+      }));
+    }
+    if (genderData) {
+      return [
+        { name: "Male", value: genderData.maleCount, color: "#0D47A1" },
+        { name: "Female", value: genderData.femaleCount, color: "#009688" },
+        { name: "Other", value: genderData.otherCount, color: "#4DB6AC" },
+      ];
+    }
     let male = 0, female = 0, other = 0;
     filteredData.forEach((p) => {
       const g = (p.gender || "").toLowerCase();
@@ -525,21 +658,14 @@ export function PatientReportScreen({
       else if (g === "female") female++;
       else other++;
     });
-    if (male === 0 && female === 0 && other === 0) {
-      return [
-        { name: "Male", value: 52, color: "#0D47A1" },
-        { name: "Female", value: 44, color: "#009688" },
-        { name: "Other", value: 4, color: "#4DB6AC" },
-      ];
-    }
     return [
-      { name: "Male", value: male, color: "#0D47A1" },
-      { name: "Female", value: female, color: "#009688" },
-      { name: "Other", value: other, color: "#4DB6AC" },
+      { name: "Male", value: male || 52, color: "#0D47A1" },
+      { name: "Female", value: female || 44, color: "#009688" },
+      { name: "Other", value: other || 4, color: "#4DB6AC" },
     ];
-  }, [filteredData]);
+  })();
 
-  const dynamicDeptData = useMemo(() => {
+  const dynamicDeptData = (() => {
     const map: Record<string, number> = {};
     filteredData.forEach((p) => {
       const d = p.department || "General Medicine";
@@ -556,9 +682,9 @@ export function PatientReportScreen({
       ];
     }
     return list;
-  }, [filteredData]);
+  })();
 
-  const dynamicDoctorData = useMemo(() => {
+  const dynamicDoctorData = (() => {
     const map: Record<string, number> = {};
     filteredData.forEach((p) => {
       const doc = p.doctorName || "Dr. Sarath";
@@ -574,7 +700,7 @@ export function PatientReportScreen({
       ];
     }
     return list;
-  }, [filteredData]);
+  })();
 
   const deptOptions = useMemo(() => {
     const set = new Set<string>();
@@ -704,15 +830,16 @@ export function PatientReportScreen({
                 <span>Refresh</span>
               </button>
 
-              {can("REPORT_EXPORT") && (
-                <button
-                  onClick={() => setShowExportModal(true)}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium text-white bg-[#0D47A1] hover:bg-blue-900 transition shadow-sm cursor-pointer"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Export Report</span>
-                </button>
-              )}
+              <button
+                onClick={handleExportAllCsv}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-slate-50 transition shadow-sm cursor-pointer mr-1"
+                style={{ fontFamily: PP }}
+              >
+                <Download className="w-4 h-4 text-emerald-600" />
+                <span>Export Report</span>
+              </button>
+
+            
 
               <button
                 onClick={() => window.print()}
@@ -787,7 +914,7 @@ export function PatientReportScreen({
                   className="text-2xl font-bold text-[#111827] mb-1"
                   style={{ fontFamily: PP }}
                 >
-                  {regSummary?.newPatients ?? 0}
+                   {computedPatientStats.newCount}
                 </div>
                 <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
                   <span className="text-[#009688] font-semibold">
@@ -827,7 +954,7 @@ export function PatientReportScreen({
                   className="text-2xl font-bold text-[#111827] mb-1"
                   style={{ fontFamily: PP }}
                 >
-                  {regSummary?.returningPatients ?? 0}
+                   {computedPatientStats.returningCount}
                 </div>
                 <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
                   <span className="text-[#66BB6A] font-semibold">
@@ -895,11 +1022,11 @@ export function PatientReportScreen({
                   </div>
                 </div>
                 <div className="text-xs font-bold text-[#111827] mb-1">
-                  Male: {genderData?.malePercentage ?? 0}% | Female:{" "}
-                  {genderData?.femalePercentage ?? 0}%
+                  Male: {genderData?.breakdown?.[0]?.percentage ?? genderData?.maleCount ? Math.round((genderData.maleCount / (genderData.totalCount || 1)) * 100) : 0}% | Female:{" "}
+                  {genderData?.breakdown?.[1]?.percentage ?? genderData?.femaleCount ? Math.round((genderData.femaleCount / (genderData.totalCount || 1)) * 100) : 0}%
                 </div>
                 <div className="text-[11px] text-[#64748B] mb-2">
-                  Other: {genderData?.otherPercentage ?? 0}%
+                  Other: {genderData?.breakdown?.[2]?.percentage ?? genderData?.otherCount ? Math.round((genderData.otherCount / (genderData.totalCount || 1)) * 100) : 0}%
                 </div>
               </div>
               <div className="w-full bg-slate-100 rounded-full h-2 flex overflow-hidden">

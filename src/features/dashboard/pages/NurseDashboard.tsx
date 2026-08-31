@@ -325,15 +325,16 @@ export function NurseDashboard() {
   const queueItems = React.useMemo(() => {
     if (!queueData) return [];
     if (Array.isArray(queueData)) return queueData;
-    if (Array.isArray((queueData as any).content)) return (queueData as any).content;
-    if (Array.isArray((queueData as any).patients)) return (queueData as any).patients;
-    if (Array.isArray((queueData as any).data)) return (queueData as any).data;
+    const qData = queueData as unknown as Record<string, unknown>;
+    if (Array.isArray(qData.content)) return qData.content;
+    if (Array.isArray(qData.patients)) return qData.patients;
+    if (Array.isArray(qData.data)) return qData.data;
     return [];
   }, [queueData]);
 
   const waitingVitalsCount = React.useMemo(() => {
     if (queueItems && queueItems.length > 0) {
-      return queueItems.filter((q: any) => {
+      return queueItems.filter((q: Record<string, unknown>) => {
         const isDone = Boolean(
           q.vitalsRecorded === true ||
           q.hasVitals === true ||
@@ -728,12 +729,14 @@ export function NurseDashboard() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {queueItems.length > 0 ? (
-                queueItems.map((q: any, idx: number) => {
-                  const token = q.token || q.tokenNo || `#${idx + 1}`;
-                  const pName = q.patientName || q.patient?.name || q.patient?.fullName || "—";
-                  const dName = q.doctorName || q.doctor?.name || q.doctor?.fullName || "—";
-                  const dept = q.departmentName || q.department || q.doctorDepartment || "—";
-                  const time = q.appointmentTime || q.timeSlot || q.startTime || q.time || "—";
+                queueItems.map((q: Record<string, unknown>, idx: number) => {
+                  const token = String(q.token || q.tokenNo || `#${idx + 1}`);
+                  const patientObj = q.patient as { name?: string; fullName?: string } | undefined;
+                  const doctorObj = q.doctor as { name?: string; fullName?: string } | undefined;
+                  const pName = typeof q.patientName === "string" ? q.patientName : String(patientObj?.name || patientObj?.fullName || "—");
+                  const dName = typeof q.doctorName === "string" ? q.doctorName : String(doctorObj?.name || doctorObj?.fullName || "—");
+                  const dept = typeof q.departmentName === "string" ? q.departmentName : typeof q.department === "string" ? q.department : String(q.doctorDepartment || "—");
+                  const time = String(q.appointmentTime || q.timeSlot || q.startTime || q.time || "—");
                   const vitalsDone = Boolean(
                     q.vitalsRecorded === true ||
                     q.hasVitals === true ||
@@ -741,12 +744,12 @@ export function NurseDashboard() {
                     q.vitalsStatus === "Vitals Recorded" ||
                     q.vitalsId != null
                   );
-                  const queueStatus = q.queueStatus || q.status || (vitalsDone ? "Vitals Recorded" : "Waiting for Vitals");
-                  const priority = q.priority || "NORMAL";
+                  const queueStatus = String(q.queueStatus || q.status || (vitalsDone ? "Vitals Recorded" : "Waiting for Vitals"));
+                  const priority = String(q.priority || "NORMAL");
 
                   return (
                     <tr
-                      key={q.appointmentId || q.id || q.token || idx}
+                      key={String(q.appointmentId || q.id || q.token || idx)}
                       className="hover:bg-slate-50 transition-colors"
                     >
                       <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">

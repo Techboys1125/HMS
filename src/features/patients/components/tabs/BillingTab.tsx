@@ -94,10 +94,6 @@ export function PatientBillingTab({
     () => (Array.isArray(invoices) ? invoices : []),
     [invoices],
   );
-  const safeInvoices = useMemo(
-    () => (Array.isArray(invoices) ? invoices : []),
-    [invoices],
-  );
 
   // Summary Metrics (Total Billed, Total Paid, Outstanding, Payment Rate)
   const summary = useMemo(() => {

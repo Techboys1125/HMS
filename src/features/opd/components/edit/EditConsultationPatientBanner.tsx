@@ -136,15 +136,13 @@ export const EditConsultationPatientBanner: React.FC<
             </button>
           )}
 
-          {onViewHistory && (
-            <button
-              onClick={() => onViewHistory(mrn)}
-              className="px-3 py-1.5 rounded-lg bg-blue-50 text-[#0D47A1] hover:bg-blue-100 text-xs font-semibold transition-colors cursor-pointer"
-              style={{ fontFamily: PP }}
-            >
-              View Consultation History
-            </button>
-          )}
+          <button
+            onClick={() => onViewHistory?.(mrn)}
+            className="px-3 py-1.5 rounded-lg bg-blue-50 text-[#0D47A1] hover:bg-blue-100 text-xs font-semibold transition-colors cursor-pointer"
+            style={{ fontFamily: PP }}
+          >
+            View Consultation History
+          </button>
         </div>
       </div>
     </div>

@@ -22,10 +22,8 @@ import {
 import {
   useDailyRevenue,
   useAccountantMainReport,
-  useAccountantBillingAnalysis,
   useAccountantPaymentCollection,
   useAccountantRefundLog,
-  useAccountantRevenueReport,
   useAccountantTransactionReport,
   extractList,
 } from "../hooks/useReports";
@@ -155,7 +153,6 @@ export function AccountantReportsDashboardScreen({
   >("7 Days");
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-
   const handlePresetDateChange = (preset: string) => {
     setDateRange(preset);
     if (preset === "Today") {
@@ -184,15 +181,9 @@ export function AccountantReportsDashboardScreen({
   // ─── API HOOKS WIRING ──────────────────────────────────────────────────
   const { data: mainReportData, isLoading: mainReportLoading } =
     useAccountantMainReport(reportApiFilters);
-  const { data: billingAnalysisData } =
-    useAccountantBillingAnalysis(reportApiFilters);
   const { data: paymentCollectionData } =
     useAccountantPaymentCollection(reportApiFilters);
   const { data: refundLogData } = useAccountantRefundLog(reportApiFilters);
-  const { data: revenueReportData } = useAccountantRevenueReport({
-    ...reportApiFilters,
-    groupBy: "DAILY",
-  });
   const { data: transactionReportData, isLoading: txLoading } =
     useAccountantTransactionReport({ ...reportApiFilters, size: 50 });
 
@@ -424,7 +415,9 @@ export function AccountantReportsDashboardScreen({
     const totalOutstandingAmount: number =
       finSummary?.totalPending ?? totalOutstanding;
 
-    const refundsList = extractList<AccountantRefundItem>(refundLogData?.refunds);
+    const refundsList = extractList<AccountantRefundItem>(
+      refundLogData?.refunds,
+    );
     const totalRefundedAmount: number =
       typeof refundLogData?.totalRefundedAmount === "number"
         ? refundLogData.totalRefundedAmount
@@ -462,11 +455,11 @@ export function AccountantReportsDashboardScreen({
     }
 
     if (
-      revenueReportData?.dataPoints &&
-      revenueReportData.dataPoints.length > 0
+      mainReportData?.revenueTrends &&
+      mainReportData.revenueTrends.length > 0
     ) {
-      return revenueReportData.dataPoints.map((dp) => ({
-        date: dp.label || "Date",
+      return mainReportData.revenueTrends.map((dp: { date: string; amount: number }) => ({
+        date: dp.date || "Date",
         revenue: dp.amount || 0,
         collections: Math.round((dp.amount || 0) * 0.9),
       }));
@@ -488,10 +481,6 @@ export function AccountantReportsDashboardScreen({
         month: "short",
         day: "numeric",
       });
-      const dateStr = d.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      });
       const rev = Math.max(45000, 125000 + ((i * 14500) % 60000));
       result.push({
         date: dateStr,
@@ -500,7 +489,7 @@ export function AccountantReportsDashboardScreen({
       });
     }
     return result;
-  }, [mainReportData, revenueReportData, trendRange]);
+  }, [mainReportData, trendRange]);
 
   // Payment Status Distribution Donut Chart Data
   const paymentStatusData = useMemo(() => {
@@ -539,11 +528,11 @@ export function AccountantReportsDashboardScreen({
 
   // Billing Category Analysis Chart Data
   const monthlyCollectionData = useMemo(() => {
-    const ba = billingAnalysisData?.breakdown;
+    const ba = mainReportData?.billingAnalysis;
     if (ba && ba.length > 0) {
-      return ba.map((b) => ({
+      return ba.map((b: { billingType: string; amount: number }) => ({
         item: b.billingType || "Type",
-        value: b.netAmount || b.grossAmount || 0,
+        value: b.amount || 0,
       }));
     }
     return [
@@ -552,7 +541,7 @@ export function AccountantReportsDashboardScreen({
       { item: "Pharmacy Sales", value: 98000 },
       { item: "Inpatient Billing", value: 312000 },
     ];
-  }, [billingAnalysisData]);
+  }, [mainReportData]);
 
   return (
     <div

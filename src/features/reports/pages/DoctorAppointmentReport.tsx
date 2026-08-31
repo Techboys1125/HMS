@@ -24,6 +24,7 @@ import {
   useDoctorSelfDailyAppointmentsDashboard,
   useDoctorSelfDailyAppointmentRegister,
 } from "../hooks/useReports";
+import { exportDataToCsv } from "../utils/export.utils";
 
 import {
   AreaChart,
@@ -228,6 +229,24 @@ export function DoctorDailyAppointmentReportScreen({
     setTimeout(() => setIsRefreshing(false), 600);
   };
 
+  const handleExportAllCsv = () => {
+    const recordsToExport = filteredAppointments.map((rec) => ({
+      Section: "DOCTOR APPOINTMENT REPORT",
+      "Appointment ID": rec.id,
+      "Patient Name": rec.patientName,
+      MRN: rec.mrn,
+      "Appointment Date": rec.appointmentDate,
+      "Appointment Time": rec.appointmentTime,
+      "Visit Type": rec.visitType,
+      Status: rec.status,
+    }));
+
+    exportDataToCsv(
+      `Doctor_Daily_Appointment_Report_All_Data_${new Date().toISOString().slice(0, 10)}.csv`,
+      recordsToExport
+    );
+  };
+
   const handleResetFilters = () => {
     const tStr = getOffsetDateStr(0);
     setSearchQuery("");
@@ -239,7 +258,7 @@ export function DoctorDailyAppointmentReportScreen({
     setShiftFilter("All Shifts");
   };
 
-  const filteredAppointments = useMemo(() => {
+  const filteredAppointments = (() => {
     let rawList: DoctorDailyAppointmentRecord[];
     if (registerData?.content && registerData.content.length > 0) {
       rawList = registerData.content.map((item, idx) => ({
@@ -308,17 +327,9 @@ export function DoctorDailyAppointmentReportScreen({
         matchesDate
       );
     });
-  }, [
-    registerData,
-    searchQuery,
-    statusFilter,
-    visitTypeFilter,
-    shiftFilter,
-    startDate,
-    endDate,
-  ]);
+  })();
 
-  const kpi = useMemo(() => {
+  const kpi = (() => {
     const totalReg = filteredAppointments.length;
     const completedCount = filteredAppointments.filter(
       (a) => a.status === "Completed"
@@ -344,7 +355,7 @@ export function DoctorDailyAppointmentReportScreen({
       cancellationRate: totalReg > 0 ? Math.round((cancelledCount / totalReg) * 100) : 0,
       avgWaitingMinutes: "12.4 min",
     };
-  }, [filteredAppointments]);
+  })();
 
   // Donut & Chart Data
   const apptStatusData = useMemo(() => {
@@ -524,10 +535,18 @@ export function DoctorDailyAppointmentReportScreen({
 
               <button
                 onClick={() => window.print()}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-[#111827] bg-white border border-[#E5E7EB] hover:bg-slate-50 transition shadow-sm"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-[#111827] bg-white border border-[#E5E7EB] hover:bg-slate-50 transition shadow-sm cursor-pointer"
               >
                 <Printer className="w-3.5 h-3.5 text-[#0D47A1]" />
                 <span>Print Report</span>
+              </button>
+
+              <button
+                onClick={handleExportAllCsv}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-slate-50 transition shadow-sm cursor-pointer"
+              >
+                <Download className="w-4 h-4 text-emerald-600" />
+                <span>Export CSV for All</span>
               </button>
             </div>
           </div>

@@ -208,6 +208,19 @@ export interface PatientCancelAppointmentDialogProps {
   onBookNewAppointment?: () => void;
 }
 
+export interface PatientRescheduleAppointmentDialogProps {
+  appointment: PatientAppointment | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirmReschedule?: (
+    id: string,
+    newDate: string,
+    newTime: string,
+    reason?: string,
+    remarks?: string,
+  ) => void;
+}
+
 export type MedicalVisitRecord = {
   id: string;
   date: string;

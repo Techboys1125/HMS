@@ -42,12 +42,11 @@ export function SuperAdminDashboard() {
   const totalUsers = ROLE_DIST.reduce((s, r) => s + r.count, 0);
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
-      {/* KPI Row */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         <DKpi
           title="Total Hospitals"
-          value="0"
-          sub="--"
+          value="--"
+          sub="Awaiting API"
           trend="--"
           up={true}
           data={[{ v: 0 }]}
@@ -57,8 +56,8 @@ export function SuperAdminDashboard() {
         />
         <DKpi
           title="Total Users"
-          value="0"
-          sub="--"
+          value="--"
+          sub="Awaiting API"
           trend="--"
           up={true}
           data={[{ v: 0 }]}
@@ -68,8 +67,8 @@ export function SuperAdminDashboard() {
         />
         <DKpi
           title="Active Sessions"
-          value="0"
-          sub="--"
+          value="--"
+          sub="Awaiting API"
           trend="--"
           up={true}
           data={[{ v: 0 }]}
@@ -79,8 +78,8 @@ export function SuperAdminDashboard() {
         />
         <DKpi
           title="System Uptime"
-          value="0"
-          sub="--"
+          value="--"
+          sub="Awaiting API"
           trend="--"
           up={true}
           data={[{ v: 0 }]}

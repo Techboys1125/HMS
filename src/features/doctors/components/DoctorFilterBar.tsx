@@ -1,5 +1,4 @@
 import {
-  Search,
   X,
   Hash,
   FileCheck,
@@ -34,8 +33,6 @@ export interface DoctorFilterBarProps {
 }
 
 export function DoctorFilterBar({
-  searchDoctorQuery,
-  setSearchDoctorQuery,
   searchEmpIdQuery,
   setSearchEmpIdQuery,
   searchRegNoQuery,

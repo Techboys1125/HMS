@@ -95,7 +95,6 @@ export function AppointmentManagementCenterScreen({
   onStartConsultation,
   onBookAppointmentClick,
   userRole: userRoleProp,
-  doctorId,
   onBack,
   onRegisterNewPatientClick,
   onRegisterPatientClick,
@@ -116,13 +115,6 @@ export function AppointmentManagementCenterScreen({
   const isDoctor = normalizedRole === "DOCTOR";
   const isNurse = normalizedRole === "NURSE";
 
-  const { appointments, setAppointments, refetch } = useAppointments(
-    userRole as UserRole,
-    dateFilter || undefined,
-    isDoctor && doctorId ? { doctorId } : undefined,
-  );
-  const [viewMode, setViewMode] = useState<"directory" | "queue">("directory");
-
   const [filters, dispatch] = useReducer(filterReducer, {
     searchQuery: "",
     statusFilter: "All",
@@ -132,6 +124,17 @@ export function AppointmentManagementCenterScreen({
   });
   const setFilter = (field: keyof FilterState, value: string) =>
     dispatch({ type: "SET_FIELD", field, value });
+
+  const { appointments, setAppointments, refetch } = useAppointments(
+    userRole as UserRole,
+    dateFilter || undefined,
+    {
+      doctorId: filters.doctorFilter !== "All" ? filters.doctorFilter : undefined,
+      status:
+        filters.statusFilter !== "All" ? filters.statusFilter : undefined,
+    },
+  );
+  const [viewMode, setViewMode] = useState<"directory" | "queue">("directory");
   const [deptOptions, setDeptOptions] = useState<string[]>([]);
   const [statusTab, setStatusTab] = useState<string>("All");
 

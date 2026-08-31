@@ -1,14 +1,6 @@
 import React from "react";
 import {
-  Activity,
-  AlertTriangle,
   ArrowUpRight,
-  Database,
-  Lock,
-  LogIn,
-  Server,
-  Trash2,
-  Users,
 } from "lucide-react";
 import type { AuditCategory, AuditMetric } from "../types/auditlog.types";
 

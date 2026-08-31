@@ -20,6 +20,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useDoctorSelfPatientRegister } from "../hooks/useReports";
+import { exportDataToCsv } from "../utils/export.utils";
 
 import {
   AreaChart,
@@ -240,6 +241,26 @@ export function DoctorPatientReportScreen({
     setTimeout(() => setIsRefreshing(false), 600);
   };
 
+  const handleExportAllCsv = () => {
+    const recordsToExport = (filteredPatients.length > 0 ? filteredPatients : doctorPatientSource).map((rec) => ({
+      Section: "DOCTOR PATIENT REPORT",
+      "MRN": rec.mrn || "N/A",
+      "Patient Name": rec.patientName || "N/A",
+      "Age / Gender": `${rec.age || 0} / ${rec.gender || "N/A"}`,
+      "Mobile": rec.mobileNumber || "N/A",
+      "Last Consultation Date": rec.lastConsultationDate || todayStr,
+      "Visit Type": rec.visitType || "N/A",
+      "Diagnosis": rec.diagnosis || "Routine OPD",
+      "Follow-Up Date": rec.followUpDate || "N/A",
+      "Status": rec.status || "Completed",
+    }));
+
+    exportDataToCsv(
+      `Doctor_Patient_Report_All_Data_${new Date().toISOString().slice(0, 10)}.csv`,
+      recordsToExport
+    );
+  };
+
   const handleResetFilters = () => {
     const tStr = getOffsetDateStr(0);
     setSearchQuery("");
@@ -251,7 +272,7 @@ export function DoctorPatientReportScreen({
     setFollowUpStatusFilter("All Follow-up Statuses");
   };
 
-  const doctorPatientSource = useMemo(() => {
+  const doctorPatientSource = (() => {
     const rawList = registerData?.content || [];
     if (rawList.length > 0) {
       return rawList.map((item, idx) => ({
@@ -272,9 +293,9 @@ export function DoctorPatientReportScreen({
       }));
     }
     return SAMPLE_DOCTOR_PATIENTS;
-  }, [registerData?.content, todayStr]);
+  })();
 
-  const filteredPatients = useMemo(() => {
+  const filteredPatients = (() => {
     const query = searchQuery.trim().toLowerCase();
     return doctorPatientSource.filter((mapped) => {
       // 1. Search filter
@@ -314,16 +335,9 @@ export function DoctorPatientReportScreen({
 
       return matchesSearch && matchesVisit && matchesStatus && matchesDate;
     });
-  }, [
-    doctorPatientSource,
-    searchQuery,
-    visitTypeFilter,
-    consultStatusFilter,
-    startDate,
-    endDate,
-  ]);
+  })();
 
-  const kpi = useMemo(() => {
+  const kpi = (() => {
     const totalPatients = filteredPatients.length;
     const newPatients = filteredPatients.filter((p) =>
       p.visitType.toLowerCase().includes("new"),
@@ -351,21 +365,15 @@ export function DoctorPatientReportScreen({
       scheduledFollowUps,
       avgDailyPatients,
     };
-  }, [filteredPatients]);
+  })();
 
   const trendData = useMemo(() => {
-    const daysCount =
-      trendDays === "7 Days" ? 7 : trendDays === "30 Days" ? 30 : 90;
     const daysCount =
       trendDays === "7 Days" ? 7 : trendDays === "30 Days" ? 30 : 90;
     const result = [];
     for (let i = daysCount - 1; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      const dateStr = d.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      });
       const dateStr = d.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
@@ -380,9 +388,6 @@ export function DoctorPatientReportScreen({
   }, [trendDays]);
 
   const genderData = useMemo(() => {
-    let male = 0,
-      female = 0,
-      other = 0;
     let male = 0,
       female = 0,
       other = 0;
@@ -537,10 +542,18 @@ export function DoctorPatientReportScreen({
 
               <button
                 onClick={() => window.print()}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-[#111827] bg-white border border-[#E5E7EB] hover:bg-slate-50 transition shadow-sm"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-[#111827] bg-white border border-[#E5E7EB] hover:bg-slate-50 transition shadow-sm cursor-pointer"
               >
                 <Printer className="w-3.5 h-3.5 text-[#0D47A1]" />
                 <span>Print Report</span>
+              </button>
+
+              <button
+                onClick={handleExportAllCsv}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-slate-50 transition shadow-sm cursor-pointer"
+              >
+                <Download className="w-4 h-4 text-emerald-600" />
+                <span>Export CSV for All</span>
               </button>
             </div>
           </div>

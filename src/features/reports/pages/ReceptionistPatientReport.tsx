@@ -88,7 +88,11 @@ function CircularProgress({
   );
 }
 
-import { usePatientMasterRegister, extractList } from "../hooks/useReports";
+import {
+  usePatientMasterRegister,
+  extractList,
+} from "../hooks/useReports";
+import { exportDataToCsv } from "../utils/export.utils";
 import type { PatientMasterRecord } from "../types/reports.types";
 
 export function ReceptionistPatientReportScreen({
@@ -181,6 +185,25 @@ export function ReceptionistPatientReportScreen({
     setTimeout(() => setIsRefreshing(false), 600);
   };
 
+  const handleExportAllCsv = () => {
+    const recordsToExport = (filteredPatients.length > 0 ? filteredPatients : patientSource).map((rec) => ({
+      Section: "RECEPTIONIST PATIENT REPORT",
+      "MRN": rec.mrn || "N/A",
+      "Patient Name": rec.patientName || "N/A",
+      "Age / Gender": `${rec.age || 0} / ${rec.gender || "N/A"}`,
+      "Mobile": rec.mobileNumber || "N/A",
+      "Visit Type": rec.visitType || "N/A",
+      "Registration Status": rec.registrationStatus || "Active",
+      "Check-In Status": rec.checkInStatus || "N/A",
+      "Registration Date": rec.registrationDate || today,
+    }));
+
+    exportDataToCsv(
+      `Receptionist_Patient_Report_All_Data_${new Date().toISOString().slice(0, 10)}.csv`,
+      recordsToExport
+    );
+  };
+
   const handleResetFilters = () => {
     setSearchQuery("");
     setDateRange("Today");
@@ -190,21 +213,19 @@ export function ReceptionistPatientReportScreen({
     setVisitTypeFilter("All Visit Types");
   };
 
-  const filteredPatients = useMemo(() => {
-    return patientSource.filter((item) => {
-      const matchesSearch =
-        item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.mobileNumber.includes(searchQuery);
-      const matchesAppt =
-        apptStatusFilter === "All Statuses" ||
-        item.appointmentStatus.toLowerCase() === apptStatusFilter.toLowerCase();
-      const matchesVisit =
-        visitTypeFilter === "All Visit Types" ||
-        item.visitType.toLowerCase() === visitTypeFilter.toLowerCase();
-      return matchesSearch && matchesAppt && matchesVisit;
-    });
-  }, [searchQuery, apptStatusFilter, visitTypeFilter, patientSource]);
+  const filteredPatients = patientSource.filter((item) => {
+    const matchesSearch =
+      item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.mobileNumber.includes(searchQuery);
+    const matchesAppt =
+      apptStatusFilter === "All Statuses" ||
+      item.appointmentStatus.toLowerCase() === apptStatusFilter.toLowerCase();
+    const matchesVisit =
+      visitTypeFilter === "All Visit Types" ||
+      item.visitType.toLowerCase() === visitTypeFilter.toLowerCase();
+    return matchesSearch && matchesAppt && matchesVisit;
+  });
 
   const regTrendData = useMemo(() => {
     const daysCount =
@@ -346,10 +367,18 @@ export function ReceptionistPatientReportScreen({
 
               <button
                 onClick={() => window.print()}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-[#111827] bg-white border border-[#E5E7EB] hover:bg-slate-50 transition shadow-sm"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-[#111827] bg-white border border-[#E5E7EB] hover:bg-slate-50 transition shadow-sm cursor-pointer"
               >
                 <Printer className="w-3.5 h-3.5 text-[#0D47A1]" />
                 <span>Print Report</span>
+              </button>
+
+              <button
+                onClick={handleExportAllCsv}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-slate-50 transition shadow-sm cursor-pointer"
+              >
+                <Download className="w-4 h-4 text-emerald-600" />
+                <span>Export CSV for All</span>
               </button>
             </div>
           </div>

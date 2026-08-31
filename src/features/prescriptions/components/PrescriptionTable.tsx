@@ -70,28 +70,12 @@ export const PrescriptionTable: React.FC<PrescriptionTableProps> = ({
   setSearchTerm,
   selectedStatus = "All",
   setSelectedStatus,
-  selectedDept = "All",
-  setSelectedDept,
   dateRange = "All",
   setDateRange,
   onReset,
 }) => {
   const [openMoreMenuId, setOpenMoreMenuId] = useState<string | null>(null);
 
-  const formatDateTimeDisplay = (rawStr?: string) => {
-    if (!rawStr || rawStr === "—") return "—";
-    try {
-      const d = new Date(rawStr);
-      if (isNaN(d.getTime())) return rawStr;
-      return d.toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      });
-    } catch {
-      return rawStr;
-    }
-  };
   const formatDateTimeDisplay = (rawStr?: string) => {
     if (!rawStr || rawStr === "—") return "—";
     try {
@@ -237,7 +221,7 @@ export const PrescriptionTable: React.FC<PrescriptionTableProps> = ({
           </span>
         }
         searchable={true}
-        searchPlaceholder="🔍 Search by Prescription ID, Doctor, Department, Diagnosis or Medicine..."
+        searchPlaceholder=" Search by Prescription ID, Doctor, Department, Diagnosis or Medicine..."
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}
         toolbar={

@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
 import {
-  Search,
   FileText,
   ChevronRight,
   Eye,
@@ -58,14 +57,25 @@ export function PatientMyBillsPage() {
         const d = new Date(inv.invoiceDate).getTime();
         if (!isNaN(d)) {
           const now = new Date();
-          const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+          const todayStart = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+          ).getTime();
           if (dateFilter === "Today") matchesDate = d >= todayStart;
-          else if (dateFilter === "Yesterday") matchesDate = d >= todayStart - 86400000 && d < todayStart;
-          else if (dateFilter === "This Week") matchesDate = d >= todayStart - 6 * 86400000;
-          else if (dateFilter === "This Month") matchesDate = d >= new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+          else if (dateFilter === "Yesterday")
+            matchesDate = d >= todayStart - 86400000 && d < todayStart;
+          else if (dateFilter === "This Week")
+            matchesDate = d >= todayStart - 6 * 86400000;
+          else if (dateFilter === "This Month")
+            matchesDate =
+              d >= new Date(now.getFullYear(), now.getMonth(), 1).getTime();
           else if (dateFilter === "Custom Range" || dateFilter === "Custom") {
-            if (startDate) matchesDate = matchesDate && d >= new Date(startDate).getTime();
-            if (endDate) matchesDate = matchesDate && d <= new Date(endDate).setHours(23, 59, 59, 999);
+            if (startDate)
+              matchesDate = matchesDate && d >= new Date(startDate).getTime();
+            if (endDate)
+              matchesDate =
+                matchesDate && d <= new Date(endDate).setHours(23, 59, 59, 999);
           }
         }
       }
@@ -377,7 +387,7 @@ export function PatientMyBillsPage() {
           </span>
         }
         searchable={true}
-        searchPlaceholder="🔍 Search by Invoice No, Patient Name, MRN..."
+        searchPlaceholder=" Search by Invoice No, Patient Name, MRN..."
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         toolbar={
@@ -414,7 +424,9 @@ export function PatientMyBillsPage() {
                 </select>
               </div>
 
-              {(searchQuery || statusFilter !== "All" || dateFilter !== "All") && (
+              {(searchQuery ||
+                statusFilter !== "All" ||
+                dateFilter !== "All") && (
                 <button
                   onClick={handleResetFilters}
                   className="px-2.5 py-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer shadow-2xs shrink-0 ml-auto"

@@ -20,6 +20,7 @@ import {
 } from "../../billing/hooks/useBilling";
 import { BillingStatusBadge } from "../../billing/components/BillingStatusBadge";
 import { mapApiBillToInvoiceRecord } from "../../billing/utils/billing.utils";
+import { exportDataToCsv } from "../utils/export.utils";
 
 export function DailyBillingReportPage() {
   const navigate = useNavigate();
@@ -122,6 +123,109 @@ export function DailyBillingReportPage() {
     setDeptFilter("All");
   };
 
+  const handleExportAllCsv = () => {
+    // 1. Summary KPI Cards
+    const kpiRows = [
+      {
+        Section: "1. SUMMARY KPI CARDS",
+        Category_Item: "Today's Billed Revenue",
+        Count_or_Amount: `INR ${metrics.todayRevenue}`,
+        Percentage_Share: "100%",
+        Primary_Detail: "Total Billed Revenue Today",
+        Secondary_Detail: "Operational Daily Billing Total",
+        Date_or_Status: "Total Billed",
+      },
+      {
+        Section: "1. SUMMARY KPI CARDS",
+        Category_Item: "Payments Collected",
+        Count_or_Amount: `INR ${metrics.todayRevenue - metrics.outstanding}`,
+        Percentage_Share: `${metrics.collectionRate.toFixed(1)}%`,
+        Primary_Detail: "Total Realized Collections Today",
+        Secondary_Detail: "Collection Rate Performance",
+        Date_or_Status: "Collected Total",
+      },
+      {
+        Section: "1. SUMMARY KPI CARDS",
+        Category_Item: "Pending Payments Outstanding",
+        Count_or_Amount: `INR ${metrics.outstanding}`,
+        Percentage_Share: `${(100 - metrics.collectionRate).toFixed(1)}%`,
+        Primary_Detail: "Uncollected Due Balances",
+        Secondary_Detail: "Awaiting Settlement",
+        Date_or_Status: "Outstanding",
+      },
+    ];
+
+    // 2. Chart Performance: Payment Method Distribution Graph Share (%)
+    const methodTotal = (metrics.upiAmount + metrics.cashAmount + metrics.cardAmount) || 1;
+    const methodRows = [
+      {
+        Section: "2. PAYMENT METHOD GRAPH SHARE",
+        Category_Item: "UPI",
+        Count_or_Amount: `INR ${metrics.upiAmount}`,
+        Percentage_Share: `${((metrics.upiAmount / methodTotal) * 100).toFixed(1)}%`,
+        Primary_Detail: "Digital UPI Collections",
+        Secondary_Detail: "Payment Method Breakdown",
+        Date_or_Status: "Active",
+      },
+      {
+        Section: "2. PAYMENT METHOD GRAPH SHARE",
+        Category_Item: "Cash",
+        Count_or_Amount: `INR ${metrics.cashAmount}`,
+        Percentage_Share: `${((metrics.cashAmount / methodTotal) * 100).toFixed(1)}%`,
+        Primary_Detail: "Counter Cash Collections",
+        Secondary_Detail: "Payment Method Breakdown",
+        Date_or_Status: "Active",
+      },
+      {
+        Section: "2. PAYMENT METHOD GRAPH SHARE",
+        Category_Item: "Card",
+        Count_or_Amount: `INR ${metrics.cardAmount}`,
+        Percentage_Share: `${((metrics.cardAmount / methodTotal) * 100).toFixed(1)}%`,
+        Primary_Detail: "Card POS Terminal Collections",
+        Secondary_Detail: "Payment Method Breakdown",
+        Date_or_Status: "Active",
+      },
+    ];
+
+    // 3. Chart Performance: Department Breakdown Graph Share (%)
+    const totalDeptBilled = departmentBreakdown.reduce((sum, d) => sum + d.revenue, 0) || 1;
+    const deptRows = departmentBreakdown.map((dept) => {
+      const pct = ((dept.revenue / totalDeptBilled) * 100).toFixed(1);
+      return {
+        Section: "3. DEPARTMENT BREAKDOWN GRAPH SHARE",
+        Category_Item: dept.department,
+        Count_or_Amount: `INR ${dept.revenue} (${dept.invoices} Invoices)`,
+        Percentage_Share: `${pct}%`,
+        Primary_Detail: `Department Billed Total (Collected: INR ${dept.collected})`,
+        Secondary_Detail: `Collection Rate: ${dept.pct}%`,
+        Date_or_Status: "Active",
+      };
+    });
+
+    // 4. Table Values: Detailed Invoice Registry
+    const recordRows = invoices.map((rec) => ({
+      Section: "4. DAILY INVOICE TABLE REGISTRY",
+      Category_Item: rec.id || "N/A",
+      Count_or_Amount: `Billed: INR ${rec.invoiceAmount || 0} (Paid: INR ${rec.paidAmount || 0})`,
+      Percentage_Share: rec.invoiceAmount > 0 ? `${(((rec.paidAmount || 0) / rec.invoiceAmount) * 100).toFixed(1)}%` : "0%",
+      Primary_Detail: `Patient: ${rec.patientName} (${rec.mrn})`,
+      Secondary_Detail: `Dept: ${rec.department} | Method: ${rec.paymentMethod}`,
+      Date_or_Status: `Date: ${rec.invoiceDate || reportDate} | Status: ${rec.paymentStatus}`,
+    }));
+
+    const allRows = [
+      ...kpiRows,
+      ...methodRows,
+      ...deptRows,
+      ...recordRows,
+    ];
+
+    exportDataToCsv(
+      `Daily_Billing_Collection_Rate_Report_${new Date().toISOString().slice(0, 10)}.csv`,
+      allRows
+    );
+  };
+
   return (
     <div className="w-full max-w-none bg-[#F1F5F9] min-h-screen px-4 sm:px-6 lg:px-8 xl:px-10 py-6 pb-28 space-y-6">
       {/* 1. PAGE HEADER */}
@@ -192,12 +296,12 @@ export function DailyBillingReportPage() {
             <span className="hidden sm:inline">Refresh</span>
           </button>
           <button
-            onClick={() => alert("Exporting Daily Billing Report to Excel...")}
-            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-[#E5E7EB] text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors shadow-sm"
+            onClick={handleExportAllCsv}
+            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-[#E5E7EB] text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors shadow-sm cursor-pointer"
             style={{ fontFamily: RB }}
           >
-            <Download size={14} />
-            <span className="hidden sm:inline">Export Excel</span>
+            <Download size={14} className="text-emerald-600" />
+            <span>Export Report</span>
           </button>
         </div>
       </div>

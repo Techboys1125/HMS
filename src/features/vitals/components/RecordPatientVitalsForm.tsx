@@ -68,7 +68,7 @@ export function RecordPatientVitalsForm({
   const [bloodSugar, setBloodSugar] = useState(
     initialVitalsData?.bloodSugar || initialVitalsData?.sugar || "",
   );
-  const [bloodGroup, setBloodGroup] = useState(
+  const [bloodGroup] = useState(
     initialVitalsData?.bloodGroup ||
       ((activeApt as unknown as Record<string, unknown>).bloodGroup as string) ||
       ((activeApt.patient as unknown as Record<string, unknown>)

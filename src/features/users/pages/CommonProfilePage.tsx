@@ -5,13 +5,10 @@ import {
   Mail,
   Phone,
   Calendar,
-  Shield,
   MapPin,
-  Award,
   Stethoscope,
   Clock,
   Camera,
-  Upload,
   Trash2,
   Edit2,
   Save,
@@ -21,28 +18,26 @@ import {
   AlertTriangle,
   Loader2,
   KeyRound,
-  Building2,
   Plus,
-  DollarSign,
   Briefcase,
-  FileText,
-  Activity,
   ArrowLeft,
-  Check,
 } from "lucide-react";
 import { useAuthStore, authStoreActions } from "../../auth/store/auth.store";
 import { usersApi } from "../api/users.api";
 import { authApi } from "../../auth/api/auth.api";
 import { departmentsApi } from "../api/departments.api";
 import { to24Hour } from "../../../lib/time-utils";
-import UserAvatar from "../../../common/components/UserAvatar";
+import { UserAvatar } from "../../../common/components/UserAvatar";
 import type {
   UserDetailData,
   AdminUpdateStaffData,
   BackendAvailabilityItem,
   ScheduleException,
 } from "../types/users.types";
-import type { ApiDepartmentLookupItem, ApiSpecialty } from "../api/departments.api";
+import type {
+  ApiDepartmentLookupItem,
+  ApiSpecialty,
+} from "../api/departments.api";
 
 const PP = "Poppins, sans-serif";
 const RB = "Roboto, sans-serif";
@@ -67,37 +62,27 @@ const DAY_LABELS: Record<string, string> = {
   SUNDAY: "Sunday",
 };
 
-const BASE_URL = "http://192.168.1.44:8888";
-
-export const formatPhotoUrl = (url?: string | null): string => {
-  if (!url) return "";
-  if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
-    return url;
-  }
-  const cleanBase = BASE_URL.replace(/\/+$/, "");
-  return url.startsWith("/") ? `${cleanBase}${url}` : `${cleanBase}/${url}`;
-};
-
 export function CommonProfilePage() {
   const { userId: urlUserId } = useParams<{ userId?: string }>();
   const navigate = useNavigate();
   const authUser = useAuthStore((s) => s.user);
+
+  const authUserId =
+    authUser?.id ?? (authUser as unknown as { userId?: number })?.userId;
 
   // Target User ID to fetch
   const targetUserId = useMemo(() => {
     if (urlUserId && !isNaN(Number(urlUserId))) {
       return Number(urlUserId);
     }
-    const authId = authUser?.id || (authUser as unknown as { userId?: number })?.userId;
-    if (authId) return Number(authId);
+    if (authUserId) return Number(authUserId);
     return null;
-  }, [urlUserId, authUser?.id, (authUser as unknown as { userId?: number })?.userId]);
+  }, [urlUserId, authUserId]);
 
   const isSelfProfile = useMemo(() => {
     if (!targetUserId || !authUser) return true;
-    const authId = authUser.id || (authUser as unknown as { userId?: number })?.userId;
-    return String(authId) === String(targetUserId);
-  }, [targetUserId, authUser?.id, (authUser as unknown as { userId?: number })?.userId]);
+    return String(authUserId) === String(targetUserId);
+  }, [targetUserId, authUser, authUserId]);
 
   // Page States
   const [profile, setProfile] = useState<UserDetailData | null>(null);
@@ -107,11 +92,14 @@ export function CommonProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
 
   // Toast / Alert notifications
-  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [toast, setToast] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   // Department & Specialty options for Doctor editing
   const [departments, setDepartments] = useState<ApiDepartmentLookupItem[]>([]);
-  const [specialties, setSpecialties] = useState<ApiSpecialty[]>([]);
+  const [specialties] = useState<ApiSpecialty[]>([]);
 
   // Form State
   const [form, setForm] = useState({
@@ -157,14 +145,20 @@ export function CommonProfilePage() {
   const [newExceptionDate, setNewExceptionDate] = useState("");
   const [newExceptionReason, setNewExceptionReason] = useState("");
 
-  const showToast = useCallback((type: "success" | "error", message: string) => {
-    setToast({ type, message });
-    setTimeout(() => setToast(null), 4000);
-  }, []);
+  const showToast = useCallback(
+    (type: "success" | "error", message: string) => {
+      setToast({ type, message });
+      setTimeout(() => setToast(null), 4000);
+    },
+    [],
+  );
 
   const isDoctorRole = useMemo(() => {
     if (!profile) return false;
-    return String(profile.role).toUpperCase().includes("DOCTOR") || !!profile.doctorProfile;
+    return (
+      String(profile.role).toUpperCase().includes("DOCTOR") ||
+      !!profile.doctorProfile
+    );
   }, [profile]);
 
   const isPatientRole = useMemo(() => {
@@ -198,7 +192,7 @@ export function CommonProfilePage() {
       const response = await usersApi.adminGetUserById(targetUserId);
       if (response.success && response.data) {
         const data = response.data;
-        
+
         const rawGender =
           data.gender ||
           (data as unknown as { sex?: string }).sex ||
@@ -237,9 +231,13 @@ export function CommonProfilePage() {
           qualification: doc?.qualification || "",
           yearsOfExperience: doc?.yearsOfExperience || 0,
           primaryDepartmentId: doc?.primaryDepartment?.departmentId || 0,
-          secondaryDepartmentIds: (doc?.secondaryDepartments || []).map((d) => d.departmentId),
+          secondaryDepartmentIds: (doc?.secondaryDepartments || []).map(
+            (d) => d.departmentId,
+          ),
           primarySpecialtyId: doc?.primarySpecialty?.specialtyId || 0,
-          secondarySpecialtyIds: (doc?.secondarySpecialties || []).map((s) => s.specialtyId),
+          secondarySpecialtyIds: (doc?.secondarySpecialties || []).map(
+            (s) => s.specialtyId,
+          ),
           consultationFee: doc?.consultationFee || 0,
           slotDurationMinutes: doc?.slotDurationMinutes || 15,
           availability: doc?.availability || [],
@@ -250,14 +248,20 @@ export function CommonProfilePage() {
         setError(response.message || "Failed to load user profile details.");
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Error fetching user profile details.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Error fetching user profile details.",
+      );
     } finally {
       setLoading(false);
     }
-  }, [targetUserId]);
+  }, [targetUserId, authUser]);
 
   useEffect(() => {
-    loadProfile();
+    Promise.resolve().then(() => {
+      loadProfile();
+    });
   }, [loadProfile]);
 
   // Handle Photo Upload (POST /api/v1/upload -> PUT /api/v1/admin/users/{userId} -> GET)
@@ -272,7 +276,10 @@ export function CommonProfilePage() {
       "image/svg+xml",
     ];
     if (!validTypes.includes(file.type.toLowerCase())) {
-      showToast("error", "Please upload a valid image file (JPG, PNG, WEBP, GIF, SVG).");
+      showToast(
+        "error",
+        "Please upload a valid image file (JPG, PNG, WEBP, GIF, SVG).",
+      );
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
@@ -294,34 +301,76 @@ export function CommonProfilePage() {
         photo: uploadedUrl,
       }));
 
-      const isDoctorRole = profile ? (String(profile.role).toUpperCase().includes("DOCTOR") || !!profile.doctorProfile) : false;
+      const isDoctorRole = profile
+        ? String(profile.role).toUpperCase().includes("DOCTOR") ||
+          !!profile.doctorProfile
+        : false;
 
-      const safeFullName = form.fullName || profile?.fullName || authUser?.fullName || authUser?.name || "Staff Member";
-      const safeEmail = form.email || profile?.email || authUser?.email || "staff@safehands.org";
-      const safeMobile = form.mobile || profile?.mobile || authUser?.mobile || "+1 (555) 000-0000";
+      const safeFullName =
+        form.fullName ||
+        profile?.fullName ||
+        authUser?.fullName ||
+        authUser?.name ||
+        "Staff Member";
+      const safeEmail =
+        form.email ||
+        profile?.email ||
+        authUser?.email ||
+        "staff@safehands.org";
+      const safeMobile =
+        form.mobile ||
+        profile?.mobile ||
+        authUser?.mobile ||
+        "+1 (555) 000-0000";
 
       const payload: AdminUpdateStaffData = {
         fullName: safeFullName,
         email: safeEmail,
         mobile: safeMobile,
-        gender: form.gender || (profile?.gender ? profile.gender.toUpperCase() : "MALE"),
-        dateOfBirth: form.dateOfBirth || (profile?.dateOfBirth ? profile.dateOfBirth.split("T")[0] : "2000-01-01"),
+        gender:
+          form.gender ||
+          (profile?.gender ? profile.gender.toUpperCase() : "MALE"),
+        dateOfBirth:
+          form.dateOfBirth ||
+          (profile?.dateOfBirth
+            ? profile.dateOfBirth.split("T")[0]
+            : "2000-01-01"),
         photo: uploadedUrl,
         photoUrl: uploadedUrl,
-        residentialAddress: form.residentialAddress || profile?.residentialAddress || undefined,
-        professionalBio: form.professionalBio || profile?.professionalBio || undefined,
+        residentialAddress:
+          form.residentialAddress || profile?.residentialAddress || undefined,
+        professionalBio:
+          form.professionalBio || profile?.professionalBio || undefined,
         changeReason: "Updated profile photo",
         ...(isDoctorRole && profile?.doctorProfile
           ? {
-              medicalRegistrationNumber: form.medicalRegistrationNumber || profile.doctorProfile.medicalRegistrationNumber,
-              qualification: form.qualification || profile.doctorProfile.qualification,
-              yearsOfExperience: Number(form.yearsOfExperience) || profile.doctorProfile.yearsOfExperience || 0,
-              primaryDepartmentId: form.primaryDepartmentId ? Number(form.primaryDepartmentId) : profile.doctorProfile.primaryDepartment?.departmentId || undefined,
+              medicalRegistrationNumber:
+                form.medicalRegistrationNumber ||
+                profile.doctorProfile.medicalRegistrationNumber,
+              qualification:
+                form.qualification || profile.doctorProfile.qualification,
+              yearsOfExperience:
+                Number(form.yearsOfExperience) ||
+                profile.doctorProfile.yearsOfExperience ||
+                0,
+              primaryDepartmentId: form.primaryDepartmentId
+                ? Number(form.primaryDepartmentId)
+                : profile.doctorProfile.primaryDepartment?.departmentId ||
+                  undefined,
               secondaryDepartmentIds: form.secondaryDepartmentIds,
-              primarySpecialtyId: form.primarySpecialtyId ? Number(form.primarySpecialtyId) : profile.doctorProfile.primarySpecialty?.specialtyId || undefined,
+              primarySpecialtyId: form.primarySpecialtyId
+                ? Number(form.primarySpecialtyId)
+                : profile.doctorProfile.primarySpecialty?.specialtyId ||
+                  undefined,
               secondarySpecialtyIds: form.secondarySpecialtyIds,
-              consultationFee: Number(form.consultationFee) || profile.doctorProfile.consultationFee || 0,
-              slotDurationMinutes: Number(form.slotDurationMinutes) || profile.doctorProfile.slotDurationMinutes || 15,
+              consultationFee:
+                Number(form.consultationFee) ||
+                profile.doctorProfile.consultationFee ||
+                0,
+              slotDurationMinutes:
+                Number(form.slotDurationMinutes) ||
+                profile.doctorProfile.slotDurationMinutes ||
+                15,
               availability: form.availability.map((item) => ({
                 ...item,
                 startTime: to24Hour(item.startTime),
@@ -334,7 +383,10 @@ export function CommonProfilePage() {
 
       const response = await usersApi.adminUpdateStaff(targetUserId, payload);
       if (response.success) {
-        showToast("success", "Profile photo uploaded and updated successfully!");
+        showToast(
+          "success",
+          "Profile photo uploaded and updated successfully!",
+        );
         if (isSelfProfile && authUser) {
           authStoreActions.setUser({
             ...authUser,
@@ -344,12 +396,17 @@ export function CommonProfilePage() {
         }
         await loadProfile();
       } else {
-        showToast("error", response.message || "Failed to update profile photo.");
+        showToast(
+          "error",
+          response.message || "Failed to update profile photo.",
+        );
       }
     } catch (err: unknown) {
       showToast(
         "error",
-        err instanceof Error ? err.message : "Failed to upload and update profile photo."
+        err instanceof Error
+          ? err.message
+          : "Failed to upload and update profile photo.",
       );
     } finally {
       setIsUploadingPhoto(false);
@@ -363,11 +420,26 @@ export function CommonProfilePage() {
 
     setIsSaving(true);
     try {
-      const isDoctorRole = String(profile.role).toUpperCase().includes("DOCTOR") || !!profile.doctorProfile;
+      const isDoctorRole =
+        String(profile.role).toUpperCase().includes("DOCTOR") ||
+        !!profile.doctorProfile;
 
-      const safeFullName = form.fullName || profile?.fullName || authUser?.fullName || authUser?.name || "Staff Member";
-      const safeEmail = form.email || profile?.email || authUser?.email || "staff@safehands.org";
-      const safeMobile = form.mobile || profile?.mobile || authUser?.mobile || "+1 (555) 000-0000";
+      const safeFullName =
+        form.fullName ||
+        profile?.fullName ||
+        authUser?.fullName ||
+        authUser?.name ||
+        "Staff Member";
+      const safeEmail =
+        form.email ||
+        profile?.email ||
+        authUser?.email ||
+        "staff@safehands.org";
+      const safeMobile =
+        form.mobile ||
+        profile?.mobile ||
+        authUser?.mobile ||
+        "+1 (555) 000-0000";
 
       const payload: AdminUpdateStaffData = {
         fullName: safeFullName,
@@ -385,9 +457,13 @@ export function CommonProfilePage() {
               medicalRegistrationNumber: form.medicalRegistrationNumber,
               qualification: form.qualification,
               yearsOfExperience: Number(form.yearsOfExperience) || 0,
-              primaryDepartmentId: form.primaryDepartmentId ? Number(form.primaryDepartmentId) : undefined,
+              primaryDepartmentId: form.primaryDepartmentId
+                ? Number(form.primaryDepartmentId)
+                : undefined,
               secondaryDepartmentIds: form.secondaryDepartmentIds,
-              primarySpecialtyId: form.primarySpecialtyId ? Number(form.primarySpecialtyId) : undefined,
+              primarySpecialtyId: form.primarySpecialtyId
+                ? Number(form.primarySpecialtyId)
+                : undefined,
               secondarySpecialtyIds: form.secondarySpecialtyIds,
               consultationFee: Number(form.consultationFee) || 0,
               slotDurationMinutes: Number(form.slotDurationMinutes) || 15,
@@ -422,7 +498,10 @@ export function CommonProfilePage() {
         showToast("error", response.message || "Failed to update profile.");
       }
     } catch (err: unknown) {
-      showToast("error", err instanceof Error ? err.message : "Error saving profile details.");
+      showToast(
+        "error",
+        err instanceof Error ? err.message : "Error saving profile details.",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -466,13 +545,21 @@ export function CommonProfilePage() {
       });
 
       if (response.success) {
-        setPasswordSuccess(response.message || "Password changed successfully!");
-        setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+        setPasswordSuccess(
+          response.message || "Password changed successfully!",
+        );
+        setPasswordForm({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
       } else {
         setPasswordError(response.message || "Failed to change password.");
       }
     } catch (err: unknown) {
-      setPasswordError(err instanceof Error ? err.message : "Failed to change password.");
+      setPasswordError(
+        err instanceof Error ? err.message : "Failed to change password.",
+      );
     } finally {
       setPasswordLoading(false);
     }
@@ -481,29 +568,43 @@ export function CommonProfilePage() {
   // Doctor Availability helpers
   const toggleAvailabilityDay = (day: string) => {
     setForm((prev) => {
-      const exists = prev.availability.find((a) => a.dayOfWeek.toUpperCase() === day.toUpperCase());
+      const exists = prev.availability.find(
+        (a) => a.dayOfWeek.toUpperCase() === day.toUpperCase(),
+      );
       if (exists) {
         return {
           ...prev,
-          availability: prev.availability.filter((a) => a.dayOfWeek.toUpperCase() !== day.toUpperCase()),
+          availability: prev.availability.filter(
+            (a) => a.dayOfWeek.toUpperCase() !== day.toUpperCase(),
+          ),
         };
       } else {
         return {
           ...prev,
           availability: [
             ...prev.availability,
-            { dayOfWeek: day.toUpperCase(), startTime: "09:00", endTime: "17:00" },
+            {
+              dayOfWeek: day.toUpperCase(),
+              startTime: "09:00",
+              endTime: "17:00",
+            },
           ],
         };
       }
     });
   };
 
-  const updateAvailabilityTime = (day: string, field: "startTime" | "endTime", value: string) => {
+  const updateAvailabilityTime = (
+    day: string,
+    field: "startTime" | "endTime",
+    value: string,
+  ) => {
     setForm((prev) => ({
       ...prev,
       availability: prev.availability.map((item) =>
-        item.dayOfWeek.toUpperCase() === day.toUpperCase() ? { ...item, [field]: value } : item
+        item.dayOfWeek.toUpperCase() === day.toUpperCase()
+          ? { ...item, [field]: value }
+          : item,
       ),
     }));
   };
@@ -515,7 +616,10 @@ export function CommonProfilePage() {
       ...prev,
       scheduleExceptions: [
         ...prev.scheduleExceptions,
-        { exceptionDate: newExceptionDate, reason: newExceptionReason || "Leave / Off Day" },
+        {
+          exceptionDate: newExceptionDate,
+          reason: newExceptionReason || "Leave / Off Day",
+        },
       ],
     }));
     setNewExceptionDate("");
@@ -545,10 +649,16 @@ export function CommonProfilePage() {
       <div className="p-6 max-w-4xl mx-auto">
         <div className="p-6 bg-red-50 border border-red-200 rounded-2xl text-center space-y-3">
           <AlertTriangle className="w-10 h-10 text-[#EF4444] mx-auto" />
-          <h3 className="text-base font-bold text-red-900" style={{ fontFamily: PP }}>
+          <h3
+            className="text-base font-bold text-red-900"
+            style={{ fontFamily: PP }}
+          >
             Unable to Load User Profile
           </h3>
-          <p className="text-xs text-red-700 font-medium" style={{ fontFamily: RB }}>
+          <p
+            className="text-xs text-red-700 font-medium"
+            style={{ fontFamily: RB }}
+          >
             {error || "Profile data was not returned by backend service."}
           </p>
           <button
@@ -562,10 +672,14 @@ export function CommonProfilePage() {
     );
   }
 
-  const displayPhoto = form.photoUrl || form.photo || profile.photoUrl || profile.photo;
+  const displayPhoto =
+    form.photoUrl || form.photo || profile.photoUrl || profile.photo;
 
   return (
-    <div className="flex-1 p-6 space-y-6 max-w-6xl mx-auto w-full" style={{ fontFamily: RB }}>
+    <div
+      className="flex-1 p-6 space-y-6 max-w-6xl mx-auto w-full"
+      style={{ fontFamily: RB }}
+    >
       {/* Toast Banner */}
       {toast && (
         <div
@@ -602,11 +716,17 @@ export function CommonProfilePage() {
               </button>
             )}
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight" style={{ fontFamily: PP }}>
-                {isSelfProfile ? "My Account Profile" : `${profile.fullName}'s Profile`}
+              <h1
+                className="text-xl sm:text-2xl font-bold tracking-tight"
+                style={{ fontFamily: PP }}
+              >
+                {isSelfProfile
+                  ? "My Account Profile"
+                  : `${profile.fullName}'s Profile`}
               </h1>
               <p className="text-xs text-blue-100 mt-1">
-                Manage personal credentials, professional details, and security settings
+                Manage personal credentials, professional details, and security
+                settings
               </p>
             </div>
           </div>
@@ -630,7 +750,10 @@ export function CommonProfilePage() {
                 >
                   {isSaving ? (
                     <>
-                      <Loader2 size={15} className="animate-spin text-[#0D47A1]" />
+                      <Loader2
+                        size={15}
+                        className="animate-spin text-[#0D47A1]"
+                      />
                       Saving...
                     </>
                   ) : (
@@ -657,15 +780,12 @@ export function CommonProfilePage() {
           {/* Avatar & Photo Upload */}
           <div className="relative group shrink-0">
             <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-white/80 bg-white/10 shadow-lg flex items-center justify-center relative">
-              {displayPhoto ? (
-                <img
-                  src={formatPhotoUrl(displayPhoto)}
-                  alt={profile.fullName}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <UserAvatar name={profile.fullName} size="xl" />
-              )}
+              <UserAvatar
+                name={profile.fullName}
+                photoUrl={displayPhoto}
+                size="xl"
+                className="w-full h-full text-2xl"
+              />
 
               {isUploadingPhoto && (
                 <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-xs flex flex-col items-center justify-center text-white">
@@ -701,7 +821,10 @@ export function CommonProfilePage() {
           {/* Key Identity Info */}
           <div className="flex-1 text-center md:text-left space-y-2">
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
-              <h2 className="text-xl font-bold text-white" style={{ fontFamily: PP }}>
+              <h2
+                className="text-xl font-bold text-white"
+                style={{ fontFamily: PP }}
+              >
                 {profile.fullName}
               </h2>
               <span className="px-2.5 py-0.5 bg-white/20 text-white rounded-full text-[10px] font-bold uppercase tracking-wider">
@@ -722,7 +845,10 @@ export function CommonProfilePage() {
               {profile.employeeId && !isPatientRole && (
                 <div className="flex items-center gap-1.5">
                   <Briefcase size={14} className="text-blue-200" />
-                  <span>Employee ID: <strong className="text-white">{profile.employeeId}</strong></span>
+                  <span>
+                    Employee ID:{" "}
+                    <strong className="text-white">{profile.employeeId}</strong>
+                  </span>
                 </div>
               )}
               <div className="flex items-center gap-1.5">
@@ -740,7 +866,10 @@ export function CommonProfilePage() {
             {profile.lastSuccessfulLogin && (
               <div className="text-[11px] text-blue-200/90 flex items-center justify-center md:justify-start gap-1 pt-1">
                 <Clock size={12} />
-                <span>Last Login: {new Date(profile.lastSuccessfulLogin).toLocaleString()}</span>
+                <span>
+                  Last Login:{" "}
+                  {new Date(profile.lastSuccessfulLogin).toLocaleString()}
+                </span>
               </div>
             )}
           </div>
@@ -757,22 +886,31 @@ export function CommonProfilePage() {
                 <User size={18} />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-800" style={{ fontFamily: PP }}>
+                <h3
+                  className="text-sm font-bold text-slate-800"
+                  style={{ fontFamily: PP }}
+                >
                   Personal Information
                 </h3>
-                <p className="text-[11px] text-slate-500">Basic personal demographics</p>
+                <p className="text-[11px] text-slate-500">
+                  Basic personal demographics
+                </p>
               </div>
             </div>
 
             <div className="space-y-3.5">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Full Name</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Full Name
+                </label>
                 {isEditing ? (
                   <input
                     type="text"
                     required
                     value={form.fullName}
-                    onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, fullName: e.target.value })
+                    }
                     className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl outline-none focus:border-[#0D47A1]"
                   />
                 ) : (
@@ -784,11 +922,15 @@ export function CommonProfilePage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Gender</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Gender
+                  </label>
                   {isEditing ? (
                     <select
                       value={form.gender}
-                      onChange={(e) => setForm({ ...form, gender: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, gender: e.target.value })
+                      }
                       className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl outline-none focus:border-[#0D47A1]"
                     >
                       <option value="MALE">Male</option>
@@ -797,18 +939,25 @@ export function CommonProfilePage() {
                     </select>
                   ) : (
                     <p className="text-xs font-semibold text-slate-800 bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 capitalize">
-                      {profile.gender || (profile as unknown as { sex?: string }).sex || authUser?.gender || "-"}
+                      {profile.gender ||
+                        (profile as unknown as { sex?: string }).sex ||
+                        authUser?.gender ||
+                        "-"}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Date of Birth</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Date of Birth
+                  </label>
                   {isEditing ? (
                     <input
                       type="date"
                       value={form.dateOfBirth}
-                      onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, dateOfBirth: e.target.value })
+                      }
                       className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl outline-none focus:border-[#0D47A1]"
                     />
                   ) : (
@@ -816,16 +965,22 @@ export function CommonProfilePage() {
                       {profile.dateOfBirth
                         ? String(profile.dateOfBirth).split("T")[0]
                         : (profile as unknown as { dob?: string }).dob
-                          ? String((profile as unknown as { dob?: string }).dob).split("T")[0]
+                          ? String(
+                              (profile as unknown as { dob?: string }).dob,
+                            ).split("T")[0]
                           : authUser?.dateOfBirth || authUser?.dob || "-"}
                     </p>
                   )}
                 </div>
               </div>
 
-              <div className={`grid ${isPatientRole ? "grid-cols-1" : "grid-cols-2"} gap-3`}>
+              <div
+                className={`grid ${isPatientRole ? "grid-cols-1" : "grid-cols-2"} gap-3`}
+              >
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Role</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Role
+                  </label>
                   <p className="text-xs font-semibold text-slate-600 bg-slate-100 px-3 py-2 rounded-xl border border-slate-200">
                     {profile.role}
                   </p>
@@ -833,7 +988,9 @@ export function CommonProfilePage() {
 
                 {!isPatientRole && (
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Employee ID</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Employee ID
+                    </label>
                     <p className="text-xs font-semibold text-slate-600 bg-slate-100 px-3 py-2 rounded-xl border border-slate-200">
                       {profile.employeeId || "-"}
                     </p>
@@ -850,10 +1007,15 @@ export function CommonProfilePage() {
                 <MapPin size={18} />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-800" style={{ fontFamily: PP }}>
+                <h3
+                  className="text-sm font-bold text-slate-800"
+                  style={{ fontFamily: PP }}
+                >
                   Contact & Residential Address
                 </h3>
-                <p className="text-[11px] text-slate-500">Contact detail details & residential location</p>
+                <p className="text-[11px] text-slate-500">
+                  Contact detail details & residential location
+                </p>
               </div>
             </div>
 
@@ -861,7 +1023,12 @@ export function CommonProfilePage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Email Address {isEditing && <span className="text-[10px] text-slate-400 font-normal">(Locked)</span>}
+                    Email Address{" "}
+                    {isEditing && (
+                      <span className="text-[10px] text-slate-400 font-normal">
+                        (Locked)
+                      </span>
+                    )}
                   </label>
                   {isEditing ? (
                     <input
@@ -879,12 +1046,16 @@ export function CommonProfilePage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Mobile Phone</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Mobile Phone
+                  </label>
                   {isEditing ? (
                     <input
                       type="text"
                       value={form.mobile}
-                      onChange={(e) => setForm({ ...form, mobile: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, mobile: e.target.value })
+                      }
                       className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl outline-none focus:border-[#0D47A1]"
                     />
                   ) : (
@@ -896,12 +1067,16 @@ export function CommonProfilePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Residential Address</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Residential Address
+                </label>
                 {isEditing ? (
                   <textarea
                     rows={2}
                     value={form.residentialAddress}
-                    onChange={(e) => setForm({ ...form, residentialAddress: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, residentialAddress: e.target.value })
+                    }
                     className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl outline-none focus:border-[#0D47A1]"
                     placeholder="Enter residential address..."
                   />
@@ -913,12 +1088,16 @@ export function CommonProfilePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Professional Bio</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Professional Bio
+                </label>
                 {isEditing ? (
                   <textarea
                     rows={2}
                     value={form.professionalBio}
-                    onChange={(e) => setForm({ ...form, professionalBio: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, professionalBio: e.target.value })
+                    }
                     className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl outline-none focus:border-[#0D47A1]"
                     placeholder="Enter professional bio or summary..."
                   />
@@ -940,22 +1119,34 @@ export function CommonProfilePage() {
                 <Stethoscope size={18} />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-800" style={{ fontFamily: PP }}>
+                <h3
+                  className="text-sm font-bold text-slate-800"
+                  style={{ fontFamily: PP }}
+                >
                   Doctor Clinical & Practice Profile
                 </h3>
-                <p className="text-[11px] text-slate-500">Qualifications, fees, availability, and exceptions</p>
+                <p className="text-[11px] text-slate-500">
+                  Qualifications, fees, availability, and exceptions
+                </p>
               </div>
             </div>
 
             {/* Qualifications & Fees */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Medical Reg. Number</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Medical Reg. Number
+                </label>
                 {isEditing ? (
                   <input
                     type="text"
                     value={form.medicalRegistrationNumber}
-                    onChange={(e) => setForm({ ...form, medicalRegistrationNumber: e.target.value })}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        medicalRegistrationNumber: e.target.value,
+                      })
+                    }
                     className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl outline-none focus:border-[#0D47A1]"
                   />
                 ) : (
@@ -966,12 +1157,16 @@ export function CommonProfilePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Qualification</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Qualification
+                </label>
                 {isEditing ? (
                   <input
                     type="text"
                     value={form.qualification}
-                    onChange={(e) => setForm({ ...form, qualification: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, qualification: e.target.value })
+                    }
                     className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl outline-none focus:border-[#0D47A1]"
                   />
                 ) : (
@@ -982,13 +1177,20 @@ export function CommonProfilePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Experience (Years)</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Experience (Years)
+                </label>
                 {isEditing ? (
                   <input
                     type="number"
                     min={0}
                     value={form.yearsOfExperience}
-                    onChange={(e) => setForm({ ...form, yearsOfExperience: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        yearsOfExperience: Number(e.target.value),
+                      })
+                    }
                     className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl outline-none focus:border-[#0D47A1]"
                   />
                 ) : (
@@ -999,13 +1201,20 @@ export function CommonProfilePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Consultation Fee (₹)</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Consultation Fee (₹)
+                </label>
                 {isEditing ? (
                   <input
                     type="number"
                     min={0}
                     value={form.consultationFee}
-                    onChange={(e) => setForm({ ...form, consultationFee: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        consultationFee: Number(e.target.value),
+                      })
+                    }
                     className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl outline-none focus:border-[#0D47A1]"
                   />
                 ) : (
@@ -1019,11 +1228,18 @@ export function CommonProfilePage() {
             {/* Departments & Specialties */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Primary Department</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Primary Department
+                </label>
                 {isEditing ? (
                   <select
                     value={form.primaryDepartmentId}
-                    onChange={(e) => setForm({ ...form, primaryDepartmentId: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        primaryDepartmentId: Number(e.target.value),
+                      })
+                    }
                     className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl outline-none focus:border-[#0D47A1]"
                   >
                     <option value={0}>Select Department...</option>
@@ -1035,24 +1251,38 @@ export function CommonProfilePage() {
                   </select>
                 ) : (
                   <p className="text-xs font-semibold text-slate-800 bg-slate-50 px-3 py-2 rounded-xl border border-slate-100">
-                    {profile.doctorProfile?.primaryDepartment?.departmentName || "General Medicine"}
+                    {profile.doctorProfile?.primaryDepartment?.departmentName ||
+                      "General Medicine"}
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Primary Specialty</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Primary Specialty
+                </label>
                 {isEditing ? (
                   <select
                     value={form.primarySpecialtyId}
-                    onChange={(e) => setForm({ ...form, primarySpecialtyId: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        primarySpecialtyId: Number(e.target.value),
+                      })
+                    }
                     className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl outline-none focus:border-[#0D47A1]"
                   >
                     <option value={0}>Select Specialty...</option>
                     {specialties.map((s) => {
-                      const specObj = s as unknown as { specialtyId?: number; id?: number; specialtyName?: string; name?: string };
+                      const specObj = s as unknown as {
+                        specialtyId?: number;
+                        id?: number;
+                        specialtyName?: string;
+                        name?: string;
+                      };
                       const specId = specObj.specialtyId || specObj.id || 0;
-                      const specName = specObj.specialtyName || specObj.name || "";
+                      const specName =
+                        specObj.specialtyName || specObj.name || "";
                       return (
                         <option key={specId} value={specId}>
                           {specName}
@@ -1062,7 +1292,8 @@ export function CommonProfilePage() {
                   </select>
                 ) : (
                   <p className="text-xs font-semibold text-slate-800 bg-slate-50 px-3 py-2 rounded-xl border border-slate-100">
-                    {profile.doctorProfile?.primarySpecialty?.specialtyName || "-"}
+                    {profile.doctorProfile?.primarySpecialty?.specialtyName ||
+                      "-"}
                   </p>
                 )}
               </div>
@@ -1070,20 +1301,27 @@ export function CommonProfilePage() {
 
             {/* Weekly Availability Schedule */}
             <div className="space-y-3 pt-2">
-              <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5" style={{ fontFamily: PP }}>
-                <Clock size={15} className="text-[#0D47A1]" /> Weekly OPD Consultation Schedule
+              <h4
+                className="text-xs font-bold text-slate-800 flex items-center gap-1.5"
+                style={{ fontFamily: PP }}
+              >
+                <Clock size={15} className="text-[#0D47A1]" /> Weekly OPD
+                Consultation Schedule
               </h4>
 
               {isEditing ? (
                 <div className="space-y-2 bg-slate-50 p-4 rounded-xl border border-slate-200">
                   {DAYS_OF_WEEK.map((day) => {
                     const activeItem = form.availability.find(
-                      (a) => a.dayOfWeek.toUpperCase() === day.toUpperCase()
+                      (a) => a.dayOfWeek.toUpperCase() === day.toUpperCase(),
                     );
                     const isSelected = !!activeItem;
 
                     return (
-                      <div key={day} className="flex items-center gap-4 text-xs py-1 border-b border-slate-200 last:border-0">
+                      <div
+                        key={day}
+                        className="flex items-center gap-4 text-xs py-1 border-b border-slate-200 last:border-0"
+                      >
                         <label className="w-28 font-bold flex items-center gap-2 cursor-pointer">
                           <input
                             type="checkbox"
@@ -1099,19 +1337,33 @@ export function CommonProfilePage() {
                             <input
                               type="time"
                               value={activeItem?.startTime || "09:00"}
-                              onChange={(e) => updateAvailabilityTime(day, "startTime", e.target.value)}
+                              onChange={(e) =>
+                                updateAvailabilityTime(
+                                  day,
+                                  "startTime",
+                                  e.target.value,
+                                )
+                              }
                               className="px-2 py-1 bg-white border border-slate-300 rounded-lg text-xs"
                             />
                             <span className="text-slate-400">to</span>
                             <input
                               type="time"
                               value={activeItem?.endTime || "17:00"}
-                              onChange={(e) => updateAvailabilityTime(day, "endTime", e.target.value)}
+                              onChange={(e) =>
+                                updateAvailabilityTime(
+                                  day,
+                                  "endTime",
+                                  e.target.value,
+                                )
+                              }
                               className="px-2 py-1 bg-white border border-slate-300 rounded-lg text-xs"
                             />
                           </div>
                         ) : (
-                          <span className="text-slate-400 italic text-[11px]">Not Available</span>
+                          <span className="text-slate-400 italic text-[11px]">
+                            Not Available
+                          </span>
                         )}
                       </div>
                     );
@@ -1120,9 +1372,10 @@ export function CommonProfilePage() {
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {DAYS_OF_WEEK.map((day) => {
-                    const activeItem = profile.doctorProfile?.availability?.find(
-                      (a) => a.dayOfWeek.toUpperCase() === day.toUpperCase()
-                    );
+                    const activeItem =
+                      profile.doctorProfile?.availability?.find(
+                        (a) => a.dayOfWeek.toUpperCase() === day.toUpperCase(),
+                      );
                     return (
                       <div
                         key={day}
@@ -1134,7 +1387,9 @@ export function CommonProfilePage() {
                       >
                         <div className="font-bold">{DAY_LABELS[day]}</div>
                         <div className="text-[11px] font-mono mt-0.5">
-                          {activeItem ? `${activeItem.startTime} - ${activeItem.endTime}` : "Off"}
+                          {activeItem
+                            ? `${activeItem.startTime} - ${activeItem.endTime}`
+                            : "Off"}
                         </div>
                       </div>
                     );
@@ -1145,8 +1400,12 @@ export function CommonProfilePage() {
 
             {/* Schedule Exceptions */}
             <div className="space-y-3 pt-2">
-              <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5" style={{ fontFamily: PP }}>
-                <Calendar size={15} className="text-[#0D47A1]" /> Schedule Exceptions & Leave Days
+              <h4
+                className="text-xs font-bold text-slate-800 flex items-center gap-1.5"
+                style={{ fontFamily: PP }}
+              >
+                <Calendar size={15} className="text-[#0D47A1]" /> Schedule
+                Exceptions & Leave Days
               </h4>
 
               {isEditing && (
@@ -1182,7 +1441,9 @@ export function CommonProfilePage() {
                       className="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="font-bold text-slate-800 font-mono">{ex.exceptionDate}</span>
+                        <span className="font-bold text-slate-800 font-mono">
+                          {ex.exceptionDate}
+                        </span>
                         <span className="text-slate-600">{ex.reason}</span>
                       </div>
                       {isEditing && (
@@ -1199,7 +1460,9 @@ export function CommonProfilePage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-slate-400 italic">No schedule exceptions defined.</p>
+                <p className="text-xs text-slate-400 italic">
+                  No schedule exceptions defined.
+                </p>
               )}
             </div>
           </div>
@@ -1213,10 +1476,15 @@ export function CommonProfilePage() {
             <Lock size={18} />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-800" style={{ fontFamily: PP }}>
+            <h3
+              className="text-sm font-bold text-slate-800"
+              style={{ fontFamily: PP }}
+            >
               Account Security & Password
             </h3>
-            <p className="text-[11px] text-slate-500">Update your account authentication credentials</p>
+            <p className="text-[11px] text-slate-500">
+              Update your account authentication credentials
+            </p>
           </div>
         </div>
 
@@ -1236,12 +1504,19 @@ export function CommonProfilePage() {
           )}
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Current Password *</label>
+            <label className="block text-xs font-bold text-slate-700 mb-1">
+              Current Password *
+            </label>
             <input
               type="password"
               required
               value={passwordForm.currentPassword}
-              onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+              onChange={(e) =>
+                setPasswordForm({
+                  ...passwordForm,
+                  currentPassword: e.target.value,
+                })
+              }
               className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl outline-none focus:border-[#0D47A1]"
               placeholder="••••••••••••"
             />
@@ -1249,24 +1524,38 @@ export function CommonProfilePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">New Password *</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                New Password *
+              </label>
               <input
                 type="password"
                 required
                 value={passwordForm.newPassword}
-                onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                onChange={(e) =>
+                  setPasswordForm({
+                    ...passwordForm,
+                    newPassword: e.target.value,
+                  })
+                }
                 className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl outline-none focus:border-[#0D47A1]"
                 placeholder="••••••••••••"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Confirm New Password *</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Confirm New Password *
+              </label>
               <input
                 type="password"
                 required
                 value={passwordForm.confirmPassword}
-                onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                onChange={(e) =>
+                  setPasswordForm({
+                    ...passwordForm,
+                    confirmPassword: e.target.value,
+                  })
+                }
                 className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl outline-none focus:border-[#0D47A1]"
                 placeholder="••••••••••••"
               />

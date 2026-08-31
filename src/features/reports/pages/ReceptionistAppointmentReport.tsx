@@ -21,7 +21,11 @@ import {
   ArrowLeft,
 } from "lucide-react";
 
-import { useDailyAppointments, extractList } from "../hooks/useReports";
+import {
+  useDailyAppointments,
+  extractList,
+} from "../hooks/useReports";
+import { exportDataToCsv } from "../utils/export.utils";
 import type { DailyAppointmentDetail } from "../types/reports.types";
 
 import {
@@ -197,6 +201,26 @@ function ReceptionistAppointmentReportScreen({
     setTimeout(() => setIsRefreshing(false), 600);
   };
 
+  const handleExportAllCsv = () => {
+    const recordsToExport = (filteredAppointments.length > 0 ? filteredAppointments : apptSource).map((rec) => ({
+      Section: "RECEPTIONIST APPOINTMENT REPORT",
+      "Appointment ID": rec.appointmentId || rec.tokenNumber || "N/A",
+      "Patient Name": rec.patientName || "N/A",
+      MRN: rec.mrn || "N/A",
+      "Doctor Name": rec.doctorName || "N/A",
+      Department: rec.department || "N/A",
+      "Appointment Time": rec.appointmentTime || "N/A",
+      "Visit Type": rec.visitType || "N/A",
+      "Appointment Status": rec.appointmentStatus || "N/A",
+      "Check-In Status": rec.checkInStatus || "N/A",
+    }));
+
+    exportDataToCsv(
+      `Receptionist_Daily_Appointment_Report_All_Data_${new Date().toISOString().slice(0, 10)}.csv`,
+      recordsToExport
+    );
+  };
+
   const handleResetFilters = () => {
     setSearchQuery("");
     setDateRange("Today");
@@ -209,22 +233,20 @@ function ReceptionistAppointmentReportScreen({
     setShiftFilter("All Shifts");
   };
 
-  const filteredAppointments = useMemo(() => {
-    return apptSource.filter((item) => {
-      const matchesSearch =
-        item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.appointmentId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.mobileNumber.includes(searchQuery);
-      const matchesAppt =
-        apptStatusFilter === "All Statuses" ||
-        item.appointmentStatus.toLowerCase() === apptStatusFilter.toLowerCase();
-      const matchesVisit =
-        visitTypeFilter === "All Visit Types" ||
-        item.visitType.toLowerCase() === visitTypeFilter.toLowerCase();
-      return matchesSearch && matchesAppt && matchesVisit;
-    });
-  }, [searchQuery, apptStatusFilter, visitTypeFilter, apptSource]);
+  const filteredAppointments = apptSource.filter((item) => {
+    const matchesSearch =
+      item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.appointmentId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.mobileNumber.includes(searchQuery);
+    const matchesAppt =
+      apptStatusFilter === "All Statuses" ||
+      item.appointmentStatus.toLowerCase() === apptStatusFilter.toLowerCase();
+    const matchesVisit =
+      visitTypeFilter === "All Visit Types" ||
+      item.visitType.toLowerCase() === visitTypeFilter.toLowerCase();
+    return matchesSearch && matchesAppt && matchesVisit;
+  });
 
   const trendData = useMemo(() => {
     const daysCount =
@@ -384,10 +406,18 @@ function ReceptionistAppointmentReportScreen({
 
               <button
                 onClick={() => window.print()}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-[#111827] bg-white border border-[#E5E7EB] hover:bg-slate-50 transition shadow-sm"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-[#111827] bg-white border border-[#E5E7EB] hover:bg-slate-50 transition shadow-sm cursor-pointer"
               >
                 <Printer className="w-3.5 h-3.5 text-[#0D47A1]" />
                 <span>Print Report</span>
+              </button>
+
+              <button
+                onClick={handleExportAllCsv}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-slate-50 transition shadow-sm cursor-pointer"
+              >
+                <Download className="w-4 h-4 text-emerald-600" />
+                <span>Export CSV for All</span>
               </button>
             </div>
           </div>

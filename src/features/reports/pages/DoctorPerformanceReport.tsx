@@ -16,14 +16,11 @@ import {
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
   Activity,
-  FileSpreadsheet,
   Eye,
   ArrowLeft,
 } from "lucide-react";
 import { PP, RB } from "../constants/reports.constants";
-import type {
-  DoctorPerformanceSummary,
-} from "../types/reports.types";
+import type { DoctorPerformanceTableRow } from "../types/reports.types";
 import {
   useDoctorPerformance,
   useDoctorWorkload,
@@ -31,6 +28,7 @@ import {
   useDoctorConsultationDuration,
   extractList,
 } from "../hooks/useReports";
+import { exportDataToCsv } from "../utils/export.utils";
 
 import {
   AreaChart,
@@ -170,25 +168,24 @@ export function DoctorReportScreen({
   useDoctorConsultationDuration(reportFilters);
 
   const doctorList = useMemo(
-    () => extractList<DoctorPerformanceSummary>(rawDoctorPerformance),
+    () => extractList<DoctorPerformanceTableRow>(rawDoctorPerformance),
     [rawDoctorPerformance],
   );
 
   // Map API doctor performance to table format
   const doctorTableSource = useMemo(() => {
-    return doctorList.map((d: DoctorPerformanceSummary) => ({
-      doctorId: d.doctorId || d.id || `DOC-${d.code || ""}`,
-      doctorName: d.doctorName || d.name || "Doctor",
-      department: d.department || "General Medicine",
-      appointments: Number(d.appointments || d.totalAppointments || 0),
-      completed: Number(d.completed || d.completedAppointments || 0),
-      pending: Number(d.pending || d.pendingAppointments || 0),
-      cancelled: Number(d.cancelled || d.cancelledAppointments || 0),
-      followup: Number(d.followUps || d.followup || 0),
-      avgTimeMinutes: Number(
-        d.averageDurationMinutes || d.avgConsultationTimeMinutes || 15,
-      ),
-      patientRating: Number(d.rating || d.patientRating || 4.8),
+    return doctorList.map((d: DoctorPerformanceTableRow) => ({
+      doctorId: String(d.doctorId || ""),
+      doctorName: d.doctorName || "Doctor",
+      department: d.departmentName || "General Medicine",
+      appointments: Number(d.totalConsultations || 0),
+      completed: Number(d.completedConsultations || 0),
+      pending: 0,
+      cancelled: Number(d.cancelledConsultations || 0),
+      followup: 0,
+      avgTimeMinutes: Number(d.avgDurationMinutes || 15),
+      patientRating: 0,
+      revenue: Number(d.totalRevenueGenerated || 0),
     }));
   }, [doctorList]);
 
@@ -213,10 +210,10 @@ export function DoctorReportScreen({
     });
   }, [searchQuery, deptFilter, doctorFilter, doctorTableSource]);
 
-  // Build a doctorPerformanceData-compatible object dynamically from filteredData
-  // so all top KPI cards, charts, and tables update dynamically
+  // Use API summary data for KPI cards where available, fall back to computed values
+  const apiSummary = rawDoctorPerformance?.summary;
   const doctorPerformanceData = useMemo(() => {
-    const totalDoctors = filteredData.length;
+    const totalDoctors = apiSummary?.totalDoctors ?? filteredData.length;
     const totalConsultations = filteredData.reduce(
       (s, d) => s + Number(d.appointments || 0),
       0,
@@ -272,14 +269,15 @@ export function DoctorReportScreen({
         followUpConsultations,
         patientSatisfaction: avgRating,
         topPerformingDepartment: topDoc?.department ?? "--",
-        averageConsultationDurationMinutes: Math.round(
-          averageConsultationDurationMinutes,
-        ),
+        averageConsultationDurationMinutes:
+          apiSummary?.avgConsultationDurationMinutes ||
+          Math.round(averageConsultationDurationMinutes),
+        avgConsultationsPerDoctor: apiSummary?.avgConsultationsPerDoctor || 0,
         doctorUtilizationPercentage,
       },
       content: filteredData,
     };
-  }, [filteredData]);
+  }, [filteredData, apiSummary]);
 
   // State for sorting, refreshing & reset
   type DoctorTableItemKey = keyof (typeof doctorTableSource)[0];
@@ -289,6 +287,94 @@ export function DoctorReportScreen({
   const handleRefresh = () => {
     setIsRefreshing(true);
     setTimeout(() => setIsRefreshing(false), 600);
+  };
+
+  const handleExportAllCsv = () => {
+    const summary = doctorPerformanceData.summary;
+    const kpiRows = [
+      {
+        Section: "1. SUMMARY KPI",
+        Category_Item: "Total Active Doctors",
+        Count_or_Amount: `${summary.totalDoctors} Doctors`,
+        Percentage_Share: "100%",
+        Primary_Detail: "Active Medical Officers",
+        Secondary_Detail: `Satisfaction: ${summary.patientSatisfaction.toFixed(1)} / 5.0 ⭐`,
+        Date_or_Status: "Active",
+      },
+      {
+        Section: "1. SUMMARY KPI",
+        Category_Item: "Total Consultations Booked",
+        Count_or_Amount: `${summary.totalConsultations} Consultations`,
+        Percentage_Share: "100%",
+        Primary_Detail: `Completed: ${summary.completedConsultations} | Pending: ${summary.pendingConsultations}`,
+        Secondary_Detail: `Cancelled: ${summary.cancelledConsultations}`,
+        Date_or_Status: "Booked Total",
+      },
+      {
+        Section: "1. SUMMARY KPI",
+        Category_Item: "Consultation Completion Rate",
+        Count_or_Amount: `${summary.completedConsultations} Completed`,
+        Percentage_Share: `${summary.doctorUtilizationPercentage}%`,
+        Primary_Detail: `Average Duration: ${summary.averageConsultationDurationMinutes} mins/patient`,
+        Secondary_Detail: `Top Department: ${summary.topPerformingDepartment}`,
+        Date_or_Status: "Verified Rate",
+      },
+    ];
+
+    const totalWorkloadConsultations =
+      doctorWorkloadData.reduce((sum, d) => sum + d.appointments, 0) || 1;
+    const workloadRows = doctorWorkloadData.map((d) => {
+      const pct = ((d.appointments / totalWorkloadConsultations) * 100).toFixed(
+        1,
+      );
+      return {
+        Section: "2. DOCTOR WORKLOAD GRAPH DISTRIBUTION",
+        Category_Item: d.doctor,
+        Count_or_Amount: `${d.appointments} Appointments (${d.completed} Done)`,
+        Percentage_Share: `${pct}%`,
+        Primary_Detail: `Workload Share in OPD`,
+        Secondary_Detail: "Consultation Volume Share",
+        Date_or_Status: "Active",
+      };
+    });
+
+    const totalDeptAppts =
+      deptVolumeData.reduce((sum, d) => sum + d.consultations, 0) || 1;
+    const deptRows = deptVolumeData.map((d) => {
+      const pct = ((d.consultations / totalDeptAppts) * 100).toFixed(1);
+      return {
+        Section: "3. DEPARTMENT VOLUME GRAPH SHARE",
+        Category_Item: d.department,
+        Count_or_Amount: `${d.consultations} Consultations`,
+        Percentage_Share: `${pct}%`,
+        Primary_Detail: `OPD Consultation Volume`,
+        Secondary_Detail: "Department Share",
+        Date_or_Status: "Active",
+      };
+    });
+
+    const recordRows = sortedData.map((rec) => {
+      const completionPct =
+        rec.appointments > 0
+          ? ((rec.completed / rec.appointments) * 100).toFixed(1)
+          : "0";
+      return {
+        Section: "4. DOCTOR PERFORMANCE TABLE REGISTRY",
+        Category_Item: rec.doctorName,
+        Count_or_Amount: `Appts: ${rec.appointments} | Done: ${rec.completed} | Pend: ${rec.pending}`,
+        Percentage_Share: `${completionPct}% Completion`,
+        Primary_Detail: `Dept: ${rec.department} | Rating: ${rec.patientRating} ⭐`,
+        Secondary_Detail: `Avg Time: ${rec.avgTimeMinutes} mins | Cancelled: ${rec.cancelled}`,
+        Date_or_Status: `Status: Active`,
+      };
+    });
+
+    const allRows = [...kpiRows, ...workloadRows, ...deptRows, ...recordRows];
+
+    exportDataToCsv(
+      `Doctor_Report_Complete_All_Data_${new Date().toISOString().slice(0, 10)}.csv`,
+      allRows,
+    );
   };
 
   const handleResetFilters = () => {
@@ -336,21 +422,19 @@ export function DoctorReportScreen({
   };
 
   // Sorted records
-  const sortedData = useMemo(() => {
-    return filteredData.toSorted((a, b) => {
-      const aVal = a[sortField];
-      const bVal = b[sortField];
-      if (typeof aVal === "number" && typeof bVal === "number") {
-        return sortOrder === "asc" ? aVal - bVal : bVal - aVal;
-      }
-      if (typeof aVal === "string" && typeof bVal === "string") {
-        return sortOrder === "asc"
-          ? aVal.localeCompare(bVal)
-          : bVal.localeCompare(aVal);
-      }
-      return 0;
-    });
-  }, [filteredData, sortField, sortOrder]);
+  const sortedData = filteredData.toSorted((a, b) => {
+    const aVal = a[sortField];
+    const bVal = b[sortField];
+    if (typeof aVal === "number" && typeof bVal === "number") {
+      return sortOrder === "asc" ? aVal - bVal : bVal - aVal;
+    }
+    if (typeof aVal === "string" && typeof bVal === "string") {
+      return sortOrder === "asc"
+        ? aVal.localeCompare(bVal)
+        : bVal.localeCompare(aVal);
+    }
+    return 0;
+  });
 
   const consultationTrendData = useMemo(() => {
     const daysCount =
@@ -382,7 +466,7 @@ export function DoctorReportScreen({
     return result;
   }, [trendDays, doctorPerformanceData]);
 
-  const doctorWorkloadData = useMemo(() => {
+  const doctorWorkloadData = (() => {
     const list = filteredData.map((d) => ({
       doctor: d.doctorName.startsWith("Dr.")
         ? d.doctorName
@@ -398,7 +482,7 @@ export function DoctorReportScreen({
       ];
     }
     return list;
-  }, [filteredData]);
+  })();
 
   const statusShareData = useMemo(() => {
     const s = doctorPerformanceData.summary;
@@ -414,7 +498,7 @@ export function DoctorReportScreen({
     ];
   }, [doctorPerformanceData]);
 
-  const deptVolumeData = useMemo(() => {
+  const deptVolumeData = (() => {
     const map: Record<string, number> = {};
     filteredData.forEach((d) => {
       map[d.department] = (map[d.department] || 0) + (d.appointments || 1);
@@ -431,7 +515,7 @@ export function DoctorReportScreen({
       ];
     }
     return list;
-  }, [filteredData]);
+  })();
 
   const avgDurationData = useMemo(() => {
     const daysCount = 7;
@@ -532,19 +616,12 @@ export function DoctorReportScreen({
               </button>
 
               <button
-                onClick={() => alert("Exporting Doctor Report to PDF...")}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium text-white bg-[#0D47A1] hover:bg-blue-900 transition shadow-sm"
+                onClick={handleExportAllCsv}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-slate-50 transition shadow-sm cursor-pointer"
+                style={{ fontFamily: PP }}
               >
-                <Download className="w-3.5 h-3.5" />
-                <span>Export PDF</span>
-              </button>
-
-              <button
-                onClick={() => alert("Exporting Doctor Report to Excel...")}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium text-white bg-[#009688] hover:bg-teal-700 transition shadow-sm"
-              >
-                <FileSpreadsheet className="w-3.5 h-3.5" />
-                <span>Export Excel</span>
+                <Download className="w-4 h-4 text-emerald-600" />
+                <span>Export Report</span>
               </button>
 
               <button
@@ -1450,15 +1527,6 @@ export function DoctorReportScreen({
                     Detailed OPD consultation and patient rating register
                   </p>
                 </div>
-                <button
-                  onClick={() =>
-                    alert("Exporting Doctor Performance Register (CSV)...")
-                  }
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] text-xs font-semibold text-[#111827] rounded-xl hover:bg-slate-100 transition"
-                >
-                  <Download className="w-3.5 h-3.5 text-[#0D47A1]" />
-                  <span>Export Register</span>
-                </button>
               </div>
 
               <div className="overflow-x-auto">
@@ -1625,56 +1693,6 @@ export function DoctorReportScreen({
                     <ChevronRightIcon className="w-4 h-4" />
                   </button>
                 </div>
-              </div>
-            </div>
-
-            {/* RECENT DOCTOR ACTIVITIES TIMELINE */}
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
-              <h3
-                className="text-base font-bold text-[#111827] mb-4"
-                style={{ fontFamily: PP }}
-              >
-                Recent Doctor OPD Activities & Logs
-              </h3>
-              <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                {(
-                  [] as {
-                    id: string;
-                    doctor: string;
-                    department: string;
-                    time: string;
-                    type: string;
-                    patient: string;
-                  }[]
-                ).map((act) => (
-                  <div
-                    key={act.id}
-                    className="flex items-start gap-4 relative z-10"
-                  >
-                    <div className="w-7 h-7 rounded-full bg-white border-2 border-[#0D47A1] flex items-center justify-center text-[#0D47A1] shrink-0">
-                      <UserCheck className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] flex-1 text-xs">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-bold text-[#111827]">
-                          {act.doctor} ({act.department})
-                        </span>
-                        <span className="text-[11px] text-[#64748B]">
-                          {act.time}
-                        </span>
-                      </div>
-                      <p className="text-[#64748B]">
-                        Action:{" "}
-                        <strong className="text-[#0D47A1]">{act.type}</strong>{" "}
-                        for patient{" "}
-                        <span className="font-semibold text-[#111827]">
-                          {act.patient}
-                        </span>
-                        .
-                      </p>
-                    </div>
-                  </div>
-                ))}
               </div>
             </div>
           </div>

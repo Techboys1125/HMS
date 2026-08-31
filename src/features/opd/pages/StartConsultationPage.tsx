@@ -213,7 +213,6 @@ export function StartConsultationPage({
 
         if (res) {
           const c = (res.consultation || res) as unknown as Record<
-          const c = (res.consultation || res) as unknown as Record<
             string,
             unknown
           >;
@@ -243,11 +242,6 @@ export function StartConsultationPage({
                   pSub.phone ||
                   pSub.registeredMobile ||
                   "",
-                c.phone ||
-                  c.mobile ||
-                  pSub.phone ||
-                  pSub.registeredMobile ||
-                  "",
               ),
               bloodGroup: String(c.bloodGroup || pSub.bloodGroup || ""),
               allergies: Array.isArray(c.allergies)
@@ -261,11 +255,6 @@ export function StartConsultationPage({
                   docSub.name ||
                   docSub.fullName ||
                   "",
-                c.doctor ||
-                  c.doctorName ||
-                  docSub.name ||
-                  docSub.fullName ||
-                  "",
               ),
               opdRoom: String(c.opdRoom || c.roomNumber || ""),
               visitType: String(
@@ -274,9 +263,6 @@ export function StartConsultationPage({
               appointmentTime: String(c.appointmentTime || c.time || ""),
             });
 
-            const vObj = (c.vitals ||
-              (res as Record<string, unknown>).vitals ||
-              {}) as Record<string, unknown>;
             const vObj = (c.vitals ||
               (res as Record<string, unknown>).vitals ||
               {}) as Record<string, unknown>;
@@ -328,45 +314,24 @@ export function StartConsultationPage({
                       .replace("%", "")
                   : prev.spo2,
               bloodSugar:
-                vObj.bloodSugar || vObj.sugar
-                  ? toStr(vObj.bloodSugar || vObj.sugar).replace(" mg/dL", "")
-                  : prev.bloodSugar,
-              height: vObj.height
-                ? toStr(vObj.height).replace(" cm", "")
-                : prev.height,
-              weight: vObj.weight
-                ? toStr(vObj.weight).replace(" kg", "")
-                : prev.weight,
-              temperature:
-                vObj.temp || vObj.temperature
-                  ? toStr(vObj.temp || vObj.temperature)
-                      .replace(" °C", "")
-                      .replace("°C", "")
-                  : prev.temperature,
-              bp:
-                vObj.bp || vObj.bloodPressure
-                  ? toStr(vObj.bp || vObj.bloodPressure).replace(" mmHg", "")
-                  : prev.bp,
-              pulse:
-                vObj.pulse || vObj.heartRate
-                  ? toStr(vObj.pulse || vObj.heartRate).replace(" bpm", "")
-                  : prev.pulse,
-              respiratoryRate:
-                vObj.respiratoryRate || vObj.respRate
-                  ? toStr(vObj.respiratoryRate || vObj.respRate).replace(
-                      " /min",
-                      "",
-                    )
-                  : prev.respiratoryRate,
-              spo2:
-                vObj.spo2 || vObj.oxygenSaturation
-                  ? toStr(vObj.spo2 || vObj.oxygenSaturation)
-                      .replace(" %", "")
-                      .replace("%", "")
-                  : prev.spo2,
-              bloodSugar:
-                vObj.bloodSugar || vObj.sugar
-                  ? toStr(vObj.bloodSugar || vObj.sugar).replace(" mg/dL", "")
+                vObj.bloodSugar ||
+                vObj.sugar ||
+                vObj.bloodSugarMgDl ||
+                vObj.randomBloodSugar ||
+                vObj.fastingBloodSugar ||
+                vObj.glucose ||
+                vObj.rbs ||
+                vObj.fbs
+                  ? toStr(
+                      vObj.bloodSugar ||
+                        vObj.sugar ||
+                        vObj.bloodSugarMgDl ||
+                        vObj.randomBloodSugar ||
+                        vObj.fastingBloodSugar ||
+                        vObj.glucose ||
+                        vObj.rbs ||
+                        vObj.fbs,
+                    ).replace(" mg/dL", "")
                   : prev.bloodSugar,
             }));
 
@@ -467,9 +432,6 @@ export function StartConsultationPage({
           const appt = ((rawData as Record<string, unknown>)?.data ||
             rawData ||
             apptRes) as Record<string, unknown>;
-          const appt = ((rawData as Record<string, unknown>)?.data ||
-            rawData ||
-            apptRes) as Record<string, unknown>;
           const patientObj = (appt.patient || {}) as Record<string, unknown>;
           const doctorObj = (appt.doctor || {}) as Record<string, unknown>;
           const deptObj = (appt.department || {}) as Record<string, unknown>;
@@ -483,11 +445,6 @@ export function StartConsultationPage({
               "",
           );
           const pMrn = String(
-            appt.mrn ||
-              appt.patientMrn ||
-              appt.patient_mrn ||
-              patientObj.mrn ||
-              "",
             appt.mrn ||
               appt.patientMrn ||
               appt.patient_mrn ||
@@ -806,6 +763,61 @@ export function StartConsultationPage({
       setTimeout(() => setIsDraftSaved(false), 2500);
     }
   };
+  const patientName =
+    selectedAppointment?.patientName ||
+    selectedConsultation?.patientName ||
+    restoredPatientData?.patientName ||
+    "";
+  const patientMrn =
+    selectedAppointment?.mrn ||
+    selectedConsultation?.mrn ||
+    restoredPatientData?.mrn ||
+    "";
+  const patientAge =
+    selectedAppointment?.patientAge ||
+    selectedAppointment?.patient?.age ||
+    selectedConsultation?.age ||
+    restoredPatientData?.age ||
+    0;
+  const patientGender =
+    selectedAppointment?.patientGender ||
+    selectedAppointment?.patient?.gender ||
+    selectedConsultation?.gender ||
+    restoredPatientData?.gender ||
+    "";
+  const patientPhone =
+    selectedAppointment?.patientPhone ||
+    selectedAppointment?.patient?.phone ||
+    selectedAppointment?.patient?.mobile ||
+    selectedConsultation?.phone ||
+    restoredPatientData?.phone ||
+    "";
+  const patientBloodGroup =
+    selectedConsultation?.bloodGroup ||
+    (selectedAppointment?.patient as { bloodGroup?: string })?.bloodGroup ||
+    restoredPatientData?.bloodGroup ||
+    "";
+  const patientAllergies =
+    selectedConsultation?.allergies ||
+    (selectedAppointment?.patient as { allergies?: string[] })?.allergies ||
+    restoredPatientData?.allergies ||
+    [];
+  const primaryDoctorName =
+    formData.doctorName ||
+    selectedAppointment?.doctorName ||
+    selectedConsultation?.doctor ||
+    restoredPatientData?.doctor ||
+    "";
+  const opdRoomNumber =
+    selectedAppointment?.opdRoom ||
+    selectedConsultation?.opdRoom ||
+    restoredPatientData?.opdRoom ||
+    "";
+  const appointmentTimeStr =
+    selectedAppointment?.appointmentTime ||
+    selectedConsultation?.appointmentTime ||
+    restoredPatientData?.appointmentTime ||
+    "";
 
   const handleFinalize = async () => {
     if (isFinalizing) return;
@@ -855,7 +867,6 @@ export function StartConsultationPage({
             );
             console.log("CREATE PRESCRIPTION RAW RESPONSE:", createdRx);
 
-            const rxObj = createdRx as unknown as Record<string, unknown>;
             const rxObj = createdRx as unknown as Record<string, unknown>;
             const rxData = (rxObj?.data as Record<string, unknown>) || {};
             const rxIdResolved =
@@ -941,8 +952,6 @@ export function StartConsultationPage({
             chiefComplaint: formData.chiefComplaint || formData.symptoms,
             historyOfPresentIllness:
               formData.symptoms || formData.chiefComplaint,
-            historyOfPresentIllness:
-              formData.symptoms || formData.chiefComplaint,
             generalExamination: formData.clinicalExamination,
             assessmentSummary: formData.assessment,
             advice: formData.advice,
@@ -972,14 +981,6 @@ export function StartConsultationPage({
             console.warn("Prescription resolution pre-check warning:", resErr);
           }
 
-          const checkRes = await encountersApi
-            .getFinalizationCheck(encId)
-            .catch(() => null);
-          if (
-            checkRes &&
-            checkRes.ready === false &&
-            Array.isArray(checkRes.checks)
-          ) {
           const checkRes = await encountersApi
             .getFinalizationCheck(encId)
             .catch(() => null);
@@ -1089,62 +1090,6 @@ export function StartConsultationPage({
       setIsFinalizing(false);
     }
   };
-
-  const patientName =
-    selectedAppointment?.patientName ||
-    selectedConsultation?.patientName ||
-    restoredPatientData?.patientName ||
-    "";
-  const patientMrn =
-    selectedAppointment?.mrn ||
-    selectedConsultation?.mrn ||
-    restoredPatientData?.mrn ||
-    "";
-  const patientAge =
-    selectedAppointment?.patientAge ||
-    selectedAppointment?.patient?.age ||
-    selectedConsultation?.age ||
-    restoredPatientData?.age ||
-    0;
-  const patientGender =
-    selectedAppointment?.patientGender ||
-    selectedAppointment?.patient?.gender ||
-    selectedConsultation?.gender ||
-    restoredPatientData?.gender ||
-    "";
-  const patientPhone =
-    selectedAppointment?.patientPhone ||
-    selectedAppointment?.patient?.phone ||
-    selectedAppointment?.patient?.mobile ||
-    selectedConsultation?.phone ||
-    restoredPatientData?.phone ||
-    "";
-  const patientBloodGroup =
-    selectedConsultation?.bloodGroup ||
-    (selectedAppointment?.patient as { bloodGroup?: string })?.bloodGroup ||
-    restoredPatientData?.bloodGroup ||
-    "";
-  const patientAllergies =
-    selectedConsultation?.allergies ||
-    (selectedAppointment?.patient as { allergies?: string[] })?.allergies ||
-    restoredPatientData?.allergies ||
-    [];
-  const primaryDoctorName =
-    formData.doctorName ||
-    selectedAppointment?.doctorName ||
-    selectedConsultation?.doctor ||
-    restoredPatientData?.doctor ||
-    "";
-  const opdRoomNumber =
-    selectedAppointment?.opdRoom ||
-    selectedConsultation?.opdRoom ||
-    restoredPatientData?.opdRoom ||
-    "";
-  const appointmentTimeStr =
-    selectedAppointment?.appointmentTime ||
-    selectedConsultation?.appointmentTime ||
-    restoredPatientData?.appointmentTime ||
-    "";
 
   if (showCompleteModal && finalizedData) {
     return (

@@ -26,6 +26,7 @@ import {
   useInvoiceSummary,
   extractList,
 } from "../hooks/useReports";
+import { exportDataToCsv } from "../utils/export.utils";
 
 import {
   AreaChart,
@@ -325,6 +326,124 @@ export function BillingReportScreen({
     setTimeout(() => setIsRefreshing(false), 600);
   };
 
+  const handleExportAllCsv = () => {
+    // 1. Overview KPI Summary
+    const kpiRows = [
+      {
+        Section: "1. SUMMARY KPI",
+        Category_Item: "Total Billed Amount",
+        Count_or_Amount: `INR ${totalBilled}`,
+        Percentage_Share: "100%",
+        Primary_Detail: `Total Invoices: ${totalInvoices}`,
+        Secondary_Detail: `Avg Invoice: INR ${avgInvoiceValue}`,
+        Date_or_Status: "Billed Total",
+      },
+      {
+        Section: "1. SUMMARY KPI",
+        Category_Item: "Total Revenue Collected",
+        Count_or_Amount: `INR ${totalPaid}`,
+        Percentage_Share: `${collectionRate}%`,
+        Primary_Detail: `Paid Invoices: ${paidInvoices}`,
+        Secondary_Detail: `Paid Rate: ${paidRate}%`,
+        Date_or_Status: "Collected Total",
+      },
+      {
+        Section: "1. SUMMARY KPI",
+        Category_Item: "Total Outstanding Due",
+        Count_or_Amount: `INR ${totalOutstanding}`,
+        Percentage_Share: `${outstandingRate}%`,
+        Primary_Detail: `Unpaid Invoices: ${unpaidInvoices}`,
+        Secondary_Detail: "Pending Balance",
+        Date_or_Status: "Outstanding Total",
+      },
+    ];
+
+    // 2. Graph 1: Payment Method Distribution (%)
+    const totalMethodAmount = paymentMethodData.reduce((sum, m) => sum + m.amount, 0) || 1;
+    const methodRows = paymentMethodData.map((m) => {
+      const pct = ((m.amount / totalMethodAmount) * 100).toFixed(1);
+      return {
+        Section: "2. PAYMENT METHOD GRAPH DISTRIBUTION",
+        Category_Item: m.method,
+        Count_or_Amount: `INR ${m.amount}`,
+        Percentage_Share: `${pct}%`,
+        Primary_Detail: `Total Collected via ${m.method}`,
+        Secondary_Detail: "Payment Method Breakdown",
+        Date_or_Status: "Active",
+      };
+    });
+
+    // 3. Graph 2: Payment Status Distribution (%)
+    const totalStatusCount = paymentStatusData.reduce((sum, s) => sum + s.value, 0) || 1;
+    const statusRows = paymentStatusData.map((s) => {
+      const pct = ((s.value / totalStatusCount) * 100).toFixed(1);
+      return {
+        Section: "3. PAYMENT STATUS GRAPH DISTRIBUTION",
+        Category_Item: s.name,
+        Count_or_Amount: `${s.value} Invoices`,
+        Percentage_Share: `${pct}%`,
+        Primary_Detail: `Invoices with status ${s.name}`,
+        Secondary_Detail: "Status Share",
+        Date_or_Status: s.name,
+      };
+    });
+
+    // 4. Graph 3: Department Performance Revenue Share (%)
+    const totalDeptRev = deptPerformanceData.reduce((sum, d) => sum + d.revenue, 0) || 1;
+    const deptRows = deptPerformanceData.map((d) => {
+      const pct = ((d.revenue / totalDeptRev) * 100).toFixed(1);
+      return {
+        Section: "4. DEPARTMENT PERFORMANCE GRAPH SHARE",
+        Category_Item: d.department,
+        Count_or_Amount: `INR ${d.revenue}`,
+        Percentage_Share: `${pct}%`,
+        Primary_Detail: `Department Billed Revenue`,
+        Secondary_Detail: "Department Share",
+        Date_or_Status: "Verified",
+      };
+    });
+
+    // 5. Graph 4: Doctor Performance Revenue Share (%)
+    const totalDocRev = doctorRevenueData.reduce((sum, d) => sum + d.revenue, 0) || 1;
+    const doctorRows = doctorRevenueData.map((d) => {
+      const pct = ((d.revenue / totalDocRev) * 100).toFixed(1);
+      return {
+        Section: "5. DOCTOR PERFORMANCE GRAPH SHARE",
+        Category_Item: d.doctor,
+        Count_or_Amount: `INR ${d.revenue}`,
+        Percentage_Share: `${pct}%`,
+        Primary_Detail: `Doctor Generated Revenue`,
+        Secondary_Detail: "Doctor Share",
+        Date_or_Status: "Verified",
+      };
+    });
+
+    // 6. Table: Detailed Invoices Registry
+    const recordRows = (filteredData.length > 0 ? filteredData : billingTableSource).map((rec) => ({
+      Section: "6. DETAILED INVOICE TABLE REGISTRY",
+      Category_Item: rec.invoiceId,
+      Count_or_Amount: `Billed: INR ${rec.invoiceAmount} (Paid: INR ${rec.collectedAmount})`,
+      Percentage_Share: rec.invoiceAmount > 0 ? `${((rec.collectedAmount / rec.invoiceAmount) * 100).toFixed(1)}%` : "0%",
+      Primary_Detail: `Patient: ${rec.patientName} (${rec.mrn})`,
+      Secondary_Detail: `Doctor: ${rec.doctorName} | Dept: ${rec.department} | Method: ${rec.paymentMethod}`,
+      Date_or_Status: `Date: ${rec.invoiceDate} | Status: ${rec.paymentStatus}`,
+    }));
+
+    const allRows = [
+      ...kpiRows,
+      ...methodRows,
+      ...statusRows,
+      ...deptRows,
+      ...doctorRows,
+      ...recordRows,
+    ];
+
+    exportDataToCsv(
+      `Billing_Report_Complete_All_Data_${new Date().toISOString().slice(0, 10)}.csv`,
+      allRows
+    );
+  };
+
   const handleResetFilters = () => {
     setSearchQuery("");
     setDateRange("Today");
@@ -335,62 +454,51 @@ export function BillingReportScreen({
     setInvStatusFilter("All Invoice Statuses");
   };
 
-  // Filtered records - filter by search query, department, doctor, payment status, payment method & date
-  const filteredData = useMemo(() => {
-    return billingTableSource.filter((item) => {
-      const itemDate = (item.invoiceDate || "").slice(0, 10);
-      const matchesDate =
-        !dates.fromDate ||
-        !dates.toDate ||
-        (itemDate >= dates.fromDate && itemDate <= dates.toDate);
+  const filteredData = billingTableSource.filter((item) => {
+    const itemDate = (item.invoiceDate || "").slice(0, 10);
+    const matchesDate =
+      !dates.fromDate ||
+      !dates.toDate ||
+      (itemDate >= dates.fromDate && itemDate <= dates.toDate);
 
-      const matchesSearch =
-        !searchQuery ||
-        item.invoiceId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.doctorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.department.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch =
+      !searchQuery ||
+      item.invoiceId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.doctorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.department.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesDept =
-        deptFilter === "All Departments" ||
-        item.department.toLowerCase().includes(deptFilter.toLowerCase()) ||
-        deptFilter.toLowerCase().includes(item.department.toLowerCase());
+    const matchesDept =
+      deptFilter === "All Departments" ||
+      item.department.toLowerCase().includes(deptFilter.toLowerCase()) ||
+      deptFilter.toLowerCase().includes(item.department.toLowerCase());
 
-      const matchesDoctor =
-        doctorFilter === "All Doctors" ||
-        item.doctorName.toLowerCase().includes(doctorFilter.toLowerCase()) ||
-        doctorFilter.toLowerCase().includes(item.doctorName.toLowerCase());
+    const matchesDoctor =
+      doctorFilter === "All Doctors" ||
+      item.doctorName.toLowerCase().includes(doctorFilter.toLowerCase()) ||
+      doctorFilter.toLowerCase().includes(item.doctorName.toLowerCase());
 
-      const matchesStatus =
-        payStatusFilter === "All Statuses" ||
-        item.paymentStatus.toLowerCase() === payStatusFilter.toLowerCase();
+    const matchesStatus =
+      payStatusFilter === "All Statuses" ||
+      item.paymentStatus.toLowerCase() === payStatusFilter.toLowerCase();
 
-      const matchesMethod =
-        payMethodFilter === "All Methods" ||
-        item.paymentMethod.toLowerCase() === payMethodFilter.toLowerCase();
+    const matchesMethod =
+      payMethodFilter === "All Methods" ||
+      item.paymentMethod.toLowerCase() === payMethodFilter.toLowerCase();
 
-      return (
-        matchesDate &&
-        matchesSearch &&
-        matchesDept &&
-        matchesDoctor &&
-        matchesStatus &&
-        matchesMethod
-      );
-    });
-  }, [
-    dates,
-    searchQuery,
-    deptFilter,
-    doctorFilter,
-    payStatusFilter,
-    payMethodFilter,
-    billingTableSource,
-  ]);
+    return (
+      matchesDate &&
+      matchesSearch &&
+      matchesDept &&
+      matchesDoctor &&
+      matchesStatus &&
+      matchesMethod
+    );
+  });
 
   // Dynamic KPI Metrics derived from active filters
-  const totalBilled = useMemo(() => {
+  const totalBilled = (() => {
     if (
       invoiceSummaryData?.totalBilledAmount &&
       dateRange === "Today" &&
@@ -401,9 +509,9 @@ export function BillingReportScreen({
     )
       return invoiceSummaryData.totalBilledAmount;
     return filteredData.reduce((sum, d) => sum + d.invoiceAmount, 0);
-  }, [invoiceSummaryData, dateRange, deptFilter, doctorFilter, payStatusFilter, payMethodFilter, filteredData]);
+  })();
 
-  const totalPaid = useMemo(() => {
+  const totalPaid = (() => {
     if (
       invoiceSummaryData?.totalPaidAmount &&
       dateRange === "Today" &&
@@ -414,9 +522,9 @@ export function BillingReportScreen({
     )
       return invoiceSummaryData.totalPaidAmount;
     return filteredData.reduce((sum, d) => sum + d.collectedAmount, 0);
-  }, [invoiceSummaryData, dateRange, deptFilter, doctorFilter, payStatusFilter, payMethodFilter, filteredData]);
+  })();
 
-  const totalOutstanding = useMemo(() => {
+  const totalOutstanding = (() => {
     if (
       invoiceSummaryData?.totalOutstandingAmount != null &&
       dateRange === "Today" &&
@@ -425,9 +533,9 @@ export function BillingReportScreen({
     )
       return invoiceSummaryData.totalOutstandingAmount;
     return filteredData.reduce((sum, d) => sum + d.outstandingAmount, 0);
-  }, [invoiceSummaryData, dateRange, deptFilter, doctorFilter, filteredData]);
+  })();
 
-  const totalInvoices = useMemo(() => {
+  const totalInvoices = (() => {
     if (
       invoiceSummaryData?.totalInvoices &&
       dateRange === "Today" &&
@@ -435,9 +543,9 @@ export function BillingReportScreen({
     )
       return invoiceSummaryData.totalInvoices;
     return filteredData.length;
-  }, [invoiceSummaryData, dateRange, deptFilter, filteredData]);
+  })();
 
-  const paidInvoices = useMemo(() => {
+  const paidInvoices = (() => {
     if (
       invoiceSummaryData?.paidInvoices != null &&
       dateRange === "Today" &&
@@ -448,9 +556,9 @@ export function BillingReportScreen({
       (d) =>
         d.paymentStatus === "Paid" || (d.paymentStatus as string) === "Cleared",
     ).length;
-  }, [invoiceSummaryData, dateRange, deptFilter, filteredData]);
+  })();
 
-  const unpaidInvoices = useMemo(() => {
+  const unpaidInvoices = (() => {
     if (
       invoiceSummaryData?.unpaidInvoices != null &&
       dateRange === "Today" &&
@@ -458,7 +566,7 @@ export function BillingReportScreen({
     )
       return invoiceSummaryData.unpaidInvoices;
     return totalInvoices - paidInvoices;
-  }, [invoiceSummaryData, dateRange, deptFilter, totalInvoices, paidInvoices]);
+  })();
 
   const collectionRate =
     totalBilled > 0 ? ((totalPaid / totalBilled) * 100).toFixed(1) : "--";
@@ -473,7 +581,7 @@ export function BillingReportScreen({
   const avgInvoiceValue =
     totalInvoices > 0 ? Math.round(totalBilled / totalInvoices) : 0;
 
-  const revenueTrendData = useMemo(() => {
+  const revenueTrendData = (() => {
     const map: Record<
       string,
       { date: string; Revenue: number; Collections: number }
@@ -489,9 +597,9 @@ export function BillingReportScreen({
       map[d.invoiceDate].Collections += d.collectedAmount;
     });
     return Object.values(map).sort((a, b) => a.date.localeCompare(b.date));
-  }, [filteredData]);
+  })();
 
-  const paymentStatusData = useMemo(() => {
+  const paymentStatusData = (() => {
     const map: Record<string, number> = {};
     filteredData.forEach((d) => {
       map[d.paymentStatus] = (map[d.paymentStatus] || 0) + 1;
@@ -507,9 +615,9 @@ export function BillingReportScreen({
       value,
       color: colors[name] || "#64748B",
     }));
-  }, [filteredData]);
+  })();
 
-  const paymentMethodData = useMemo(() => {
+  const paymentMethodData = (() => {
     const map: Record<string, number> = {};
     filteredData.forEach((d) => {
       map[d.paymentMethod] = (map[d.paymentMethod] || 0) + d.collectedAmount;
@@ -518,9 +626,9 @@ export function BillingReportScreen({
       method,
       amount,
     }));
-  }, [filteredData]);
+  })();
 
-  const deptPerformanceData = useMemo(() => {
+  const deptPerformanceData = (() => {
     const map: Record<string, { department: string; revenue: number }> = {};
     filteredData.forEach((d) => {
       if (!map[d.department])
@@ -528,9 +636,9 @@ export function BillingReportScreen({
       map[d.department].revenue += d.invoiceAmount;
     });
     return Object.values(map);
-  }, [filteredData]);
+  })();
 
-  const doctorRevenueData = useMemo(() => {
+  const doctorRevenueData = (() => {
     const map: Record<string, { doctor: string; revenue: number }> = {};
     filteredData.forEach((d) => {
       if (!map[d.doctorName])
@@ -538,24 +646,22 @@ export function BillingReportScreen({
       map[d.doctorName].revenue += d.invoiceAmount;
     });
     return Object.values(map);
-  }, [filteredData]);
+  })();
 
   // Sorted records
-  const sortedData = useMemo(() => {
-    return filteredData.toSorted((a, b) => {
-      const aVal = a[sortField];
-      const bVal = b[sortField];
-      if (typeof aVal === "number" && typeof bVal === "number") {
-        return sortOrder === "asc" ? aVal - bVal : bVal - aVal;
-      }
-      if (typeof aVal === "string" && typeof bVal === "string") {
-        return sortOrder === "asc"
-          ? aVal.localeCompare(bVal)
-          : bVal.localeCompare(aVal);
-      }
-      return 0;
-    });
-  }, [filteredData, sortField, sortOrder]);
+  const sortedData = filteredData.toSorted((a, b) => {
+    const aVal = a[sortField];
+    const bVal = b[sortField];
+    if (typeof aVal === "number" && typeof bVal === "number") {
+      return sortOrder === "asc" ? aVal - bVal : bVal - aVal;
+    }
+    if (typeof aVal === "string" && typeof bVal === "string") {
+      return sortOrder === "asc"
+        ? aVal.localeCompare(bVal)
+        : bVal.localeCompare(aVal);
+    }
+    return 0;
+  });
 
   const handleSort = (field: keyof BillingReportRecord) => {
     if (sortField === field) {
@@ -648,20 +754,14 @@ export function BillingReportScreen({
                 <span>Refresh</span>
               </button>
 
-              <button
-                onClick={() => alert("Exporting Billing Report to PDF...")}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium text-white bg-[#0D47A1] hover:bg-blue-900 transition shadow-sm"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Export PDF</span>
-              </button>
 
               <button
-                onClick={() => alert("Exporting Billing Report to Excel...")}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium text-white bg-[#009688] hover:bg-teal-700 transition shadow-sm"
+                onClick={handleExportAllCsv}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-slate-50 transition shadow-sm cursor-pointer"
+                style={{ fontFamily: PP }}
               >
-                <FileSpreadsheet className="w-3.5 h-3.5" />
-                <span>Export Excel</span>
+                <Download className="w-4 h-4 text-emerald-600" />
+                <span>Export Report</span>
               </button>
 
               <button

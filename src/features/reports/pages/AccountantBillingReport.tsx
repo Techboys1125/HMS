@@ -22,6 +22,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { useDailyRevenueDetails, extractList } from "../hooks/useReports";
+import { exportDataToCsv } from "../utils/export.utils";
 import type { DailyRevenueDetail } from "../types/reports.types";
 
 import {
@@ -190,6 +191,27 @@ export function AccountantBillingReportScreen({
     setTimeout(() => setIsRefreshing(false), 600);
   };
 
+  const handleExportAllCsv = () => {
+    const recordsToExport = (filteredBillingRows.length > 0 ? filteredBillingRows : billingRowsSource).map((rec) => ({
+      Section: "ACCOUNTANT BILLING REPORT",
+      "Invoice ID": rec.invoiceId || "N/A",
+      "Patient Name": rec.patientName || "N/A",
+      "MRN": rec.mrn || "N/A",
+      "Total Amount (INR)": rec.invoiceAmount || 0,
+      "Paid Amount (INR)": rec.amountPaid || 0,
+      "Balance (INR)": rec.outstandingBalance || 0,
+      "Payment Status": rec.paymentStatus || "Paid",
+      "Payment Method": rec.paymentMethod || "Cash",
+      "Collected By": rec.collectedBy || "System Accountant",
+      "Date": rec.invoiceDate || today,
+    }));
+
+    exportDataToCsv(
+      `Accountant_Billing_Report_All_Data_${new Date().toISOString().slice(0, 10)}.csv`,
+      recordsToExport
+    );
+  };
+
   const handleResetFilters = () => {
     setSearchQuery("");
     setDateRange("Today");
@@ -201,26 +223,19 @@ export function AccountantBillingReportScreen({
     setCollectedByFilter("All Collectors");
   };
 
-  const filteredBillingRows = useMemo(() => {
-    return billingRowsSource.filter((item) => {
-      const matchesSearch =
-        item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.invoiceId.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesStatus =
-        paymentStatusFilter === "All Payment Statuses" ||
-        item.paymentStatus.toLowerCase() === paymentStatusFilter.toLowerCase();
-      const matchesMethod =
-        paymentMethodFilter === "All Payment Methods" ||
-        item.paymentMethod.toLowerCase() === paymentMethodFilter.toLowerCase();
-      return matchesSearch && matchesStatus && matchesMethod;
-    });
-  }, [
-    searchQuery,
-    paymentStatusFilter,
-    paymentMethodFilter,
-    billingRowsSource,
-  ]);
+  const filteredBillingRows = billingRowsSource.filter((item) => {
+    const matchesSearch =
+      item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.invoiceId.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus =
+      paymentStatusFilter === "All Payment Statuses" ||
+      item.paymentStatus.toLowerCase() === paymentStatusFilter.toLowerCase();
+    const matchesMethod =
+      paymentMethodFilter === "All Payment Methods" ||
+      item.paymentMethod.toLowerCase() === paymentMethodFilter.toLowerCase();
+    return matchesSearch && matchesStatus && matchesMethod;
+  });
 
   const trendData = useMemo(() => {
     const daysCount =
@@ -396,10 +411,18 @@ export function AccountantBillingReportScreen({
 
               <button
                 onClick={() => window.print()}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-[#111827] bg-white border border-[#E5E7EB] hover:bg-slate-50 transition shadow-sm"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-[#111827] bg-white border border-[#E5E7EB] hover:bg-slate-50 transition shadow-sm cursor-pointer"
               >
                 <Printer className="w-3.5 h-3.5 text-[#0D47A1]" />
                 <span>Print Report</span>
+              </button>
+
+              <button
+                onClick={handleExportAllCsv}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-slate-50 transition shadow-sm cursor-pointer"
+              >
+                <Download className="w-4 h-4 text-emerald-600" />
+                <span>Export CSV for All</span>
               </button>
             </div>
           </div>

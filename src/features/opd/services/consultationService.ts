@@ -151,7 +151,7 @@ export const consultationService = {
       );
 
       // 6. Initialize empty prescription draft for active consultation
-      let prescription = null;
+      const prescription = null;
       consultationStoreActions.setPrescription(prescription);
 
       // 5. Build consultation record (status already IN_CONSULTATION from queue/encounter)

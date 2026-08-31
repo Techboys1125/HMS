@@ -13,7 +13,8 @@ interface EditConsultationFollowupCardProps {
     nextVisitDate: string;
     followupNotes: string;
   };
-  setFormData: React.Dispatch<React.SetStateAction<any>>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  setFormData: (action: any) => void;
 }
 
 export const EditConsultationFollowupCard: React.FC<
@@ -50,6 +51,7 @@ export const EditConsultationFollowupCard: React.FC<
               type="checkbox"
               checked={formData.followupRequired}
               onChange={(e) =>
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 setFormData((prev: any) => ({
                   ...prev,
                   followupRequired: e.target.checked,
@@ -74,6 +76,7 @@ export const EditConsultationFollowupCard: React.FC<
                   type="date"
                   value={formData.nextVisitDate}
                   onChange={(e) =>
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     setFormData((prev: any) => ({
                       ...prev,
                       nextVisitDate: e.target.value,
@@ -94,6 +97,7 @@ export const EditConsultationFollowupCard: React.FC<
                   type="text"
                   value={formData.followupNotes}
                   onChange={(e) =>
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     setFormData((prev: any) => ({
                       ...prev,
                       followupNotes: e.target.value,
