@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useReducer, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { ROUTES } from "../../../app/routes/routes";
 import {
@@ -132,26 +132,69 @@ export function AccountantReportsDashboardScreen({
   const navigate = useNavigate();
   const todayStr = getOffsetDateStr(0);
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [dateRange, setDateRange] = useState("Today");
-  const [startDate, setStartDate] = useState(todayStr);
-  const [endDate, setEndDate] = useState(todayStr);
+  const [state, dispatch] = useReducer(
+    (
+      prev: {
+        searchQuery: string;
+        dateRange: string;
+        startDate: string;
+        endDate: string;
+        paymentStatusFilter: string;
+        paymentMethodFilter: string;
+        invoiceStatusFilter: string;
+        collectedByFilter: string;
+        trendRange: "Today" | "7 Days" | "30 Days" | "90 Days";
+        isRefreshing: boolean;
+      },
+      next: Partial<{
+        searchQuery: string;
+        dateRange: string;
+        startDate: string;
+        endDate: string;
+        paymentStatusFilter: string;
+        paymentMethodFilter: string;
+        invoiceStatusFilter: string;
+        collectedByFilter: string;
+        trendRange: "Today" | "7 Days" | "30 Days" | "90 Days";
+        isRefreshing: boolean;
+      }>,
+    ) => ({ ...prev, ...next }),
+    {
+      searchQuery: "",
+      dateRange: "Today",
+      startDate: todayStr,
+      endDate: todayStr,
+      paymentStatusFilter: "All Payment Statuses",
+      paymentMethodFilter: "All Payment Methods",
+      invoiceStatusFilter: "All Invoice Statuses",
+      collectedByFilter: "All Collectors",
+      trendRange: "7 Days" as const,
+      isRefreshing: false,
+    },
+  );
+  const {
+    searchQuery,
+    dateRange,
+    startDate,
+    endDate,
+    paymentStatusFilter,
+    paymentMethodFilter,
+    invoiceStatusFilter,
+    collectedByFilter,
+    trendRange,
+    isRefreshing,
+  } = state;
 
-  const [paymentStatusFilter, setPaymentStatusFilter] = useState(
-    "All Payment Statuses",
-  );
-  const [paymentMethodFilter, setPaymentMethodFilter] = useState(
-    "All Payment Methods",
-  );
-  const [invoiceStatusFilter, setInvoiceStatusFilter] = useState(
-    "All Invoice Statuses",
-  );
-  const [collectedByFilter, setCollectedByFilter] = useState("All Collectors");
-
-  const [trendRange, setTrendRange] = useState<
-    "Today" | "7 Days" | "30 Days" | "90 Days"
-  >("7 Days");
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const setSearchQuery = (val: string) => dispatch({ searchQuery: val });
+  const setDateRange = (val: string) => dispatch({ dateRange: val });
+  const setStartDate = (val: string) => dispatch({ startDate: val });
+  const setEndDate = (val: string) => dispatch({ endDate: val });
+  const setPaymentStatusFilter = (val: string) => dispatch({ paymentStatusFilter: val });
+  const setPaymentMethodFilter = (val: string) => dispatch({ paymentMethodFilter: val });
+  const setInvoiceStatusFilter = (val: string) => dispatch({ invoiceStatusFilter: val });
+  const setCollectedByFilter = (val: string) => dispatch({ collectedByFilter: val });
+  const setTrendRange = (val: "Today" | "7 Days" | "30 Days" | "90 Days") => dispatch({ trendRange: val });
+  const setIsRefreshing = (val: boolean) => dispatch({ isRefreshing: val });
 
   const handlePresetDateChange = (preset: string) => {
     setDateRange(preset);
@@ -1423,9 +1466,9 @@ export function AccountantReportsDashboardScreen({
                         </td>
                       </tr>
                     ) : (
-                      filteredTransactions.map((item, idx) => (
+                      filteredTransactions.map((item) => (
                         <tr
-                          key={`${item.invoiceId}-${idx}`}
+                          key={String(item.invoiceId)}
                           className="hover:bg-slate-50 transition-colors"
                         >
                           <td className="py-3.5 px-4 font-mono font-bold text-[#0D47A1]">

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useTransition } from "react";
+import React, { useReducer, useMemo, useTransition } from "react";
 import { useNavigate } from "react-router";
 import { ROUTES } from "../../../app/routes/routes";
 import {
@@ -1360,9 +1360,9 @@ const DoctorConsultationsTable = ({
               </td>
             </tr>
           ) : (
-            filteredConsultations.map((item, idx) => (
+            filteredConsultations.map((item) => (
               <tr
-                key={`${item.id}-${idx}`}
+                key={item.id}
                 className="hover:bg-slate-50 transition-colors"
               >
                 <td className="py-3.5 px-4 font-bold text-[#111827]">
@@ -1460,19 +1460,71 @@ export function DoctorReportsDashboardScreen({
   const navigate = useNavigate();
   const todayStr = getOffsetDateStr(0);
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [dateRangeFilter, setDateRangeFilter] = useState("Today");
-  const [startDate, setStartDate] = useState(todayStr);
-  const [endDate, setEndDate] = useState(todayStr);
-  const [statusFilter, setStatusFilter] = useState("All Statuses");
-  const [visitTypeFilter, setVisitTypeFilter] = useState("All Visit Types");
+  const [state, dispatch] = useReducer(
+    (
+      prev: {
+        searchQuery: string;
+        dateRangeFilter: string;
+        startDate: string;
+        endDate: string;
+        statusFilter: string;
+        visitTypeFilter: string;
+        trendDays: "7" | "30" | "90";
+        isRefreshing: boolean;
+        showLoadingDemo: boolean;
+        hasError: boolean;
+      },
+      next: Partial<{
+        searchQuery: string;
+        dateRangeFilter: string;
+        startDate: string;
+        endDate: string;
+        statusFilter: string;
+        visitTypeFilter: string;
+        trendDays: "7" | "30" | "90";
+        isRefreshing: boolean;
+        showLoadingDemo: boolean;
+        hasError: boolean;
+      }>,
+    ) => ({ ...prev, ...next }),
+    {
+      searchQuery: "",
+      dateRangeFilter: "Today",
+      startDate: todayStr,
+      endDate: todayStr,
+      statusFilter: "All Statuses",
+      visitTypeFilter: "All Visit Types",
+      trendDays: "7" as const,
+      isRefreshing: false,
+      showLoadingDemo: false,
+      hasError: false,
+    },
+  );
+  const {
+    searchQuery,
+    dateRangeFilter,
+    startDate,
+    endDate,
+    statusFilter,
+    visitTypeFilter,
+    trendDays,
+    isRefreshing,
+    showLoadingDemo,
+    hasError,
+  } = state;
 
-  const [trendDays, setTrendDays] = useState<"7" | "30" | "90">("7");
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const setSearchQuery = (val: string) => dispatch({ searchQuery: val });
+  const setDateRangeFilter = (val: string) => dispatch({ dateRangeFilter: val });
+  const setStartDate = (val: string) => dispatch({ startDate: val });
+  const setEndDate = (val: string) => dispatch({ endDate: val });
+  const setStatusFilter = (val: string) => dispatch({ statusFilter: val });
+  const setVisitTypeFilter = (val: string) => dispatch({ visitTypeFilter: val });
+  const setTrendDays = (val: "7" | "30" | "90") => dispatch({ trendDays: val });
+  const setIsRefreshing = (val: boolean) => dispatch({ isRefreshing: val });
+  const setShowLoadingDemo = (val: boolean) => dispatch({ showLoadingDemo: val });
+  const setHasError = (val: boolean) => dispatch({ hasError: val });
   const [isPending, startTransition] = useTransition();
-  const [showLoadingDemo, setShowLoadingDemo] = useState(false);
   const isLoading = isPending || showLoadingDemo;
-  const [hasError, setHasError] = useState(false);
 
   const singleDateParam =
     startDate && endDate && startDate === endDate ? startDate : undefined;

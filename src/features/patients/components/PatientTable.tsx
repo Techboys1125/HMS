@@ -584,9 +584,9 @@ export function PatientTable({
           <span className="text-[11px] font-medium text-slate-500 mr-1 flex items-center gap-1">
             <Filter size={11} /> Active filters:
           </span>
-          {activeFiltersChips.map((chip, idx) => (
+          {activeFiltersChips.map((chip) => (
             <span
-              key={idx}
+              key={chip.label}
               className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-[#0D47A1] border border-blue-200 text-[11px] font-semibold"
             >
               {chip.label}

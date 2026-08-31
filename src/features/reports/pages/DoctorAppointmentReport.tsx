@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useTransition } from "react";
+import React, { useReducer, useMemo, useTransition } from "react";
 import {
   Calendar,
   Download,
@@ -182,22 +182,76 @@ export function DoctorDailyAppointmentReportScreen({
 }) {
   const todayStr = getOffsetDateStr(0);
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [dateRange, setDateRange] = useState("Today");
-  const [startDate, setStartDate] = useState(todayStr);
-  const [endDate, setEndDate] = useState(todayStr);
-  const [statusFilter, setStatusFilter] = useState("All Statuses");
-  const [visitTypeFilter, setVisitTypeFilter] = useState("All Visit Types");
-  const [shiftFilter, setShiftFilter] = useState("All Shifts");
+  const [state, dispatch] = useReducer(
+    (
+      prev: {
+        searchQuery: string;
+        dateRange: string;
+        startDate: string;
+        endDate: string;
+        statusFilter: string;
+        visitTypeFilter: string;
+        shiftFilter: string;
+        trendDays: "Today" | "7 Days" | "30 Days" | "90 Days";
+        isRefreshing: boolean;
+        showLoadingDemo: boolean;
+        hasError: boolean;
+      },
+      next: Partial<{
+        searchQuery: string;
+        dateRange: string;
+        startDate: string;
+        endDate: string;
+        statusFilter: string;
+        visitTypeFilter: string;
+        shiftFilter: string;
+        trendDays: "Today" | "7 Days" | "30 Days" | "90 Days";
+        isRefreshing: boolean;
+        showLoadingDemo: boolean;
+        hasError: boolean;
+      }>,
+    ) => ({ ...prev, ...next }),
+    {
+      searchQuery: "",
+      dateRange: "Today",
+      startDate: todayStr,
+      endDate: todayStr,
+      statusFilter: "All Statuses",
+      visitTypeFilter: "All Visit Types",
+      shiftFilter: "All Shifts",
+      trendDays: "Today" as const,
+      isRefreshing: false,
+      showLoadingDemo: false,
+      hasError: false,
+    },
+  );
+  const {
+    searchQuery,
+    dateRange,
+    startDate,
+    endDate,
+    statusFilter,
+    visitTypeFilter,
+    shiftFilter,
+    trendDays,
+    isRefreshing,
+    showLoadingDemo,
+    hasError,
+  } = state;
 
-  const [trendDays, setTrendDays] = useState<
-    "Today" | "7 Days" | "30 Days" | "90 Days"
-  >("Today");
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const setSearchQuery = (val: string) => dispatch({ searchQuery: val });
+  const setDateRange = (val: string) => dispatch({ dateRange: val });
+  const setStartDate = (val: string) => dispatch({ startDate: val });
+  const setEndDate = (val: string) => dispatch({ endDate: val });
+  const setStatusFilter = (val: string) => dispatch({ statusFilter: val });
+  const setVisitTypeFilter = (val: string) => dispatch({ visitTypeFilter: val });
+  const setShiftFilter = (val: string) => dispatch({ shiftFilter: val });
+  const setTrendDays = (val: "Today" | "7 Days" | "30 Days" | "90 Days") => dispatch({ trendDays: val });
+  const setIsRefreshing = (val: boolean) => dispatch({ isRefreshing: val });
+  const setShowLoadingDemo = (val: boolean) => dispatch({ showLoadingDemo: val });
+  const setHasError = (val: boolean) => dispatch({ hasError: val });
   const [isPending, startTransition] = useTransition();
-  const [showLoadingDemo, setShowLoadingDemo] = useState(false);
   const isLoading = isPending || showLoadingDemo;
-  const [hasError, setHasError] = useState(false);
 
   // React Query Hooks for Doctor Personal Practice Reports
   const { refetch: refetchDash } =
@@ -1319,9 +1373,9 @@ export function DoctorDailyAppointmentReportScreen({
                         </td>
                       </tr>
                     ) : (
-                      filteredAppointments.map((item, idx) => (
+                      filteredAppointments.map((item) => (
                         <tr
-                          key={`${item.id}-${idx}`}
+                          key={item.id}
                           className="hover:bg-slate-50 transition-colors"
                         >
                           <td className="py-3.5 px-4 font-bold text-[#0D47A1]">

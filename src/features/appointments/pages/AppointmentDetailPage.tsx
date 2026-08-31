@@ -315,17 +315,17 @@ export function AppointmentDetailPage() {
       try {
         const data = await appointmentService.getAppointment(String(id));
         if (cancelled) return;
-        if (data) {
-          setApt(data);
-        } else {
-          setError("Appointment not found.");
+        if (!cancelled) {
+          if (data) {
+            setApt(data);
+          } else {
+            setError("Appointment not found.");
+          }
         }
       } catch {
         if (!cancelled) setError("Failed to load appointment details.");
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     }
 

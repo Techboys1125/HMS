@@ -353,7 +353,13 @@ export function DataTable<T>({
 
             <tbody className="divide-y divide-slate-100 text-[#111827]">
               {paginatedData.map((item, idx) => {
-                const rowId = getRowId ? getRowId(item, idx) : idx;
+                const itemKey =
+                  (item as Record<string, unknown>)?.id ??
+                  (item as Record<string, unknown>)?.key ??
+                  (item as Record<string, unknown>)?.uuid ??
+                  (item as Record<string, unknown>)?.code ??
+                  (item as Record<string, unknown>)?.name;
+                const rowId = getRowId ? getRowId(item, idx) : (itemKey as string | number);
                 const isSelected =
                   selectedRowId !== undefined && selectedRowId !== null
                     ? String(selectedRowId) === String(rowId)

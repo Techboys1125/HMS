@@ -171,7 +171,7 @@ export function DoctorProfilePage() {
         if (cancelled) return;
 
         const me = meResponse.data as unknown as AuthUser;
-        if (me) setAuthUser(me);
+        if (!cancelled && me) setAuthUser(me);
 
         const uid = me?.id || user?.id;
         const docId =
@@ -192,7 +192,7 @@ export function DoctorProfilePage() {
               (response.data as DoctorApiResponse<ApiUserDoctorRecord>)?.data ||
               (response.data as ApiUserDoctorRecord);
 
-            if (data && (data.fullName || data.name || data.doctorProfile)) {
+            if (!cancelled && data && (data.fullName || data.name || data.doctorProfile)) {
               const doctorRecord = mapApiUserToDoctorRecord(data);
               setDoctor(doctorRecord);
               setPersonalForm({
@@ -225,7 +225,7 @@ export function DoctorProfilePage() {
               response.data?.data ||
               (response.data as unknown as ApiUserDoctorRecord);
 
-            if (data && (data.fullName || data.name || data.doctorProfile)) {
+            if (!cancelled && data && (data.fullName || data.name || data.doctorProfile)) {
               const doctorRecord = mapApiUserToDoctorRecord(data);
               setDoctor(doctorRecord);
               setPersonalForm({

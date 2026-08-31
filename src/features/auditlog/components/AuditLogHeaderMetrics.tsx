@@ -32,9 +32,9 @@ export function AuditLogHeaderMetrics({
       {/* Metrics Row */}
       {metrics && metrics.length > 0 && (
         <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {metrics.map((metric, idx) => (
+          {metrics.map((metric) => (
             <div
-              key={metric.code || idx}
+              key={metric.code || metric.label}
               className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm space-y-1"
             >
               <p className="text-xs font-semibold text-gray-500">{metric.label}</p>

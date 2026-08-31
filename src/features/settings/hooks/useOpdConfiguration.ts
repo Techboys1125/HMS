@@ -76,8 +76,10 @@ export function useOpdConfiguration(year = new Date().getFullYear()) {
           fetchOpdHolidays(year),
         ]);
         if (cancelled) return;
-        setSchedule(normalizeSchedule(scheduleResult));
-        setHolidays(holidayResult);
+        if (!cancelled) {
+          setSchedule(normalizeSchedule(scheduleResult));
+          setHolidays(holidayResult);
+        }
       } catch (err) {
         if (!cancelled) {
           setError(
@@ -85,9 +87,7 @@ export function useOpdConfiguration(year = new Date().getFullYear()) {
           );
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     }
 

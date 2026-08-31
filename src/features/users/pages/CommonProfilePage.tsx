@@ -1437,7 +1437,7 @@ export function CommonProfilePage() {
                 <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
                   {form.scheduleExceptions.map((ex, idx) => (
                     <div
-                      key={idx}
+                      key={`${ex.exceptionDate}-${ex.reason}`}
                       className="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs"
                     >
                       <div className="flex items-center gap-3">

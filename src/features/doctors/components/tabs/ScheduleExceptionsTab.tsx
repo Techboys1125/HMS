@@ -43,15 +43,13 @@ export function ScheduleExceptionsTab({
         const targetId = resolveDoctorId(doctor);
         const data = await doctorsService.getScheduleExceptions(targetId);
         if (cancelled) return;
-        setExceptions(data || []);
+        if (!cancelled) setExceptions(data || []);
       } catch (err) {
         if (!cancelled) {
           console.log(err);
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     }
 

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useReducer, useMemo, useEffect, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Activity,
@@ -80,19 +80,63 @@ export function RecordPatientVitalsScreen({
 }: Props) {
   const { can } = usePermissions();
   const queryClient = useQueryClient();
-  const [appointments, setAppointments] = useState<AppointmentRecord[]>([]);
-  const [selectedAptId, setSelectedAptId] = useState<string | null>(null);
-  const [selectedAptRecord, setSelectedAptRecord] =
-    useState<AppointmentRecord | null>(null);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [viewMode, setViewMode] = useState<"center" | "record" | "details">(
-    initialViewMode,
-  );
   const todayStr = new Date().toISOString().split("T")[0];
-  const [selectedDate, setSelectedDate] = useState<string>(todayStr);
-  // Sorting State
-  const [sortField] = useState<"time" | "token" | "patient">("time");
-  const [sortOrder] = useState<"asc" | "desc">("asc");
+  type VitalsState = {
+    appointments: AppointmentRecord[];
+    selectedAptId: string | null;
+    selectedAptRecord: AppointmentRecord | null;
+    isEditMode: boolean;
+    viewMode: "center" | "record" | "details";
+    selectedDate: string;
+    sortField: "time" | "token" | "patient";
+    sortOrder: "asc" | "desc";
+  };
+  const [state, dispatch] = useReducer(
+    (
+      prev: VitalsState,
+      action: Partial<VitalsState> | ((prevState: VitalsState) => Partial<VitalsState>),
+    ) => {
+      const patch = typeof action === "function" ? action(prev) : action;
+      return { ...prev, ...patch };
+    },
+    {
+      appointments: [],
+      selectedAptId: null,
+      selectedAptRecord: null,
+      isEditMode: false,
+      viewMode: initialViewMode,
+      selectedDate: todayStr,
+      sortField: "time",
+      sortOrder: "asc",
+    },
+  );
+  const {
+    appointments,
+    selectedAptId,
+    selectedAptRecord,
+    isEditMode,
+    viewMode,
+    selectedDate,
+    sortField,
+    sortOrder,
+  } = state;
+
+  const setAppointments = (
+    val: AppointmentRecord[] | ((prev: AppointmentRecord[]) => AppointmentRecord[]),
+  ) =>
+    dispatch((prev) => ({
+      appointments: typeof val === "function" ? val(prev.appointments) : val,
+    }));
+  const setSelectedAptId = (val: string | null) => dispatch({ selectedAptId: val });
+  const setSelectedAptRecord = (
+    val: AppointmentRecord | null | ((prev: AppointmentRecord | null) => AppointmentRecord | null),
+  ) =>
+    dispatch((prev) => ({
+      selectedAptRecord: typeof val === "function" ? val(prev.selectedAptRecord) : val,
+    }));
+  const setIsEditMode = (val: boolean) => dispatch({ isEditMode: val });
+  const setViewMode = (val: "center" | "record" | "details") => dispatch({ viewMode: val });
+  const setSelectedDate = (val: string) => dispatch({ selectedDate: val });
 
   const loadWaitingAppointments = useCallback(
     async (dateParam?: string) => {

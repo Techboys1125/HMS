@@ -1360,8 +1360,8 @@ export function EditConsultationScreen({
               className="list-disc list-inside text-xs text-red-600 pl-6 space-y-0.5"
               style={{ fontFamily: RB }}
             >
-              {validationErrors.map((err, i) => (
-                <li key={i}>{err}</li>
+              {validationErrors.map((err) => (
+                <li key={err}>{err}</li>
               ))}
             </ul>
           </div>

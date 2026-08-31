@@ -42,13 +42,11 @@ export function MonthlyCalendarTab({ doctor }: MonthlyCalendarTabProps) {
           month,
         );
         if (cancelled) return;
-        if (data) setDays(data.days || []);
+        if (!cancelled && data) setDays(data.days || []);
       } catch (err) {
         console.log(err);
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     }
 

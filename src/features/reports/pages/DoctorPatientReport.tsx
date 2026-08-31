@@ -1,4 +1,4 @@
-import { useState, useMemo, useTransition } from "react";
+import { useReducer, useMemo, useTransition } from "react";
 import {
   Download,
   RefreshCw,
@@ -194,25 +194,76 @@ export function DoctorPatientReportScreen({
 }) {
   const todayStr = getOffsetDateStr(0);
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [dateRange, setDateRange] = useState("Today");
-  const [startDate, setStartDate] = useState(todayStr);
-  const [endDate, setEndDate] = useState(todayStr);
-  const [visitTypeFilter, setVisitTypeFilter] = useState("All Visit Types");
-  const [consultStatusFilter, setConsultStatusFilter] =
-    useState("All Statuses");
-  const [followUpStatusFilter, setFollowUpStatusFilter] = useState(
-    "All Follow-up Statuses",
+  const [state, dispatch] = useReducer(
+    (
+      prev: {
+        searchQuery: string;
+        dateRange: string;
+        startDate: string;
+        endDate: string;
+        visitTypeFilter: string;
+        consultStatusFilter: string;
+        followUpStatusFilter: string;
+        trendDays: "7 Days" | "30 Days" | "90 Days";
+        showLoadingDemo: boolean;
+        isRefreshing: boolean;
+        hasError: boolean;
+      },
+      next: Partial<{
+        searchQuery: string;
+        dateRange: string;
+        startDate: string;
+        endDate: string;
+        visitTypeFilter: string;
+        consultStatusFilter: string;
+        followUpStatusFilter: string;
+        trendDays: "7 Days" | "30 Days" | "90 Days";
+        showLoadingDemo: boolean;
+        isRefreshing: boolean;
+        hasError: boolean;
+      }>,
+    ) => ({ ...prev, ...next }),
+    {
+      searchQuery: "",
+      dateRange: "Today",
+      startDate: todayStr,
+      endDate: todayStr,
+      visitTypeFilter: "All Visit Types",
+      consultStatusFilter: "All Statuses",
+      followUpStatusFilter: "All Follow-up Statuses",
+      trendDays: "7 Days" as const,
+      showLoadingDemo: false,
+      isRefreshing: false,
+      hasError: false,
+    },
   );
+  const {
+    searchQuery,
+    dateRange,
+    startDate,
+    endDate,
+    visitTypeFilter,
+    consultStatusFilter,
+    followUpStatusFilter,
+    trendDays,
+    showLoadingDemo,
+    isRefreshing,
+    hasError,
+  } = state;
 
-  const [trendDays, setTrendDays] = useState<"7 Days" | "30 Days" | "90 Days">(
-    "7 Days",
-  );
+  const setSearchQuery = (val: string) => dispatch({ searchQuery: val });
+  const setDateRange = (val: string) => dispatch({ dateRange: val });
+  const setStartDate = (val: string) => dispatch({ startDate: val });
+  const setEndDate = (val: string) => dispatch({ endDate: val });
+  const setVisitTypeFilter = (val: string) => dispatch({ visitTypeFilter: val });
+  const setConsultStatusFilter = (val: string) => dispatch({ consultStatusFilter: val });
+  const setFollowUpStatusFilter = (val: string) => dispatch({ followUpStatusFilter: val });
+  const setTrendDays = (val: "7 Days" | "30 Days" | "90 Days") => dispatch({ trendDays: val });
+  const setShowLoadingDemo = (val: boolean) => dispatch({ showLoadingDemo: val });
+  const setIsRefreshing = (val: boolean) => dispatch({ isRefreshing: val });
+  const setHasError = (val: boolean) => dispatch({ hasError: val });
   const [isPending, startTransition] = useTransition();
-  const [showLoadingDemo, setShowLoadingDemo] = useState(false);
   const isLoading = isPending || showLoadingDemo;
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [hasError, setHasError] = useState(false);
 
   // React Query Hooks for Doctor Personal Patient Reports
   const { data: registerData, refetch: refetchRegister } =
@@ -1333,9 +1384,9 @@ export function DoctorPatientReportScreen({
                         </td>
                       </tr>
                     ) : (
-                      filteredPatients.map((item, idx) => (
+                      filteredPatients.map((item) => (
                         <tr
-                          key={`${item.mrn}-${idx}`}
+                          key={item.mrn}
                           className="hover:bg-slate-50 transition-colors"
                         >
                           <td className="py-3.5 px-4 font-mono font-bold text-[#0D47A1]">

@@ -576,7 +576,9 @@ function OPDConsultationPage({
             } as unknown as QueueItem;
           });
 
-        setNurseQueueItems(mappedNurseItems);
+        if (active) {
+          setNurseQueueItems(mappedNurseItems);
+        }
       } catch (err) {
         console.warn(
           "Failed to fetch nurse queue for OPD consultation page:",

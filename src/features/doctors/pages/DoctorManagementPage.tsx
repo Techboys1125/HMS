@@ -106,16 +106,16 @@ export function DoctorManagementPage() {
           departmentsApi.getDepartmentLookup(true),
         ]);
         if (cancelled) return;
-        setDoctors(doctorsData);
-        setDepartments(deptList.map((d) => d.departmentName));
+        if (!cancelled) {
+          setDoctors(doctorsData);
+          setDepartments(deptList.map((d) => d.departmentName));
+        }
       } catch (err) {
         if (!cancelled) {
           console.error("Failed to load doctor management data:", err);
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     }
 

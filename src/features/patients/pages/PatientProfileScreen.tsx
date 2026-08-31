@@ -37,17 +37,17 @@ export function PatientProfileScreen({
 
         if (cancelled) return;
 
-        if (rawPatient) {
-          setPatient(mapApiPatientToPatientRecord(rawPatient));
-        } else {
-          setError("Failed to load patient profile");
+        if (!cancelled) {
+          if (rawPatient) {
+            setPatient(mapApiPatientToPatientRecord(rawPatient));
+          } else {
+            setError("Failed to load patient profile");
+          }
         }
       } catch {
         if (!cancelled) setError("Failed to load patient data");
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     }
 

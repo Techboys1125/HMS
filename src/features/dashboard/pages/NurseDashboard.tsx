@@ -749,7 +749,7 @@ export function NurseDashboard() {
 
                   return (
                     <tr
-                      key={String(q.appointmentId || q.id || q.token || idx)}
+                      key={String(q.appointmentId || q.id || q.token || `${pName}-${dName}-${time}`)}
                       className="hover:bg-slate-50 transition-colors"
                     >
                       <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">

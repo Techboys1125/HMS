@@ -77,7 +77,7 @@ export const PatientRegisterForm: React.FC<PatientRegisterFormProps> = ({
         );
       }
       localStorage.setItem(
-        "hms-pending-patient-last",
+        "hms-pending-patient-last:v1",
         JSON.stringify(payload),
       );
       localStorage.setItem(

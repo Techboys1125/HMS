@@ -202,14 +202,14 @@ export function StartConsultationPage({
       // ignore
     }
 
-    let isMounted = true;
+    let cancelled = false;
 
     const loadContext = async () => {
       try {
         const res = await consultationService
           .loadFullConsultationDetails(activeConsultationId)
           .catch(() => null);
-        if (!isMounted) return;
+        if (cancelled) return;
 
         if (res) {
           const c = (res.consultation || res) as unknown as Record<
@@ -395,7 +395,7 @@ export function StartConsultationPage({
                     existingMeds = JSON.parse(rawCached);
                   }
                 }
-                if (existingMeds.length > 0) {
+                if (!cancelled && existingMeds.length > 0) {
                   setFormData((prev) => ({
                     ...prev,
                     medicines: existingMeds,
@@ -425,7 +425,7 @@ export function StartConsultationPage({
           .getAppointmentById(idToTry)
           .catch(() => null);
 
-        if (!isMounted) return;
+        if (cancelled) return;
 
         if (apptRes) {
           const rawData = (apptRes as unknown as Record<string, unknown>)?.data;
@@ -518,7 +518,7 @@ export function StartConsultationPage({
     void loadContext();
 
     return () => {
-      isMounted = false;
+      cancelled = true;
     };
   }, [activeConsultationId, selectedAppointment, selectedConsultation]);
 

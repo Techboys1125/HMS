@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useReducer, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { ROUTES } from "../../../app/routes/routes";
 import {
@@ -1347,9 +1347,9 @@ const ReceptionRegisterTable = ({
               </td>
             </tr>
           ) : (
-            filteredActivities.map((item, idx) => (
+            filteredActivities.map((item) => (
               <tr
-                key={`${item.mrn}-${item.appointmentId || idx}-${idx}`}
+                key={item.appointmentId || `${item.mrn}-${item.visitType}-${item.checkInTime || item.registrationTime || ''}`}
                 className="hover:bg-slate-50 transition-colors"
               >
                 <td className="py-3.5 px-4 font-mono font-bold text-[#0D47A1]">
@@ -1543,24 +1543,79 @@ export function ReceptionistReportsDashboardScreen(_props?: {
   onOpenPatientReport?: () => void;
 }) {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [dateRange, setDateRange] = useState("Today");
-  const [startDate, setStartDate] = useState(getOffsetDateStr(0));
-  const [endDate, setEndDate] = useState(getOffsetDateStr(0));
-  const [apptStatusFilter, setApptStatusFilter] = useState("All Statuses");
-  const [checkInStatusFilter, setCheckInStatusFilter] = useState(
-    "All Check-In Statuses",
+  const [state, dispatch] = useReducer(
+    (
+      prev: {
+        searchQuery: string;
+        dateRange: string;
+        startDate: string;
+        endDate: string;
+        apptStatusFilter: string;
+        checkInStatusFilter: string;
+        queueStatusFilter: string;
+        visitTypeFilter: string;
+        trendDays: "7 Days" | "30 Days" | "90 Days";
+        isRefreshing: boolean;
+        isLoading: boolean;
+        hasError: boolean;
+      },
+      next: Partial<{
+        searchQuery: string;
+        dateRange: string;
+        startDate: string;
+        endDate: string;
+        apptStatusFilter: string;
+        checkInStatusFilter: string;
+        queueStatusFilter: string;
+        visitTypeFilter: string;
+        trendDays: "7 Days" | "30 Days" | "90 Days";
+        isRefreshing: boolean;
+        isLoading: boolean;
+        hasError: boolean;
+      }>,
+    ) => ({ ...prev, ...next }),
+    {
+      searchQuery: "",
+      dateRange: "Today",
+      startDate: getOffsetDateStr(0),
+      endDate: getOffsetDateStr(0),
+      apptStatusFilter: "All Statuses",
+      checkInStatusFilter: "All Check-In Statuses",
+      queueStatusFilter: "All Queue Statuses",
+      visitTypeFilter: "All Visit Types",
+      trendDays: "7 Days" as const,
+      isRefreshing: false,
+      isLoading: false,
+      hasError: false,
+    },
   );
-  const [queueStatusFilter, setQueueStatusFilter] =
-    useState("All Queue Statuses");
-  const [visitTypeFilter, setVisitTypeFilter] = useState("All Visit Types");
+  const {
+    searchQuery,
+    dateRange,
+    startDate,
+    endDate,
+    apptStatusFilter,
+    checkInStatusFilter,
+    queueStatusFilter,
+    visitTypeFilter,
+    trendDays,
+    isRefreshing,
+    isLoading,
+    hasError,
+  } = state;
 
-  const [trendDays, setTrendDays] = useState<"7 Days" | "30 Days" | "90 Days">(
-    "7 Days",
-  );
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasError, setHasError] = useState(false);
+  const setSearchQuery = (val: string) => dispatch({ searchQuery: val });
+  const setDateRange = (val: string) => dispatch({ dateRange: val });
+  const setStartDate = (val: string) => dispatch({ startDate: val });
+  const setEndDate = (val: string) => dispatch({ endDate: val });
+  const setApptStatusFilter = (val: string) => dispatch({ apptStatusFilter: val });
+  const setCheckInStatusFilter = (val: string) => dispatch({ checkInStatusFilter: val });
+  const setQueueStatusFilter = (val: string) => dispatch({ queueStatusFilter: val });
+  const setVisitTypeFilter = (val: string) => dispatch({ visitTypeFilter: val });
+  const setTrendDays = (val: "7 Days" | "30 Days" | "90 Days") => dispatch({ trendDays: val });
+  const setIsRefreshing = (val: boolean) => dispatch({ isRefreshing: val });
+  const setIsLoading = (val: boolean) => dispatch({ isLoading: val });
+  const setHasError = (val: boolean) => dispatch({ hasError: val });
 
   // Pass singleDateParam only when startDate === endDate (e.g., Today, Yesterday).
   // For multi-day ranges (This Month, Last 7 Days, Custom Date range), pass undefined so API does not restrict to a single date.

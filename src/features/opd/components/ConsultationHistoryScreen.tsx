@@ -140,22 +140,23 @@ export function ConsultationHistoryScreen({
 
   // Fetch real patient and encounters data from API
   useEffect(() => {
-    let isMounted = true;
+    let cancelled = false;
 
     async function loadHistoryData() {
       if (!patientId) {
-        if (isMounted) setLoading(false);
+        if (!cancelled) setLoading(false);
         return;
       }
 
       try {
-        if (isMounted) setLoading(true);
+        if (!cancelled) setLoading(true);
 
         // 1. Fetch real Patient Profile
         try {
           const patRes = await patientsApi.getPatientByMrn(patientId);
+          if (cancelled) return;
           const p = unwrapApiData<Record<string, unknown>>(patRes) || {};
-          if (p && isMounted) {
+          if (p && !cancelled) {
             const rawAge = p.age ?? p.patientAge ?? p.ageYears;
             const rawDob = p.dob || p.dateOfBirth || p.birthDate;
             const computedAge = (() => {
@@ -187,23 +188,25 @@ export function ConsultationHistoryScreen({
                 "—",
             );
 
-            setPatientData({
-              name: String(p.fullName || p.name || p.patientName || "—"),
-              mrn: String(p.mrn || patientId),
-              age: computedAge,
-              gender: String(p.gender || "—"),
-              bloodGroup:
-                p.bloodGroup && p.bloodGroup !== "N/A"
-                  ? String(p.bloodGroup)
-                  : "—",
-              allergies: Array.isArray(p.allergies)
-                ? (p.allergies as string[])
-                : p.allergies
-                  ? [String(p.allergies)]
-                  : [],
-              primaryDoctor: primaryDocName,
-              department: primaryDeptName,
-            });
+            if (!cancelled) {
+              setPatientData({
+                name: String(p.fullName || p.name || p.patientName || "—"),
+                mrn: String(p.mrn || patientId),
+                age: computedAge,
+                gender: String(p.gender || "—"),
+                bloodGroup:
+                  p.bloodGroup && p.bloodGroup !== "N/A"
+                    ? String(p.bloodGroup)
+                    : "—",
+                allergies: Array.isArray(p.allergies)
+                  ? (p.allergies as string[])
+                  : p.allergies
+                    ? [String(p.allergies)]
+                    : [],
+                primaryDoctor: primaryDocName,
+                department: primaryDeptName,
+              });
+            }
           }
         } catch (e) {
           console.warn("Patient profile fetch notice:", e);
@@ -270,7 +273,7 @@ export function ConsultationHistoryScreen({
         const encountersList =
           await consultationApi.getPatientEncounters(patientId);
 
-        if (isMounted) {
+        if (!cancelled) {
           if (Array.isArray(encountersList) && encountersList.length > 0) {
             const mappedItems: TimelineConsultationItem[] = await Promise.all(
               encountersList.map(async (rawEnc: Record<string, unknown>) => {
@@ -753,14 +756,14 @@ export function ConsultationHistoryScreen({
       } catch (err) {
         console.error("Error fetching consultation history:", err);
       } finally {
-        if (isMounted) setLoading(false);
+        setLoading(false);
       }
     }
 
     loadHistoryData();
 
     return () => {
-      isMounted = false;
+      cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patientId]);

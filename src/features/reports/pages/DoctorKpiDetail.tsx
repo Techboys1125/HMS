@@ -1,4 +1,4 @@
-import { useState, useMemo, useTransition } from "react";
+import { useReducer, useMemo, useTransition } from "react";
 import {
   Download,
   RefreshCw,
@@ -81,22 +81,80 @@ export function DoctorDashboardKpiDetailScreen({
 }) {
   const todayStr = getOffsetDateStr(0);
 
-  const [selectedKpi, setSelectedKpi] = useState<DoctorKpiKey>(initialKpiKey);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [dateRange, setDateRange] = useState("Today");
-  const [startDate, setStartDate] = useState(todayStr);
-  const [endDate, setEndDate] = useState(todayStr);
-  const [consultStatusFilter, setConsultStatusFilter] = useState("All Statuses");
-  const [visitTypeFilter, setVisitTypeFilter] = useState("All Visit Types");
-  const [shiftFilter, setShiftFilter] = useState("All Shifts");
+  const [state, dispatch] = useReducer(
+    (
+      prev: {
+        selectedKpi: DoctorKpiKey;
+        searchQuery: string;
+        dateRange: string;
+        startDate: string;
+        endDate: string;
+        consultStatusFilter: string;
+        visitTypeFilter: string;
+        shiftFilter: string;
+        trendDays: "7 Days" | "30 Days" | "90 Days" | "1 Year";
+        isRefreshing: boolean;
+        hasError: boolean;
+        showLoadingDemo: boolean;
+      },
+      next: Partial<{
+        selectedKpi: DoctorKpiKey;
+        searchQuery: string;
+        dateRange: string;
+        startDate: string;
+        endDate: string;
+        consultStatusFilter: string;
+        visitTypeFilter: string;
+        shiftFilter: string;
+        trendDays: "7 Days" | "30 Days" | "90 Days" | "1 Year";
+        isRefreshing: boolean;
+        hasError: boolean;
+        showLoadingDemo: boolean;
+      }>,
+    ) => ({ ...prev, ...next }),
+    {
+      selectedKpi: initialKpiKey,
+      searchQuery: "",
+      dateRange: "Today",
+      startDate: todayStr,
+      endDate: todayStr,
+      consultStatusFilter: "All Statuses",
+      visitTypeFilter: "All Visit Types",
+      shiftFilter: "All Shifts",
+      trendDays: "7 Days" as const,
+      isRefreshing: false,
+      hasError: false,
+      showLoadingDemo: false,
+    },
+  );
+  const {
+    selectedKpi,
+    searchQuery,
+    dateRange,
+    startDate,
+    endDate,
+    consultStatusFilter,
+    visitTypeFilter,
+    shiftFilter,
+    trendDays,
+    isRefreshing,
+    hasError,
+    showLoadingDemo,
+  } = state;
 
-  const [trendDays, setTrendDays] = useState<
-    "7 Days" | "30 Days" | "90 Days" | "1 Year"
-  >("7 Days");
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [hasError, setHasError] = useState(false);
+  const setSelectedKpi = (val: DoctorKpiKey) => dispatch({ selectedKpi: val });
+  const setSearchQuery = (val: string) => dispatch({ searchQuery: val });
+  const setDateRange = (val: string) => dispatch({ dateRange: val });
+  const setStartDate = (val: string) => dispatch({ startDate: val });
+  const setEndDate = (val: string) => dispatch({ endDate: val });
+  const setConsultStatusFilter = (val: string) => dispatch({ consultStatusFilter: val });
+  const setVisitTypeFilter = (val: string) => dispatch({ visitTypeFilter: val });
+  const setShiftFilter = (val: string) => dispatch({ shiftFilter: val });
+  const setTrendDays = (val: "7 Days" | "30 Days" | "90 Days" | "1 Year") => dispatch({ trendDays: val });
+  const setIsRefreshing = (val: boolean) => dispatch({ isRefreshing: val });
+  const setHasError = (val: boolean) => dispatch({ hasError: val });
+  const setShowLoadingDemo = (val: boolean) => dispatch({ showLoadingDemo: val });
   const [isPending, startTransition] = useTransition();
-  const [showLoadingDemo, setShowLoadingDemo] = useState(false);
   const isLoading = isPending || showLoadingDemo;
 
   // ─── API HOOKS WIRING ──────────────────────────────────────────────────────
@@ -1103,9 +1161,9 @@ export function DoctorDashboardKpiDetailScreen({
                         </td>
                       </tr>
                     ) : (
-                      filteredRegister.map((item, idx) => (
+                      filteredRegister.map((item) => (
                         <tr
-                          key={`${item.id}-${idx}`}
+                          key={item.id}
                           className="hover:bg-slate-50 transition-colors"
                         >
                           <td className="py-3.5 px-4 font-bold text-[#0D47A1]">
