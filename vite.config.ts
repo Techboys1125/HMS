@@ -11,7 +11,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http:///10.180.175.223:8888",
+        target: "https://api.hms.viyaninfo.com",
         changeOrigin: true,
         secure: false,
       },
